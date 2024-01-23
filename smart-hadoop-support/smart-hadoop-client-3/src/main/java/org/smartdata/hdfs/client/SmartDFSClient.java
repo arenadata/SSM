@@ -126,6 +126,20 @@ public class SmartDFSClient extends DFSClient {
     }
   }
 
+  public SmartDFSClient(URI nameNodeUri, Configuration conf) throws IOException {
+    super(nameNodeUri, conf);
+    if (isSmartClientDisabled()) {
+      return;
+    }
+    try {
+      smartClient = new SmartClient(conf);
+      healthy = true;
+    } catch (IOException e) {
+      super.close();
+      throw e;
+    }
+  }
+
   public SmartDFSClient(Configuration conf) throws IOException {
     super(conf);
     if (isSmartClientDisabled()) {

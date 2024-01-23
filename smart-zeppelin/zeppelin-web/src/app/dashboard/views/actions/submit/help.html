@@ -238,6 +238,13 @@ limitations under the License.
       <td>Sync file to $dest.</td>
     </tr>
     <tr>
+      <td>distcp</td>
+      <td>-file $file -target $target [DistCp additional options]</td>
+      <td>Inter/intra-cluster distributed copying using Hadoop DistCp. User should specify the destination path in the -target option
+        and the comma-separated source path(s) in the -file option or the path of the file, containing source paths, in the -f option. Also action supports DistCp CLI options:
+        <a href="https://hadoop.apache.org/docs/stable/hadoop-distcp/DistCp.html#Command_Line_Options">documentation</a></td>
+    </tr>
+    <tr>
       <td>user defined actions</td>
       <td></td>
       <td>Interface defined for user to implement their own actions.</td>

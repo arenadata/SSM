@@ -33,7 +33,7 @@ public abstract class ActorSystemHarness {
 
   @After
   public void stopActorSystem() {
-    system.shutdown();
+     system.terminate();
   }
 
   public ActorSystem getActorSystem() {

@@ -90,7 +90,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.squareup</groupId>
@@ -303,6 +303,11 @@
                     <version>1.6.0_arenadata1</version>
                     <scope>test</scope>
                     <type>test-jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-http</artifactId>
+                    <version>${jetty.version}</version>
                 </dependency>
             </dependencies>
         </profile>

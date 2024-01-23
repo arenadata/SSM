@@ -72,6 +72,7 @@ public class HdfsActionFactory extends AbstractActionFactory {
     addAction(SmallFileCompactAction.class);
     addAction(SmallFileUncompactAction.class);
     addAction(CheckSumAction.class);
+    addAction(DistCpAction.class);
 //    addAction("list", ListFileAction.class);
 //    addAction("fsck", FsckAction.class);
 //    addAction("diskbalance", DiskBalanceAction.class);

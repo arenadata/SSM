@@ -66,6 +66,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -172,14 +173,18 @@ public class SmartAgent implements StatusReporter {
     executorService.scheduleAtFixedRate(
             statusReportTask, 1000, reportPeriod, TimeUnit.MILLISECONDS);
 
-    system.awaitTermination();
+    try {
+      Await.result(system.whenTerminated(), Duration.Inf());
+    } catch (Exception e) {
+        LOG.error("Failure during actor system runtime.", e);
+      }
   }
 
   public void shutdown() {
     Services.stop();
-    if (system != null && !system.isTerminated()) {
+    if (system != null && !system.whenTerminated().isCompleted()) {
       LOG.info("Shutting down system {}", AgentUtils.getSystemAddres(system));
-      system.shutdown();
+      system.terminate();
     }
   }
 

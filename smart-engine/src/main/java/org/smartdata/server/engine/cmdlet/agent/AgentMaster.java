@@ -125,7 +125,7 @@ public class AgentMaster {
   }
 
   public void shutdown() {
-    if (system != null && !system.isTerminated()) {
+    if (system != null && !system.whenTerminated().isCompleted()) {
       if (master != null && !master.isTerminated()) {
         LOG.info("Shutting down master {}...",
             AgentUtils.getFullPath(system, master.path()));
@@ -134,7 +134,7 @@ public class AgentMaster {
 
       LOG.info("Shutting down system {}...",
           AgentUtils.getSystemAddres(system));
-      system.shutdown();
+      system.terminate();
     }
   }
 
@@ -193,7 +193,11 @@ public class AgentMaster {
           }
         }
       });
-      system.awaitTermination();
+        try {
+            Await.result(system.whenTerminated(), Duration.Inf());
+        } catch (Exception e) {
+          LOG.error("Failure during actor system runtime.", e);
+        }
     }
   }
 

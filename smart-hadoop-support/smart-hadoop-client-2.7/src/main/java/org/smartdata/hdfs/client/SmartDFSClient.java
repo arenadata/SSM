@@ -139,6 +139,21 @@ public class SmartDFSClient extends DFSClient {
     }
   }
 
+  public SmartDFSClient(URI nameNodeUri, Configuration conf) throws IOException {
+    super(nameNodeUri, conf);
+    if (isSmartClientDisabled()) {
+      return;
+    }
+    try {
+      smartClient = new SmartClient(conf);
+      healthy = true;
+    } catch (IOException e) {
+      super.close();
+      throw e;
+    }
+  }
+
+
   @Override
   public DFSInputStream open(String src) throws IOException {
     return open(src, 4096, true);

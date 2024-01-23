@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.smartdata.agent;
 
 import akka.actor.ActorSystem;
@@ -30,10 +31,14 @@ import org.smartdata.server.engine.cmdlet.agent.AgentUtils;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterNewAgent;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent;
 
+import java.security.Permission;
+
 public class TestSmartAgent extends ActorSystemHarness {
 
   @Test
-  public void testAgent() throws InterruptedException {
+  public void testAgent() {
+    System.setSecurityManager(new NoExitSecurityManager());
+
     ActorSystem system = getActorSystem();
     final int num = 2;
     JavaTestKit[] masters = new JavaTestKit[num];
@@ -43,9 +48,12 @@ public class TestSmartAgent extends ActorSystemHarness {
       masterPaths[i] = AgentUtils.getFullPath(system, masters[i].getRef().path());
     }
     SmartConf conf = new SmartConf();
-    AgentRunner runner = new AgentRunner(
-        AgentUtils.overrideRemoteAddress(ConfigFactory.load(AgentConstants.AKKA_CONF_FILE),
-            conf.get(SmartConfKeys.SMART_AGENT_ADDRESS_KEY)), masterPaths);
+    Config config = AgentUtils.overrideRemoteAddress(
+        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE),
+        conf.get(SmartConfKeys.SMART_AGENT_ADDRESS_KEY)
+    );
+
+    AgentRunner runner = new AgentRunner(config, masterPaths);
     runner.start();
 
     masters[0].expectMsgClass(RegisterNewAgent.class);
@@ -57,7 +65,7 @@ public class TestSmartAgent extends ActorSystemHarness {
   }
 
 
-  private class AgentRunner extends Thread {
+  private static class AgentRunner extends Thread {
 
     private final Config config;
     private final String[] masters;
@@ -74,4 +82,22 @@ public class TestSmartAgent extends ActorSystemHarness {
     }
   }
 
+  /**
+   * Used to prevent deadlock caused by Unit main thread holding java.lang.Shutdown class lock,
+   * SmartAgent.Shutdown#run() calling System.exit() and Smart agent shutdown hook
+   * waiting for actor system to shut down.
+   */
+  static class NoExitSecurityManager extends SecurityManager {
+    @Override
+    public void checkPermission(Permission perm) {
+    }
+
+    @Override
+    public void checkExit(int status) {
+      super.checkExit(status);
+      if (status == -1) {
+        throw new RuntimeException("Exited with status: " + status);
+      }
+    }
+  }
 }

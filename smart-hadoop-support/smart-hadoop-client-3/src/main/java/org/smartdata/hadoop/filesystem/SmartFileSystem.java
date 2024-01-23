@@ -91,7 +91,7 @@ public class SmartFileSystem extends DistributedFileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
 
-    this.smartDFSClient = new SmartDFSClient(conf);
+    this.smartDFSClient = new SmartDFSClient(uri, conf);
   }
 
   @Override
