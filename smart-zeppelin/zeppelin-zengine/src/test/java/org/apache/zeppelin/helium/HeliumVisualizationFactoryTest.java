@@ -50,7 +50,7 @@ public class HeliumVisualizationFactoryTest {
     String resDir = new File(res.getFile()).getParent();
     File moduleDir = new File(resDir + "/../../../../zeppelin-web/src/app/");
 
-    conf = new ZeppelinConfiguration();
+    conf = ZeppelinConfiguration.create();
 
     hvf = new HeliumVisualizationFactory(conf,
         tmpDir,

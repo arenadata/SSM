@@ -56,6 +56,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_KEY;
 import static org.smartdata.model.ActionInfo.OLD_FILE_ID;
 
 public class SmallFileScheduler extends ActionSchedulerService {
@@ -91,17 +93,21 @@ public class SmallFileScheduler extends ActionSchedulerService {
    */
   private ScheduledExecutorService executorService;
 
-  private static final int META_STORE_INSERT_BATCH_SIZE = 200;
   public static final String COMPACT_ACTION_NAME = "compact";
   public static final String UNCOMPACT_ACTION_NAME = "uncompact";
   public static final List<String> ACTIONS =
       Arrays.asList(COMPACT_ACTION_NAME, UNCOMPACT_ACTION_NAME);
-  private DFSClient dfsClient;
   private static final Logger LOG = LoggerFactory.getLogger(SmallFileScheduler.class);
+  private final int metastoreInsertBatchSize;
+  private DFSClient dfsClient;
 
   public SmallFileScheduler(SmartContext context, MetaStore metaStore) {
     super(context, metaStore);
     this.metaStore = metaStore;
+    this.metastoreInsertBatchSize = context.getConf().getInt(
+        SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_KEY,
+        SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_DEFAULT
+    );
   }
 
   @Override
@@ -661,7 +667,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
     List<CompactFileState> compactFileStates = new ArrayList<>();
 
     // Get compact file states from compactFileStateQueue
-    for (int i = 0; i < META_STORE_INSERT_BATCH_SIZE; i++) {
+    for (int i = 0; i < metastoreInsertBatchSize; i++) {
       CompactFileState compactFileState = compactFileStateQueue.poll();
       if (compactFileState != null) {
         try {

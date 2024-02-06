@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.smartdata.utils.StringUtil.ssmPatternToSqlLike;
+
 /** Convert SSM parse tree into internal representation. */
 public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   private Map<String, SmartObject> objects = new HashMap<>();
@@ -801,8 +803,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       if (op.length() > 0) {
         String ropStr = rop.getRet();
         if (optype == OperatorType.MATCHES) {
-          ropStr = ropStr.replace("*", "%");
-          ropStr = ropStr.replace("?", "_");
+          ropStr = ssmPatternToSqlLike(ropStr);
         }
 
         if (bEflag && !procAcc) {

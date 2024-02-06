@@ -33,13 +33,12 @@ import org.smartdata.metrics.impl.MetricsFactory;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.FileAccessInfo;
 import org.smartdata.model.FileInfo;
+import org.smartdata.model.PathChecker;
 import org.smartdata.model.StorageCapacity;
 import org.smartdata.model.Utilization;
-import org.smartdata.model.WhitelistHelper;
 import org.smartdata.server.engine.data.AccessEventFetcher;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -56,8 +55,8 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   private AccessEventFetcher accessEventFetcher;
   private FileAccessEventSource fileAccessEventSource;
   private AbstractService statesUpdaterService;
+  private PathChecker pathChecker;
   private volatile boolean working = false;
-  private List<String> ignoreDirs = new ArrayList<String>();
 
   public static final Logger LOG = LoggerFactory.getLogger(StatesManager.class);
 
@@ -76,12 +75,13 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     LOG.info("Initializing ...");
     this.executorService = Executors.newScheduledThreadPool(4);
     this.accessCountTableManager = new AccessCountTableManager(
-        serverContext.getMetaStore(), executorService);
+        serverContext.getMetaStore(), executorService, serverContext.getConf());
     this.fileAccessEventSource = MetricsFactory.createAccessEventSource(serverContext.getConf());
     this.accessEventFetcher =
         new AccessEventFetcher(
             serverContext.getConf(), accessCountTableManager,
             executorService, fileAccessEventSource.getCollector());
+    this.pathChecker = new PathChecker(serverContext.getConf());
 
     initStatesUpdaterService();
     if (statesUpdaterService == null) {
@@ -89,7 +89,6 @@ public class StatesManager extends AbstractService implements Reconfigurable {
           getReconfigurableProperties(), this);
     }
 
-    ignoreDirs = serverContext.getConf().getIgnoreDir();
     LOG.info("Initialized.");
   }
 
@@ -140,20 +139,18 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     return this.accessCountTableManager.getTables(timeInMills);
   }
 
-  public void reportFileAccessEvent(FileAccessEvent event) throws IOException {
+  public void reportFileAccessEvent(FileAccessEvent event) {
     String path = event.getPath();
     path = path + (path.endsWith("/") ? "" : "/");
-    for (String s : ignoreDirs) {
-      if (path.startsWith(s)) {
-        return;
-      }
+
+    if (pathChecker.isIgnored(path)) {
+      LOG.debug("Path {} is in the ignore list. Skip report file access event.", path);
+      return;
     }
-    if (WhitelistHelper.isEnabled(serverContext.getConf())) {
-      if (!WhitelistHelper.isInWhitelist(path, serverContext.getConf())) {
-        LOG.debug("Path " + path + " is not in the whitelist. "
-                + "Report file access event failed.");
-        return;
-      }
+
+    if (!pathChecker.isCovered(path)) {
+      LOG.debug("Path {} is not in the whitelist. Report file access event failed.", path);
+      return;
     }
     event.setTimeStamp(System.currentTimeMillis());
     this.fileAccessEventSource.insertEventFromSmartClient(event);

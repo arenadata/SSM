@@ -18,9 +18,11 @@
 package org.smartdata.hdfs.metric;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.SubsetConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.SubsetConfiguration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -314,20 +316,21 @@ public class NNMetricsAccessEventCollector implements FileAccessEventCollector {
     }
 
     private static SubsetConfiguration loadConfiguration(String prefix, String... fileNames) {
+      Configurations configs = new Configurations();
       for (String fname : fileNames) {
         try {
-          org.apache.commons.configuration.Configuration cf = new PropertiesConfiguration(fname)
-            .interpolatedConfiguration();
+          PropertiesConfiguration cf = configs.properties(fname);
           LOG.info("loaded properties from " + fname);
           return new SubsetConfiguration(cf, prefix, ".");
         } catch (ConfigurationException e) {
-          if (e.getMessage().startsWith("Cannot locate configuration")) {
+          if (e.getMessage().contains("Cannot locate configuration source")) {
             continue;
           }
           throw new RuntimeException(e);
         }
       }
-      return new SubsetConfiguration(new PropertiesConfiguration(), prefix);
+      PropertiesConfiguration emptyConfig = new PropertiesConfiguration();
+      return new SubsetConfiguration(emptyConfig, prefix, ".");
     }
 
     /**

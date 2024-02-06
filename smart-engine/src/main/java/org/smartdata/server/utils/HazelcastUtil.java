@@ -17,8 +17,8 @@
  */
 package org.smartdata.server.utils;
 
+import com.hazelcast.cluster.Member;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.Member;
 
 import java.util.ArrayList;
 import java.util.List;

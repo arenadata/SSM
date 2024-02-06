@@ -17,13 +17,16 @@
  */
 package org.smartdata.hdfs.metric.fetcher;
 
+import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.hdfs.inotify.MissingEventsException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -35,21 +38,25 @@ import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 
 import static org.mockito.Mockito.*;
+import static org.smartdata.conf.SmartConfKeys.SMART_IGNORED_PATH_TEMPLATES_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_IGNORE_DIRS_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NAMESPACE_FETCH_INTERVAL_MS_KEY;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class TestNamespaceFetcher {
-  final List<java.lang.String> pathesInDB = new ArrayList<>();
+  final Set<String> pathesInDB = new HashSet<>();
 
-  NamespaceFetcher init(MiniDFSCluster cluster, SmartConf conf) throws IOException, InterruptedException,
-      MissingEventsException, MetaStoreException {
+  NamespaceFetcher init(MiniDFSCluster cluster, SmartConf conf)
+      throws IOException, MetaStoreException {
       final DistributedFileSystem dfs = cluster.getFileSystem();
       dfs.mkdir(new Path("/user"), new FsPermission("777"));
       dfs.create(new Path("/user/user1"));
       dfs.create(new Path("/user/user2"));
+      // this file should be ignored in each case because of
+      // the 'smart.internal.path.templates' option's default value
+      dfs.create(new Path("/user/.tmpfile"));
       dfs.mkdir(new Path("/tmp"), new FsPermission("777"));
       DFSClient client = dfs.getClient();
 
@@ -68,18 +75,17 @@ public class TestNamespaceFetcher {
           return null;
         }
       }).when(adapter).insertFiles(any(FileInfo[].class));
-      NamespaceFetcher fetcher;
-      if(conf != null) {
-        fetcher = new NamespaceFetcher(client, adapter, 100, conf);
-      } else {
-        fetcher = new NamespaceFetcher(client, adapter, 100);
-      }
-      return fetcher;
+
+      SmartConf nonNullConfig = Optional.ofNullable(conf)
+          .orElseGet(SmartConf::new);
+      nonNullConfig.setLong(SMART_NAMESPACE_FETCH_INTERVAL_MS_KEY, 100L);
+
+      return new NamespaceFetcher(client, adapter, nonNullConfig);
   }
 
   @Test
   public void testFetchingFromRoot() throws IOException, InterruptedException,
-      MissingEventsException, MetaStoreException {
+      MetaStoreException {
     pathesInDB.clear();
     Configuration conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
@@ -87,11 +93,11 @@ public class TestNamespaceFetcher {
     try {
       NamespaceFetcher fetcher = init(cluster, null);
       fetcher.startFetch();
-      List<String> expected = Arrays.asList("/", "/user", "/user/user1", "/user/user2", "/tmp");
+      Set<String> expected = Sets.newHashSet("/", "/user", "/user/user1", "/user/user2", "/tmp");
       while (!fetcher.fetchFinished()) {
         Thread.sleep(100);
       }
-      Assert.assertTrue(pathesInDB.size() == expected.size() && pathesInDB.containsAll(expected));
+      Assert.assertEquals(expected, pathesInDB);
       fetcher.stop();
     } finally {
       cluster.shutdown();
@@ -100,7 +106,7 @@ public class TestNamespaceFetcher {
 
   @Test
   public void testFetchingFromGivenDir() throws IOException, InterruptedException,
-      MissingEventsException, MetaStoreException {
+      MetaStoreException {
     pathesInDB.clear();
     final Configuration conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
@@ -109,11 +115,11 @@ public class TestNamespaceFetcher {
     try {
       NamespaceFetcher fetcher = init(cluster, null);
       fetcher.startFetch(fetchDir);
-      List<String> expected = Arrays.asList("/user", "/user/user1", "/user/user2");
+      Set<String> expected = Sets.newHashSet("/user", "/user/user1", "/user/user2");
       while (!fetcher.fetchFinished()) {
         Thread.sleep(100);
       }
-      Assert.assertTrue(pathesInDB.size() == expected.size() && pathesInDB.containsAll(expected));
+      Assert.assertEquals(expected, pathesInDB);
       fetcher.stop();
     } finally {
       cluster.shutdown();
@@ -122,22 +128,43 @@ public class TestNamespaceFetcher {
 
   @Test
   public void testIgnore() throws IOException, InterruptedException,
-      MissingEventsException, MetaStoreException {
+      MetaStoreException {
     pathesInDB.clear();
-    final Configuration conf = new SmartConf();
+    final SmartConf conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
-    ArrayList<String> ignoreList = new ArrayList<>();
-    ignoreList.add("/tmp");
-    ((SmartConf) conf).setIgnoreDir(ignoreList);
+    conf.set(SMART_IGNORE_DIRS_KEY, "/tmp");
     try {
-      NamespaceFetcher fetcher = init(cluster, (SmartConf) conf);
+      NamespaceFetcher fetcher = init(cluster, conf);
       fetcher.startFetch();
-      List<String> expected = Arrays.asList("/", "/user", "/user/user1", "/user/user2");
+      Set<String> expected = Sets.newHashSet("/", "/user", "/user/user1", "/user/user2");
       while (!fetcher.fetchFinished()) {
         Thread.sleep(100);
       }
-      Assert.assertTrue(pathesInDB.size() == expected.size() && pathesInDB.containsAll(expected));
+      Assert.assertEquals(expected, pathesInDB);
+      fetcher.stop();
+    } finally {
+      cluster.shutdown();
+    }
+  }
+
+  @Test
+  public void testIgnorePathTemplate() throws IOException, InterruptedException,
+      MetaStoreException {
+    pathesInDB.clear();
+    final SmartConf conf = new SmartConf();
+    final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
+        .numDataNodes(2).build();
+    conf.set(SMART_IGNORED_PATH_TEMPLATES_KEY, ".*user2.*,/tmp.*");
+    try {
+      NamespaceFetcher fetcher = init(cluster, conf);
+      fetcher.startFetch();
+      Set<String> expected = Sets.newHashSet("/", "/user", "/user/user1");
+      while (!fetcher.fetchFinished()) {
+        Thread.sleep(100);
+      }
+      Assert.assertEquals(expected, pathesInDB);
+
       fetcher.stop();
     } finally {
       cluster.shutdown();
@@ -146,22 +173,22 @@ public class TestNamespaceFetcher {
 
   @Test
   public void testFetch() throws IOException, InterruptedException,
-      MissingEventsException, MetaStoreException {
+      MetaStoreException {
     pathesInDB.clear();
-    final Configuration conf = new SmartConf();
+    final SmartConf conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
     ArrayList<String> coverList = new ArrayList<>();
     coverList.add("/user");
-    ((SmartConf) conf).setCoverDir(coverList);
+    conf.setCoverDir(coverList);
     try {
-      NamespaceFetcher fetcher = init(cluster, (SmartConf) conf);
+      NamespaceFetcher fetcher = init(cluster, conf);
       fetcher.startFetch();
-      List<String> expected = Arrays.asList("/user/", "/user/user1", "/user/user2");
+      Set<String> expected = Sets.newHashSet("/user/", "/user/user1", "/user/user2");
       while (!fetcher.fetchFinished()) {
         Thread.sleep(100);
       }
-      Assert.assertTrue(pathesInDB.size() == expected.size() && pathesInDB.containsAll(expected));
+      Assert.assertEquals(expected, pathesInDB);
       fetcher.stop();
     } finally {
       cluster.shutdown();

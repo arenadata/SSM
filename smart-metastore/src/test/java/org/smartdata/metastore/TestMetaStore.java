@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static org.smartdata.utils.StringUtil.ssmPatternToRegex;
+
 public class TestMetaStore extends TestDaoBase {
   @Test
   public void testHighConcurrency() throws Exception {
@@ -742,11 +744,29 @@ public class TestMetaStore extends TestDaoBase {
   }
 
   @Test
+  public void testSrcInBackup() throws MetaStoreException {
+    BackUpInfo backUpInfo1 = new BackUpInfo(1, "src/", "dest/", 1,
+        ssmPatternToRegex("src/test_?/*.bin"));
+    metaStore.insertBackUpInfo(backUpInfo1);
+
+    Assert.assertFalse(metaStore.srcInBackup("src/file.bin"));
+    Assert.assertFalse(metaStore.srcInBackup("/tmp/dest/logs"));
+    Assert.assertFalse(metaStore.srcInBackup("src/another_file"));
+    Assert.assertFalse(metaStore.srcInBackup("src/test_1/another_file"));
+    Assert.assertFalse(metaStore.srcInBackup("src/test_2/another_dir/file.jpg"));
+    Assert.assertFalse(metaStore.srcInBackup("src/test_/file.bin"));
+    Assert.assertFalse(metaStore.srcInBackup("src/test_12/file.bin"));
+
+    Assert.assertTrue(metaStore.srcInBackup("src/test_3/file.bin"));
+    Assert.assertTrue(metaStore.srcInBackup("src/test_4/inner/another.bin"));
+  }
+
+  @Test
   public void testDeleteBackUpInfo() throws MetaStoreException {
     BackUpInfo backUpInfo1 = new BackUpInfo(1, "test1", "test1", 1);
     metaStore.insertBackUpInfo(backUpInfo1);
-    Assert.assertTrue(metaStore.srcInbackup("test1/dfafdsaf"));
-    Assert.assertFalse(metaStore.srcInbackup("test2"));
+    Assert.assertTrue(metaStore.srcInBackup("test1/dfafdsaf"));
+    Assert.assertFalse(metaStore.srcInBackup("test2"));
     metaStore.deleteBackUpInfo(1);
 
     Assert.assertTrue(metaStore.listAllBackUpInfo().size() == 0);

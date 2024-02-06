@@ -15,9 +15,9 @@
 package org.smartdata.server.cluster;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
+import com.hazelcast.topic.MessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
@@ -58,7 +58,7 @@ public class HazelcastWorker implements StatusReporter {
     this.executorService = Executors.newSingleThreadScheduledExecutor();
     this.instance = HazelcastInstanceProvider.getInstance();
     this.statusTopic = instance.getTopic(HazelcastExecutorService.STATUS_TOPIC);
-    String instanceId = instance.getCluster().getLocalMember().getUuid();
+    String instanceId = String.valueOf(instance.getCluster().getLocalMember().getUuid());
     this.masterMessages =
         instance.getTopic(HazelcastExecutorService.WORKER_TOPIC_PREFIX + instanceId);
     this.masterMessages.addMessageListener(new MasterMessageListener());

@@ -38,7 +38,7 @@ if [[ -z "${SMART_CONF_DIR}" ]]; then
 fi
 
 if [[ -z "${SMART_LOG_DIR}" ]]; then
-  export SMART_LOG_DIR="${SMART_HOME}/logs"
+  export SMART_LOG_DIR="/var/log/ssm"
 fi
 export SMART_LOG_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}
 

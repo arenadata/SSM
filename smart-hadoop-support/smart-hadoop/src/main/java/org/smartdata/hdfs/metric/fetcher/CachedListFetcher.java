@@ -17,6 +17,7 @@
  */
 package org.smartdata.hdfs.metric.fetcher;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
@@ -42,9 +43,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_CACHED_FILE_FETCH_INTERVAL_MS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_CACHED_FILE_FETCH_INTERVAL_MS_KEY;
+
 public class CachedListFetcher {
 
-  private static final Long DEFAULT_INTERVAL = 5 * 1000L;
   private final ScheduledExecutorService scheduledExecutorService;
   private final Long fetchInterval;
   private FetchTask fetchTask;
@@ -55,32 +58,22 @@ public class CachedListFetcher {
       LoggerFactory.getLogger(CachedListFetcher.class);
 
   public CachedListFetcher(
-      Long fetchInterval,
+      Configuration configuration,
       DFSClient dfsClient, MetaStore metaStore,
       ScheduledExecutorService service) {
-    this.fetchInterval = fetchInterval;
+    this.fetchInterval = configuration.getLong(
+        SMART_CACHED_FILE_FETCH_INTERVAL_MS_KEY,
+        SMART_CACHED_FILE_FETCH_INTERVAL_MS_DEFAULT
+    );
     this.metaStore = metaStore;
     this.fetchTask = new FetchTask(dfsClient, metaStore);
     this.scheduledExecutorService = service;
   }
 
   public CachedListFetcher(
-      Long fetchInterval,
+      Configuration configuration,
       DFSClient dfsClient, MetaStore metaStore) {
-    this(fetchInterval, dfsClient, metaStore,
-        Executors.newSingleThreadScheduledExecutor());
-  }
-
-  public CachedListFetcher(
-      DFSClient dfsClient, MetaStore metaStore) {
-    this(DEFAULT_INTERVAL, dfsClient, metaStore,
-        Executors.newSingleThreadScheduledExecutor());
-  }
-
-  public CachedListFetcher(
-      DFSClient dfsClient, MetaStore metaStore,
-      ScheduledExecutorService service) {
-    this(DEFAULT_INTERVAL, dfsClient, metaStore, service);
+    this(configuration, dfsClient, metaStore, Executors.newSingleThreadScheduledExecutor());
   }
 
   public void start() {
@@ -92,7 +85,7 @@ public class CachedListFetcher {
 
   public void stop() {
     if (scheduledFuture != null) {
-      this.scheduledFuture.cancel(false);
+      this.scheduledFuture.cancel(true);
     }
   }
 

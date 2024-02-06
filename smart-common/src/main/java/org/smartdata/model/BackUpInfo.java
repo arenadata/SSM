@@ -19,18 +19,25 @@ package org.smartdata.model;
 
 import java.util.Objects;
 
+import static org.smartdata.utils.StringUtil.ssmPatternToRegex;
+
 public class BackUpInfo {
   private long rid;
   private String src;
   private String dest;
-  private long period; // in milli-seconds
-
+  private long period; // in milliseconds
+  private String srcPattern;
 
   public BackUpInfo(long rid, String src, String dest, long period) {
+    this(rid, src, dest, period, ssmPatternToRegex(src + "*"));
+  }
+
+  public BackUpInfo(long rid, String src, String dest, long period, String srcPattern) {
     this.rid = rid;
     this.src = src;
     this.dest = dest;
     this.period = period;
+    this.srcPattern = srcPattern;
   }
 
   public BackUpInfo() {
@@ -68,6 +75,14 @@ public class BackUpInfo {
     this.period = period;
   }
 
+  public String getSrcPattern() {
+    return srcPattern;
+  }
+
+  public void setSrcPattern(String srcPattern) {
+    this.srcPattern = srcPattern;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -80,17 +95,23 @@ public class BackUpInfo {
     return rid == that.rid
         && period == that.period
         && Objects.equals(src, that.src)
-        && Objects.equals(dest, that.dest);
+        && Objects.equals(dest, that.dest)
+        && Objects.equals(srcPattern, that.srcPattern);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(rid, src, dest, period);
+    return Objects.hash(rid, src, dest, period, srcPattern);
   }
 
   @Override
   public String toString() {
-    return String.format(
-        "BackUpInfo{rid=%s, src\'%s\', dest=\'%s\', period=%s}", rid, src, dest, period);
+    return "BackUpInfo{"
+        + "rid=" + rid
+        + ", src='" + src + '\''
+        + ", dest='" + dest + '\''
+        + ", period=" + period
+        + ", srcPattern='" + srcPattern + '\''
+        + '}';
   }
 }

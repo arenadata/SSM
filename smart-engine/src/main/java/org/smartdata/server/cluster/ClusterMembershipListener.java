@@ -17,9 +17,8 @@
  */
 package org.smartdata.server.cluster;
 
-import com.hazelcast.core.MemberAttributeEvent;
-import com.hazelcast.core.MembershipEvent;
-import com.hazelcast.core.MembershipListener;
+import com.hazelcast.cluster.MembershipEvent;
+import com.hazelcast.cluster.MembershipListener;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.server.utils.HazelcastUtil;
@@ -58,9 +57,5 @@ public class ClusterMembershipListener implements MembershipListener {
     if (HazelcastUtil.isMaster(HazelcastInstanceProvider.getInstance())) {
       this.daemon.becomeActive();
     }
-  }
-
-  @Override
-  public void memberAttributeChanged(MemberAttributeEvent memberAttributeEvent) {
   }
 }

@@ -17,14 +17,13 @@
  */
 package org.smartdata.server.engine.cmdlet;
 
+import com.hazelcast.cluster.Member;
+import com.hazelcast.cluster.MembershipEvent;
+import com.hazelcast.cluster.MembershipListener;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Member;
-import com.hazelcast.core.MemberAttributeEvent;
-import com.hazelcast.core.MembershipEvent;
-import com.hazelcast.core.MembershipListener;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
+import com.hazelcast.topic.MessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.model.ExecutorType;
@@ -221,9 +220,6 @@ public class HazelcastExecutorService extends CmdletExecutorService {
       removeMember(member);
     }
 
-    @Override
-    public void memberAttributeChanged(MemberAttributeEvent memberAttributeEvent) {
-    }
   }
 
   private class StatusMessageListener implements MessageListener<StatusMessage> {

@@ -17,173 +17,173 @@
 
 package org.apache.zeppelin.conf;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.ConfigurationNode;
-import org.apache.commons.lang.StringUtils;
-import org.apache.zeppelin.util.Util;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.io.ClasspathLocationStrategy;
+import org.apache.commons.configuration2.io.CombinedLocationStrategy;
+import org.apache.commons.configuration2.io.FileLocationStrategy;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 /**
  * Zeppelin configuration.
  *
  */
-public class ZeppelinConfiguration extends XMLConfiguration {
+public class ZeppelinConfiguration {
   private static final String ZEPPELIN_SITE_XML = "zeppelin-site.xml";
   private static final long serialVersionUID = 4749305895693848035L;
   private static final Logger LOG = LoggerFactory.getLogger(ZeppelinConfiguration.class);
   private static ZeppelinConfiguration conf;
 
-  public ZeppelinConfiguration(URL url) throws ConfigurationException {
-    setDelimiterParsingDisabled(true);
-    load(url);
-  }
-
-  public ZeppelinConfiguration() {
-    ConfVars[] vars = ConfVars.values();
-    for (ConfVars v : vars) {
-      if (v.getType() == ConfVars.VarType.BOOLEAN) {
-        this.setProperty(v.getVarName(), v.getBooleanValue());
-      } else if (v.getType() == ConfVars.VarType.LONG) {
-        this.setProperty(v.getVarName(), v.getLongValue());
-      } else if (v.getType() == ConfVars.VarType.INT) {
-        this.setProperty(v.getVarName(), v.getIntValue());
-      } else if (v.getType() == ConfVars.VarType.FLOAT) {
-        this.setProperty(v.getVarName(), v.getFloatValue());
-      } else if (v.getType() == ConfVars.VarType.STRING) {
-        this.setProperty(v.getVarName(), v.getStringValue());
-      } else {
-        throw new RuntimeException("Unsupported VarType");
-      }
+  private ZeppelinConfiguration(String filename) {
+    try {
+      loadXMLConfig(filename);
+    } catch (ConfigurationException e) {
+      LOG.warn("Failed to load XML configuration, proceeding with a default,"
+          + "for a stacktrace activate the debug log");
+      LOG.debug("Failed to load XML configuration", e);
     }
-
   }
 
-
+  public static ZeppelinConfiguration create() {
+    if (conf != null) {
+      return conf;
+    }
+    return ZeppelinConfiguration.create(null);
+  }
   /**
-   * Load from resource.
-   *url = ZeppelinConfiguration.class.getResource(ZEPPELIN_SITE_XML);
-   * @throws ConfigurationException
+   * Load from via filename.
    */
-  public static synchronized ZeppelinConfiguration create() {
+  public static synchronized ZeppelinConfiguration create(String filename) {
     if (conf != null) {
       return conf;
     }
 
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    URL url;
+    conf = new ZeppelinConfiguration(filename);
 
-    url = ZeppelinConfiguration.class.getResource(ZEPPELIN_SITE_XML);
-    if (url == null) {
-      ClassLoader cl = ZeppelinConfiguration.class.getClassLoader();
-      if (cl != null) {
-        url = cl.getResource(ZEPPELIN_SITE_XML);
-      }
-    }
-    if (url == null) {
-      url = classLoader.getResource(ZEPPELIN_SITE_XML);
-    }
 
-    if (url == null) {
-      LOG.warn("Failed to load configuration, proceeding with a default");
-      conf = new ZeppelinConfiguration();
+    LOG.info("Server Host: {}", conf.getServerAddress());
+    if (conf.useSsl()) {
+      LOG.info("Server SSL Port: {}", conf.getServerSslPort());
     } else {
-      try {
-        LOG.info("Load configuration from " + url);
-        conf = new ZeppelinConfiguration(url);
-      } catch (ConfigurationException e) {
-        LOG.warn("Failed to load configuration from " + url + " proceeding with a default", e);
-        conf = new ZeppelinConfiguration();
-      }
+      LOG.info("Server Port: {}", conf.getServerPort());
     }
-
-    LOG.info("Server Host: " + conf.getServerAddress());
-    if (conf.useSsl() == false) {
-      LOG.info("Server Port: " + conf.getServerPort());
-    } else {
-      LOG.info("Server SSL Port: " + conf.getServerSslPort());
-    }
-    LOG.info("Context Path: " + conf.getServerContextPath());
-    LOG.info("Zeppelin Version: " + Util.getVersion());
+    LOG.info("Context Path: {}", conf.getServerContextPath());
+    LOG.info("Zeppelin Version: {}", "0.9.0");
 
     return conf;
   }
 
+  public static void reset() {
+    conf = null;
+  }
+  private final Map<String, String> properties = new HashMap<>();
+
+  private List<ImmutableNode> getChildren(List<ImmutableNode> children, final String name) {
+    if (name == null) {
+      return new ArrayList<>();
+    }
+
+    List<ImmutableNode> filteredList = new ArrayList<>();
+    for (ImmutableNode in : children) {
+      if (name.equals(in.getNodeName())) {
+        filteredList.add(in);
+      }
+    }
+    return filteredList;
+  }
+  private void loadXMLConfig(String filename) throws ConfigurationException {
+    if (StringUtils.isBlank(filename)) {
+      filename = ZEPPELIN_SITE_XML;
+    }
+    List<FileLocationStrategy> subs = Arrays.asList(
+            new ZeppelinLocationStrategy(),
+            new ClasspathLocationStrategy());
+    FileLocationStrategy strategy = new CombinedLocationStrategy(subs);
+    Parameters params = new Parameters();
+    FileBasedConfigurationBuilder<XMLConfiguration> xmlbuilder =
+            new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class)
+                    .configure(params.xml()
+                            .setLocationStrategy(strategy)
+                            .setFileName(filename)
+                            .setBasePath(File.separator + "conf" + File.separator));
+    XMLConfiguration xmlConfig = xmlbuilder.getConfiguration();
+    List<ImmutableNode> nodes = xmlConfig.getNodeModel().getRootNode().getChildren();
+    if (nodes != null && !nodes.isEmpty()) {
+      for (ImmutableNode p : nodes) {
+        String name = String.valueOf(getChildren(p.getChildren(), "name").get(0).getValue());
+        String value = String.valueOf(getChildren(p.getChildren(), "value").get(0).getValue());
+        if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(value)) {
+          setProperty(name, value);
+        }
+      }
+    }
+  }
+
+  public void setProperty(String name, String value) {
+    if (StringUtils.isNoneBlank(name, value)) {
+      this.properties.put(name, value);
+    }
+  }
 
   private String getStringValue(String name, String d) {
-    List<ConfigurationNode> properties = getRootNode().getChildren();
-    if (properties == null || properties.isEmpty()) {
-      return d;
-    }
-    for (ConfigurationNode p : properties) {
-      if (p.getChildren("name") != null && !p.getChildren("name").isEmpty()
-          && name.equals(p.getChildren("name").get(0).getValue())) {
-        return (String) p.getChildren("value").get(0).getValue();
-      }
+    String value = this.properties.get(name);
+    if (value != null) {
+      return value;
     }
     return d;
   }
 
   private int getIntValue(String name, int d) {
-    List<ConfigurationNode> properties = getRootNode().getChildren();
-    if (properties == null || properties.isEmpty()) {
-      return d;
-    }
-    for (ConfigurationNode p : properties) {
-      if (p.getChildren("name") != null && !p.getChildren("name").isEmpty()
-          && name.equals(p.getChildren("name").get(0).getValue())) {
-        return Integer.parseInt((String) p.getChildren("value").get(0).getValue());
+    String value = this.properties.get(name);
+    if (value != null) {
+      try {
+        return Integer.parseInt(value);
+      } catch (NumberFormatException e) {
+        LOG.warn("Can not parse the property {} with"
+            + " the value \"{}\" to an int value", name, value, e);
       }
     }
     return d;
   }
 
   private long getLongValue(String name, long d) {
-    List<ConfigurationNode> properties = getRootNode().getChildren();
-    if (properties == null || properties.isEmpty()) {
-      return d;
-    }
-    for (ConfigurationNode p : properties) {
-      if (p.getChildren("name") != null && !p.getChildren("name").isEmpty()
-          && name.equals(p.getChildren("name").get(0).getValue())) {
-        return Long.parseLong((String) p.getChildren("value").get(0).getValue());
+    String value = this.properties.get(name);
+    if (value != null) {
+      try {
+        return Long.parseLong(value);
+      } catch (NumberFormatException e) {
+        LOG.warn("Can not parse the property {} with"
+            + " the value \"{}\" to a long value", name, value, e);
       }
     }
     return d;
   }
 
+
   private float getFloatValue(String name, float d) {
-    List<ConfigurationNode> properties = getRootNode().getChildren();
-    if (properties == null || properties.isEmpty()) {
-      return d;
-    }
-    for (ConfigurationNode p : properties) {
-      if (p.getChildren("name") != null && !p.getChildren("name").isEmpty()
-          && name.equals(p.getChildren("name").get(0).getValue())) {
-        return Float.parseFloat((String) p.getChildren("value").get(0).getValue());
+    String value = this.properties.get(name);
+    if (value != null) {
+      try {
+        return Float.parseFloat(value);
+      } catch (NumberFormatException e) {
+        LOG.warn("Can not parse the property {} with"
+            + " the value \"{}\" to a float value", name, value, e);
       }
     }
     return d;
   }
 
   private boolean getBooleanValue(String name, boolean d) {
-    List<ConfigurationNode> properties = getRootNode().getChildren();
-    if (properties == null || properties.isEmpty()) {
-      return d;
-    }
-    for (ConfigurationNode p : properties) {
-      if (p.getChildren("name") != null && !p.getChildren("name").isEmpty()
-          && name.equals(p.getChildren("name").get(0).getValue())) {
-        return Boolean.parseBoolean((String) p.getChildren("value").get(0).getValue());
-      }
+    String value = this.properties.get(name);
+    if (value != null) {
+      return Boolean.parseBoolean(value);
     }
     return d;
   }

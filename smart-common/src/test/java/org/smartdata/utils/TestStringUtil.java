@@ -20,9 +20,14 @@ package org.smartdata.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.smartdata.utils.StringUtil.ssmPatternToRegex;
+import static org.smartdata.utils.StringUtil.ssmPatternToSqlLike;
+import static org.smartdata.utils.StringUtil.ssmPatternsToRegex;
 
 /**
  * Tests for StringUtil.
@@ -41,5 +46,27 @@ public class TestStringUtil {
       Assert.assertTrue(strs.get(str) == items.size());
       System.out.println(items.size() + " -> " + str);
     }
+  }
+
+  @Test
+  public void testSsmPatternToSqlLike() {
+    Assert.assertEquals("/src/%", ssmPatternToSqlLike("/src/*"));
+    Assert.assertEquals("/another_dir/test/%.bin", ssmPatternToSqlLike("/another_dir/test/*.bin"));
+    Assert.assertEquals("/some/dir-_/file.%", ssmPatternToSqlLike("/some/dir-?/file.*"));
+    Assert.assertEquals("/plain/path", ssmPatternToSqlLike("/plain/path"));
+  }
+
+  @Test
+  public void testSsmPatternToRegex() {
+    Assert.assertEquals("/src/.*", ssmPatternToRegex("/src/*"));
+    Assert.assertEquals("/another_dir/test/.*\\.bin", ssmPatternToRegex("/another_dir/test/*.bin"));
+    Assert.assertEquals("/some/dir_./file\\..*", ssmPatternToRegex("/some/dir_?/file.*"));
+    Assert.assertEquals("/plain/path", ssmPatternToRegex("/plain/path"));
+  }
+
+  @Test
+  public void testSsmPatternsToRegex() {
+    List<String> ssmPatterns = Arrays.asList("/src/*", "/file_?.*", "/test_dir");
+    Assert.assertEquals("(/src/.*|/file_.\\..*|/test_dir)", ssmPatternsToRegex(ssmPatterns));
   }
 }

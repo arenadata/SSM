@@ -110,6 +110,7 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
     parameters.put("src", backUpInfo.getSrc());
     parameters.put("dest", backUpInfo.getDest());
     parameters.put("period", backUpInfo.getPeriod());
+    parameters.put("src_pattern", backUpInfo.getSrcPattern());
     return parameters;
   }
 
@@ -122,6 +123,7 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
       backUpInfo.setSrc(resultSet.getString("src"));
       backUpInfo.setDest(resultSet.getString("dest"));
       backUpInfo.setPeriod(resultSet.getLong("period"));
+      backUpInfo.setSrcPattern(resultSet.getString("src_pattern"));
 
       return backUpInfo;
     }

@@ -17,6 +17,7 @@
  */
 package org.smartdata.server.engine.rule;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.SyncAction;
@@ -32,11 +33,14 @@ import org.smartdata.model.rule.TranslateResult;
 import org.smartdata.utils.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
+
+import static org.smartdata.utils.StringUtil.ssmPatternsToRegex;
 
 public class FileCopyDrPlugin implements RuleExecutorPlugin {
   private MetaStore metaStore;
@@ -51,8 +55,8 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
   public void onNewRuleExecutor(final RuleInfo ruleInfo, TranslateResult tResult) {
     long ruleId = ruleInfo.getId();
     List<String> pathsCheckGlob = tResult.getGlobPathCheck();
-    if (pathsCheckGlob.size() == 0) {
-      pathsCheckGlob = Arrays.asList("/*");
+    if (pathsCheckGlob.isEmpty()) {
+      pathsCheckGlob = Collections.singletonList("/*");
     }
     List<String> pathsCheck = getPathMatchesList(pathsCheckGlob);
     String dirs = StringUtil.join(",", pathsCheck);
@@ -62,12 +66,13 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
 
         List<String> statements = tResult.getSqlStatements();
         String before = statements.get(statements.size() - 1);
-        String after = before.replace(";", " UNION " + referenceNonExists(tResult, pathsCheck));
+        String after = before.replace(";", " UNION " + referenceNonExists(pathsCheckGlob));
         statements.set(statements.size() - 1, after);
 
         BackUpInfo backUpInfo = new BackUpInfo();
         backUpInfo.setRid(ruleId);
         backUpInfo.setSrc(dirs);
+        backUpInfo.setSrcPattern(ssmPatternsToRegex(pathsCheckGlob));
         String dest = des.getActionArgs(i).get(SyncAction.DEST);
         if (!dest.endsWith("/")) {
           dest += "/";
@@ -118,14 +123,16 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
     return ret;
   }
 
-  private String referenceNonExists(TranslateResult tr, List<String> dirs) {
+  private String referenceNonExists(List<String> globTemplates) {
     String temp = "SELECT src FROM file_diff WHERE "
         + "state = 0 AND diff_type IN (1,2) AND (%s);";
-    String srcs = "src LIKE '" + dirs.get(0) + "%'";
-    for (int i = 1; i < dirs.size(); i++) {
-      srcs +=  " OR src LIKE '" + dirs.get(i) + "%'";
-    }
-    return String.format(temp, srcs);
+
+    StringJoiner queryFilterBuilder = new StringJoiner(" OR ");
+    globTemplates.stream()
+        .map(StringUtil::ssmPatternToSqlLike)
+        .forEach(template -> queryFilterBuilder.add("src LIKE '" + template + "'"));
+
+    return String.format(temp, queryFilterBuilder);
   }
 
   public boolean preExecution(final RuleInfo ruleInfo, TranslateResult tResult) {

@@ -18,6 +18,7 @@
 package org.smartdata.metastore.dao;
 
 import org.smartdata.model.FileInfo;
+import org.smartdata.model.FileInfoUpdate;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -50,7 +51,7 @@ public interface FileInfoDao {
 
   int update(String path, int storagePolicy);
 
-  int updateByPath(String path, FileInfo fileInfo);
+  int updateByPath(String path, FileInfoUpdate fileUpdate);
 
   void deleteById(long fid);
 

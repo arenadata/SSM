@@ -8,6 +8,16 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
-    <include file="db/changelog/changelog-1.init-db.xml"/>
-    <include file="db/changelog/changelog-2.add-backup-info-pattern-field.xml"/>
+    <changeSet id="2024.01.31_001" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="backup_file" columnName="src_pattern"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="backup_file">
+            <column name="src_pattern" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

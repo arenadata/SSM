@@ -270,8 +270,9 @@ public class SmartServer {
       engine.stop();
     }
 
-    if (zeppelinServer != null) {
-      zeppelinServer.stop();
+    MetaStore metaStore = context.getMetaStore();
+    if (metaStore != null) {
+      metaStore.close();
     }
 
     try {
@@ -279,6 +280,10 @@ public class SmartServer {
         rpcServer.stop();
       }
     } catch (Exception e) {
+    }
+
+    if (zeppelinServer != null) {
+      zeppelinServer.stop();
     }
   }
 

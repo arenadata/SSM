@@ -395,28 +395,36 @@ public class SmartZeppelinServer {
     }
   }
 
-  private void setupRestApiContextHandler(WebAppContext webApp) throws Exception {
+  private void setupRestApiContextHandler(WebAppContext webApp) {
+    try {
+      webApp.setSessionHandler(new SessionHandler());
 
-    webApp.setSessionHandler(new SessionHandler());
+      // There are two sets of rest api: Zeppelin's and SSM's. They have different path.
+      ResourceConfig smartConfig = new ApplicationAdapter(new SmartRestApp());
+      ServletHolder smartServletHolder = new ServletHolder(new ServletContainer(smartConfig));
+      webApp.addServlet(smartServletHolder, SMART_PATH_SPEC);
 
-    // There are two sets of rest api: Zeppelin's and SSM's. They have different path.
-    ResourceConfig smartConfig = new ApplicationAdapter(new SmartRestApp());
-    ServletHolder smartServletHolder = new ServletHolder(new ServletContainer(smartConfig));
-    webApp.addServlet(smartServletHolder, SMART_PATH_SPEC);
+      ResourceConfig zeppelinConfig = new ApplicationAdapter(new ZeppelinRestApp());
+      ServletHolder zeppelinServletHolder = new ServletHolder(new ServletContainer(zeppelinConfig));
+      webApp.addServlet(zeppelinServletHolder, ZEPPELIN_PATH_SPEC);
 
-    ResourceConfig zeppelinConfig = new ApplicationAdapter(new ZeppelinRestApp());
-    ServletHolder zeppelinServletHolder = new ServletHolder(new ServletContainer(zeppelinConfig));
-    webApp.addServlet(zeppelinServletHolder, ZEPPELIN_PATH_SPEC);
-
-    String shiroIniPath = zconf.getShiroPath();
-    if (!StringUtils.isBlank(shiroIniPath)) {
-      webApp.setInitParameter("shiroConfigLocations",
-          new File(shiroIniPath).toURI().toString());
-      SecurityUtils.initSecurityManager(shiroIniPath);
-      webApp.addFilter(ShiroFilter.class, ZEPPELIN_PATH_SPEC, EnumSet.allOf(DispatcherType.class));
-      // To make shiro configuration (authentication, etc.) take effect for smart rest api as well.
-      webApp.addFilter(ShiroFilter.class, SMART_PATH_SPEC, EnumSet.allOf(DispatcherType.class));
-      webApp.addEventListener(new EnvironmentLoaderListener());
+      String shiroIniPath = zconf.getShiroPath();
+      if (!StringUtils.isBlank(shiroIniPath)) {
+        webApp.setInitParameter("shiroConfigLocations",
+                new File(shiroIniPath).toURI().toString());
+        SecurityUtils.initSecurityManager(shiroIniPath);
+        webApp.addFilter(ShiroFilter.class, ZEPPELIN_PATH_SPEC,
+                EnumSet.allOf(DispatcherType.class));
+        // To make shiro configuration (authentication, etc.)
+        // take effect for smart rest api as well.
+        webApp.addFilter(ShiroFilter.class, SMART_PATH_SPEC,
+                EnumSet.allOf(DispatcherType.class));
+        webApp.addEventListener(new EnvironmentLoaderListener());
+      }
+    }
+    catch (Exception e) {
+      LOG.error("Cannot setupRestApiContextHandler", e);
+      throw e;
     }
   }
 

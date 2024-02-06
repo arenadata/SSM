@@ -74,7 +74,7 @@ public abstract class MiniClusterHarness {
   @After
   public void shutdown() throws IOException {
     if (cluster != null) {
-      cluster.shutdown();
+      cluster.shutdown(true);
     }
   }
 }

@@ -18,6 +18,7 @@
 package org.smartdata.metastore.dao;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.metastore.MetaStore;
@@ -33,12 +34,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AccessCountTableManager {
-  private static final int NUM_DAY_TABLES_TO_KEEP = 30;
-  private static final int NUM_HOUR_TABLES_TO_KEEP = 48;
-  private static final int NUM_MINUTE_TABLES_TO_KEEP = 120;
-  private static final int NUM_SECOND_TABLES_TO_KEEP = 30;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_DAY_TABLES_TO_KEEP_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_DAY_TABLES_TO_KEEP_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_HOUR_TABLES_TO_KEEP_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_SECOND_TABLES_TO_KEEP_KEY;
 
+public class AccessCountTableManager {
   private final MetaStore metaStore;
   private final Map<TimeGranularity, AccessCountTableDeque> tableDeques;
   private final AccessEventAggregator accessEventAggregator;
@@ -49,40 +54,48 @@ public class AccessCountTableManager {
       LoggerFactory.getLogger(AccessCountTableManager.class);
 
   public AccessCountTableManager(MetaStore adapter) {
-    this(adapter, Executors.newFixedThreadPool(4));
+    this(adapter, Executors.newFixedThreadPool(4), new Configuration());
   }
 
-  public AccessCountTableManager(MetaStore adapter, ExecutorService service) {
+  public AccessCountTableManager(MetaStore adapter,
+      ExecutorService service, Configuration configuration) {
     this.metaStore = adapter;
     this.tableDeques = new HashMap<>();
     this.executorService = service;
     this.accessEventAggregator = new AccessEventAggregator(adapter, this);
-    this.initTables();
+    this.initTables(configuration);
   }
 
-  private void initTables() {
+  private void initTables(Configuration configuration) {
     AccessCountTableAggregator aggregator = new AccessCountTableAggregator(metaStore);
-    AccessCountTableDeque dayTableDeque =
-        new AccessCountTableDeque(new CountEvictor(metaStore, NUM_DAY_TABLES_TO_KEEP));
+
+    int perDayAccessTablesCount = configuration.getInt(SMART_NUM_DAY_TABLES_TO_KEEP_KEY,
+        SMART_NUM_DAY_TABLES_TO_KEEP_DEFAULT);
+    AccessCountTableDeque dayTableDeque = new AccessCountTableDeque(
+        new CountEvictor(metaStore, perDayAccessTablesCount));
     TableAddOpListener dayTableListener =
         new TableAddOpListener.DayTableListener(dayTableDeque, aggregator, executorService);
 
-    AccessCountTableDeque hourTableDeque =
-        new AccessCountTableDeque(
-            new CountEvictor(metaStore, NUM_HOUR_TABLES_TO_KEEP), dayTableListener);
+    int perHourAccessTablesCount = configuration.getInt(SMART_NUM_HOUR_TABLES_TO_KEEP_KEY,
+        SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT);
+    AccessCountTableDeque hourTableDeque = new AccessCountTableDeque(
+        new CountEvictor(metaStore, perHourAccessTablesCount), dayTableListener);
     TableAddOpListener hourTableListener =
         new TableAddOpListener.HourTableListener(hourTableDeque, aggregator, executorService);
 
-    AccessCountTableDeque minuteTableDeque =
-        new AccessCountTableDeque(
-            new CountEvictor(metaStore, NUM_MINUTE_TABLES_TO_KEEP), hourTableListener);
+    int perMinuteAccessTablesCount = configuration.getInt(SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY,
+        SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT);
+    AccessCountTableDeque minuteTableDeque = new AccessCountTableDeque(
+        new CountEvictor(metaStore, perMinuteAccessTablesCount), hourTableListener);
     TableAddOpListener minuteTableListener =
         new TableAddOpListener.MinuteTableListener(minuteTableDeque, aggregator,
             executorService);
 
-    this.secondTableDeque =
-        new AccessCountTableDeque(
-            new CountEvictor(metaStore, NUM_SECOND_TABLES_TO_KEEP), minuteTableListener);
+    int perSecondAccessTablesCount = configuration.getInt(SMART_NUM_SECOND_TABLES_TO_KEEP_KEY,
+        SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT);
+    this.secondTableDeque = new AccessCountTableDeque(
+            new CountEvictor(metaStore, perSecondAccessTablesCount), minuteTableListener);
+
     this.tableDeques.put(TimeGranularity.SECOND, this.secondTableDeque);
     this.tableDeques.put(TimeGranularity.MINUTE, minuteTableDeque);
     this.tableDeques.put(TimeGranularity.HOUR, hourTableDeque);

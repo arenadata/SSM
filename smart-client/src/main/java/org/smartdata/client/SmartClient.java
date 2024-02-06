@@ -20,7 +20,6 @@ package org.smartdata.client;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.ProtobufRpcEngine;
 import org.apache.hadoop.ipc.RPC;
-
 import org.smartdata.SmartConstants;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.metrics.FileAccessEvent;

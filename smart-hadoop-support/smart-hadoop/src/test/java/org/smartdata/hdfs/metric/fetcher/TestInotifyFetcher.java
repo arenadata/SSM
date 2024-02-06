@@ -33,6 +33,8 @@ import org.apache.hadoop.hdfs.inotify.Event;
 import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.SmartConstants;
+import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.hdfs.MiniClusterFactory;
 import org.smartdata.metastore.MetaStore;
@@ -47,11 +49,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
-public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
+public class TestInotifyFetcher extends SqliteTestDaoBase {
   private static final int BLOCK_SIZE = 1024;
 
   private static class EventApplierForTest extends InotifyEventApplier {
-    private List<Event> events = new ArrayList<>();
+    private final List<Event> events = new ArrayList<>();
 
     public EventApplierForTest(MetaStore metaStore, DFSClient client) {
       super(metaStore, client);
@@ -75,6 +77,9 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
     // so that we can get an atime change
     conf.setLong(DFSConfigKeys.DFS_NAMENODE_ACCESSTIME_PRECISION_KEY, 1);
 
+    SmartConf smartConf = new SmartConf();
+    smartConf.set(SmartConfKeys.SMART_IGNORED_PATH_TEMPLATES_KEY, ".*ignored.*");
+
     MiniDFSCluster cluster = MiniClusterFactory.get().create(2, conf);
     try {
       cluster.waitActive();
@@ -88,7 +93,7 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
         public Object call() throws Exception {
           return null; // Do nothing
         }
-      });
+      }, smartConf);
 
       Assert.assertFalse(InotifyEventFetcher.canContinueFromLastTxid(client, 1024L));
 
@@ -96,6 +101,8 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
       DFSTestUtil.createFile(fs, new Path("/file"), BLOCK_SIZE, (short) 1, 0L);
       DFSTestUtil.createFile(fs, new Path("/file3"), BLOCK_SIZE, (short) 1, 0L);
       DFSTestUtil.createFile(fs, new Path("/file5"), BLOCK_SIZE, (short) 1, 0L);
+      DFSTestUtil.createFile(fs, new Path("/file_ignored"), BLOCK_SIZE, (short) 1, 0L);
+      DFSTestUtil.createFile(fs, new Path("/.tmpfile"), BLOCK_SIZE, (short) 1, 0L);
       DFSTestUtil.createFile(fs, new Path("/truncate_file"),
           BLOCK_SIZE * 2, (short) 1, 0L);
       fs.mkdirs(new Path("/tmp"), new FsPermission("777"));
@@ -113,6 +120,7 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
 
       Thread.sleep(2000);
 
+      client.rename("/.tmpfile", "/.another_tmpfile", null); // RenameOp -> RenameEvent
       /**
        * Code copy from {@link org.apache.hadoop.hdfs.TestDFSInotifyEventInputStream}
        */
@@ -126,6 +134,7 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
       os = append(client, "/file2", BLOCK_SIZE);
       os.write(new byte[BLOCK_SIZE]);
       os.close(); // CloseOp -> CloseEvent
+      client.rename("/file_ignored", "/another_ignored", null); // RenameOp -> RenameEvent
       Thread.sleep(10); // so that the atime will get updated on the next line
       client.open("/file2").read(new byte[1]); // TimesOp -> MetadataUpdateEvent
       // SetReplicationOp -> MetadataUpdateEvent
@@ -133,6 +142,7 @@ public abstract class TestInotifyFetcher extends SqliteTestDaoBase {
       // ConcatDeleteOp -> AppendEvent, UnlinkEvent, CloseEvent
       client.concat("/file2", new String[]{"/file3"});
       client.delete("/file2", false); // DeleteOp -> UnlinkEvent
+      client.delete("/another_ignored", false); // DeleteOp -> UnlinkEvent
       client.mkdirs("/dir", null, false); // MkdirOp -> CreateEvent
       // SetPermissionsOp -> MetadataUpdateEvent
       client.setPermission("/dir", FsPermission.valueOf("-rw-rw-rw-"));

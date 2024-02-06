@@ -91,7 +91,7 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
     client = HadoopUtil.getDFSClient(nnUri, conf);
     checkAndCreateIdFiles(nnUri, context.getConf());
     this.executorService = Executors.newScheduledThreadPool(4);
-    this.cachedListFetcher = new CachedListFetcher(client, metaStore);
+    this.cachedListFetcher = new CachedListFetcher(conf, client, metaStore);
     this.inotifyEventFetcher = new InotifyEventFetcher(client,
         metaStore, executorService, new FetchFinishedCallBack(), context.getConf());
     this.dataNodeInfoFetcher = new DataNodeInfoFetcher(
@@ -166,6 +166,8 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
     if (storageInfoSampler != null) {
       storageInfoSampler.stop();
     }
+
+    executorService.shutdown();
     LOG.info("Stopped.");
   }
 
@@ -180,7 +182,9 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
       throw e;
     } finally {
       try {
-        moverIdOutputStream.close();
+        if (moverIdOutputStream != null) {
+          moverIdOutputStream.close();
+        }
         moverIdOutputStream = null;
       } catch (IOException e) {
         // Ignore this exception
@@ -199,7 +203,9 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
       throw e;
     } finally {
       try {
-        ssmIdOutputStream.close();
+        if (ssmIdOutputStream != null) {
+          ssmIdOutputStream.close();
+        }
         ssmIdOutputStream = null;
       } catch (IOException ie) {
         // Ignore this exception

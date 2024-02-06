@@ -19,10 +19,12 @@ package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
+import org.apache.hadoop.hdfs.inotify.Event;
 import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartConstants;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.SystemInfo;
 
@@ -36,14 +38,17 @@ public class InotifyFetchAndApplyTask implements Runnable {
   private final AtomicLong lastId;
   private final MetaStore metaStore;
   private final InotifyEventApplier applier;
-  private DFSInotifyEventInputStream inotifyEventInputStream;
+  private final DFSInotifyEventInputStream inotifyEventInputStream;
+  private final INotifyEventFilter eventFilter;
 
-  public InotifyFetchAndApplyTask(DFSClient client,  MetaStore metaStore, InotifyEventApplier applier, long startId)
+  public InotifyFetchAndApplyTask(DFSClient client, MetaStore metaStore,
+                                  InotifyEventApplier applier, long startId, SmartConf conf)
       throws IOException {
     this.applier = applier;
     this.metaStore = metaStore;
     this.lastId = new AtomicLong(startId);
     this.inotifyEventInputStream = client.getInotifyEventStream(startId);
+    this.eventFilter = new INotifyEventFilter(conf);
   }
 
   @Override
@@ -52,7 +57,11 @@ public class InotifyFetchAndApplyTask implements Runnable {
     try {
       EventBatch eventBatch = inotifyEventInputStream.poll();
       while (eventBatch != null) {
-        applier.apply(eventBatch.getEvents());
+        Event[] filteredEvents = eventFilter.filterIgnored(eventBatch.getEvents());
+        if (filteredEvents.length != 0) {
+          applier.apply(filteredEvents);
+        }
+
         lastId.getAndSet(eventBatch.getTxid());
         metaStore.updateAndInsertIfNotExist(
             new SystemInfo(

@@ -71,6 +71,7 @@ import org.smartdata.model.FileAccessInfo;
 import org.smartdata.model.FileDiff;
 import org.smartdata.model.FileDiffState;
 import org.smartdata.model.FileInfo;
+import org.smartdata.model.FileInfoUpdate;
 import org.smartdata.model.FileState;
 import org.smartdata.model.GlobalConfig;
 import org.smartdata.model.NormalFileState;
@@ -88,17 +89,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 
 /**
  * Operations supported for upper functions.
  */
-public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMetaService {
+public class MetaStore implements CopyMetaService,
+    CmdletMetaService, BackupMetaService, AutoCloseable {
   static final Logger LOG = LoggerFactory.getLogger(MetaStore.class);
 
   private final DbSchemaManager dbSchemaManager;
@@ -108,7 +109,7 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
   private Map<Integer, String> mapStoragePolicyIdName = null;
   private Map<String, Integer> mapStoragePolicyNameId = null;
   private Map<String, StorageCapacity> mapStorageCapacity = null;
-  private Set<String> setBackSrc = null;
+  private Map<String, Pattern> backupSourcePatterns = null;
   private final RuleDao ruleDao;
   private final CmdletDao cmdletDao;
   private final ActionDao actionDao;
@@ -135,11 +136,13 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
   private final ErasureCodingPolicyDao ecDao;
   private final WhitelistDao whitelistDao;
   private final ReentrantLock accessCountLock;
+  private final DBPool dbPool;
 
   public MetaStore(DBPool pool,
                    DbSchemaManager dbSchemaManager,
                    DaoProvider daoProvider,
                    DbMetadataProvider dbMetadataProvider) throws MetaStoreException {
+    this.dbPool = pool;
     this.dbSchemaManager = dbSchemaManager;
     this.dbMetadataProvider = dbMetadataProvider;
     ruleDao = daoProvider.ruleDao();
@@ -202,8 +205,8 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
     fileInfoDao.insert(files);
   }
 
-  public void updateFileByPath(String path, FileInfo file) {
-    fileInfoDao.updateByPath(path, file);
+  public void updateFileByPath(String path, FileInfoUpdate fileUpdate) {
+    fileInfoDao.updateByPath(path, fileUpdate);
   }
 
   public void unlinkRootDirectory() {
@@ -857,10 +860,11 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
         BackUpInfo backUpInfo = getBackUpInfo(ruleInfo.getId());
         // Get total matched files
         if (backUpInfo != null) {
+          String src = backUpInfo.getSrc();
           detailedRuleInfo
-              .setBaseProgress(getFilesByPrefix(backUpInfo.getSrc()).size());
-          long count = fileDiffDao.getPendingDiff(backUpInfo.getSrc()).size();
-          count += fileDiffDao.getByState(backUpInfo.getSrc(), FileDiffState.RUNNING).size();
+              .setBaseProgress(getFilesByPrefix(src).size());
+          long count = fileDiffDao.getPendingDiff(src).size();
+          count += fileDiffDao.getByState(src, FileDiffState.RUNNING).size();
           if (count > detailedRuleInfo.baseProgress) {
             count = detailedRuleInfo.baseProgress;
           }
@@ -1692,12 +1696,14 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
       if (num == 0) {
         LOG.info("The table set required by SSM does not exist. "
             + "The configured database will be formatted.");
-        formatDataBase();
+        dropAllTables();
       } else if (num < MetaStoreUtils.SSM_TABLES.size()) {
         LOG.error("One or more tables required by SSM are missing! "
             + "You can restart SSM with -format option or configure another database.");
         System.exit(1);
       }
+      // we should run migration tool on every launch to check if there are new changelogs
+      initializeDataBase();
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -2010,17 +2016,16 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
     }
   }
 
-  public boolean srcInbackup(String src) throws MetaStoreException {
-    if (setBackSrc == null) {
-      setBackSrc = new HashSet<>();
-      List<BackUpInfo> backUpInfos = listAllBackUpInfo();
-      for (BackUpInfo backUpInfo : backUpInfos) {
-        setBackSrc.add(backUpInfo.getSrc());
-      }
+  public boolean srcInBackup(String src) throws MetaStoreException {
+    if (backupSourcePatterns == null) {
+      backupSourcePatterns = new HashMap<>();
+      listAllBackUpInfo().stream()
+          .map(BackUpInfo::getSrcPattern)
+          .forEach(this::addBackUpSourcePattern);
     }
     // LOG.info("Backup src = {}, setBackSrc {}", src, setBackSrc);
-    for (String srcDir : setBackSrc) {
-      if (src.startsWith(srcDir)) {
+    for (Pattern srcPattern : backupSourcePatterns.values()) {
+      if (srcPattern.matcher(src).matches()) {
         return true;
       }
     }
@@ -2057,7 +2062,7 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
   public void deleteAllBackUpInfo() throws MetaStoreException {
     try {
       backUpInfoDao.deleteAll();
-      setBackSrc.clear();
+      backupSourcePatterns.clear();
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -2069,8 +2074,8 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
       BackUpInfo backUpInfo = getBackUpInfo(rid);
       if (backUpInfo != null) {
         if (backUpInfoDao.getBySrc(backUpInfo.getSrc()).size() == 1) {
-          if (setBackSrc != null) {
-            setBackSrc.remove(backUpInfo.getSrc());
+          if (backupSourcePatterns != null) {
+            backupSourcePatterns.remove(backUpInfo.getSrcPattern());
           }
         }
         backUpInfoDao.delete(rid);
@@ -2085,10 +2090,7 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
       BackUpInfo backUpInfo) throws MetaStoreException {
     try {
       backUpInfoDao.insert(backUpInfo);
-      if (setBackSrc == null) {
-        setBackSrc = new HashSet<>();
-      }
-      setBackSrc.add(backUpInfo.getSrc());
+      addBackUpSourcePattern(backUpInfo.getSrcPattern());
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -2477,5 +2479,17 @@ public class MetaStore implements CopyMetaService, CmdletMetaService, BackupMeta
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
+  }
+
+  @Override
+  public void close() {
+    dbPool.close();
+  }
+
+  private void addBackUpSourcePattern(String sourcePattern) {
+    if (backupSourcePatterns == null) {
+      backupSourcePatterns = new HashMap<>();
+    }
+    backupSourcePatterns.put(sourcePattern, Pattern.compile(sourcePattern));
   }
 }

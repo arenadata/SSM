@@ -23,6 +23,7 @@ import org.apache.hadoop.hdfs.DFSClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.HdfsAction;
@@ -53,7 +54,7 @@ public class MoverScheduler extends ActionSchedulerService {
   private MovePlanStatistics statistics;
   private MovePlanMaker planMaker;
   private final URI nnUri;
-  private long dnInfoUpdateInterval = 2 * 60 * 1000;
+  private final long dnInfoUpdateInterval;
   private ScheduledExecutorService updateService;
   private ScheduledFuture updateServiceFuture;
   private long throttleInMb;
@@ -67,10 +68,16 @@ public class MoverScheduler extends ActionSchedulerService {
   public MoverScheduler(SmartContext context, MetaStore metaStore)
       throws IOException {
     super(context, metaStore);
-    nnUri = HadoopUtil.getNameNodeUri(getContext().getConf());
-    throttleInMb = getContext().getConf()
-        .getLong(SmartConfKeys.SMART_ACTION_MOVE_THROTTLE_MB_KEY,
-            SmartConfKeys.SMART_ACTION_MOVE_THROTTLE_MB_DEFAULT);
+    SmartConf conf = getContext().getConf();
+    nnUri = HadoopUtil.getNameNodeUri(conf);
+    throttleInMb = conf.getLong(
+        SmartConfKeys.SMART_ACTION_MOVE_THROTTLE_MB_KEY,
+        SmartConfKeys.SMART_ACTION_MOVE_THROTTLE_MB_DEFAULT
+    );
+    dnInfoUpdateInterval = conf.getLong(
+        SmartConfKeys.SMART_MOVER_SCHEDULER_REPORT_FETCH_INTERVAL_MS_KEY,
+        SmartConfKeys.SMART_MOVER_SCHEDULER_REPORT_FETCH_INTERVAL_MS_DEFAULT
+    );
     if (throttleInMb > 0) {
       rateLimiter = RateLimiter.create(throttleInMb);
     }
@@ -107,7 +114,7 @@ public class MoverScheduler extends ActionSchedulerService {
    */
   public void stop() throws IOException {
     if (updateServiceFuture != null) {
-      updateServiceFuture.cancel(false);
+      updateServiceFuture.cancel(true);
     }
   }
 

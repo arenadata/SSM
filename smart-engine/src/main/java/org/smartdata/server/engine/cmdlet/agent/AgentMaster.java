@@ -53,11 +53,13 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_ASK_TIMEOUT_MS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_ASK_TIMEOUT_MS_KEY;
+
 public class AgentMaster {
 
   private static final Logger LOG = LoggerFactory.getLogger(AgentMaster.class);
-  public static final Timeout TIMEOUT =
-      new Timeout(Duration.create(5, TimeUnit.SECONDS));
+  public Timeout masterAskTimeout;
 
   private ActorSystem system;
   private ActorRef master;
@@ -71,6 +73,13 @@ public class AgentMaster {
     if (addresses == null) {
       throw new IOException("AgentMaster address not configured!");
     }
+
+    long masterAskTimeoutMs = conf.getLong(
+        SMART_AGENT_MASTER_ASK_TIMEOUT_MS_KEY,
+        SMART_AGENT_MASTER_ASK_TIMEOUT_MS_DEFAULT
+    );
+    masterAskTimeout = new Timeout(Duration.create(masterAskTimeoutMs, TimeUnit.MILLISECONDS));
+
     String address = addresses[0];
     LOG.info("Agent master: " + address);
     Config config = AgentUtils.overrideRemoteAddress(
@@ -159,8 +168,8 @@ public class AgentMaster {
   }
 
   Object askMaster(Object message) throws Exception {
-    Future<Object> answer = Patterns.ask(master, message, TIMEOUT);
-    return Await.result(answer, TIMEOUT.duration());
+    Future<Object> answer = Patterns.ask(master, message, masterAskTimeout);
+    return Await.result(answer, masterAskTimeout.duration());
   }
 
   class ActorSystemLauncher extends Thread {

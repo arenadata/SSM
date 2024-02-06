@@ -26,15 +26,16 @@ import org.smartdata.metrics.FileAccessEventCollector;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY;
+
 public class AccessEventFetcher {
   static final Logger LOG = LoggerFactory.getLogger(AccessEventFetcher.class);
 
-  private static final Long DEFAULT_INTERVAL = 1 * 1000L;
   private final ScheduledExecutorService scheduledExecutorService;
   private final Long fetchInterval;
   private ScheduledFuture scheduledFuture;
@@ -45,24 +46,10 @@ public class AccessEventFetcher {
       AccessCountTableManager manager,
       ScheduledExecutorService service,
       FileAccessEventCollector collector) {
-    this(DEFAULT_INTERVAL, conf, manager, service, collector);
-  }
-
-  public AccessEventFetcher(
-      Long fetchInterval,
-      Configuration conf,
-      AccessCountTableManager manager,
-      FileAccessEventCollector collector) {
-    this(fetchInterval, conf, manager, Executors.newSingleThreadScheduledExecutor(), collector);
-  }
-
-  public AccessEventFetcher(
-      Long fetchInterval,
-      Configuration conf,
-      AccessCountTableManager manager,
-      ScheduledExecutorService service,
-      FileAccessEventCollector collector) {
-    this.fetchInterval = fetchInterval;
+    this.fetchInterval = conf.getLong(
+        SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY,
+        SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT
+    );
     this.fetchTask = new FetchTask(conf, manager, collector);
     this.scheduledExecutorService = service;
   }
@@ -76,7 +63,7 @@ public class AccessEventFetcher {
 
   public void stop() {
     if (scheduledFuture != null) {
-      this.scheduledFuture.cancel(false);
+      this.scheduledFuture.cancel(true);
     }
   }
 

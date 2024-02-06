@@ -90,6 +90,34 @@ public class SmartConfKeys {
       "smart.metastore.mysql.legacy.enabled";
   public static final boolean SMART_METASTORE_LEGACY_MYSQL_SUPPORT_DEFAULT = false;
 
+  public static final String SMART_NUM_DAY_TABLES_TO_KEEP_KEY =
+      "smart.access.count.day.tables.num";
+  public static final int SMART_NUM_DAY_TABLES_TO_KEEP_DEFAULT = 30;
+
+  public static final String SMART_NUM_HOUR_TABLES_TO_KEEP_KEY =
+      "smart.access.count.hour.tables.num";
+  public static final int SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT = 48;
+
+  public static final String SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY =
+      "smart.access.count.minute.tables.num";
+  public static final int SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT = 120;
+
+  public static final String SMART_NUM_SECOND_TABLES_TO_KEEP_KEY =
+      "smart.access.count.second.tables.num";
+  public static final int SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT = 30;
+
+  public static final String SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY =
+      "smart.access.event.fetch.interval.ms";
+  public static final long SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT = 1000L;
+
+  public static final String SMART_CACHED_FILE_FETCH_INTERVAL_MS_KEY =
+      "smart.cached.file.fetch.interval.ms";
+  public static final long SMART_CACHED_FILE_FETCH_INTERVAL_MS_DEFAULT = 5 * 1000L;
+
+  public static final String SMART_NAMESPACE_FETCH_INTERVAL_MS_KEY =
+      "smart.namespace.fetch.interval.ms";
+  public static final long SMART_NAMESPACE_FETCH_INTERVAL_MS_DEFAULT = 1L;
+
   // StatesManager
 
   // RuleManager
@@ -140,6 +168,14 @@ public class SmartConfKeys {
   public static final int SMART_FILE_DIFF_MAX_NUM_RECORDS_DEFAULT =
       10000;
 
+  public static final String SMART_MOVER_SCHEDULER_REPORT_FETCH_INTERVAL_MS_KEY =
+      "smart.mover.scheduler.storage.report.fetch.interval.ms";
+  public static final long SMART_MOVER_SCHEDULER_REPORT_FETCH_INTERVAL_MS_DEFAULT = 2 * 60 * 1000;
+
+  public static final String SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_KEY =
+      "smart.metastore.small-file.insert.batch.size";
+  public static final int SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_DEFAULT = 200;
+
   // Dispatcher
   public static final String SMART_CMDLET_DISPATCHER_LOG_DISP_RESULT_KEY =
       "smart.cmdlet.dispatcher.log.disp.result";
@@ -166,6 +202,10 @@ public class SmartConfKeys {
   public static final int SMART_AGENT_MASTER_PORT_DEFAULT = 7051;
   public static final String SMART_AGENT_PORT_KEY = "smart.agent.port";
   public static final int SMART_AGENT_PORT_DEFAULT = 7048;
+
+  public static final String SMART_AGENT_MASTER_ASK_TIMEOUT_MS_KEY =
+      "smart.agent.master.ask.timeout.ms";
+  public static final long SMART_AGENT_MASTER_ASK_TIMEOUT_MS_DEFAULT = 5000L;
 
   /** Do NOT configure the following two options manually. They are set by the boot scripts. **/
   public static final String SMART_AGENT_MASTER_ADDRESS_KEY = "smart.agent.master.address";
@@ -197,6 +237,10 @@ public class SmartConfKeys {
   public static final String SMART_COVER_DIRS_KEY = "smart.cover.dirs";
   public static final String SMART_WORK_DIR_KEY = "smart.work.dir";
   public static final String SMART_WORK_DIR_DEFAULT = "/system/ssm/";
+  public static final String SMART_IGNORED_PATH_TEMPLATES_KEY = "smart.ignore.path.templates";
+  public static final String SMART_INTERNAL_PATH_TEMPLATES_KEY = "smart.internal.path.templates";
+  public static final String SMART_INTERNAL_PATH_TEMPLATES_DEFAULT =
+      ".*/\\..*,.*/__.*,.*_COPYING_.*";
 
   // Target cluster
   public static final String SMART_STORAGE_INFO_UPDATE_INTERVAL_KEY =

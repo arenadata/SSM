@@ -39,7 +39,6 @@ import java.util.Set;
  */
 public class SmartConf extends Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(SmartConf.class);
-  private final List<String> ignoreList;
   private final List<String> coverList;
   // Include hosts configured in conf/agents and
   // hosts added dynamically (by `start-agent.sh --host $host`)
@@ -55,15 +54,7 @@ public class SmartConf extends Configuration {
     Collection<String> fetchDirs = this.getTrimmedStringCollection(
         SmartConfKeys.SMART_COVER_DIRS_KEY);
 
-    ignoreList = new ArrayList<>();
     coverList = new ArrayList<>();
-    String tmpDir = this.get(
-        SmartConfKeys.SMART_WORK_DIR_KEY, SmartConfKeys.SMART_WORK_DIR_DEFAULT);
-    tmpDir = tmpDir + (tmpDir.endsWith("/") ? "" : "/");
-    ignoreList.add(tmpDir);
-    for (String s : ignoreDirs) {
-      ignoreList.add(s + (s.endsWith("/") ? "" : "/"));
-    }
     for (String s : fetchDirs) {
       coverList.add(s + (s.endsWith("/") ? "" : "/"));
     }
@@ -81,21 +72,10 @@ public class SmartConf extends Configuration {
     return coverList;
   }
 
-  public List<String> getIgnoreDir() {
-    return ignoreList;
-  }
-
   public void setCoverDir(ArrayList<String> fetchDirs) {
     coverList.clear();
     for (String s : fetchDirs) {
       coverList.add(s + (s.endsWith("/") ? "" : "/"));
-    }
-  }
-
-  public void setIgnoreDir(ArrayList<String> ignoreDirs) {
-    ignoreList.clear();
-    for (String s : ignoreDirs) {
-      ignoreList.add(s + (s.endsWith("/") ? "" : "/"));
     }
   }
 

@@ -42,6 +42,7 @@ public class TestBackUpInfoDao extends TestDaoBase {
     backUpInfo.setPeriod(1);
     backUpInfo.setDest("");
     backUpInfo.setSrc("");
+    backUpInfo.setSrcPattern("");
     backUpInfoDao.insert(backUpInfo);
 
     Assert.assertTrue(backUpInfoDao.getByRid(1).equals(backUpInfo));
@@ -83,6 +84,7 @@ public class TestBackUpInfoDao extends TestDaoBase {
     backUpInfo.setSrc("test");
     backUpInfo.setDest("test");
     backUpInfo.setPeriod(1);
+    backUpInfo.setSrcPattern("");
 
     backUpInfoDao.insert(backUpInfo);
     backUpInfoDao.update(1, 2);

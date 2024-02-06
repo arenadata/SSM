@@ -33,6 +33,7 @@ import org.smartdata.model.BackUpInfo;
 import org.smartdata.model.FileDiff;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
+import org.smartdata.model.FileInfoUpdate;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.Collectors;
+import org.smartdata.model.PathChecker;
 
 /**
  * This is a very preliminary and buggy applier, can further enhance by referring to
@@ -52,30 +54,26 @@ public class InotifyEventApplier {
   private static final String ROOT_DIRECTORY = "/";
 
   private final MetaStore metaStore;
+  private final PathChecker pathChecker;
   private DFSClient client;
   private static final Logger LOG =
       LoggerFactory.getLogger(InotifyEventFetcher.class);
-  private List<String> ignoreEventDirs;
-  private List<String> fetchEventDirs;
   private NamespaceFetcher namespaceFetcher;
 
   public InotifyEventApplier(MetaStore metaStore, DFSClient client) {
-    this.metaStore = metaStore;
-    this.client = client;
-    initialize();
+    this(new SmartConf(), metaStore, client);
   }
 
-  public InotifyEventApplier(MetaStore metaStore, DFSClient client, NamespaceFetcher namespaceFetcher) {
-    this(metaStore, client);
+  public InotifyEventApplier(SmartConf conf, MetaStore metaStore, DFSClient client, NamespaceFetcher namespaceFetcher) {
+    this(conf, metaStore, client);
     this.namespaceFetcher = namespaceFetcher;
   }
 
-  private void initialize(){
-    SmartConf conf = new SmartConf();
-    ignoreEventDirs = conf.getIgnoreDir();
-    fetchEventDirs = conf.getCoverDir();
+  public InotifyEventApplier(SmartConf conf, MetaStore metaStore, DFSClient client) {
+    this.metaStore = metaStore;
+    this.client = client;
+    this.pathChecker = new PathChecker(conf);
   }
-
 
   public void apply(List<Event> events) throws IOException, MetaStoreException, InterruptedException {
     for (Event event : events) {
@@ -83,28 +81,8 @@ public class InotifyEventApplier {
     }
   }
 
-  //check if the dir is in ignoreList
-
   public void apply(Event[] events) throws IOException, MetaStoreException, InterruptedException {
     this.apply(Arrays.asList(events));
-  }
-
-  private boolean shouldIgnore(String path) {
-    String toCheck = path.endsWith("/") ? path : path + "/";
-    for (String s : ignoreEventDirs) {
-      if (toCheck.startsWith(s)) {
-        return true;
-      }
-    }
-    if (fetchEventDirs.isEmpty()) {
-      return false;
-    }
-    for (String s : fetchEventDirs) {
-      if (toCheck.startsWith(s)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private void apply(Event event) throws IOException, MetaStoreException, InterruptedException {
@@ -112,29 +90,22 @@ public class InotifyEventApplier {
     String srcPath, dstPath;
     LOG.debug("Even Type = {}", event.getEventType());
 
+    // we already filtered events in the fetch tasks, so we can skip
+    // event's path check here
     switch (event.getEventType()) {
       case CREATE:
         path = ((Event.CreateEvent) event).getPath();
-        if (shouldIgnore(path)) {
-          return;
-        }
         LOG.trace("event type: {}, path: {}", event.getEventType().name(), path);
         applyCreate((Event.CreateEvent) event);
         break;
       case CLOSE:
         path = ((Event.CloseEvent) event).getPath();
-        if (shouldIgnore(path)) {
-          return;
-        }
         LOG.trace("event type: {}, path: {}", event.getEventType().name(), path);
         applyClose((Event.CloseEvent) event);
         break;
       case RENAME:
         srcPath = ((Event.RenameEvent) event).getSrcPath();
         dstPath = ((Event.RenameEvent) event).getDstPath();
-        if (shouldIgnore(srcPath) && shouldIgnore(dstPath)) {
-          return;
-        }
         LOG.trace("event type: {}, src path: {}, dest path: {}",
             event.getEventType().name(), srcPath, dstPath);
         applyRename((Event.RenameEvent)event);
@@ -144,25 +115,16 @@ public class InotifyEventApplier {
         // the precision of access time. Its default value is 1h. To avoid missing a
         // MetadataUpdateEvent for updating access time, a smaller value should be set.
         path = ((Event.MetadataUpdateEvent)event).getPath();
-        if (shouldIgnore(path)) {
-          return;
-        }
         LOG.trace("event type: {}, path: {}", event.getEventType().name(), path);
         applyMetadataUpdate((Event.MetadataUpdateEvent)event);
         break;
       case APPEND:
         path = ((Event.AppendEvent)event).getPath();
-        if (shouldIgnore(path)) {
-          return;
-        }
         LOG.trace("event type: {}, path: {}", event.getEventType().name(), path);
         // do nothing
         break;
       case UNLINK:
         path = ((Event.UnlinkEvent)event).getPath();
-        if (shouldIgnore(path)) {
-          return;
-        }
         LOG.trace("event type: {}, path: {}", event.getEventType().name(), path);
         applyUnlink((Event.UnlinkEvent)event);
     }
@@ -170,13 +132,40 @@ public class InotifyEventApplier {
 
   //Todo: times and ec policy id, etc.
   private void applyCreate(Event.CreateEvent createEvent) throws IOException, MetaStoreException {
-    HdfsFileStatus fileStatus = client.getFileInfo(createEvent.getPath());
-    if (fileStatus == null) {
-      LOG.debug("Can not get HdfsFileStatus for file " + createEvent.getPath());
+    FileInfo fileInfo = getFileInfo(createEvent.getPath());
+    if (fileInfo == null) {
       return;
     }
-    FileInfo fileInfo = HadoopUtil.convertFileStatus(fileStatus, createEvent.getPath());
 
+    applyCreateFileDiff(fileInfo);
+    metaStore.deleteFileByPath(fileInfo.getPath(), false);
+    metaStore.deleteFileState(fileInfo.getPath());
+    metaStore.insertFile(fileInfo);
+  }
+
+  private void applyRenameIgnoredFile(Event.RenameEvent renameEvent) throws IOException, MetaStoreException {
+    FileInfo fileInfo = getFileInfo(renameEvent.getDstPath());
+    if (fileInfo == null) {
+      return;
+    }
+
+    applyCreateFileDiff(fileInfo);
+    metaStore.deleteFileByPath(fileInfo.getPath(), false);
+    metaStore.insertFile(fileInfo);
+    metaStore.renameFile(renameEvent.getSrcPath(), renameEvent.getDstPath(), fileInfo.isdir());
+  }
+
+  private FileInfo getFileInfo(String path) throws IOException {
+    HdfsFileStatus fileStatus = client.getFileInfo(path);
+    if (fileStatus == null) {
+      LOG.debug("Can not get HdfsFileStatus for file " + path);
+      return null;
+    }
+
+    return HadoopUtil.convertFileStatus(fileStatus, path);
+  }
+
+  private void applyCreateFileDiff(FileInfo fileInfo) throws MetaStoreException {
     if (inBackup(fileInfo.getPath())) {
       if (!fileInfo.isdir()) {
 
@@ -201,13 +190,10 @@ public class InotifyEventApplier {
         metaStore.insertFileDiff(fileDiff);
       }
     }
-    metaStore.deleteFileByPath(fileInfo.getPath(), false);
-    metaStore.deleteFileState(fileInfo.getPath());
-    metaStore.insertFile(fileInfo);
   }
 
   private boolean inBackup(String src) throws MetaStoreException {
-    return metaStore.srcInbackup(src);
+    return metaStore.srcInBackup(src);
   }
 
   //Todo: should update mtime? atime?
@@ -232,11 +218,10 @@ public class InotifyEventApplier {
         metaStore.insertFileDiff(fileDiff);
       }
     }
-    FileInfo fileInfo = FileInfo.newBuilder()
+    FileInfoUpdate fileInfoUpdate = new FileInfoUpdate()
         .setLength(closeEvent.getFileSize())
-        .setModificationTime(closeEvent.getTimestamp())
-        .build();
-    metaStore.updateFileByPath(closeEvent.getPath(), fileInfo);
+        .setModificationTime(closeEvent.getTimestamp());
+    metaStore.updateFileByPath(closeEvent.getPath(), fileInfoUpdate);
   }
 
   //Todo: should update mtime? atime?
@@ -250,6 +235,12 @@ public class InotifyEventApplier {
       throws IOException, MetaStoreException, InterruptedException {
     String src = renameEvent.getSrcPath();
     String dest = renameEvent.getDstPath();
+
+    if (pathChecker.isIgnored(src)) {
+      applyRenameIgnoredFile(renameEvent);
+      return;
+    }
+
     HdfsFileStatus status = client.getFileInfo(dest);
     FileInfo info = metaStore.getFile(src);
 
@@ -282,7 +273,7 @@ public class InotifyEventApplier {
 
     // if the dest is ignored, delete src info from file table
     // TODO: tackle with file_state and small_state
-    if (shouldIgnore(dest)) {
+    if (pathChecker.isIgnored(dest)) {
       // fuzzy matching is used to delete content under the dir
       metaStore.deleteFileByPath(src, true);
       return;
@@ -342,29 +333,23 @@ public class InotifyEventApplier {
       fileDiff = new FileDiff(FileDiffType.METADATA);
       fileDiff.setSrc(metadataUpdateEvent.getPath());
     }
-    FileInfo.Builder fileInfoBuilder = FileInfo.newBuilder();
+    FileInfoUpdate fileInfoUpdate = new FileInfoUpdate();
     switch (metadataUpdateEvent.getMetadataType()) {
       case TIMES:
-        if (metadataUpdateEvent.getMtime() > 0 && metadataUpdateEvent.getAtime() > 0) {
+        if (metadataUpdateEvent.getMtime() > 0) {
           if (fileDiff != null) {
-            fileDiff.getParameters().put("-mtime", "" + metadataUpdateEvent.getMtime());
+            fileDiff.getParameters().put("-mtime", String.valueOf(metadataUpdateEvent.getMtime()));
             // fileDiff.getParameters().put("-access_time", "" + metadataUpdateEvent.getAtime());
             metaStore.insertFileDiff(fileDiff);
           }
-          fileInfoBuilder.setModificationTime(metadataUpdateEvent.getMtime())
-              .setAccessTime(metadataUpdateEvent.getAtime());
-        } else if (metadataUpdateEvent.getMtime() > 0) {
-          if (fileDiff != null) {
-            fileDiff.getParameters().put("-mtime", "" + metadataUpdateEvent.getMtime());
-            metaStore.insertFileDiff(fileDiff);
-          }
-          fileInfoBuilder.setModificationTime(metadataUpdateEvent.getMtime());
-        } else if (metadataUpdateEvent.getAtime() > 0) {
+          fileInfoUpdate.setModificationTime(metadataUpdateEvent.getMtime());
+        }
+        if (metadataUpdateEvent.getAtime() > 0) {
           // if (fileDiff != null) {
           //   fileDiff.getParameters().put("-access_time", "" + metadataUpdateEvent.getAtime());
           //   metaStore.insertFileDiff(fileDiff);
           // }
-          fileInfoBuilder.setAccessTime(metadataUpdateEvent.getMtime());
+          fileInfoUpdate.setAccessTime(metadataUpdateEvent.getAtime());
         }
         break;
       case OWNER:
@@ -372,7 +357,7 @@ public class InotifyEventApplier {
           fileDiff.getParameters().put("-owner", metadataUpdateEvent.getOwnerName());
           metaStore.insertFileDiff(fileDiff);
         }
-        fileInfoBuilder.setOwner(metadataUpdateEvent.getOwnerName())
+        fileInfoUpdate.setOwner(metadataUpdateEvent.getOwnerName())
             .setGroup(metadataUpdateEvent.getGroupName());
         break;
       case PERMS:
@@ -380,14 +365,14 @@ public class InotifyEventApplier {
           fileDiff.getParameters().put("-permission", "" + metadataUpdateEvent.getPerms().toShort());
           metaStore.insertFileDiff(fileDiff);
         }
-        fileInfoBuilder.setPermission(metadataUpdateEvent.getPerms().toShort());
+        fileInfoUpdate.setPermission(metadataUpdateEvent.getPerms().toShort());
         break;
       case REPLICATION:
         if (fileDiff != null) {
           fileDiff.getParameters().put("-replication", "" + metadataUpdateEvent.getReplication());
           metaStore.insertFileDiff(fileDiff);
         }
-        fileInfoBuilder.setBlockReplication((short) metadataUpdateEvent.getReplication());
+        fileInfoUpdate.setBlockReplication((short) metadataUpdateEvent.getReplication());
         break;
       case XATTRS:
         final String EC_POLICY = "hdfs.erasurecoding.policy";
@@ -410,7 +395,7 @@ public class InotifyEventApplier {
               if (ecPolicyId == (byte) -1) {
                 LOG.error("Unrecognized EC policy for updating!");
               }
-              fileInfoBuilder.setErasureCodingPolicy(ecPolicyId);
+              fileInfoUpdate.setErasureCodingPolicy(ecPolicyId);
               break;
             } catch (IOException ex) {
               LOG.error("Error occurred for updating ecPolicy!", ex);
@@ -421,7 +406,7 @@ public class InotifyEventApplier {
       case ACLS:
         return;
     }
-    metaStore.updateFileByPath(metadataUpdateEvent.getPath(), fileInfoBuilder.build());
+    metaStore.updateFileByPath(metadataUpdateEvent.getPath(), fileInfoUpdate);
   }
 
   private void applyUnlink(Event.UnlinkEvent unlinkEvent) throws MetaStoreException {
@@ -466,7 +451,7 @@ public class InotifyEventApplier {
   private void insertDeleteDiff(String path) throws MetaStoreException {
     // TODO: remove "/" appended in src or dest in backup_file table
     String pathWithSlash = path.endsWith("/") ? path : path + "/";
-    if (inBackup(pathWithSlash)) {
+    if (inBackup(path)) {
       List<BackUpInfo> backUpInfos = metaStore.getBackUpInfoBySrc(pathWithSlash);
       for (BackUpInfo backUpInfo : backUpInfos) {
         String destPath = pathWithSlash.replaceFirst(backUpInfo.getSrc(), backUpInfo.getDest());

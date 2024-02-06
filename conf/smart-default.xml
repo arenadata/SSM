@@ -375,4 +375,100 @@
       Warning: it requires admin privileges for ssm user to be able to configure the db.
     </description>
   </property>
+
+  <property>
+    <name>smart.ignore.path.templates</name>
+    <value></value>
+    <description>
+      Comma-separated list of regex templates of HDFS paths to be completely ignored by SSM.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.internal.path.templates</name>
+    <value>.*/\..*,.*/__.*,.*_COPYING_.*</value>
+    <description>
+      Comma-separated list of regex templates of internal files to be completely ignored by SSM.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.access.count.day.tables.num</name>
+    <value>30</value>
+    <description>
+      The max number of access count per day tables in the Metastore.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.access.count.hour.tables.num</name>
+    <value>48</value>
+    <description>
+      The max number of access count per hour tables in the Metastore.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.access.count.minute.tables.num</name>
+    <value>120</value>
+    <description>
+      The max number of access count per minute tables in the Metastore.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.access.count.second.tables.num</name>
+    <value>30</value>
+    <description>
+      The max number of access count per second tables in the Metastore.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.access.event.fetch.interval.ms</name>
+    <value>1000</value>
+    <description>
+      The interval in milliseconds between access event fetches.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.cached.file.fetch.interval.ms</name>
+    <value>5000</value>
+    <description>
+      The interval in milliseconds between cached files fetches from HDFS.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.namespace.fetch.interval.ms</name>
+    <value>1</value>
+    <description>
+      The interval in milliseconds between namespace fetches from HDFS.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.mover.scheduler.storage.report.fetch.interval.ms</name>
+    <value>120000</value>
+    <description>
+      The interval in milliseconds between storage report fetches from HDFS DataNode in mover scheduler.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metastore.small-file.insert.batch.size</name>
+    <value>200</value>
+    <description>
+      The max size of small file insert batch to the Metastore.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.agent.master.ask.timeout.ms</name>
+    <value>5000</value>
+    <description>
+      The max time in milliseconds to wait an answer from the SmartAgent master actor during action submission.
+    </description>
+  </property>
 </configuration>

@@ -17,6 +17,7 @@
  *  under the License.
  *
  */
+
 package org.smartdata.utils;
 
 import com.google.common.hash.Hashing;
@@ -26,12 +27,13 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringUtil {
   private static final String DIR_SEP = "/";
-  private static final String[] GLOBS = new String[]{
+  private static final String[] GLOBS = new String[] {
       "*", "?"
   };
 
@@ -81,10 +83,9 @@ public class StringUtil {
     return path.substring(0, last + 1);
   }
 
-  public static String globString2SqlLike(String str) {
-    str = str.replace("*", "%");
-    str = str.replace("?", "_");
-    return str;
+  public static String ssmPatternToSqlLike(String str) {
+    return str.replace("*", "%")
+        .replace("?", "_");
   }
 
   /**
@@ -260,5 +261,21 @@ public class StringUtil {
 
   public static String toSHA512String(String password) {
     return Hashing.sha512().hashString(password, StandardCharsets.UTF_8).toString();
+  }
+
+  public static String ssmPatternsToRegex(List<String> rawPatterns) {
+    StringJoiner regexBuilder = new StringJoiner("|", "(", ")");
+    rawPatterns.stream()
+        .map(StringUtil::ssmPatternToRegex)
+        .forEach(regexBuilder::add);
+
+    return regexBuilder.toString();
+  }
+
+  public static String ssmPatternToRegex(String ssmPattern) {
+    return ssmPattern
+        .replace(".", "\\.")
+        .replace("*", ".*")
+        .replace("?", ".");
   }
 }

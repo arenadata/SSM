@@ -107,7 +107,7 @@ public class SmartDaemon implements ServerDaemon {
     try {
       daemon.start();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Failed to start SmartDaemon", e);
     }
   }
 }

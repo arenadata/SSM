@@ -81,11 +81,15 @@ public class MetaStoreUtils {
   );
 
   public static void formatDatabase(SmartConf conf) throws MetaStoreException {
-    getDBAdapter(conf).formatDataBase();
+    try (MetaStore metaStore = getDBAdapter(conf)) {
+      metaStore.formatDataBase();
+    }
   }
 
   public static void checkTables(SmartConf conf) throws MetaStoreException {
-    getDBAdapter(conf).checkTables();
+    try (MetaStore metaStore = getDBAdapter(conf)) {
+      metaStore.checkTables();
+    }
   }
 
   public static MetaStore getDBAdapter(

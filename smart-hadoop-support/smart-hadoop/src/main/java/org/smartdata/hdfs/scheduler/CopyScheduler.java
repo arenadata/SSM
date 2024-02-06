@@ -372,7 +372,7 @@ public class CopyScheduler extends ActionSchedulerService {
 
   private void batchDirectSync() throws MetaStoreException {
     // Use 90% of check interval to batchSync
-    if (baseSyncQueue.size() == 0) {
+    if (baseSyncQueue.isEmpty()) {
       return;
     }
     LOG.debug("Base Sync size = {}", baseSyncQueue.size());
@@ -677,8 +677,9 @@ public class CopyScheduler extends ActionSchedulerService {
       batchDirectSync();
     } catch (MetaStoreException e) {
       throw new IOException(e);
+    } finally {
+      executorService.shutdown();
     }
-    executorService.shutdown();
   }
 
   private boolean fileExistOnStandby(String filePath) {
@@ -713,7 +714,7 @@ public class CopyScheduler extends ActionSchedulerService {
       }
       // Merge all existing fileDiffs into fileChains
       LOG.debug("Size of Pending diffs {}", fileDiffs.size());
-      if (fileDiffs.size() == 0 && baseSyncQueue.size() == 0) {
+      if (fileDiffs.isEmpty() && baseSyncQueue.isEmpty()) {
         LOG.debug("All Backup directories are synced");
         return;
       }
