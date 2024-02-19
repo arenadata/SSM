@@ -40,8 +40,8 @@ if __name__ == '__main__':
                         help="file number of test data sets, string input, e.g. '[10,100,1000]', Default Value: [10].")
     parser.add_argument("-s", "--fileSize", default='1MB', dest="fileSize",
                         help="size of each file, e.g. 10MB, 10KB, default unit KB, Default Value 1KB.")
-    parser.add_argument("-d", "--testDir", default=TEST_DIR, dest="testDir",
-                        help="Test data set directory, Default Value: TEST_DIR in util.py")
+    parser.add_argument("-d", "--testDir", default=HDFS_TEST_DIR, dest="testDir",
+                        help="Test data set directory, Default Value: HDFS_TEST_DIR in util.py")
     parser.add_argument("--debug", nargs='?', const=1, default=0, dest="debug",
                         help="print debug info, Default Value: 0")
     options = parser.parse_args()
@@ -66,7 +66,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         if options.testDir:
-            if options.testDir[-1:len(options.testDirPre)] == '/':
+            if options.testDir[-1:len(options.testDir)] == '/':
                 test_dir_prefix = options.testDir[:-1]
             else:
                 test_dir_prefix = options.testDir
@@ -74,7 +74,7 @@ if __name__ == '__main__':
             raise SystemExit
 
         if DEBUG:
-            print("DEBUG: file set nums: " + options.fileSetNums + ", each file size: " + str(size) + sizeUnit
+            print("DEBUG: file set nums: " + options.dataSetNums + ", each file size: " + str(size) + sizeUnit
                   + ", test data directory prefix: " + test_dir_prefix)
     except (ValueError, SystemExit) as e:
         print("Usage: python3 ssm_generate_test_data -h")

@@ -7,6 +7,13 @@ from util import *
 
 
 class TestStressRule(unittest.TestCase):
+    rids = []
+    @classmethod
+    def tearDownClass(cls):
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
+
+        for rid in cls.rids:
+            delete_rule(rid)
 
     def test_rule(self):
         rids = []
@@ -20,10 +27,10 @@ class TestStressRule(unittest.TestCase):
         # activate all rules
         for rid in rids:
             start_rule(rid)
+            self.rids.append(rid)
         # sleep 60s
         time.sleep(60)
-        for rid in rids:
-            delete_rule(rid)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -32,9 +39,9 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "A reminder: the value for smart.rule.executors in smart-default.xml" \
-          " should be set large enough."
-    print "The rule number for test is {}.".format(args.num)
+    print("A reminder: the value for smart.rule.executors in smart-default.xml" \
+          " should be set large enough.")
+    print("The rule number for test is {}.".format(args.num))
     MAX_NUMBER = int(args.num)
 
     unittest.main()

@@ -41,8 +41,8 @@ def run_uncompact_action(container_file_name, debug):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test SSM small file compact and uncompact actions.')
-    parser.add_argument("-d", "--testDir", default=TEST_DIR, dest="testDir",
-                        help="directory to store generated test set, DefaultValue: TEST_DIR in util.py")
+    parser.add_argument("-d", "--testDir", default=HDFS_TEST_DIR, dest="testDir",
+                        help="directory to store generated test set, DefaultValue: HDFS_TEST_DIR in util.py")
     parser.add_argument("-f", "--smallFiles", dest="smallFiles",
                         help="a string contains small files to be compacted,"
                              " No Default Value, e.g. ['/dir/file1','/dir/file2']")
@@ -117,3 +117,5 @@ if __name__ == '__main__':
             sys.exit(1)
     else:
         print("Unsupported action!")
+
+    subprocess.call(f"hdfs dfs -rm -r {test_dir}", shell=True)

@@ -3,17 +3,24 @@
 
 ## Pre-requests
 ### Python Environment
-Python 2 (2.6 or higher) with `requests` and `timeout-decorator` installed.
+Python 3 (3.10 or higher) with installed requirements libs from `support/requirements.txt`.
 ```
-python --version
-pip install requests
-pip install timeout-decorator
+python3 --version
+python3 -m venv venv
+source venv/bin/activate
+pip install -r ../requirements.txt
 ```
-
+For use `pyarrow` ([pyarrow_create_file.py](pyarrow_create_file.py)) set environments 
+and make sure that `libhdfs.so` is present in `ARROW_LIBHDFS_DIR`. Can be obtained from [hadoop](..%2Fhadoop). 
+```
+export HADOOP_HOME=
+export JAVA_HOME=
+export ARROW_LIBHDFS_DIR=/usr/lib/hadoop/lib/native/
+```
 ### HDFS and SSM Environment
-Make sure SSM and HDFS are correctly installed. Before executing test scripts, please set SSM's web UI address in `util.py`.
+Make sure SSM and HDFS are correctly installed. Before executing test scripts, please set SSM's web UI address.
 ```
-BASE_URL = "http://{SSM_Server}:7045"
+export SSM_BASE_URL = "http://{SSM_Server}:7045"
 ```
 
 `{SSM_Server}` is the IP address or hostname of active Smart Server.
@@ -22,8 +29,8 @@ BASE_URL = "http://{SSM_Server}:7045"
 1. Remove all files in hdfs:/ssmtest/
 Run this command in HDFS environment.
 ```
-HDFS dfs -ls -rm -r /ssmtest/
-HDFS dfs -mkdir /ssmtest/
+hdfs dfs -ls -rm -r -skipTrash /ssmtest/
+hdfs dfs -mkdir /ssmtest/
 ```
 
 2. Create 10000 files (1MB) in hdfs:/ssmtest/
@@ -94,7 +101,7 @@ The values of size and num are 1MB and 10000 respectively if not given.
 ```
 python test_stress_rule.py -num 10 -v
 ```
-This command will trigger 10 rules on files under TEST_DIR.
+This command will trigger 10 rules on files under HDFS_TEST_DIR.
 The value of num is 100 if not given.
 
 #### Sync Stress
@@ -114,14 +121,14 @@ Note that user can get further instructions of below python scripts via paramete
 ```
 python test_small_file_rule -n 10 -s 10KB
 ```
-This command will generate 10 files under TEST_DIR, the size of every file is 10KB.         
+This command will generate 10 files under HDFS_TEST_DIR, the size of every file is 10KB.         
 Then trigger a small file compact rule on these files.
 
 #### Small file compact action
 ```
 python test_small_file_actions -a compact -n 5 -s 10KB
 ```
-This command will generate 5 files under TEST_DIR, the size of every file is 10KB.          
+This command will generate 5 files under HDFS_TEST_DIR, the size of every file is 10KB.          
 Then trigger a small file compact action on these files, the default container file of these files is /container_tmp_file.
 
 #### Small file uncompact action

@@ -10,9 +10,6 @@ SMART_HOME=
 # PAT home, e.g., PAT_HOME=~/PAT
 PAT_HOME=
 
-# Hadoop home, e.g., HADOOP_HOME=~/hadoop
-HADOOP_HOME=
-
 # HiBench home, e.g., HiBench_HOME=~/HiBench
 HiBench_HOME=
 
@@ -21,3 +18,5 @@ SRC_NODE=
 
 # The hosts require dropping cache, e.g., HOSTS="host1 host2"
 HOSTS=
+
+MAPREDUCE_JOBCLIENT_TESTS_JAR=/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-3.2.4-tests.jar

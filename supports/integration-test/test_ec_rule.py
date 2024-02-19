@@ -4,10 +4,17 @@ from util import *
 import datetime
 
 class test_ec_rule(unittest.TestCase):
+  rule_ids = []
+
+  @classmethod
+  def tearDownClass(cls):
+    for rul_id in cls.rule_ids:
+      delete_rule(rul_id)
+    subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
 
   def test_ec_rule(self):
-    file_dir = TEST_DIR + random_string() + "/"
-    print "The file path for test is {}.".format(file_dir)
+    file_dir = HDFS_TEST_DIR + random_string() + "/"
+    print("The file path for test is {}.".format(file_dir))
     cids = []
     for i in range(MAX_NUMBER):
       path, cid = create_random_file_parallel(FILE_SIZE, file_dir)
@@ -19,6 +26,7 @@ class test_ec_rule(unittest.TestCase):
     # submit rule
     rule_str = "file : path matches \"" + file_dir + '*' + "\" | ec -policy " + POLICY
     rid = submit_rule(rule_str)
+    self.rule_ids.append(rid)
     # Activate rule
     start_rule(rid)
 
@@ -45,15 +53,15 @@ class test_ec_rule(unittest.TestCase):
 
     end_time = datetime.datetime.now()
     interval = (end_time-start_time).seconds
-    print 'ec_time:\t', interval
+    print('ec_time:\t', interval)
 
     time.sleep(10)
     stop_rule(rid)
 
   def test_unec_rule(self):
-    file_dir_path = TEST_DIR + random_string()
+    file_dir_path = HDFS_TEST_DIR + random_string()
     file_dir = file_dir_path + "/"
-    print "The file path for test is {}.".format(file_dir)
+    print("The file path for test is {}.".format(file_dir))
     # create a test dir by creating a file under the dir firstly and then deleting it
     submit_cmdlet("write -file " + file_dir + "tmp.file -length 10")
     # wait the metastore sync
@@ -74,6 +82,7 @@ class test_ec_rule(unittest.TestCase):
     time.sleep(10)
     rule_str = "file : path matches \"" + file_dir + '*' + "\" | unec"
     rid = submit_rule(rule_str)
+    self.rule_ids.append(rid)
     # Activate rule
     start_rule(rid)
 
@@ -100,7 +109,7 @@ class test_ec_rule(unittest.TestCase):
 
     end_time = datetime.datetime.now()
     interval = (end_time-start_time).seconds
-    print 'unec_time:\t', interval
+    print('unec_time:\t', interval)
 
     time.sleep(10)
     stop_rule(rid)
@@ -116,11 +125,11 @@ if __name__ == '__main__':
   parser.add_argument('unittest_args', nargs='*')
   args, unknown_args = parser.parse_known_args()
   sys.argv[1:] = unknown_args
-  print "The file size for test is {}.".format(args.size)
+  print("The file size for test is {}.".format(args.size))
   FILE_SIZE = convert_to_byte(args.size)
-  print "The file number for test is {}.".format(args.num)
+  print("The file number for test is {}.".format(args.num))
   MAX_NUMBER = int(args.num)
-  print "The EC policy for test is {}.".format(args.policy)
+  print("The EC policy for test is {}.".format(args.policy))
   POLICY = args.policy
 
   unittest.main()

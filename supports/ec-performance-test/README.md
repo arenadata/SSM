@@ -1,4 +1,4 @@
-# Performance Test for SSM EC
+# Performance Test for SSM EC[Not ready]
 
 ## Requirements
 - Deploy SSM, please refer to /SSM/doc/ssm-deployment-guide.md.

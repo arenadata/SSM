@@ -1,0 +1,4 @@
+hdfs==2.7.3
+pyarrow==15.0.0
+requests==2.31.0
+timeout-decorator==0.5.0

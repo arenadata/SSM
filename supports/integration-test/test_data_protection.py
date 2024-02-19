@@ -7,6 +7,10 @@ move_actions = ['archive', 'alldisk', 'onedisk', 'allssd', 'onessd', 'cache', 'u
 
 class TestMoverProtection(unittest.TestCase):
 
+    @classmethod
+    def tearDownClass(cls):
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
+
     def test_mover_read(self):
         for action in move_actions:
             file_path = create_random_file(FILE_SIZE)
@@ -56,6 +60,7 @@ class TestMoverProtection(unittest.TestCase):
             failed = wait_for_cmdlets(cmds)
             self.assertTrue(len(failed) == 0, "Test failed for overwrite during {}".format(action))
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-size', default='1GB',
@@ -63,7 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
 
     unittest.main()

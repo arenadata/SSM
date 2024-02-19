@@ -16,7 +16,7 @@ class TestS3(unittest.TestCase):
         file_paths = []
         cids = []
         # create random directory
-        source_dir = TEST_DIR + random_string() + "/"
+        source_dir = HDFS_TEST_DIR + random_string() + "/"
         for i in range(MAX_NUMBER):
             file_path, cid = create_random_file_parallel(FILE_SIZE, source_dir)
             file_paths.append(file_path)
@@ -35,9 +35,9 @@ class TestS3(unittest.TestCase):
         self.assertTrue(len(failed_cids) == 0)
 
         # delete files from S3
-        print "delete test file from S3"
+        print("delete test file from S3")
         subprocess.call("hadoop fs -rm -r " + DEST_DIR +
-                            TEST_DIR, shell=True)
+                            HDFS_TEST_DIR, shell=True)
 
 
 if __name__ == '__main__':
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
-    print "The file number for test is {}.".format(args.num)
+    print("The file number for test is {}.".format(args.num))
     MAX_NUMBER = int(args.num)
 
     unittest.main()

@@ -4,6 +4,9 @@ from util import *
 
 
 class TestStressMover(unittest.TestCase):
+  @classmethod
+  def tearDownClass(cls):
+    subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
 
     def test_move_scheduler(self):
         file_paths = []
@@ -29,9 +32,9 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
-    print "The file number for test is {}.".format(args.num)
+    print("The file number for test is {}.".format(args.num))
     MAX_NUMBER = int(args.num)
 
     unittest.main()

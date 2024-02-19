@@ -12,14 +12,15 @@ from util import *
 from ssm_generate_test_data import create_test_set
 
 
-def run_compress_actions(test_file_list, debug):
+def run_compress_actions(test_file_list, codec, debug):
     if debug:
         print("**********Submitting Compress Action**********")
         print("DEBUG: compress files: " + str(test_file_list))
+        print("DEBUG: compress codec: " + codec if codec else "default")
     file_list = ast.literal_eval(test_file_list)
     cids = []
     for f in file_list:
-        cid = compress_file(f)
+        cid = compress_file(f, codec)
         if debug:
             print("DEBUG：Action with ID " + str(cid) + " submitted.")
         cids.append(cid)
@@ -31,11 +32,12 @@ def run_compress_actions(test_file_list, debug):
         print("Failed to execute compress action")
 
 
-def run_compress_action(file_path, debug):
+def run_compress_action(file_path, codec, debug):
     if debug:
         print("**********Submitting Compress Action**********")
         print("DEBUG: compress files: " + file_path)
-    cid = compress_file(file_path)
+        print("DEBUG: compress codec: " + codec if codec else "default")
+    cid = compress_file(file_path, codec)
     if debug:
         print("DEBUG：Action with ID " + str(cid) + " submitted.")
     wait_for_cmdlet(cid)
@@ -47,8 +49,8 @@ def run_compress_action(file_path, debug):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test SSM compress actions.')
-    parser.add_argument("-d", "--testDir", default=TEST_DIR, dest="testDir",
-                        help="directory to store generated test set, DefaultValue: TEST_DIR in util.py")
+    parser.add_argument("-d", "--testDir", default=HDFS_TEST_DIR, dest="testDir",
+                        help="directory to store generated test set, DefaultValue: HDFS_TEST_DIR in util.py")
     parser.add_argument("-f", "--Files", dest="Files",
                         help="a string contains test files to be compressed,"
                              " No Default Value, e.g. ['/dir/file1','/dir/file2']")
@@ -58,6 +60,8 @@ if __name__ == '__main__':
                         help="size of each test file, e.g. 10MB, 10KB, default unit KB, Default Value 1KB.")
     parser.add_argument("-a", "--action", dest="action", default="compress",
                         help="action type to submit, Default Value: \"compress\"")
+    parser.add_argument("-c", "--codec", dest="codec", default=None,
+                        help="Compress codec. Lz4, Bzip2, Zlib or snappy. Default - smart.compression.codec.")
     parser.add_argument("--debug", nargs='?', const=1, default=0, dest="debug",
                         help="print debug info.")
     options = parser.parse_args()
@@ -102,11 +106,15 @@ if __name__ == '__main__':
         time.sleep(5)
 
     if action == "compress":
+        codec = options.codec
         if test_files:
-            run_compress_actions(test_files, DEBUG)
+            run_compress_actions(test_files, codec, DEBUG)
         else:
             print("Test file list is not specified!")
             print("Usage: python test_compress_actions.py -h")
             sys.exit(1)
     else:
         print("Unsupported action!")
+
+    subprocess.call(f"hdfs dfs -rm -r {test_dir}", shell=True)
+

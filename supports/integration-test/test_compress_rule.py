@@ -49,13 +49,14 @@ def run_compress_rule(compress_dir, debug):
     else:
         print("No cmdlet is generated")
     stop_rule(rid)
+    return rid
 
 
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description='Auto-generate and submit compress rules.')
-    parser.add_argument("-d", "--testDir", default=TEST_DIR, dest="testDir",
-                        help="target test set directory Prefix, Default Value: TEST_DIR in util.py")
+    parser.add_argument("-d", "--testDir", default=HDFS_TEST_DIR, dest="testDir",
+                        help="target test set directory Prefix, Default Value: HDFS_TEST_DIR in util.py")
     parser.add_argument("-n", "--fileNum", default='5', dest="fileNum",
                         help="number of test files, string input, e.g. '10', Default Value: 5.")
     parser.add_argument("-s", "--fileSize", default='10MB', dest="fileSize",
@@ -108,4 +109,7 @@ if __name__ == '__main__':
               + test_dir + "/data_" + file_num)
     else:
         create_test_set([int(file_num)], file_size, test_dir, DEBUG)
-    run_compress_rule(test_dir + "/data_" + file_num, DEBUG)
+    rid = run_compress_rule(test_dir + "/data_" + file_num, DEBUG)
+    delete_rule(rid)
+    subprocess.call(f"hdfs dfs -rm -r {test_dir}", shell=True)
+
