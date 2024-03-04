@@ -17,21 +17,14 @@
  */
 package org.smartdata.hdfs.action;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.hadoop.conf.Configuration;
+import java.util.Map;
+import java.util.Random;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.conf.SmartConfKeys;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Random;
 
 @ActionSignature(
   actionId = "append",
@@ -46,38 +39,25 @@ public class AppendFileAction extends HdfsAction {
   private String srcPath;
   private long length = 1024;
   private int bufferSize = 64 * 1024;
-  private Configuration conf;
 
   @Override
   public void init(Map<String, String> args) {
-    try {
-      this.conf = getContext().getConf();
-      String nameNodeURL = this.conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
-      conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
-    } catch (NullPointerException e) {
-      this.conf = new Configuration();
-      appendLog("Conf error!, NameNode URL is not configured!");
-    }
+    withDefaultFs();
     super.init(args);
     this.srcPath = args.get(FILE_PATH);
     if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
     }
     if (args.containsKey(LENGTH)) {
-      length = Long.valueOf(args.get(LENGTH));
+      length = Long.parseLong(args.get(LENGTH));
     }
-  }
-
-  @VisibleForTesting
-  protected void setConf(Configuration conf) {
-    this.conf = conf;
   }
 
   @Override
   protected void execute() throws Exception {
     if (srcPath != null && !srcPath.isEmpty()) {
       Path path = new Path(srcPath);
-      FileSystem fileSystem = path.getFileSystem(conf);
+      FileSystem fileSystem = path.getFileSystem(getContext().getConf());
       appendLog(
           String.format("Action starts at %s : Read %s",
               Utils.getFormatedCurrentTime(), srcPath));

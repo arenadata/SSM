@@ -17,10 +17,11 @@
  */
 package org.smartdata.server.engine.rule;
 
-
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.SyncAction;
+import org.smartdata.hdfs.action.CopyFileAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.BackUpInfo;
@@ -43,8 +44,8 @@ import java.util.StringJoiner;
 import static org.smartdata.utils.StringUtil.ssmPatternsToRegex;
 
 public class FileCopyDrPlugin implements RuleExecutorPlugin {
-  private MetaStore metaStore;
-  private Map<Long, List<BackUpInfo>> backups = new HashMap<>();
+  private final MetaStore metaStore;
+  private final Map<Long, List<BackUpInfo>> backups = new HashMap<>();
   private static final Logger LOG =
       LoggerFactory.getLogger(FileCopyDrPlugin.class.getName());
 
@@ -63,6 +64,9 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
     CmdletDescriptor des = tResult.getCmdDescriptor();
     for (int i = 0; i < des.getActionSize(); i++) {
       if (des.getActionName(i).equals("sync")) {
+        String rawPreserveArg = des.getActionArgs(i).get(SyncAction.PRESERVE);
+        // fail fast if preserve arg is not valid
+        validatePreserveArg(rawPreserveArg);
 
         List<String> statements = tResult.getSqlStatements();
         String before = statements.get(statements.size() - 1);
@@ -167,6 +171,16 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
       } catch (MetaStoreException e) {
         LOG.error("Remove backup info error:" + ruleInfo, e);
       }
+    }
+  }
+
+  private void validatePreserveArg(String rawPreserveArg) {
+    if (StringUtils.isBlank(rawPreserveArg)) {
+      return;
+    }
+
+    for (String attribute: rawPreserveArg.split(",")) {
+      CopyFileAction.validatePreserveArg(attribute);
     }
   }
 }

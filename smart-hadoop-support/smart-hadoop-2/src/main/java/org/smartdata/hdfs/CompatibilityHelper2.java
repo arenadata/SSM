@@ -17,6 +17,7 @@
  */
 package org.smartdata.hdfs;
 
+import java.io.OutputStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileEncryptionInfo;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -113,5 +114,20 @@ public abstract class CompatibilityHelper2 implements CompatibilityHelper {
   public DFSInputStream getNormalInputStream(DFSClient dfsClient, String src, boolean verifyChecksum,
       FileState fileState) throws IOException {
     return new SmartInputStream(dfsClient, src, verifyChecksum, fileState);
+  }
+
+  @Override
+  public OutputStream getDFSClientAppend(DFSClient client, String dest,
+                                         int bufferSize, long offset) throws IOException {
+    return getDFSClientAppend(client, dest, bufferSize, offset, client.getDefaultReplication());
+  }
+
+  @Override
+  public OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize, long offset, short replication)
+      throws IOException {
+    if (client.exists(dest) && offset != 0) {
+      return getDFSClientAppend(client, dest, bufferSize);
+    }
+    return client.create(dest, true, replication, client.getDefaultBlockSize());
   }
 }

@@ -62,23 +62,24 @@ public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
   }
 
   public void waitTillSSMExitSafeMode() throws Exception {
-    SmartAdmin client = new SmartAdmin(smartContext.getConf());
-    long start = System.currentTimeMillis();
-    int retry = 5;
-    while (true) {
-      try {
-        SmartServiceState state = client.getServiceState();
-        if (state != SmartServiceState.SAFEMODE) {
-          break;
+    try (SmartAdmin client = new SmartAdmin(smartContext.getConf())) {
+      long start = System.currentTimeMillis();
+      int retry = 5;
+      while (true) {
+        try {
+          SmartServiceState state = client.getServiceState();
+          if (state == SmartServiceState.ACTIVE) {
+            break;
+          }
+          int secs = (int) (System.currentTimeMillis() - start) / 1000;
+          System.out.println("Waited for " + secs + " seconds ...");
+          Thread.sleep(1000);
+        } catch (Exception e) {
+          if (retry <= 0) {
+            throw e;
+          }
+          retry--;
         }
-        int secs = (int) (System.currentTimeMillis() - start) / 1000;
-        System.out.println("Waited for " + secs + " seconds ...");
-        Thread.sleep(1000);
-      } catch (Exception e) {
-        if (retry <= 0) {
-          throw e;
-        }
-        retry--;
       }
     }
   }

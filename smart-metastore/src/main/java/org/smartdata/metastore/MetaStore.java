@@ -71,7 +71,7 @@ import org.smartdata.model.FileAccessInfo;
 import org.smartdata.model.FileDiff;
 import org.smartdata.model.FileDiffState;
 import org.smartdata.model.FileInfo;
-import org.smartdata.model.FileInfoUpdate;
+import org.smartdata.model.FileInfoDiff;
 import org.smartdata.model.FileState;
 import org.smartdata.model.GlobalConfig;
 import org.smartdata.model.NormalFileState;
@@ -205,7 +205,7 @@ public class MetaStore implements CopyMetaService,
     fileInfoDao.insert(files);
   }
 
-  public void updateFileByPath(String path, FileInfoUpdate fileUpdate) {
+  public void updateFileByPath(String path, FileInfoDiff fileUpdate) {
     fileInfoDao.updateByPath(path, fileUpdate);
   }
 
@@ -1530,7 +1530,7 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public Long[] insertFileDiffs(List<FileDiff> fileDiffs)
+  public List<Long> insertFileDiffs(List<FileDiff> fileDiffs)
       throws MetaStoreException {
     try {
       return fileDiffDao.insert(fileDiffs);

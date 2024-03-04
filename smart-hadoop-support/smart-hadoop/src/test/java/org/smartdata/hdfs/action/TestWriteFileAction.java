@@ -45,6 +45,7 @@ public class TestWriteFileAction extends MiniClusterHarness {
     args.put(WriteFileAction.FILE_PATH, "/Test");
     args.put(WriteFileAction.LENGTH, "100000000000000");
     WriteFileAction writeFileAction = new WriteFileAction();
+    writeFileAction.setContext(smartContext);
     writeFileAction.init(args);
     args.put(WriteFileAction.BUF_SIZE, "1024");
     writeFileAction.init(args);

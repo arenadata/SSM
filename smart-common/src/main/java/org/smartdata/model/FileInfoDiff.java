@@ -20,12 +20,10 @@ package org.smartdata.model;
 
 import java.util.Objects;
 
-public class FileInfoUpdate {
+public class FileInfoDiff {
   private String path;
   private Long length;
-  private Boolean isdir;
   private Short blockReplication;
-  private Long blocksize;
   private Long modificationTime;
   private Long accessTime;
   private Short permission;
@@ -37,7 +35,7 @@ public class FileInfoUpdate {
     return path;
   }
 
-  public FileInfoUpdate setPath(String path) {
+  public FileInfoDiff setPath(String path) {
     this.path = path;
     return this;
   }
@@ -46,17 +44,8 @@ public class FileInfoUpdate {
     return length;
   }
 
-  public FileInfoUpdate setLength(long length) {
+  public FileInfoDiff setLength(Long length) {
     this.length = length;
-    return this;
-  }
-
-  public Boolean getIsdir() {
-    return isdir;
-  }
-
-  public FileInfoUpdate setIsdir(boolean isdir) {
-    this.isdir = isdir;
     return this;
   }
 
@@ -64,17 +53,8 @@ public class FileInfoUpdate {
     return blockReplication;
   }
 
-  public FileInfoUpdate setBlockReplication(short blockReplication) {
+  public FileInfoDiff setBlockReplication(Short blockReplication) {
     this.blockReplication = blockReplication;
-    return this;
-  }
-
-  public Long getBlocksize() {
-    return blocksize;
-  }
-
-  public FileInfoUpdate setBlocksize(long blocksize) {
-    this.blocksize = blocksize;
     return this;
   }
 
@@ -82,7 +62,7 @@ public class FileInfoUpdate {
     return modificationTime;
   }
 
-  public FileInfoUpdate setModificationTime(long modificationTime) {
+  public FileInfoDiff setModificationTime(Long modificationTime) {
     this.modificationTime = modificationTime;
     return this;
   }
@@ -91,7 +71,7 @@ public class FileInfoUpdate {
     return accessTime;
   }
 
-  public FileInfoUpdate setAccessTime(long accessTime) {
+  public FileInfoDiff setAccessTime(Long accessTime) {
     this.accessTime = accessTime;
     return this;
   }
@@ -100,7 +80,7 @@ public class FileInfoUpdate {
     return permission;
   }
 
-  public FileInfoUpdate setPermission(short permission) {
+  public FileInfoDiff setPermission(Short permission) {
     this.permission = permission;
     return this;
   }
@@ -109,7 +89,7 @@ public class FileInfoUpdate {
     return owner;
   }
 
-  public FileInfoUpdate setOwner(String owner) {
+  public FileInfoDiff setOwner(String owner) {
     this.owner = owner;
     return this;
   }
@@ -118,7 +98,7 @@ public class FileInfoUpdate {
     return group;
   }
 
-  public FileInfoUpdate setGroup(String group) {
+  public FileInfoDiff setGroup(String group) {
     this.group = group;
     return this;
   }
@@ -127,7 +107,7 @@ public class FileInfoUpdate {
     return erasureCodingPolicy;
   }
 
-  public FileInfoUpdate setErasureCodingPolicy(byte erasureCodingPolicy) {
+  public FileInfoDiff setErasureCodingPolicy(Byte erasureCodingPolicy) {
     this.erasureCodingPolicy = erasureCodingPolicy;
     return this;
   }
@@ -140,12 +120,10 @@ public class FileInfoUpdate {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FileInfoUpdate that = (FileInfoUpdate) o;
+    FileInfoDiff that = (FileInfoDiff) o;
     return Objects.equals(path, that.path)
         && Objects.equals(length, that.length)
-        && Objects.equals(isdir, that.isdir)
         && Objects.equals(blockReplication, that.blockReplication)
-        && Objects.equals(blocksize, that.blocksize)
         && Objects.equals(modificationTime, that.modificationTime)
         && Objects.equals(accessTime, that.accessTime)
         && Objects.equals(permission, that.permission)
@@ -156,18 +134,16 @@ public class FileInfoUpdate {
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, length, isdir, blockReplication,
-        blocksize, modificationTime, accessTime, permission, owner, group, erasureCodingPolicy);
+    return Objects.hash(path, length, blockReplication,
+        modificationTime, accessTime, permission, owner, group, erasureCodingPolicy);
   }
 
   @Override
   public String toString() {
-    return "FileInfoUpdate{"
+    return "FileInfoDiff{"
         + "path='" + path + '\''
         + ", length=" + length
-        + ", isdir=" + isdir
         + ", blockReplication=" + blockReplication
-        + ", blocksize=" + blocksize
         + ", modificationTime=" + modificationTime
         + ", accessTime=" + accessTime
         + ", permission=" + permission

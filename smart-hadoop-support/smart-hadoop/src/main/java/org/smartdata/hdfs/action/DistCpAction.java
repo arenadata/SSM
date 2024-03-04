@@ -46,7 +46,10 @@ public class DistCpAction extends HdfsAction {
   public static final String TARGET_ARG = "-target";
   public static final String SOURCE_PATH_LIST_FILE = "-f";
 
+  // preserve file owner, group and permissions by default
+  private static final String PRESERVE_DISTCP_OPTION_DEFAULT = "-pugp";
   private static final String SOURCE_PATHS_DELIMITER = ",";
+  private static final String PRESERVE_DISTCP_OPTION_PREFIX = "-p";
 
   private String sourcePaths;
 
@@ -64,6 +67,10 @@ public class DistCpAction extends HdfsAction {
     distCpArgs = new HashMap<>(args);
     distCpArgs.remove(FILE_PATH);
     distCpArgs.remove(TARGET_ARG);
+
+    if (!containsPreserveOption(args)) {
+      distCpArgs.put(PRESERVE_DISTCP_OPTION_DEFAULT, "");
+    }
   }
 
   @Override
@@ -124,6 +131,12 @@ public class DistCpAction extends HdfsAction {
       return Stream.of(key);
     }
     return Stream.of(key, value);
+  }
+
+  private boolean containsPreserveOption(Map<String, String> args) {
+    return args.keySet()
+        .stream()
+        .anyMatch(option -> option.startsWith(PRESERVE_DISTCP_OPTION_PREFIX));
   }
 
   /** Used to gracefully close MapReduce job (MR Job is not AutoCloseable inheritor in Hadoop 2.7) */

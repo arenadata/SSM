@@ -27,13 +27,16 @@ import org.smartdata.action.annotation.ActionSignature;
 @ActionSignature(
     actionId = "sync",
     displayName = "sync",
-    usage = SyncAction.SRC + " $src" + SyncAction.DEST + " $dest"
+    usage = SyncAction.SRC + " $src "
+        + SyncAction.DEST + " $dest "
+        + SyncAction.PRESERVE + " $attributes"
 )
 public class SyncAction extends SmartAction {
   // related to fileDiff.src
   public static final String SRC = "-src";
   // related to remote cluster and fileDiff.src
   public static final String DEST = "-dest";
+  public static final String PRESERVE = "-preserve";
 
   @Override
   protected void execute() throws Exception {

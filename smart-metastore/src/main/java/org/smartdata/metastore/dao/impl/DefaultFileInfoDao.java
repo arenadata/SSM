@@ -20,7 +20,7 @@ package org.smartdata.metastore.dao.impl;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.model.FileInfo;
-import org.smartdata.model.FileInfoUpdate;
+import org.smartdata.model.FileInfoDiff;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -134,7 +134,7 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
   }
 
   @Override
-  public int updateByPath(String path, FileInfoUpdate fileUpdate) {
+  public int updateByPath(String path, FileInfoDiff fileUpdate) {
     return update(updateToMap(fileUpdate), "path = ?", path);
   }
 
@@ -175,12 +175,11 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
     jdbcTemplate.update(sql, newPath, oldPath.length() + 1, oldPath + "/%");
   }
 
-  private Map<String, Object> updateToMap(FileInfoUpdate fileInfo) {
+  private Map<String, Object> updateToMap(FileInfoDiff fileInfo) {
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("path", fileInfo.getPath());
     parameters.put("length", fileInfo.getLength());
     parameters.put("block_replication", fileInfo.getBlockReplication());
-    parameters.put("block_size", fileInfo.getBlocksize());
     parameters.put("modification_time", fileInfo.getModificationTime());
     parameters.put("access_time", fileInfo.getAccessTime());
     parameters

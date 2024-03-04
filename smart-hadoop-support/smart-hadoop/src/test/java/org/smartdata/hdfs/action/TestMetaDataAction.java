@@ -17,10 +17,14 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.fs.FSDataOutputStream;
+import java.io.UnsupportedEncodingException;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.smartdata.hdfs.MiniClusterHarness;
 
 import java.io.IOException;
@@ -30,58 +34,69 @@ import java.util.Map;
 /**
  * Test for MetaDataAction
  */
+@RunWith(Parameterized.class)
 public class TestMetaDataAction extends MiniClusterHarness {
 
-  @Test
-  public void testLocalMetadataChange() throws IOException {
-    final String srcPath = "/test";
-    final String file = "file";
+  @Parameterized.Parameter()
+  public boolean isRemoteCopy;
 
-    dfs.mkdirs(new Path(srcPath));
-    FSDataOutputStream out = dfs.create(new Path(srcPath + "/" + file));
-    out.close();
-
-    MetaDataAction metaFileAction = new MetaDataAction();
-    metaFileAction.setDfsClient(dfsClient);
-    metaFileAction.setContext(smartContext);
-
-    Map<String, String> args = new HashMap<>();
-    args.put(MetaDataAction.FILE_PATH, srcPath + "/" + file);
-    args.put(MetaDataAction.OWNER_NAME, "test");
-    args.put(MetaDataAction.PERMISSION, "777");
-
-    metaFileAction.init(args);
-    metaFileAction.run();
-
-    Assert.assertTrue(metaFileAction.getExpectedAfterRun());
-    Assert.assertTrue(dfs.getFileStatus(new Path(srcPath + "/" + file)).getOwner().equals("test"));
-    Assert.assertTrue(dfs.getFileStatus(new Path(srcPath + "/" + file)).getPermission().toString().equals("rwxrwxrwx"));
+  @Parameterized.Parameters(name = "Remote copy - {0}")
+  public static Object[] parameters() {
+    return new Object[] {true, false};
   }
 
   @Test
-  public void testRemoteMetadataChange() throws IOException {
-    final String srcPath = "/test";
-    final String file = "file";
+  public void testMetadataChange() throws IOException {
+    Map<String, String> args = new HashMap<>();
+    args.put(MetaDataAction.OWNER_NAME, "user");
+    args.put(MetaDataAction.GROUP_NAME, "group");
+    args.put(MetaDataAction.BLOCK_REPLICATION, "7");
+    args.put(MetaDataAction.PERMISSION, "511");
+    args.put(MetaDataAction.MTIME, "10");
 
-    dfs.mkdirs(new Path(srcPath));
-    FSDataOutputStream out = dfs.create(new Path(srcPath + "/" + file));
-    out.close();
+    FileStatus fileStatus = updateMetadata(args);
+    Assert.assertEquals("user", fileStatus.getOwner());
+    Assert.assertEquals("group", fileStatus.getGroup());
+    Assert.assertEquals(7, fileStatus.getReplication());
+    Assert.assertEquals("rwxrwxrwx", fileStatus.getPermission().toString());
+    Assert.assertEquals(10L, fileStatus.getModificationTime());
+  }
 
+  @Test
+  public void testPartialMetadataChange() throws IOException {
+    Map<String, String> args = new HashMap<>();
+    args.put(MetaDataAction.GROUP_NAME, "group");
+    args.put(MetaDataAction.BLOCK_REPLICATION, "7");
+    args.put(MetaDataAction.MTIME, "10");
+
+    FileStatus fileStatus = updateMetadata(args);
+    Assert.assertEquals("group", fileStatus.getGroup());
+    Assert.assertEquals(7, fileStatus.getReplication());
+    Assert.assertEquals(10L, fileStatus.getModificationTime());
+  }
+
+  private FileStatus updateMetadata(Map<String, String> args) throws IOException {
+    Path srcPath = new Path("/test/file");
+    DFSTestUtil.writeFile(dfs, srcPath, "data");
+
+    args.put(MetaDataAction.FILE_PATH, pathToActionArg(srcPath));
+    runAction(args);
+
+    return dfs.getFileStatus(srcPath);
+  }
+
+  private void runAction(Map<String, String> args) throws UnsupportedEncodingException {
     MetaDataAction metaFileAction = new MetaDataAction();
     metaFileAction.setDfsClient(dfsClient);
     metaFileAction.setContext(smartContext);
-
-    Map<String, String> args = new HashMap<>();
-    args.put(MetaDataAction.FILE_PATH, dfs.getUri() + srcPath + "/" + file);
-    args.put(MetaDataAction.OWNER_NAME, "test");
-    args.put(MetaDataAction.PERMISSION, "777");
 
     metaFileAction.init(args);
     metaFileAction.run();
 
     Assert.assertTrue(metaFileAction.getExpectedAfterRun());
-    Assert.assertTrue(dfs.getFileStatus(new Path(srcPath + "/" + file)).getOwner().equals("test"));
-    Assert.assertTrue(dfs.getFileStatus(new Path(srcPath + "/" + file)).getPermission().toString().equals("rwxrwxrwx"));
+  }
 
+  protected String pathToActionArg(Path path) {
+    return isRemoteCopy ? path.toString() : path.toUri().getPath();
   }
 }

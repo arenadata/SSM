@@ -18,16 +18,13 @@
 package org.smartdata.hdfs.action;
 
 import org.apache.hadoop.fs.XAttrSetFlag;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
 
 import java.io.IOException;
@@ -57,26 +54,17 @@ public class Copy2S3Action extends HdfsAction {
   private String srcPath;
   private String destPath;
   private int bufferSize = 64 * 1024;
-  private Configuration conf;
 
   @Override
   public void init(Map<String, String> args) {
-    try {
-      this.conf = getContext().getConf();
-      String nameNodeURL =
-          this.conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
-      conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
-    } catch (NullPointerException e) {
-      this.conf = new Configuration();
-      appendLog("Conf error!, NameNode URL is not configured!");
-    }
+    withDefaultFs();
     super.init(args);
     this.srcPath = args.get(FILE_PATH);
     if (args.containsKey(DEST)) {
       this.destPath = args.get(DEST);
     }
     if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
     }
   }
 
@@ -105,7 +93,7 @@ public class Copy2S3Action extends HdfsAction {
   private long getFileSize(String fileName) throws IOException {
     if (fileName.startsWith("hdfs")) {
       // Get InputStream from URL
-      FileSystem fs = FileSystem.get(URI.create(fileName), conf);
+      FileSystem fs = FileSystem.get(URI.create(fileName), getContext().getConf());
       return fs.getFileStatus(new Path(fileName)).getLen();
     } else {
       return dfsClient.getFileInfo(fileName).getLen();
@@ -128,7 +116,7 @@ public class Copy2S3Action extends HdfsAction {
     try {
       in = getSrcInputStream(src);
       out = CompatibilityHelperLoader
-          .getHelper().getS3outputStream(dest, conf);
+          .getHelper().getS3outputStream(dest, getContext().getConf());
       byte[] buf = new byte[bufferSize];
       long bytesRemaining = getFileSize(src);
 
@@ -158,7 +146,7 @@ public class Copy2S3Action extends HdfsAction {
     if (!src.startsWith("hdfs")) {
       // Copy between different remote clusters
       // Get InputStream from URL
-      FileSystem fs = FileSystem.get(URI.create(src), conf);
+      FileSystem fs = FileSystem.get(URI.create(src), getContext().getConf());
       return fs.open(new Path(src));
     } else {
       // Copy from primary HDFS
@@ -172,7 +160,7 @@ public class Copy2S3Action extends HdfsAction {
       throw new IOException();
     }
     // Copy to s3
-    FileSystem fs = FileSystem.get(URI.create(dest), conf);
+    FileSystem fs = FileSystem.get(URI.create(dest), getContext().getConf());
     return fs.create(new Path(dest), true);
   }
 }

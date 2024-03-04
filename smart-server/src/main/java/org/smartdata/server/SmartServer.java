@@ -265,25 +265,34 @@ public class SmartServer {
     return getSSMServiceState() == SmartServiceState.ACTIVE;
   }
 
-  private void stop() throws Exception {
-    if (engine != null) {
-      engine.stop();
+  private void stop() {
+    try {
+      if (engine != null) {
+        engine.stop();
+      }
+    } catch (Exception exception) {
+      LOG.error("Error during stopping SmartEngine", exception);
     }
 
-    MetaStore metaStore = context.getMetaStore();
-    if (metaStore != null) {
-      metaStore.close();
+    try {
+      if (zeppelinServer != null) {
+        zeppelinServer.stop();
+      }
+    } catch (Exception exception) {
+      LOG.error("Error during stopping Zeppelin server", exception);
     }
 
     try {
       if (rpcServer != null) {
         rpcServer.stop();
       }
-    } catch (Exception e) {
+    } catch (Exception exception) {
+      LOG.error("Error during stopping SmartServer RPC server", exception);
     }
 
-    if (zeppelinServer != null) {
-      zeppelinServer.stop();
+    MetaStore metaStore = context.getMetaStore();
+    if (metaStore != null) {
+      metaStore.close();
     }
   }
 

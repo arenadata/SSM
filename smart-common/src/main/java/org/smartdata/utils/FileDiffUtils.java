@@ -15,40 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.utils;
 
+import org.smartdata.model.FileDiff;
 
-public enum FileDiffType {
-  CREATE(0),
-  DELETE(1),
-  RENAME(2),
-  APPEND(3),
-  METADATA(4),
-  BASESYNC(5),
-  MKDIR(6);
+public class FileDiffUtils {
+  public static final String LENGTH_ARG = "-length";
+  public static final String OFFSET_ARG = "-offset";
+  public static final String DEST_ARG = "-dest";
 
-  private int value;
-
-  FileDiffType(int value) {
-    this.value = value;
+  public static String getParameter(FileDiff fileDiff, String parameter) {
+    return fileDiff.getParameters().get(parameter);
   }
 
-  public static FileDiffType fromValue(int value) {
-    for (FileDiffType r : values()) {
-      if (value == r.getValue()) {
-        return r;
-      }
-    }
-    return null;
+  public static String getOffset(FileDiff fileDiff) {
+    return getParameter(fileDiff, OFFSET_ARG);
   }
 
-  public int getValue() {
-    return value;
+  public static String getLength(FileDiff fileDiff) {
+    return getParameter(fileDiff, LENGTH_ARG);
   }
 
-  @Override
-  public String toString() {
-    return String.format("FileDiffType{value=%s} %s", value, super.toString());
+  public static String getDest(FileDiff fileDiff) {
+    return getParameter(fileDiff, DEST_ARG);
   }
-
 }

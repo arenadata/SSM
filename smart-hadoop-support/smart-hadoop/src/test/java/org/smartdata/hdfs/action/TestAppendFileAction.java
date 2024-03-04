@@ -38,7 +38,6 @@ public class TestAppendFileAction extends MiniClusterHarness {
     appendFileAction.setDfsClient(dfsClient);
     appendFileAction.setContext(smartContext);
     appendFileAction.init(args);
-    appendFileAction.setConf(smartContext.getConf());
     appendFileAction.run();
     Assert.assertTrue(appendFileAction.getExpectedAfterRun());
   }
@@ -49,6 +48,7 @@ public class TestAppendFileAction extends MiniClusterHarness {
     args.put(AppendFileAction.FILE_PATH, "/Test");
     args.put(AppendFileAction.LENGTH, "100000000000000");
     AppendFileAction appendFileAction = new AppendFileAction();
+    appendFileAction.setContext(smartContext);
     appendFileAction.init(args);
     args.put(AppendFileAction.BUF_SIZE, "1024");
     appendFileAction.init(args);
@@ -59,6 +59,7 @@ public class TestAppendFileAction extends MiniClusterHarness {
     Map<String, String> args = new HashMap<>();
     args.put(WriteFileAction.FILE_PATH, "/Test");
     AppendFileAction appendFileAction = new AppendFileAction();
+    appendFileAction.setContext(smartContext);
     appendFileAction.init(args);
     appendFileAction.run();
     Assert.assertNotNull(appendFileAction.getActionStatus().getThrowable());

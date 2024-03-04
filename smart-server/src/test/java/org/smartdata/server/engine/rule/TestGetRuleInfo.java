@@ -25,6 +25,7 @@ import org.smartdata.model.RuleState;
 import org.smartdata.server.MiniSmartClusterHarness;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestGetRuleInfo extends MiniSmartClusterHarness {
@@ -34,26 +35,29 @@ public class TestGetRuleInfo extends MiniSmartClusterHarness {
     waitTillSSMExitSafeMode();
 
     String rule = "file: every 1s \n | length > 10 | cache";
-    SmartAdmin client = new SmartAdmin(smartContext.getConf());
+    try (SmartAdmin client = new SmartAdmin(smartContext.getConf())) {
 
-    long ruleId = client.submitRule(rule, RuleState.ACTIVE);
-    RuleInfo info1 = client.getRuleInfo(ruleId);
-    System.out.println(info1);
-    Assert.assertTrue(info1.getRuleText().equals(rule));
+      long ruleId = client.submitRule(rule, RuleState.ACTIVE);
+      RuleInfo info1 = client.getRuleInfo(ruleId);
+      System.out.println(info1);
+      Assert.assertEquals(info1.getRuleText(), rule);
 
-    RuleInfo infoTemp = info1;
-    for (int i = 0; i < 3; i++) {
-      Thread.sleep(1000);
-      infoTemp = client.getRuleInfo(ruleId);
-      System.out.println(infoTemp);
-    }
-    Assert.assertTrue(infoTemp.getNumChecked() >= info1.getNumChecked() + 2);
+      RuleInfo infoTemp = info1;
+      for (int i = 0; i < 3; i++) {
+        Thread.sleep(1000);
+        infoTemp = client.getRuleInfo(ruleId);
+        System.out.println(infoTemp);
+      }
+      Assert.assertTrue(infoTemp.getNumChecked() >= info1.getNumChecked() + 2);
 
-    long fakeRuleId = 10999999999L;
-    try {
-      client.getRuleInfo(fakeRuleId);
-      Assert.fail("Should raise an exception when using a invalid rule id");
-    } catch (IOException e) {
+      long fakeRuleId = 10999999999L;
+      try {
+        client.getRuleInfo(fakeRuleId);
+        Assert.fail("Should raise an exception when using a invalid rule id");
+      } catch (IOException e) {
+      }
+
+      client.deleteRule(ruleId, true);
     }
   }
 
@@ -62,17 +66,26 @@ public class TestGetRuleInfo extends MiniSmartClusterHarness {
     waitTillSSMExitSafeMode();
 
     String rule = "file: every 1s \n | length > 10 | cache";
-    SmartAdmin client = new SmartAdmin(smartContext.getConf());
+    int nRules;
+    List<RuleInfo> ruleInfos;
+    try (SmartAdmin client = new SmartAdmin(smartContext.getConf())) {
 
-    int nRules = 10;
-    for (int i = 0; i < nRules; i++) {
-      client.submitRule(rule, RuleState.ACTIVE);
-    }
+      List<Long> ruleIds = new ArrayList<>();
+      nRules = 10;
+      for (int i = 0; i < nRules; i++) {
+        long ruleId = client.submitRule(rule, RuleState.ACTIVE);
+        ruleIds.add(ruleId);
+      }
 
-    List<RuleInfo> ruleInfos = client.listRulesInfo();
-    for (RuleInfo info : ruleInfos) {
-      System.out.println(info);
+      ruleInfos = client.listRulesInfo();
+      for (RuleInfo info : ruleInfos) {
+        System.out.println(info);
+      }
+      Assert.assertEquals(ruleInfos.size(), nRules);
+
+      for (long ruleId : ruleIds) {
+        client.deleteRule(ruleId, true);
+      }
     }
-    Assert.assertTrue(ruleInfos.size() == nRules);
   }
 }

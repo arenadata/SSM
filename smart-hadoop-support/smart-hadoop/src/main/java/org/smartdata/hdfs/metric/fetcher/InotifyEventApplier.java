@@ -33,7 +33,7 @@ import org.smartdata.model.BackUpInfo;
 import org.smartdata.model.FileDiff;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
-import org.smartdata.model.FileInfoUpdate;
+import org.smartdata.model.FileInfoDiff;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -167,28 +167,30 @@ public class InotifyEventApplier {
 
   private void applyCreateFileDiff(FileInfo fileInfo) throws MetaStoreException {
     if (inBackup(fileInfo.getPath())) {
-      if (!fileInfo.isdir()) {
-
-        // ignore dir
-        FileDiff fileDiff = new FileDiff(FileDiffType.APPEND);
+      if (fileInfo.isdir()) {
+        FileDiff fileDiff = new FileDiff(FileDiffType.MKDIR);
         fileDiff.setSrc(fileInfo.getPath());
-        fileDiff.getParameters().put("-offset", String.valueOf(0));
-        // Note that "-length 0" means create an empty file
-        fileDiff.getParameters()
-            .put("-length", String.valueOf(fileInfo.getLength()));
-        // TODO add support in CopyFileAction or split into two file diffs
-        //add modification_time and access_time to filediff
-        fileDiff.getParameters().put("-mtime", "" + fileInfo.getModificationTime());
-        // fileDiff.getParameters().put("-atime", "" + fileInfo.getAccessTime());
-        //add owner to filediff
-        fileDiff.getParameters().put("-owner", "" + fileInfo.getOwner());
-        fileDiff.getParameters().put("-group", "" + fileInfo.getGroup());
-        //add Permission to filediff
-        fileDiff.getParameters().put("-permission", "" + fileInfo.getPermission());
-        //add replication count to file diff
-        fileDiff.getParameters().put("-replication", "" + fileInfo.getBlockReplication());
         metaStore.insertFileDiff(fileDiff);
+        return;
       }
+      FileDiff fileDiff = new FileDiff(FileDiffType.APPEND);
+      fileDiff.setSrc(fileInfo.getPath());
+      fileDiff.getParameters().put("-offset", String.valueOf(0));
+      // Note that "-length 0" means create an empty file
+      fileDiff.getParameters()
+          .put("-length", String.valueOf(fileInfo.getLength()));
+      // TODO add support in CopyFileAction or split into two file diffs
+      //add modification_time and access_time to filediff
+      fileDiff.getParameters().put("-mtime", "" + fileInfo.getModificationTime());
+      // fileDiff.getParameters().put("-atime", "" + fileInfo.getAccessTime());
+      //add owner to filediff
+      fileDiff.getParameters().put("-owner", "" + fileInfo.getOwner());
+      fileDiff.getParameters().put("-group", "" + fileInfo.getGroup());
+      //add Permission to filediff
+      fileDiff.getParameters().put("-permission", "" + fileInfo.getPermission());
+      //add replication count to file diff
+      fileDiff.getParameters().put("-replication", "" + fileInfo.getBlockReplication());
+      metaStore.insertFileDiff(fileDiff);
     }
   }
 
@@ -218,10 +220,10 @@ public class InotifyEventApplier {
         metaStore.insertFileDiff(fileDiff);
       }
     }
-    FileInfoUpdate fileInfoUpdate = new FileInfoUpdate()
+    FileInfoDiff fileInfoDiff = new FileInfoDiff()
         .setLength(closeEvent.getFileSize())
         .setModificationTime(closeEvent.getTimestamp());
-    metaStore.updateFileByPath(closeEvent.getPath(), fileInfoUpdate);
+    metaStore.updateFileByPath(closeEvent.getPath(), fileInfoDiff);
   }
 
   //Todo: should update mtime? atime?
@@ -333,7 +335,7 @@ public class InotifyEventApplier {
       fileDiff = new FileDiff(FileDiffType.METADATA);
       fileDiff.setSrc(metadataUpdateEvent.getPath());
     }
-    FileInfoUpdate fileInfoUpdate = new FileInfoUpdate();
+    FileInfoDiff fileInfoUpdate = new FileInfoDiff();
     switch (metadataUpdateEvent.getMetadataType()) {
       case TIMES:
         if (metadataUpdateEvent.getMtime() > 0) {

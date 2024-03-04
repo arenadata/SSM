@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   private static final String TABLE_NAME = "file_diff";
@@ -168,12 +169,10 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   }
 
   @Override
-  public Long[] insert(List<FileDiff> fileDiffs) {
-    List<Long> dids = new ArrayList<>();
-    for (FileDiff fileDiff : fileDiffs) {
-      dids.add(insert(fileDiff));
-    }
-    return dids.toArray(new Long[dids.size()]);
+  public List<Long> insert(List<FileDiff> fileDiffs) {
+    return fileDiffs.stream()
+        .map(this::insert)
+        .collect(Collectors.toList());
   }
 
   @Override

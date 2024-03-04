@@ -18,14 +18,11 @@
 
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConfKeys;
 
 import java.util.Map;
 import java.util.Random;
@@ -53,25 +50,17 @@ public class WriteFileAction extends HdfsAction {
   private String filePath;
   private long length = -1;
   private int bufferSize = 64 * 1024;
-  private Configuration conf;
 
   @Override
   public void init(Map<String, String> args) {
-    try {
-      this.conf = getContext().getConf();
-      String nameNodeURL = this.conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
-      conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
-    } catch (NullPointerException e) {
-      this.conf = new Configuration();
-      appendLog("Conf error!, NameNode URL is not configured!");
-    }
+    withDefaultFs();
     super.init(args);
     this.filePath = args.get(FILE_PATH);
     if (args.containsKey(LENGTH)) {
-      length = Long.valueOf(args.get(LENGTH));
+      length = Long.parseLong(args.get(LENGTH));
     }
     if (args.containsKey(BUF_SIZE)) {
-      this.bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+      this.bufferSize = Integer.parseInt(args.get(BUF_SIZE));
     }
   }
 
@@ -89,7 +78,7 @@ public class WriteFileAction extends HdfsAction {
             Utils.getFormatedCurrentTime(), filePath, length));
 
     Path path = new Path(filePath);
-    FileSystem fileSystem = path.getFileSystem(conf);
+    FileSystem fileSystem = path.getFileSystem(getContext().getConf());
     int replication = fileSystem.getServerDefaults(new Path(filePath)).getReplication();
     final FSDataOutputStream out = fileSystem.create(path, true, replication);
     // generate random data with given length

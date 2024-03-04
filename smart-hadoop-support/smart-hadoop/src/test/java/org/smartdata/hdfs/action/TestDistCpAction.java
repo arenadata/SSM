@@ -20,6 +20,7 @@ package org.smartdata.hdfs.action;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.smartdata.hdfs.MiniClusterHarness;
+
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.ACL;
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.CHECKSUMTYPE;
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.GROUP;
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.PERMISSION;
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.TIMES;
+import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.USER;
 
 /**
  * Test for DistCpAction.
@@ -67,6 +75,8 @@ public class TestDistCpAction extends MiniClusterHarness {
         distCpOptions.getSourcePaths());
     Assert.assertEquals(new Path("hdfs://nn2/test/target/dir1"),
         distCpOptions.getTargetPath());
+    Assert.assertEquals(EnumSet.of(USER, GROUP, PERMISSION),
+        distCpOptions.getPreserveAttributes());
   }
 
   @Test
@@ -181,6 +191,8 @@ public class TestDistCpAction extends MiniClusterHarness {
     Assert.assertEquals(16, distCpOptions.getMaxMaps());
     Assert.assertEquals("dynamic", distCpOptions.getCopyStrategy());
     Assert.assertTrue(distCpOptions.shouldSyncFolder());
+    Assert.assertEquals(EnumSet.of(CHECKSUMTYPE, ACL, TIMES),
+        distCpOptions.getPreserveAttributes());
   }
 
   @Test
@@ -219,6 +231,7 @@ public class TestDistCpAction extends MiniClusterHarness {
     }
   }
 
+  // todo inherit from MultiClusterHarness
   private void testCopyToCluster(FileSystem sourceFs, FileSystem targetFs) throws Exception {
     Map<String, String> args = new HashMap<>();
     String sourcePath = sourceFs.getUri() + "/test/source/dir1";

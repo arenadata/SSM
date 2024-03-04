@@ -140,19 +140,25 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
   }
 
   @Override
-  public OutputStream getDFSClientAppend(DFSClient client, String dest,
-                                         int buffersize, long offset) throws IOException {
+  public OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize, long offset, short replication)
+      throws IOException {
     if (client.exists(dest) && offset != 0) {
-      return getDFSClientAppend(client, dest, buffersize);
+      return getDFSClientAppend(client, dest, bufferSize);
     }
-    return client.create(dest, true);
+    return client.create(dest, true, replication, client.getConf().getDefaultBlockSize());
   }
 
   @Override
   public OutputStream getDFSClientAppend(DFSClient client, String dest,
-                                         int buffersize) throws IOException {
+                                         int bufferSize, long offset) throws IOException {
+    return getDFSClientAppend(client, dest, bufferSize, offset, client.getConf().getDefaultReplication());
+  }
+
+  @Override
+  public OutputStream getDFSClientAppend(DFSClient client, String dest,
+                                         int bufferSize) throws IOException {
     return client
-        .append(dest, buffersize,
+        .append(dest, bufferSize,
             EnumSet.of(CreateFlag.APPEND), null, null);
   }
 

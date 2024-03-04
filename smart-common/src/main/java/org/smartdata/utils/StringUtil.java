@@ -278,4 +278,13 @@ public class StringUtil {
         .replace("*", ".*")
         .replace("?", ".");
   }
+
+  public static String addPathSeparator(String path) {
+    return path.endsWith(DIR_SEP) ? path : path + DIR_SEP;
+  }
+
+  public static boolean pathStartsWith(String path, String prefixToCheck) {
+    return addPathSeparator(path)
+        .startsWith(addPathSeparator(prefixToCheck));
+  }
 }

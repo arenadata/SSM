@@ -72,9 +72,12 @@ public interface CompatibilityHelper {
 
   int getSidInDatanodeStorageReport(DatanodeStorage datanodeStorage);
 
-  OutputStream getDFSClientAppend(DFSClient client, String dest, int buffersize, long offset) throws IOException;
+  OutputStream getDFSClientAppend(DFSClient client, String dest,
+                                  int bufferSize, long offset, short replication) throws IOException;
 
-  OutputStream getDFSClientAppend(DFSClient client, String dest, int buffersize) throws IOException;
+  OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize, long offset) throws IOException;
+
+  OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize) throws IOException;
 
   OutputStream getS3outputStream(String dest, Configuration conf) throws IOException;
 

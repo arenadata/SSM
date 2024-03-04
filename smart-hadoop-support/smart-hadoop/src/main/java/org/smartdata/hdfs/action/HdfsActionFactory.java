@@ -56,6 +56,7 @@ public class HdfsActionFactory extends AbstractActionFactory {
     addAction(SetXAttrAction.class);
 //    addAction("blockec", BlockErasureCodeFileAction.class);
     addAction(CopyFileAction.class);
+    addAction(CopyDirectoryAction.class);
     addAction(DeleteFileAction.class);
     addAction(RenameFileAction.class);
     addAction(ListFileAction.class);

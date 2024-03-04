@@ -56,7 +56,7 @@ public interface FileDiffDao {
 
   void insert(FileDiff[] fileDiffs);
 
-  Long[] insert(List<FileDiff> fileDiffs);
+  List<Long> insert(List<FileDiff> fileDiffs);
 
   int[] batchUpdate(
       List<Long> dids, List<FileDiffState> states,

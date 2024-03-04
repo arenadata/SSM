@@ -134,19 +134,10 @@ public class CompatibilityHelper26 extends CompatibilityHelper2 {
   }
 
   @Override
-  public OutputStream getDFSClientAppend(DFSClient client, String dest,
-      int buffersize, long offset) throws IOException {
-    if (client.exists(dest) && offset != 0) {
-      return getDFSClientAppend(client, dest, buffersize);
-    }
-    return client.create(dest, true);
-  }
-
-  @Override
   public OutputStream getDFSClientAppend(
-      DFSClient client, String dest, int buffersize) throws IOException {
+      DFSClient client, String dest, int bufferSize) throws IOException {
     return client
-        .append(dest, buffersize, null, null);
+        .append(dest, bufferSize, null, null);
   }
 
   @Override

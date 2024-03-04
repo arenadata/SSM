@@ -16,10 +16,20 @@
  */
 package org.apache.zeppelin.rest;
 
+import java.util.Collection;
+import java.util.Iterator;
+import javax.ws.rs.GET;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response.Status;
 import org.apache.shiro.authc.*;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.Subject;
 import org.apache.zeppelin.annotation.ZeppelinApi;
 import org.apache.zeppelin.notebook.NotebookAuthorization;
+import org.apache.zeppelin.realm.kerberos.KerberosRealm;
+import org.apache.zeppelin.realm.kerberos.KerberosToken;
 import org.apache.zeppelin.server.JsonResponse;
 import org.apache.zeppelin.server.SmartZeppelinServer;
 import org.apache.zeppelin.ticket.TicketContainer;
@@ -58,16 +68,9 @@ public class LoginRestApi {
     super();
   }
 
-  private JsonResponse loginWithZeppelinCredential(Subject currentUser) {
+  private JsonResponse proceedToLogin(Subject currentUser, AuthenticationToken token) {
     JsonResponse response = null;
-    // Use the default username/password to generate a token to login.
-    // This username/password is consistent with the one in conf/shiro.ini.
-    String userName = "admin";
-    String password = "ssm123";
     try {
-      UsernamePasswordToken token = new UsernamePasswordToken(userName, password);
-      // token.setRememberMe(true);
-
       currentUser.getSession().stop();
       currentUser.getSession(true);
       // Login will fail if username/password doesn't match with the one
@@ -114,39 +117,78 @@ public class LoginRestApi {
    * for anonymous access, username is always anonymous.
    * After getting this ticket, access through websockets become safe
    *
-   * The username/password is managed by SSM in essence, instead of being
-   * managed in conf/shiro.ini. SSM will keep username/password in database
-   * and every time of authentication, SSM will check login username/password
-   * with the one in database
-   *
    * @return 200 response
    */
   @POST
   @ZeppelinApi
   public Response postLogin(@FormParam("userName") String userName,
-                            @FormParam("password") String password) {
-    JsonResponse response = null;
+      @FormParam("password") String password) {
+    LOG.debug("userName: {}", userName);
     // ticket set to anonymous for anonymous user. Simplify testing.
     Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
     if (currentUser.isAuthenticated()) {
       currentUser.logout();
     }
-    boolean isCorrectCredential = false;
-    try {
-      password = StringUtil.toSHA512String(password);
-      isCorrectCredential =
-          engine.getCmdletManager().authentic(new UserInfo(userName, password));
-    } catch (Exception e) {
-      LOG.error("Exception in login: ", e);
+    LOG.debug("currentUser: {}", currentUser);
+    JsonResponse<Map<String, String>> response = null;
+    if (!currentUser.isAuthenticated()) {
+
+      UsernamePasswordToken token = new UsernamePasswordToken(userName, password);
+
+      response = proceedToLogin(currentUser, token);
     }
-    if (!currentUser.isAuthenticated() && isCorrectCredential) {
-      response = loginWithZeppelinCredential(currentUser);
-    }
+
     if (response == null) {
-      response = new JsonResponse(Response.Status.FORBIDDEN, "", "");
+      response = new JsonResponse<>(Response.Status.FORBIDDEN, "", null);
     }
-    LOG.warn(response.toString());
+
+    LOG.info(response.toString());
     return response.build();
+  }
+
+  @GET
+  @ZeppelinApi
+  public Response getLogin(@Context HttpHeaders headers) {
+    JsonResponse response = null;
+    KerberosRealm kerberosRealm = getKerberosRealm();
+    if (null != kerberosRealm) {
+      try {
+        Map<String, Cookie> cookies = headers.getCookies();
+        KerberosToken kerberosToken = KerberosRealm.getKerberosTokenFromCookies(cookies);
+        if (null != kerberosToken) {
+          Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
+          String name = (String) kerberosToken.getPrincipal();
+          if (!currentUser.isAuthenticated() || !currentUser.getPrincipal().equals(name)) {
+            response = proceedToLogin(currentUser, kerberosToken);
+          }
+        }
+        if (null == response) {
+          LOG.warn("No Kerberos token received");
+          response = new JsonResponse<>(Status.UNAUTHORIZED, "", null);
+        }
+        return response.build();
+      } catch (AuthenticationException e){
+        LOG.error("Error in Login", e);
+      }
+    }
+    return new JsonResponse<>(Status.BAD_REQUEST).build();
+  }
+
+  private KerberosRealm getKerberosRealm() {
+    Collection realmsList = SecurityUtils.getRealmsList();
+    if (realmsList != null) {
+      for (Iterator<Realm> iterator = realmsList.iterator(); iterator.hasNext(); ) {
+        Realm realm = iterator.next();
+        String name = realm.getClass().getName();
+
+        LOG.debug("RealmClass.getName: " + name);
+
+        if (name.equals("org.apache.zeppelin.realm.kerberos.KerberosRealm")) {
+          return (KerberosRealm) realm;
+        }
+      }
+    }
+    return null;
   }
 
   @POST
@@ -157,95 +199,6 @@ public class LoginRestApi {
     Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
     currentUser.logout();
     response = new JsonResponse(Response.Status.UNAUTHORIZED, "", "");
-    LOG.warn(response.toString());
     return response.build();
-  }
-
-  @POST
-  @Path("newPassword")
-  @ZeppelinApi
-  public Response postPassword(@FormParam("userName") String userName,
-                               @FormParam("oldPassword") String oldPassword,
-                               @FormParam("newPassword1") String newPassword,
-                               @FormParam("newPassword2") String newPassword2) {
-    LOG.info("Trying to change password for user: " + userName);
-    JsonResponse response = null;
-    // ticket set to anonymous for anonymous user. Simplify testing.
-    Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
-    if (currentUser.isAuthenticated()) {
-      currentUser.logout();
-    }
-    boolean isCorrectCredential = false;
-    try {
-      String password = StringUtil.toSHA512String(oldPassword);
-      isCorrectCredential =
-          engine.getCmdletManager().authentic(new UserInfo(userName, password));
-    } catch (Exception e) {
-      LOG.error("Exception in login: ", e);
-    }
-    if (isCorrectCredential) {
-      if (newPassword.equals(newPassword2)) {
-        try {
-          engine.getCmdletManager().newPassword(new UserInfo(userName, newPassword));
-          LOG.info("The password has been changed for user: " + userName);
-        } catch (Exception e) {
-          LOG.error("Exception in setting password: ", e);
-        }
-      } else {
-        LOG.warn("Unmatched password typed in two times, please do it again!");
-      }
-    }
-    // Re-login
-    if (!currentUser.isAuthenticated() && isCorrectCredential) {
-      response = loginWithZeppelinCredential(currentUser);
-    }
-    if (response == null) {
-      LOG.warn("Incorrect credential for changing password!");
-      response = new JsonResponse(Response.Status.FORBIDDEN, "", "");
-    }
-    return response.build();
-  }
-
-  /**
-   * Adds new user. Only admin user has the permission.
-   *
-   * @param userName the new user's name to be added
-   * @param password1 the new user's password
-   * @param password2 the new user's password for verification.
-   * @return
-   */
-  @POST
-  @Path("adduser")
-  @ZeppelinApi
-  public Response postAddUser(
-      @FormParam("adminPassword") String adminPassword,
-      @FormParam("userName") String userName,
-      @FormParam("password1") String password1,
-      @FormParam("password2") String password2) {
-    Subject currentUser = org.apache.shiro.SecurityUtils.getSubject();
-    if (!password1.equals(password2)) {
-      String msg = "Unmatched password typed in two times!";
-      LOG.warn(msg);
-      return new JsonResponse(Response.Status.BAD_REQUEST, msg, "").build();
-    }
-
-    String password = StringUtil.toSHA512String(adminPassword);
-    try {
-      boolean hasCredential = engine.getCmdletManager().authentic(
-          new UserInfo(SSM_ADMIN, password));
-      if (hasCredential && currentUser.isAuthenticated()) {
-        engine.getCmdletManager().addNewUser(new UserInfo(userName, password1));
-      } else {
-        String msg = "The typed admin password is not correct!";
-        LOG.warn(msg + " Failed to register new user!");
-        return new JsonResponse(Response.Status.FORBIDDEN, msg, "").build();
-      }
-    } catch (MetaStoreException e) {
-      LOG.warn(e.getMessage());
-      return new JsonResponse(Response.Status.BAD_REQUEST,
-          e.getMessage(), "").build();
-    }
-    return new JsonResponse(Response.Status.OK,
-        "", "").build();
   }
 }

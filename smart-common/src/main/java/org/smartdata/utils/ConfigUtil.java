@@ -15,40 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.utils;
 
+import org.apache.hadoop.conf.Configuration;
 
-public enum FileDiffType {
-  CREATE(0),
-  DELETE(1),
-  RENAME(2),
-  APPEND(3),
-  METADATA(4),
-  BASESYNC(5),
-  MKDIR(6);
+import static org.smartdata.SmartConstants.DISTRIBUTED_FILE_SYSTEM;
+import static org.smartdata.SmartConstants.FS_HDFS_IMPL;
+import static org.smartdata.SmartConstants.SMART_FILE_SYSTEM;
 
-  private int value;
-
-  FileDiffType(int value) {
-    this.value = value;
-  }
-
-  public static FileDiffType fromValue(int value) {
-    for (FileDiffType r : values()) {
-      if (value == r.getValue()) {
-        return r;
-      }
+public class ConfigUtil {
+  public static Configuration toRemoteClusterConfig(Configuration configuration) {
+    Configuration remoteConfig = new Configuration(configuration);
+    if (SMART_FILE_SYSTEM.equals(remoteConfig.get(FS_HDFS_IMPL))) {
+      remoteConfig.set(FS_HDFS_IMPL, DISTRIBUTED_FILE_SYSTEM);
     }
-    return null;
-  }
 
-  public int getValue() {
-    return value;
+    return remoteConfig;
   }
-
-  @Override
-  public String toString() {
-    return String.format("FileDiffType{value=%s} %s", value, super.toString());
-  }
-
 }

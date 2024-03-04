@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 @KerberosInfo(
   serverPrincipal = SmartConfKeys.SMART_SERVER_KERBEROS_PRINCIPAL_KEY)
-public interface  SmartClientProtocol {
+public interface SmartClientProtocol {
   void reportFileAccessEvent(FileAccessEvent event) throws IOException;
   FileState getFileState(String filePath) throws IOException;
 }

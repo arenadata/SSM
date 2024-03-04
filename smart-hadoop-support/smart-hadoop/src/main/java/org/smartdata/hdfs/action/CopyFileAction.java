@@ -15,25 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.action.ActionException;
-import org.smartdata.action.Utils;
-import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
 
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.smartdata.action.ActionException;
+import org.smartdata.action.Utils;
+import org.smartdata.action.annotation.ActionSignature;
+import org.smartdata.hdfs.CompatibilityHelper;
+import org.smartdata.hdfs.CompatibilityHelperLoader;
+
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_DEFAULT;
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_KEY;
+import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.GROUP;
+import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.OWNER;
+import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.PERMISSIONS;
+import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.REPLICATION_NUMBER;
+import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
 
 /**
  * An action to copy a single file from src to destination.
@@ -44,49 +53,52 @@ import java.util.Map;
 @ActionSignature(
     actionId = "copy",
     displayName = "copy",
-    usage = HdfsAction.FILE_PATH + " $src " + CopyFileAction.DEST_PATH +
-        " $dest " + CopyFileAction.OFFSET_INDEX + " $offset" +
-        CopyFileAction.LENGTH +
-        " $length" + CopyFileAction.BUF_SIZE + " $size"
+    usage = HdfsAction.FILE_PATH + " $src "
+        + CopyFileAction.DEST_PATH + " $dest "
+        + CopyFileAction.OFFSET_INDEX + " $offset "
+        + CopyFileAction.LENGTH + " $length "
+        + CopyFileAction.BUF_SIZE + " $size "
+        + CopyFileAction.PRESERVE + " $attributes"
 )
-public class CopyFileAction extends HdfsAction {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(CopyFileAction.class);
+public class CopyFileAction extends CopyPreservedAttributesAction {
+
   public static final String BUF_SIZE = "-bufSize";
   public static final String DEST_PATH = "-dest";
   public static final String OFFSET_INDEX = "-offset";
   public static final String LENGTH = "-length";
+  public static final Set<PreserveAttribute> DEFAULT_PRESERVE_ATTRIBUTES
+      = Sets.newHashSet(OWNER, GROUP, PERMISSIONS);
+
   private String srcPath;
   private String destPath;
   private long offset = 0;
   private long length = 0;
   private int bufferSize = 64 * 1024;
-  private Configuration conf;
+
+  private Set<PreserveAttribute> preserveAttributes;
+
+  private FileStatus srcFileStatus;
+
+  public CopyFileAction() {
+    super(DEFAULT_PRESERVE_ATTRIBUTES);
+  }
 
   @Override
   public void init(Map<String, String> args) {
-    try {
-      this.conf = getContext().getConf();
-      String nameNodeURL =
-          this.conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
-      conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
-    } catch (NullPointerException e) {
-      this.conf = new Configuration();
-      appendLog("Conf error!, NameNode URL is not configured!");
-    }
+    withDefaultFs();
     super.init(args);
     this.srcPath = args.get(FILE_PATH);
     if (args.containsKey(DEST_PATH)) {
       this.destPath = args.get(DEST_PATH);
     }
     if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
     }
     if (args.containsKey(OFFSET_INDEX)) {
-      offset = Long.valueOf(args.get(OFFSET_INDEX));
+      offset = Long.parseLong(args.get(OFFSET_INDEX));
     }
     if (args.containsKey(LENGTH)) {
-      length = Long.valueOf(args.get(LENGTH));
+      length = Long.parseLong(args.get(LENGTH));
     }
   }
 
@@ -98,6 +110,7 @@ public class CopyFileAction extends HdfsAction {
     if (destPath == null) {
       throw new IllegalArgumentException("Dest File parameter is missing.");
     }
+    preserveAttributes = parsePreserveAttributes();
     appendLog(
         String.format("Action starts at %s : Read %s",
             Utils.getFormatedCurrentTime(), srcPath));
@@ -106,67 +119,49 @@ public class CopyFileAction extends HdfsAction {
     }
     appendLog(
         String.format("Copy from %s to %s", srcPath, destPath));
+
+    srcFileStatus = getFileStatus(srcPath);
+
     if (offset == 0 && length == 0) {
       copySingleFile(srcPath, destPath);
     }
     if (length != 0) {
       copyWithOffset(srcPath, destPath, bufferSize, offset, length);
     }
+
+    // we already preserved replication number
+    preserveAttributes.remove(REPLICATION_NUMBER);
+    copyFileAttributes(srcPath, destPath, preserveAttributes);
     appendLog("Copy Successfully!!");
   }
 
-  private boolean copySingleFile(String src, String dest) throws IOException {
-    //get The file size of source file
-    long fileSize = getFileSize(src);
+  private void copySingleFile(String src, String dest) throws IOException {
     appendLog(
-        String.format("Copy the whole file with length %s", fileSize));
-    return copyWithOffset(src, dest, bufferSize, 0, fileSize);
+        String.format("Copy the whole file with length %s", srcFileStatus.getLen()));
+    copyWithOffset(src, dest, bufferSize, 0, srcFileStatus.getLen());
   }
 
-  private boolean copyWithOffset(String src, String dest, int bufferSize,
+  private void copyWithOffset(String src, String dest, int bufferSize,
       long offset, long length) throws IOException {
     appendLog(
         String.format("Copy with offset %s and length %s", offset, length));
-    InputStream in = null;
-    OutputStream out = null;
 
-    try {
-      in = getSrcInputStream(src);
-      out = getDestOutPutStream(dest, offset);
+    try (InputStream in = getSrcInputStream(src);
+         OutputStream out = getDestOutPutStream(dest, offset)) {
       //skip offset
       in.skip(offset);
       byte[] buf = new byte[bufferSize];
       long bytesRemaining = length;
 
       while (bytesRemaining > 0L) {
-        int bytesToRead =
-            (int) (bytesRemaining < (long) buf.length ? bytesRemaining :
-                (long) buf.length);
+        int bytesToRead = (int) (Math.min(bytesRemaining, buf.length));
         int bytesRead = in.read(buf, 0, bytesToRead);
         if (bytesRead == -1) {
           break;
         }
         out.write(buf, 0, bytesRead);
-        bytesRemaining -= (long) bytesRead;
+        bytesRemaining -= bytesRead;
       }
-      return true;
-    } finally {
-      if (out != null) {
-        out.close();
-      }
-      if (in != null) {
-        in.close();
-      }
-    }
-  }
-
-  private long getFileSize(String fileName) throws IOException {
-    if (fileName.startsWith("hdfs")) {
-      // Get InputStream from URL
-      FileSystem fs = FileSystem.get(URI.create(fileName), conf);
-      return fs.getFileStatus(new Path(fileName)).getLen();
-    } else {
-      return dfsClient.getFileInfo(fileName).getLen();
     }
   }
 
@@ -174,41 +169,58 @@ public class CopyFileAction extends HdfsAction {
     if (src.startsWith("hdfs")) {
       // Copy between different remote clusters
       // Get InputStream from URL
-      FileSystem fs = FileSystem.get(URI.create(src), conf);
+      FileSystem fs = FileSystem.get(URI.create(src), getContext().getConf());
       return fs.open(new Path(src));
-    } else {
-      return dfsClient.open(src);
     }
+    return dfsClient.open(src);
   }
 
   private OutputStream getDestOutPutStream(String dest, long offset) throws IOException {
+    if (dest.startsWith("s3")) {
+      // Copy to s3
+      FileSystem fs = FileSystem.get(URI.create(dest), getContext().getConf());
+      return fs.create(new Path(dest), true);
+    }
+
     if (dest.startsWith("hdfs")) {
       // Copy between different clusters
       // Copy to remote HDFS
       // Get OutPutStream from URL
-      FileSystem fs = FileSystem.get(URI.create(dest), conf);
-      int replication = DFSConfigKeys.DFS_REPLICATION_DEFAULT;
-      try {
-        replication = fs.getServerDefaults(new Path(dest)).getReplication();
-        if (replication != DFSConfigKeys.DFS_REPLICATION_DEFAULT) {
-          appendLog("Remote Replications =" + replication);
-        }
-      } catch (IOException e) {
-        LOG.debug("Get Server default replication error!", e);
-      }
-      if (fs.exists(new Path(dest)) && offset != 0) {
+      Configuration remoteClusterConfig = toRemoteClusterConfig(getContext().getConf());
+      FileSystem fs = FileSystem.get(URI.create(dest),  remoteClusterConfig);
+      Path destHdfsPath = new Path(dest);
+
+      if (fs.exists(destHdfsPath) && offset != 0) {
         appendLog("Append to existing file " + dest);
-        return fs.append(new Path(dest));
-      } else {
-        return fs.create(new Path(dest), true, (short) replication);
+        return fs.append(destHdfsPath);
       }
-    } else if (dest.startsWith("s3")) {
-      // Copy to s3
-      FileSystem fs = FileSystem.get(URI.create(dest), conf);
-      return fs.create(new Path(dest), true);
-    } else {
-      return CompatibilityHelperLoader.getHelper()
-          .getDFSClientAppend(dfsClient, dest, bufferSize, offset);
+
+      short replication = getReplication(fs.getDefaultReplication(destHdfsPath));
+      return fs.create(
+          destHdfsPath,
+          true,
+          remoteClusterConfig.getInt(
+              IO_FILE_BUFFER_SIZE_KEY, IO_FILE_BUFFER_SIZE_DEFAULT),
+          replication,
+          fs.getDefaultBlockSize(destHdfsPath));
     }
+
+    CompatibilityHelper compatibilityHelper = CompatibilityHelperLoader.getHelper();
+    if (preserveAttributes.contains(REPLICATION_NUMBER)) {
+      return compatibilityHelper
+          .getDFSClientAppend(dfsClient, dest, bufferSize, offset, srcFileStatus.getReplication());
+    }
+
+    return compatibilityHelper.getDFSClientAppend(dfsClient, dest, bufferSize, offset);
+  }
+
+  public static void validatePreserveArg(String option) {
+    PreserveAttribute.fromOption(option);
+  }
+
+  private short getReplication(Short defaultReplication) {
+    return preserveAttributes.contains(REPLICATION_NUMBER)
+        ? srcFileStatus.getReplication()
+        : defaultReplication;
   }
 }
