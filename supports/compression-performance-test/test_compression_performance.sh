@@ -8,8 +8,6 @@ echo "Get configuration from config."
 source config
 echo "------------------ Your configuration ------------------"
 echo "SSM home is ${SMART_HOME}."
-echo "PAT home is ${PAT_HOME}."
-echo "Hadoop home is ${HADOOP_HOME}"
 echo "HiBench home is ${HiBench_HOME}"
 echo "Test case:"
 for size in ${!CASES[@]}; do
@@ -39,9 +37,8 @@ for size in "${!CASES[@]}"; do
 	sh drop_cache.sh
         # make ssm log empty before test
         printf "" > ${SMART_HOME}/logs/smartserver.log
-        cd ${PAT_HOME}/PAT-collecting-data
         # hdfs user will execute the cmd, you can change it to the one in your test env. with execution permission
-        echo "su hdfs -c \"hadoop jar ${HADOOP_HOME}/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-*-tests.jar \
+        echo "su hdfs -c \"hadoop jar ${MAPREDUCE_JOBCLIENT_TESTS_JAR} \
         TestDFSIO -Dtest.build.data=/\"${size}_${CASES[$size]}\" \
         -read -nrFiles ${CASES[$size]} -size ${size} -resFile /home/hdfs/dfsio_compress_test.log\"" > cmd.sh
          chmod 755 cmd.sh
@@ -54,10 +51,9 @@ for size in "${!CASES[@]}"; do
 	sh drop_cache.sh
         # make ssm log empty before test
         printf "" > ${SMART_HOME}/logs/smartserver.log
-        cd ${PAT_HOME}/PAT-collecting-data
         echo "export PYTHONPATH=${bin}/../integration-test:${PYTHONPATH};\
          python ${bin}/run_ssm_compress.py ${size} ${CASES[$size]} ${log} ${action};\
-        su hdfs -c \"hadoop jar ${HADOOP_HOME}/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-*-tests.jar \
+        su hdfs -c \"hadoop jar ${MAPREDUCE_JOBCLIENT_TESTS_JAR} \
         TestDFSIO -Dtest.build.data=/\"${size}_${CASES[$size]}\" \
         -read -nrFiles ${CASES[$size]} -size ${size} -resFile /home/hdfs/dfsio_mover_test.log\"" > cmd.sh
          chmod 755 cmd.sh
@@ -68,7 +64,6 @@ for size in "${!CASES[@]}"; do
 	echo "Test case ($action):" >> ${log}
         echo "==================== test case: $action ============================"
         sh drop_cache.sh
-        cd ${PAT_HOME}/PAT-collecting-data
         echo "\chmod 777 -R ${HiBench_HOME};\
                 su hdfs -c \"sh ${HiBench_HOME}/bin/workloads/micro/terasort/hadoop/run.sh\"" > cmd.sh
         ./pat run "${action}"
@@ -78,7 +73,6 @@ for size in "${!CASES[@]}"; do
 	echo "Test case ($action):" >> ${log}
         echo "==================== test case: $action ============================"
         sh drop_cache.sh
-        cd ${PAT_HOME}/PAT-collecting-data
         echo "export PYTHONPATH=${bin}/../integration-test:${PYTHONPATH};\
          python ${bin}/run_ssm_compress.py ${size} ${CASES[$size]} ${log} ${action};\
          su hdfs -c \"sh ${HiBench_HOME}/bin/workloads/micro/terasort/hadoop/run.sh\"" > cmd.sh

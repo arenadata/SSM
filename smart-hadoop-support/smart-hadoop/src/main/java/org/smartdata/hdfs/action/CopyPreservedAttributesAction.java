@@ -44,6 +44,8 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
 
   private List<String> rawPreserveAttributes = Collections.emptyList();
 
+  private UpdateFileMetadataSupport updateMetadataSupport;
+
   public CopyPreservedAttributesAction(Set<PreserveAttribute> defaultAttributes) {
     this(Sets.newHashSet(PreserveAttribute.values()), defaultAttributes);
   }
@@ -60,6 +62,8 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
     if (StringUtils.isNotBlank(args.get(PRESERVE))) {
       rawPreserveAttributes = Arrays.asList(args.get(PRESERVE).split(","));
     }
+    updateMetadataSupport = new UpdateFileMetadataSupport(
+        getContext().getConf(), getLogPrintStream());
   }
 
   protected Set<PreserveAttribute> parsePreserveAttributes() {
@@ -83,14 +87,14 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
         String.format("Copy attributes from %s to %s", srcPath, destPath));
 
     FileStatus srcFileStatus = getFileStatus(srcPath);
-    FileInfoDiff fileInfoDiff = new FileInfoDiff();
+    FileInfoDiff fileInfoDiff = new FileInfoDiff().setPath(destPath);
 
     supportedAttributes
         .stream()
         .filter(preserveAttributes::contains)
         .forEach(attribute -> attribute.applyToDiff(fileInfoDiff, srcFileStatus));
 
-    MetaDataAction.changeFileMetadata(destPath, fileInfoDiff, getContext().getConf());
+    updateMetadataSupport.changeFileMetadata(fileInfoDiff);
     appendLog("Successfully transferred file attributes: " + preserveAttributes);
   }
 

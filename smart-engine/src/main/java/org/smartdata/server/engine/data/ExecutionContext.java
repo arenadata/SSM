@@ -28,12 +28,12 @@ public class ExecutionContext {
   public static final String RULE_ID = "RuleId";
   private Map<String, Object> envVariables = new HashMap<>();
 
-  public long getRuleId() {
-    return getLong(RULE_ID);
+  public ExecutionContext(long ruleId) {
+    envVariables.put(RULE_ID, ruleId);
   }
 
-  public void setRuleId(long ruleId) {
-    envVariables.put(RULE_ID, ruleId);
+  public long getRuleId() {
+    return getLong(RULE_ID);
   }
 
   public void setProperties(Map<String, Object> properties) {

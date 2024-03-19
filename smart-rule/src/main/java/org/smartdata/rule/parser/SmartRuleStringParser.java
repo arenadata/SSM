@@ -27,7 +27,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.smartdata.SmartConstants;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.model.CmdletDescriptor;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -85,8 +85,8 @@ public class SmartRuleStringParser {
     this.conf = conf;
   }
 
-  public TranslateResult translate() throws IOException {
-    TranslateResult tr = doTranslate(rule);
+  public RuleTranslationResult translate() throws IOException {
+    RuleTranslationResult tr = doTranslate(rule);
     CmdletDescriptor cmdDes = tr.getCmdDescriptor();
     if (cmdDes.getActionSize() == 0) {
       throw new IOException("No cmdlet specified in Rule");
@@ -116,7 +116,7 @@ public class SmartRuleStringParser {
     return doTranslate(optRule);
   }
 
-  private TranslateResult doTranslate(String rule) throws IOException {
+  private RuleTranslationResult doTranslate(String rule) throws IOException {
     parseErrors.clear();
     parserErrorMessage = "";
 
@@ -129,7 +129,7 @@ public class SmartRuleStringParser {
     parser.addErrorListener(new SSMRuleErrorListener());
     ParseTree tree = parser.ssmrule();
 
-    if (parseErrors.size() > 0) {
+    if (!parseErrors.isEmpty()) {
       throw new IOException(parserErrorMessage);
     }
 
@@ -140,7 +140,6 @@ public class SmartRuleStringParser {
       throw new IOException(e.getMessage());
     }
 
-    TranslateResult result = visitor.generateSql();
-    return result;
+    return visitor.generateSql();
   }
 }

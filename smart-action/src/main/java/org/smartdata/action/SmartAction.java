@@ -35,16 +35,16 @@ import java.util.Map;
  * are also meant to extend this.
  */
 public abstract class SmartAction {
-  static final Logger LOG = LoggerFactory.getLogger(SmartAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SmartAction.class);
   private long cmdletId;
   private boolean lastAction;
   private long actionId;
   private Map<String, String> actionArgs;
   private SmartContext context;
-  private ByteArrayOutputStream resultOs;
-  private PrintStream psResultOs;
-  private ByteArrayOutputStream logOs;
-  private PrintStream psLogOs;
+  private final ByteArrayOutputStream resultOutputStream;
+  private final PrintStream resultPrintStream;
+  private final ByteArrayOutputStream logOutputStream;
+  private final PrintStream logPrintStream;
   private volatile boolean successful;
   protected String name;
   private long startTime;
@@ -55,10 +55,10 @@ public abstract class SmartAction {
   public SmartAction() {
     this.successful = false;
     //Todo: extract the print stream out of this class
-    this.resultOs = new ByteArrayOutputStream(64 * 1024);
-    this.psResultOs = new PrintStream(resultOs, false);
-    this.logOs = new ByteArrayOutputStream(64 * 1024);
-    this.psLogOs = new PrintStream(logOs, false);
+    this.resultOutputStream = new ByteArrayOutputStream(64 * 1024);
+    this.resultPrintStream = new PrintStream(resultOutputStream, false);
+    this.logOutputStream = new ByteArrayOutputStream(64 * 1024);
+    this.logPrintStream = new PrintStream(logOutputStream, false);
   }
 
   public String getName() {
@@ -155,20 +155,20 @@ public abstract class SmartAction {
 
   // The result will be shown in each action's summary page.
   protected void appendResult(String result) {
-    psResultOs.println(result);
+    resultPrintStream.println(result);
   }
 
   // The log will be shown in action's submission section and summary page.
   protected void appendLog(String log) {
-    psLogOs.println(log);
+    logPrintStream.println(log);
   }
 
-  public PrintStream getResultOs() {
-    return psResultOs;
+  public PrintStream getResultOutputStream() {
+    return resultPrintStream;
   }
 
-  public PrintStream getLogOs() {
-    return psLogOs;
+  public PrintStream getLogPrintStream() {
+    return logPrintStream;
   }
 
   public float getProgress() {
@@ -184,8 +184,8 @@ public abstract class SmartAction {
         lastAction,
         actionId,
         getProgress(),
-        resultOs.toString("UTF-8"),
-        logOs.toString("UTF-8"),
+        resultOutputStream.toString("UTF-8"),
+        logOutputStream.toString("UTF-8"),
         startTime,
         finishTime,
         throwable,
@@ -193,8 +193,8 @@ public abstract class SmartAction {
   }
 
   private void stop() {
-    psLogOs.close();
-    psResultOs.close();
+    logPrintStream.close();
+    resultPrintStream.close();
   }
 
   public boolean isSuccessful() {

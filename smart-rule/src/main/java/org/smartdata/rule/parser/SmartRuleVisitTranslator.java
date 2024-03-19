@@ -21,8 +21,8 @@ package org.smartdata.rule.parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.smartdata.model.CmdletDescriptor;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.model.rule.TimeBasedScheduleInfo;
-import org.smartdata.model.rule.TranslateResult;
 import org.smartdata.rule.exceptions.RuleParserException;
 import org.smartdata.rule.objects.Property;
 import org.smartdata.rule.objects.PropertyRealParas;
@@ -665,7 +665,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   List<String> tempTableNames = new LinkedList<>();
   Map<String, List<Object>> dynamicParameters = new HashMap<>();
 
-  public TranslateResult generateSql() throws IOException {
+  public RuleTranslationResult generateSql() throws IOException {
     String ret = "";
     TreeNode l = objFilter != null ? objFilter : conditions;
     TreeNode r = objFilter == null ? objFilter : conditions;
@@ -693,9 +693,8 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
     sqlStatements.add(ret);
     setDefaultTimeBasedScheduleInfo();
 
-    return new TranslateResult(
+    return new RuleTranslationResult(
         sqlStatements,
-        tempTableNames,
         dynamicParameters,
         sqlStatements.size() - 1,
         timeBasedScheduleInfo,

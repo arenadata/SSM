@@ -36,19 +36,17 @@ public class AccessCountTableAggregator {
 
   public void aggregate(AccessCountTable destinationTable,
                         List<AccessCountTable> tablesToAggregate) throws MetaStoreException {
-    if (!tablesToAggregate.isEmpty()) {
-      ReentrantLock accessCountLock = metaStore.getAccessCountLock();
-      if (accessCountLock != null) {
-        accessCountLock.lock();
-      }
-      try {
-        metaStore.aggregateTables(destinationTable, tablesToAggregate);
-        metaStore.insertAccessCountTable(destinationTable);
-      } finally {
-        if (accessCountLock != null) {
-          accessCountLock.unlock();
-        }
-      }
+    if (tablesToAggregate.isEmpty()) {
+      return;
+    }
+
+    ReentrantLock accessCountLock = metaStore.getAccessCountLock();
+    accessCountLock.lock();
+    try {
+      metaStore.aggregateTables(destinationTable, tablesToAggregate);
+      metaStore.insertAccessCountTable(destinationTable);
+    } finally {
+      accessCountLock.unlock();
     }
   }
 }

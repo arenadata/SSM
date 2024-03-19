@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
 
     unittest.main()

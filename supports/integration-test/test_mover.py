@@ -5,7 +5,11 @@ from util import *
 
 class TestMover(unittest.TestCase):
 
+    @classmethod
+    def tearDownClass(cls):
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
     # test single move
+
     def test_single_move(self):
         for action in MOVE_TYPES:
             cmd_create, cmd_move = move_random_file(action, FILE_SIZE)
@@ -44,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
 
     unittest.main()

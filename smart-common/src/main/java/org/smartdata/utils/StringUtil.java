@@ -63,24 +63,24 @@ public class StringUtil {
       return null;
     }
 
-    int last = path.lastIndexOf(DIR_SEP);
-    if (last == -1) {
+    int lastSeparatorIdx = path.lastIndexOf(DIR_SEP);
+    if (lastSeparatorIdx == -1) {
       return null;
     }
 
-    int first = path.length();
-    for (String g : GLOBS) {
-      int gIdx = path.indexOf(g);
-      if (gIdx >= 0) {
-        first = gIdx < first ? gIdx : first;
+    int firstGlobIdx = path.length();
+    for (String glob : GLOBS) {
+      int globIdx = path.indexOf(glob);
+      if (globIdx >= 0) {
+        firstGlobIdx = Math.min(globIdx, firstGlobIdx);
       }
     }
 
-    last = path.substring(0, first).lastIndexOf(DIR_SEP);
-    if (last == -1) {
+    lastSeparatorIdx = path.substring(0, firstGlobIdx).lastIndexOf(DIR_SEP);
+    if (lastSeparatorIdx == -1) {
       return null;
     }
-    return path.substring(0, last + 1);
+    return path.substring(0, lastSeparatorIdx + 1);
   }
 
   public static String ssmPatternToSqlLike(String str) {

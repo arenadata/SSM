@@ -553,7 +553,7 @@ public class RemoteInterpreter extends Interpreter {
 
       final java.lang.reflect.Type registryType = new TypeToken<Map<String,
           Map<String, AngularObject>>>() {
-      }.getType();
+          }.getType();
 
       Gson gson = new Gson();
       client.angularRegistryPush(gson.toJson(registry, registryType));

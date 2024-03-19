@@ -17,6 +17,8 @@
  */
 package org.smartdata.metastore.dao.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.AccessCountDao;
 import org.smartdata.metastore.dao.AccessCountTable;
@@ -33,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultAccessCountDao extends AbstractDao implements AccessCountDao {
+  static final Logger LOG = LoggerFactory.getLogger(DefaultAccessCountDao.class);
+
   private static final String TABLE_NAME = "access_count_table";
 
   public DefaultAccessCountDao(DataSource dataSource) {
@@ -95,6 +99,7 @@ public class DefaultAccessCountDao extends AbstractDao implements AccessCountDao
             DefaultAccessCountDao.ACCESSCOUNT_FIELD,
             getUnionStatement(tablesToAggregate),
             DefaultAccessCountDao.FILE_FIELD);
+    LOG.debug("Executing access count tables aggregation: {}", insert);
     jdbcTemplate.execute(insert);
   }
 

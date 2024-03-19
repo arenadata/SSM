@@ -26,7 +26,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.rule.parser.SmartRuleLexer;
 import org.smartdata.rule.parser.SmartRuleParser;
 import org.smartdata.rule.parser.SmartRuleVisitTranslator;
@@ -126,7 +126,7 @@ public class TestSmartRuleParser {
     visitor.visit(tree);
 
     System.out.println("\nQuery:");
-    TranslateResult result = visitor.generateSql();
+    RuleTranslationResult result = visitor.generateSql();
     int index = 1;
     for (String sql : result.getSqlStatements()) {
       System.out.println("" + index + ". " + sql);

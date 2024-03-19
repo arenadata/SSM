@@ -23,7 +23,7 @@ import org.smartdata.hdfs.action.Copy2S3Action;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.rule.RuleExecutorPlugin;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.utils.StringUtil;
 
 import java.util.ArrayList;
@@ -43,10 +43,10 @@ public class FileCopy2S3Plugin implements RuleExecutorPlugin {
 
   @Override
   public void onNewRuleExecutor(RuleInfo ruleInfo,
-      TranslateResult tResult) {
+      RuleTranslationResult tResult) {
     srcBases = new ArrayList<>();
-    List<String> pathsCheckGlob = tResult.getGlobPathCheck();
-    if (pathsCheckGlob.size() == 0) {
+    List<String> pathsCheckGlob = tResult.getPathPatterns();
+    if (pathsCheckGlob.isEmpty()) {
       pathsCheckGlob = Collections.singletonList("/*");
     }
     // Get src base list
@@ -68,7 +68,7 @@ public class FileCopy2S3Plugin implements RuleExecutorPlugin {
 
   @Override
   public boolean preExecution(RuleInfo ruleInfo,
-      TranslateResult tResult) {
+      RuleTranslationResult tResult) {
     return true;
   }
 
@@ -80,7 +80,7 @@ public class FileCopy2S3Plugin implements RuleExecutorPlugin {
 
   @Override
   public CmdletDescriptor preSubmitCmdletDescriptor(RuleInfo ruleInfo,
-      TranslateResult tResult, CmdletDescriptor descriptor) {
+      RuleTranslationResult tResult, CmdletDescriptor descriptor) {
     for (int i = 0; i < descriptor.getActionSize(); i++) {
       // O(n)
       if (descriptor.getActionName(i).equals("copy2s3")) {

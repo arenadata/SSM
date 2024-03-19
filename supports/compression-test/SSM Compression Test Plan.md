@@ -1,4 +1,4 @@
-# SSM Compression Test Plan
+# SSM Compression Test Plan [Not ready]
 With the benefits of compression codec, SSM Compression promised less storage usage on the same data. But, we still need to evalute SSM Compression's benefits on big data workloads (better or worse performance on these workloads).
 
 ## Objectives
@@ -14,13 +14,13 @@ With the benefits of compression codec, SSM Compression promised less storage us
 **4-10 Nodes are required:**
 
 1. 4-10 nodes for HDFS Clusters (1 namenode and 3-9 datanodes)
-2. SSM Server and mysql are placed on namenode. SSM Agents are deployed on datanodes.
+2. SSM Server and postgresql are placed on namenode. SSM Agents are deployed on datanodes.
 
 **Software requirement:**
 
-1. Hadoop (Hadoop-2.7 or Hadoop 3.1)
-2. Mysql (5.6.X or higher)
-3. SSM (1.5.0 or higher)
+1. Hadoop (Hadoop 3.2.X/ADH 3.2.4_arenadata2_b1 or higher)
+2. Metastore DB (Postgresql14/ADPG 14 or higher)
+3. SSM (1.6.0 or higher)
 
 ## Test Cases
 

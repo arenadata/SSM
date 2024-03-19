@@ -27,7 +27,7 @@ import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.ErasureCodingPolicyInfo;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.rule.RuleExecutorPlugin;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.server.engine.ServerContext;
 
 import java.net.URI;
@@ -37,24 +37,24 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ErasureCodingPlugin implements RuleExecutorPlugin {
-  private ServerContext context;
-  private MetaStore metaStore;
-  private final Map<Long, List<String>> ecPolicies = new ConcurrentHashMap<>();
-  private final List<ErasureCodingPolicyInfo> ecInfos = new ArrayList<>();
+  private final ServerContext context;
+  private final MetaStore metaStore;
+  private final Map<Long, List<String>> ecPolicies;
+  private final List<ErasureCodingPolicyInfo> ecInfos;
   private long lastUpdateTime = 0;
-  private URI nnUri = null;
-  private DFSClient client = null;
+  private URI nnUri;
+  private DFSClient client;
 
   private static final Logger LOG =
       LoggerFactory.getLogger(ErasureCodingPlugin.class);
 
   public ErasureCodingPlugin(ServerContext context) {
+    this.ecPolicies = new ConcurrentHashMap<>();
+    this.ecInfos = new ArrayList<>();
     this.context = context;
-    metaStore = context.getMetaStore();
+    this.metaStore = context.getMetaStore();
     try {
-      for (ErasureCodingPolicyInfo info : metaStore.getAllEcPolicies()) {
-        ecInfos.add(info);
-      }
+      ecInfos.addAll(metaStore.getAllEcPolicies());
     } catch (Exception e) {
       // ignore this
       LOG.warn("Load ErasureCoding Policy failed!");
@@ -64,7 +64,7 @@ public class ErasureCodingPlugin implements RuleExecutorPlugin {
 
   @Override
   public void onNewRuleExecutor(RuleInfo ruleInfo,
-      TranslateResult tResult) {
+      RuleTranslationResult tResult) {
     long ruleId = ruleInfo.getId();
     CmdletDescriptor des = tResult.getCmdDescriptor();
     for (int i = 0; i < des.getActionSize(); i++) {
@@ -73,10 +73,8 @@ public class ErasureCodingPlugin implements RuleExecutorPlugin {
         if (policy == null) {
           continue;
         }
-        if (!ecPolicies.containsKey(ruleId)) {
-          ecPolicies.put(ruleId, new ArrayList<String>());
-        }
-        ecPolicies.get(ruleId).add(policy);
+        ecPolicies.computeIfAbsent(ruleId, key -> new ArrayList<>())
+            .add(policy);
       }
     }
   }
@@ -86,7 +84,7 @@ public class ErasureCodingPlugin implements RuleExecutorPlugin {
       if (nnUri == null) {
         nnUri = HadoopUtil.getNameNodeUri(context.getConf());
       }
-      if (nnUri != null && client == null) {
+      if (client == null) {
         client = HadoopUtil.getDFSClient(nnUri, context.getConf());
       }
     } catch (Exception e) {
@@ -118,7 +116,7 @@ public class ErasureCodingPlugin implements RuleExecutorPlugin {
 
   @Override
   public boolean preExecution(RuleInfo ruleInfo,
-      TranslateResult tResult) {
+      RuleTranslationResult tResult) {
     if (!ecPolicies.containsKey(ruleInfo.getId())) {
       return true;
     }
@@ -160,7 +158,7 @@ public class ErasureCodingPlugin implements RuleExecutorPlugin {
 
   @Override
   public CmdletDescriptor preSubmitCmdletDescriptor(RuleInfo ruleInfo,
-      TranslateResult tResult, CmdletDescriptor descriptor) {
+      RuleTranslationResult tResult, CmdletDescriptor descriptor) {
     return descriptor;
   }
 

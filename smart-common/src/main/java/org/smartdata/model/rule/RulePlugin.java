@@ -30,7 +30,7 @@ public interface RulePlugin {
    * @param tr
    * @throws IOException the rule won't be added if exception.
    */
-  void onAddingNewRule(RuleInfo ruleInfo, TranslateResult tr) throws IOException;
+  void onAddingNewRule(RuleInfo ruleInfo, RuleTranslationResult tr) throws IOException;
 
   /**
    * Called when new rule has been added into SSM.
@@ -38,5 +38,5 @@ public interface RulePlugin {
    * @param ruleInfo
    * @param tr
    */
-  void onNewRuleAdded(RuleInfo ruleInfo, TranslateResult tr);
+  void onNewRuleAdded(RuleInfo ruleInfo, RuleTranslationResult tr);
 }

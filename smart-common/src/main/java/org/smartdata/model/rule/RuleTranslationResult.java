@@ -26,50 +26,38 @@ import java.util.Map;
 /**
  * Result of rule translation. A guide for execution.
  */
-public class TranslateResult {
-  private List<String> retColumns;
-  private int retSqlIndex;
-  private List<String> staticTempTables; // to be deleted after execution
-  private List<String> sqlStatements;
-  private Map<String, List<Object>> dynamicParameters;
-  private TimeBasedScheduleInfo tbScheduleInfo;
-  private CmdletDescriptor cmdDescriptor;
-  private int[] condPosition;
-  private List<String> globPathCheck = new ArrayList<>();
+public class RuleTranslationResult {
+  private final int retSqlIndex;
+  private final List<String> sqlStatements;
+  private final Map<String, List<Object>> dynamicParameters;
+  private final TimeBasedScheduleInfo scheduleInfo;
+  private final CmdletDescriptor cmdDescriptor;
+  private final int[] condPosition;
+  private List<String> pathPatterns;
 
-
-  public TranslateResult(List<String> sqlStatements,
-      List<String> tempTableNames, Map<String, List<Object>> dynamicParameters,
-      int retSqlIndex, TimeBasedScheduleInfo tbScheduleInfo,
-      CmdletDescriptor cmdDescriptor, int[] condPosition, List<String> globPathCheck) {
+  public RuleTranslationResult(List<String> sqlStatements,
+                               Map<String,
+                               List<Object>> dynamicParameters,
+                               int retSqlIndex,
+                               TimeBasedScheduleInfo scheduleInfo,
+                               CmdletDescriptor cmdDescriptor,
+                               int[] condPosition,
+                               List<String> pathPatterns) {
     this.sqlStatements = sqlStatements;
-    this.staticTempTables = tempTableNames;
     this.dynamicParameters = dynamicParameters;
     this.retSqlIndex = retSqlIndex;
-    this.tbScheduleInfo = tbScheduleInfo;
+    this.scheduleInfo = scheduleInfo;
     this.cmdDescriptor = cmdDescriptor;
     this.condPosition = condPosition;
-    this.globPathCheck = globPathCheck;
+    this.pathPatterns = pathPatterns;
   }
 
   public CmdletDescriptor getCmdDescriptor() {
     return cmdDescriptor;
   }
 
-  public void setCmdDescriptor(CmdletDescriptor cmdDescriptor) {
-    this.cmdDescriptor = cmdDescriptor;
-  }
-
-  public void setSqlStatements(List<String> sqlStatements) {
-    this.sqlStatements = sqlStatements;
-  }
-
   public List<String> getSqlStatements() {
     return sqlStatements;
-  }
-
-  public List<String> getStaticTempTables() {
-    return staticTempTables;
   }
 
   public List<Object> getParameter(String paramName) {
@@ -80,23 +68,31 @@ public class TranslateResult {
     return retSqlIndex;
   }
 
-  public TimeBasedScheduleInfo getTbScheduleInfo() {
-    return tbScheduleInfo;
-  }
-
-  public boolean isTimeBased() {
-    return tbScheduleInfo != null;
+  public TimeBasedScheduleInfo getScheduleInfo() {
+    return scheduleInfo;
   }
 
   public int[] getCondPosition() {
     return condPosition;
   }
 
-  public void setCondPosition(int[] condPosition) {
-    this.condPosition = condPosition;
+  public List<String> getPathPatterns() {
+    return pathPatterns;
   }
 
-  public List<String> getGlobPathCheck() {
-    return globPathCheck;
+  public void setPathPatterns(List<String> pathPatterns) {
+    this.pathPatterns = pathPatterns;
+  }
+
+  public RuleTranslationResult copy() {
+    return new RuleTranslationResult(
+        new ArrayList<>(sqlStatements),
+        dynamicParameters,
+        retSqlIndex,
+        scheduleInfo,
+        cmdDescriptor,
+        condPosition,
+        new ArrayList<>(pathPatterns)
+    );
   }
 }

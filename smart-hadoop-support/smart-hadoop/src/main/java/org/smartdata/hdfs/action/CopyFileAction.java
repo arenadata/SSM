@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -66,6 +67,7 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   public static final String DEST_PATH = "-dest";
   public static final String OFFSET_INDEX = "-offset";
   public static final String LENGTH = "-length";
+  public static final String COPY_CONTENT = "-copyContent";
   public static final Set<PreserveAttribute> DEFAULT_PRESERVE_ATTRIBUTES
       = Sets.newHashSet(OWNER, GROUP, PERMISSIONS);
 
@@ -74,6 +76,7 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   private long offset = 0;
   private long length = 0;
   private int bufferSize = 64 * 1024;
+  private boolean copyContent = true;
 
   private Set<PreserveAttribute> preserveAttributes;
 
@@ -100,39 +103,45 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
     if (args.containsKey(LENGTH)) {
       length = Long.parseLong(args.get(LENGTH));
     }
+    if (args.containsKey(COPY_CONTENT)) {
+      copyContent = Boolean.parseBoolean(args.get(COPY_CONTENT));
+    }
   }
 
   @Override
   protected void execute() throws Exception {
-    if (srcPath == null) {
-      throw new IllegalArgumentException("File parameter is missing.");
-    }
-    if (destPath == null) {
-      throw new IllegalArgumentException("Dest File parameter is missing.");
-    }
+    validateArgs();
     preserveAttributes = parsePreserveAttributes();
+
     appendLog(
-        String.format("Action starts at %s : Read %s",
-            Utils.getFormatedCurrentTime(), srcPath));
-    if (!dfsClient.exists(srcPath)) {
-      throw new ActionException("CopyFile Action fails, file doesn't exist!");
-    }
-    appendLog(
-        String.format("Copy from %s to %s", srcPath, destPath));
+        String.format("Action starts at %s : Copy from %s to %s",
+            Utils.getFormatedCurrentTime(), srcPath, destPath));
 
     srcFileStatus = getFileStatus(srcPath);
 
-    if (offset == 0 && length == 0) {
+    if (!copyContent) {
+      appendLog("Src and dest files are equal, no need to copy content");
+    } else if (offset == 0 && length == 0) {
       copySingleFile(srcPath, destPath);
-    }
-    if (length != 0) {
+    } else if (length != 0) {
       copyWithOffset(srcPath, destPath, bufferSize, offset, length);
     }
 
-    // we already preserved replication number
-    preserveAttributes.remove(REPLICATION_NUMBER);
     copyFileAttributes(srcPath, destPath, preserveAttributes);
+
     appendLog("Copy Successfully!!");
+  }
+
+  private void validateArgs() throws Exception {
+    if (StringUtils.isBlank(srcPath)) {
+      throw new IllegalArgumentException("File parameter is missing.");
+    }
+    if (StringUtils.isBlank(destPath)) {
+      throw new IllegalArgumentException("Dest File parameter is missing.");
+    }
+    if (!dfsClient.exists(srcPath)) {
+      throw new ActionException("Src file doesn't exist!");
+    }
   }
 
   private void copySingleFile(String src, String dest) throws IOException {

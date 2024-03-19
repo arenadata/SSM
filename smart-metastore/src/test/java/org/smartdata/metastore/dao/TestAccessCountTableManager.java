@@ -23,7 +23,10 @@ import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.SortedTable;
 import org.dbunit.dataset.xml.XmlDataSet;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.smartdata.metastore.DBTest;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -38,14 +41,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestAccessCountTableManager extends DBTest {
 
+  @Mock
+  private MetaStore adapter;
+
+  private final ReentrantLock accessCountLock = new ReentrantLock();
+
+  @Before
+  public void setup() {
+    MockitoAnnotations.initMocks(this);
+    when(adapter.getAccessCountLock()).thenReturn(accessCountLock);
+  }
+
   @Test
   public void testAccessCountTableManager() throws InterruptedException {
-    MetaStore adapter = mock(MetaStore.class);
     // Used by AccessCountTableAggregator
     AccessCountTableManager manager = new AccessCountTableManager(adapter);
     Long firstDayEnd = 24 * 60 * 60 * 1000L;
@@ -198,7 +212,6 @@ public class TestAccessCountTableManager extends DBTest {
 
   @Test
   public void testGetTables() throws MetaStoreException {
-    MetaStore adapter = mock(MetaStore.class);
     TableEvictor tableEvictor = new CountEvictor(adapter, 20);
     Map<TimeGranularity, AccessCountTableDeque> map = new HashMap<>();
     AccessCountTableDeque dayDeque = new AccessCountTableDeque(tableEvictor);
@@ -280,7 +293,6 @@ public class TestAccessCountTableManager extends DBTest {
 
   @Test
   public void testGetTablesCornerCase() throws MetaStoreException {
-    MetaStore adapter = mock(MetaStore.class);
     TableEvictor tableEvictor = new CountEvictor(adapter, 20);
     Map<TimeGranularity, AccessCountTableDeque> map = new HashMap<>();
     AccessCountTableDeque minute = new AccessCountTableDeque(tableEvictor);
@@ -305,7 +317,6 @@ public class TestAccessCountTableManager extends DBTest {
 
   @Test
   public void testGetTablesCornerCase2() throws MetaStoreException {
-    MetaStore adapter = mock(MetaStore.class);
     TableEvictor tableEvictor = new CountEvictor(adapter, 20);
     Map<TimeGranularity, AccessCountTableDeque> map = new HashMap<>();
     AccessCountTableDeque minute = new AccessCountTableDeque(tableEvictor);

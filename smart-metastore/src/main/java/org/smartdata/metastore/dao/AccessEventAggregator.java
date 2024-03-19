@@ -30,8 +30,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS_DEFAULT;
 
 public class AccessEventAggregator {
   private final MetaStore adapter;
@@ -39,12 +42,12 @@ public class AccessEventAggregator {
   private final AccessCountTableManager accessCountTableManager;
   private final List<FileAccessEvent> eventBuffer;
   private Window currentWindow;
-  private Map<String, Integer> lastAccessCount = new HashMap<>();
+  private Map<String, Integer> unmergedAccessCounts = new HashMap<>();
   public static final Logger LOG =
       LoggerFactory.getLogger(AccessEventAggregator.class);
 
   public AccessEventAggregator(MetaStore adapter, AccessCountTableManager manager) {
-    this(adapter, manager, 5 * 1000L);
+    this(adapter, manager, SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS_DEFAULT);
   }
 
   public AccessEventAggregator(MetaStore adapter,
@@ -56,121 +59,136 @@ public class AccessEventAggregator {
   }
 
   public void addAccessEvents(List<FileAccessEvent> eventList) {
-    if (this.currentWindow == null && !eventList.isEmpty()) {
-      this.currentWindow = assignWindow(eventList.get(0).getTimestamp());
+    if (currentWindow == null && !eventList.isEmpty()) {
+      currentWindow = assignWindow(eventList.get(0).getTimestamp());
     }
     for (FileAccessEvent event : eventList) {
-      if (!this.currentWindow.contains(event.getTimestamp())) {
+      if (!currentWindow.contains(event.getTimestamp())) {
         // New Window occurs
-        this.createTable();
-        this.currentWindow = assignWindow(event.getTimestamp());
-        this.eventBuffer.clear();
+        createTable();
+        currentWindow = assignWindow(event.getTimestamp());
+        eventBuffer.clear();
       }
       // Exclude watermark event
       if (!event.getPath().isEmpty()) {
-        this.eventBuffer.add(event);
+        eventBuffer.add(event);
       }
     }
+  }
+
+  public long getAggregationGranularity() {
+    return aggregationGranularity;
   }
 
   private void createTable() {
     AccessCountTable table = new AccessCountTable(currentWindow.start, currentWindow.end);
-    String createTable = AccessCountDao.createAccessCountTableSQL(table.getTableName());
+
     try {
-      if (adapter.tableExists(table.getTableName())) {
-        adapter.dropTable(table.getTableName());
-      }
-      adapter.execute(createTable);
-      adapter.insertAccessCountTable(table);
+      insertTableToMetastore(table);
     } catch (MetaStoreException e) {
-      LOG.error("Create table error: " + table, e);
+      LOG.error("Error creating access count table {}", table, e);
       return;
     }
-    if (!eventBuffer.isEmpty() || !lastAccessCount.isEmpty()) {
-      Map<String, Integer> accessCount = this.getAccessCountMap(eventBuffer);
-      Set<String> now = new HashSet<>(accessCount.keySet());
-      accessCount = mergeMap(accessCount, lastAccessCount);
+
+    if (!eventBuffer.isEmpty() || !unmergedAccessCounts.isEmpty()) {
+      Map<String, Integer> accessCounts = getAccessCountMap(eventBuffer);
+      Set<String> accessedFiles = new HashSet<>(accessCounts.keySet());
+      mergeMapsInPlace(accessCounts, unmergedAccessCounts);
 
       final Map<String, Long> pathToIDs;
       try {
-        pathToIDs = adapter.getFileIDs(accessCount.keySet());
+        pathToIDs = adapter.getFileIDs(accessCounts.keySet());
       } catch (MetaStoreException e) {
         // TODO: dirty handle here
-        LOG.error("Create Table " + table.getTableName(), e);
+        LOG.error("Error fetching file ids for paths {}", accessCounts.keySet(), e);
         return;
       }
 
-      now.removeAll(pathToIDs.keySet());
-      Map<String, Integer> tmpLast = new HashMap<>();
-      for (String key : now) {
-        tmpLast.put(key, accessCount.get(key));
-      }
+      maybeLogUnmergedAccessCounts(pathToIDs.keySet());
+      unmergedAccessCounts = accessedFiles.stream()
+          .filter(file -> !pathToIDs.containsKey(file))
+          .collect(Collectors.toMap(
+              Function.identity(),
+              accessCounts::get
+          ));
 
-      List<String> values = new ArrayList<>();
-      for (String key : pathToIDs.keySet()) {
-        values.add(String.format("(%d, %d)", pathToIDs.get(key),
-            accessCount.get(key)));
-      }
-
-      if (LOG.isDebugEnabled()) {
-        if (!lastAccessCount.isEmpty()) {
-          Set<String> non = lastAccessCount.keySet();
-          non.removeAll(pathToIDs.keySet());
-          if (!non.isEmpty()) {
-            StringBuilder result = new StringBuilder("Access events ignored for file:\n");
-            for (String p : non) {
-              result.append(p).append(" --> ").append(lastAccessCount.get(p)).append("\n");
-            }
-            LOG.debug(result.toString());
-          }
-        }
-      }
-      lastAccessCount = tmpLast;
-
-      if (!values.isEmpty()) {
-        String insertValue = String.format(
-            "INSERT INTO %s (%s, %s) VALUES %s",
-            table.getTableName(),
-            DefaultAccessCountDao.FILE_FIELD,
-            DefaultAccessCountDao.ACCESSCOUNT_FIELD,
-            StringUtils.join(values, ", "));
-        try {
-          this.adapter.execute(insertValue);
-          this.adapter.updateCachedFiles(pathToIDs, eventBuffer);
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Table created: " + table);
-          }
-        } catch (MetaStoreException e) {
-          LOG.error("Create table error: " + table, e);
-        }
-      }
+      insertAccessCountsToMetastore(table, pathToIDs, accessCounts);
     }
-    this.accessCountTableManager.addTable(table);
+    accessCountTableManager.addTable(table);
   }
 
-  private Map<String, Integer> mergeMap(Map<String, Integer> map1, Map<String, Integer> map2) {
-    for (Entry<String, Integer> entry : map2.entrySet()) {
-      String key = entry.getKey();
-      if (map1.containsKey(key)) {
-        map1.put(key, map1.get(key) + entry.getValue());
-      } else {
-        map1.put(key, map2.get(key));
+  private void insertTableToMetastore(AccessCountTable table) throws MetaStoreException {
+    String createTable = AccessCountDao.createAccessCountTableSQL(table.getTableName());
+    if (adapter.tableExists(table.getTableName())) {
+      adapter.dropTable(table.getTableName());
+    }
+    adapter.execute(createTable);
+    adapter.insertAccessCountTable(table);
+  }
+
+  private void maybeLogUnmergedAccessCounts(Set<String> accessPaths) {
+    if (LOG.isDebugEnabled() && !unmergedAccessCounts.isEmpty()) {
+      Set<String> non = unmergedAccessCounts.keySet();
+      non.removeAll(accessPaths);
+      if (!non.isEmpty()) {
+        StringBuilder result = new StringBuilder("Access events ignored for file:\n");
+        for (String p : non) {
+          result.append(p).append(" --> ").append(unmergedAccessCounts.get(p)).append("\n");
+        }
+        LOG.debug(result.toString());
       }
     }
-    return map1;
+  }
+
+  private void insertAccessCountsToMetastore(
+      AccessCountTable table, Map<String, Long> pathToIDs, Map<String, Integer> accessCounts) {
+    List<String> sqlInsertValues = new ArrayList<>();
+    for (String key : pathToIDs.keySet()) {
+      sqlInsertValues.add(String.format("(%d, %d)", pathToIDs.get(key),
+          accessCounts.get(key)));
+    }
+
+    if (!sqlInsertValues.isEmpty()) {
+      insertAccessCountsToMetastore(table, sqlInsertValues);
+      updateCachedFilesInMetastore(pathToIDs);
+    }
+  }
+
+  private void insertAccessCountsToMetastore(
+      AccessCountTable table, List<String> sqlInsertValues) {
+    String insertValue = String.format(
+        "INSERT INTO %s (%s, %s) VALUES %s",
+        table.getTableName(),
+        DefaultAccessCountDao.FILE_FIELD,
+        DefaultAccessCountDao.ACCESSCOUNT_FIELD,
+        StringUtils.join(sqlInsertValues, ", "));
+    try {
+      adapter.execute(insertValue);
+      LOG.debug("Inserted values {} to access count table {}", sqlInsertValues, table);
+    } catch (MetaStoreException e) {
+      LOG.error("Error inserting access counts {} to table {}", sqlInsertValues, table, e);
+    }
+  }
+
+  private void updateCachedFilesInMetastore(Map<String, Long> pathToIDs) {
+    try {
+      adapter.updateCachedFiles(pathToIDs, eventBuffer);
+    } catch (MetaStoreException e) {
+      LOG.error("Error updating cached files {}", pathToIDs, e);
+    }
+  }
+
+  private void mergeMapsInPlace(Map<String, Integer> resultMap, Map<String, Integer> mapToMerge) {
+    mapToMerge.forEach((key, value) -> resultMap.merge(key, value, Integer::sum));
   }
 
   private Map<String, Integer> getAccessCountMap(List<FileAccessEvent> events) {
-    Map<String, Integer> map = new HashMap<>();
-    for (FileAccessEvent event : events) {
-      String path = event.getPath();
-      if (map.containsKey(path)) {
-        map.put(path, map.get(path) + 1);
-      } else {
-        map.put(path, 1);
-      }
-    }
-    return map;
+    return events.stream()
+        .collect(Collectors.toMap(
+            FileAccessEvent::getPath,
+            event -> 1,
+            Integer::sum
+        ));
   }
 
   private Window assignWindow(long time) {

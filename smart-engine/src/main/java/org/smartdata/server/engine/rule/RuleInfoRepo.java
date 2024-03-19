@@ -24,7 +24,7 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.model.rule.RuleExecutorPluginManager;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.rule.parser.SmartRuleStringParser;
 import org.smartdata.rule.parser.TranslationContext;
 import org.smartdata.server.engine.RuleManager;
@@ -38,12 +38,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Contains detailed info about a rule.
  */
 public class RuleInfoRepo {
-  private RuleInfo ruleInfo = null;
-  private RuleExecutor executor = null;
-  private MetaStore metaStore = null;
-  private SmartConf conf = null;
+  private final RuleInfo ruleInfo;
+  private final MetaStore metaStore;
+  private final SmartConf conf;
+  private RuleExecutor ruleExecutor;
 
-  private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
   public RuleInfoRepo(RuleInfo ruleInfo, MetaStore metaStore, SmartConf conf) {
     this.ruleInfo = ruleInfo;
@@ -125,32 +125,31 @@ public class RuleInfoRepo {
   private RuleExecutor doLaunchExecutor(RuleManager ruleManager)
       throws IOException {
     RuleState state = ruleInfo.getState();
-    if (state == RuleState.ACTIVE || state == RuleState.DRYRUN) {
-      if (executor != null && !executor.isExited()) {
+    if (state == RuleState.ACTIVE) {
+      if (ruleExecutor != null && !ruleExecutor.isExited()) {
         return null;
       }
-      ExecutionContext ctx = new ExecutionContext();
-      ctx.setRuleId(ruleInfo.getId());
-      TranslationContext transCtx = new TranslationContext(ruleInfo.getId(),
-          ruleInfo.getSubmitTime());
-      TranslateResult tr = executor != null ? executor.getTranslateResult() :
-          new SmartRuleStringParser(ruleInfo.getRuleText(), transCtx, conf).translate();
-      List<RuleExecutorPlugin> plugins = RuleExecutorPluginManager.getPlugins();
-      for (RuleExecutorPlugin plugin : plugins) {
-        plugin.onNewRuleExecutor(ruleInfo, tr);
+      ExecutionContext executionCtx = new ExecutionContext(ruleInfo.getId());
+      TranslationContext translationCtx = new TranslationContext(
+          ruleInfo.getId(), ruleInfo.getSubmitTime());
+      RuleTranslationResult translationResult = ruleExecutor != null
+          ? ruleExecutor.getOriginalTranslateResult()
+          : new SmartRuleStringParser(ruleInfo.getRuleText(), translationCtx, conf).translate();
+
+      ruleExecutor = new RuleExecutor(
+          ruleManager, executionCtx, translationResult, ruleManager.getMetaStore());
+      for (RuleExecutorPlugin plugin : RuleExecutorPluginManager.getPlugins()) {
+        plugin.onNewRuleExecutor(ruleInfo, translationResult);
       }
-      executor = new RuleExecutor(
-          ruleManager, ctx, tr, ruleManager.getMetaStore());
-      return executor;
+      return ruleExecutor;
     }
     return null;
   }
 
   private void markWorkExit() {
-    if (executor != null) {
-      executor.setExited();
+    if (ruleExecutor != null) {
+      ruleExecutor.setExited();
       notifyRuleExecutorExit();
-      //System.out.println(executor + " -> disabled");
     }
   }
 
@@ -176,7 +175,7 @@ public class RuleInfoRepo {
     try {
       switch (newState) {
         case ACTIVE:
-          if (oldState == RuleState.DISABLED || oldState == RuleState.DRYRUN) {
+          if (oldState == RuleState.DISABLED || oldState == RuleState.NEW) {
             ruleInfo.setState(newState);
             if (updateDb && metaStore != null) {
               metaStore.updateRuleState(ruleInfo.getId(), newState);
@@ -186,7 +185,7 @@ public class RuleInfoRepo {
           break;
 
         case DISABLED:
-          if (oldState == RuleState.ACTIVE || oldState == RuleState.DRYRUN) {
+          if (oldState == RuleState.ACTIVE) {
             ruleInfo.setState(newState);
             markWorkExit();
             if (updateDb && metaStore != null) {
@@ -205,7 +204,7 @@ public class RuleInfoRepo {
           return true;
 
         case FINISHED:
-          if (oldState == RuleState.ACTIVE || oldState == RuleState.DRYRUN) {
+          if (oldState == RuleState.ACTIVE) {
             ruleInfo.setState(newState);
             if (updateDb && metaStore != null) {
               metaStore.updateRuleState(ruleInfo.getId(), newState);
@@ -222,18 +221,18 @@ public class RuleInfoRepo {
   }
 
   private void lockWrite() {
-    rwl.writeLock().lock();
+    lock.writeLock().lock();
   }
 
   private void unlockWrite() {
-    rwl.writeLock().unlock();
+    lock.writeLock().unlock();
   }
 
   private void lockRead() {
-    rwl.readLock().lock();
+    lock.readLock().lock();
   }
 
   private void unlockRead() {
-    rwl.readLock().unlock();
+    lock.readLock().unlock();
   }
 }

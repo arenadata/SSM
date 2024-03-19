@@ -8,7 +8,7 @@ FILE_SIZE = 1024 * 1024
 
 def test_create_100M_0KB_thread(max_number):
     cids = []
-    dir_name = TEST_DIR + random_string()
+    dir_name = HDFS_TEST_DIR + random_string()
     # 500 dirs
     for j in range(max_number):
         # each has 200K files
@@ -27,53 +27,21 @@ class ResetEnv(unittest.TestCase):
             # Delete all rules
             if rule['state'] != 'DELETED':
                 delete_rule(rule['id'])
-        rules = [r for rule in list_rule() if rule['state'] != 'DELETED']
+        rules = [rule for rule in list_rule() if rule['state'] != 'DELETED']
         self.assertTrue(len(rules) == 0)
 
     def test_delete_all_files(self):
         try:
-            subprocess.call("hdfs dfs -rm -r " + TEST_DIR, shell=True)
-            subprocess.call("hdfs dfs -mkdir " + TEST_DIR, shell=True)
+            subprocess.call("hdfs dfs -rm -r " + HDFS_TEST_DIR, shell=True)
+            subprocess.call("hdfs dfs -mkdir " + HDFS_TEST_DIR, shell=True)
         except OSError:
-            print "HDFS Envs is not configured!"
-
-    def test_create_1M_DFSIO(self):
-        """
-        Using DFSIO to generte 10M files.
-        Each time generate 100K * 2 files (100K io_data and 100K io_control)
-        """
-        dir_number = 50
-        dfsio_cmd = "hadoop jar $HADOOP_HOME/share/hadoop/mapreduce" + \
-            "/hadoop-mapreduce-client-jobclient-*-tests.jar TestDFSIO " + \
-            "-write -nrFiles 10000 -fileSize 0KB"
-        for i in range(dir_number):
-            subprocess.call(dfsio_cmd, shell=True)
-            # subprocess.call("hdfs dfs -mv /benchmarks/TestDFSIO/io_control " +
-            #                 TEST_DIR + str(i) + "_control", shell=True)
-            subprocess.call("hdfs dfs -mv /benchmarks/TestDFSIO/io_data " +
-                            TEST_DIR + str(i) + "_data", shell=True)
-
-    def test_create_10M_DFSIO(self):
-        """
-        Using DFSIO to generte 10M files.
-        Each time generate 100K * 2 files (100K io_data and 100K io_control)
-        """
-        dir_number = 500
-        dfsio_cmd = "hadoop jar $HADOOP_HOME/share/hadoop/mapreduce" + \
-            "/hadoop-mapreduce-client-jobclient-*-tests.jar TestDFSIO " + \
-            "-write -nrFiles 10000 -fileSize 0KB"
-        for i in range(dir_number):
-            subprocess.call(dfsio_cmd)
-            # subprocess.call("hdfs dfs -mv /benchmarks/TestDFSIO/io_control " +
-            #                 TEST_DIR + str(i) + "_control")
-            subprocess.call("hdfs dfs -mv /benchmarks/TestDFSIO/io_data " +
-                            TEST_DIR + str(i) + "_data")
+            print("HDFS Envs is not configured!")
 
     def test_create_10K_0KB_DFSIO_parallel(self):
         dir_num = 50
         for i in range(dir_num):
             file_index = 0
-            dir_name = TEST_DIR + random_string()
+            dir_name = HDFS_TEST_DIR + random_string()
             command_arr = []
             subprocess.call("hdfs dfs -mkdir " + dir_name)
             for i in range(10000 / dir_num):
@@ -99,7 +67,7 @@ class ResetEnv(unittest.TestCase):
         dir_number = 200
         for i in range(dir_number):
             cids = []
-            dir_name = TEST_DIR + str(i)
+            dir_name = HDFS_TEST_DIR + str(i)
             # 200 dirs
             for j in range(max_number):
                 # each has 500K files
@@ -115,7 +83,7 @@ class ResetEnv(unittest.TestCase):
         """
         max_number = 500000
         cids = []
-        dir_name = TEST_DIR + random_string()
+        dir_name = HDFS_TEST_DIR + random_string()
         for i in range(max_number):
             # each has 500K files
             cid = create_file(dir_name + "/" + str(i), 0)
@@ -145,7 +113,7 @@ class ResetEnv(unittest.TestCase):
         cids = []
         for i in range(max_number):
             # 1 MB files
-            file_path, cid = create_random_file_parallel(FILE_SIZE, "/10MB/")
+            file_path, cid = create_random_file_parallel(FILE_SIZE*10, "/10MB/")
             file_paths.append(file_path)
             cids.append(cid)
         wait_for_cmdlets(cids)
@@ -159,7 +127,7 @@ class ResetEnv(unittest.TestCase):
         cids = []
         for i in range(max_number):
             # 1 MB files
-            file_path, cid = create_random_file_parallel(FILE_SIZE, "/100MB/")
+            file_path, cid = create_random_file_parallel(FILE_SIZE*100, "/100MB/")
             file_paths.append(file_path)
             cids.append(cid)
         wait_for_cmdlets(cids)

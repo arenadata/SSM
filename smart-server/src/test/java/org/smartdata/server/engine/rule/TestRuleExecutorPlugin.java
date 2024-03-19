@@ -25,7 +25,7 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.model.rule.RuleExecutorPluginManager;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.server.MiniSmartClusterHarness;
 
 import java.util.List;
@@ -82,11 +82,11 @@ public class TestRuleExecutorPlugin extends MiniSmartClusterHarness {
     public TestPlugin() {
     }
 
-    public void onNewRuleExecutor(final RuleInfo ruleInfo, TranslateResult tResult) {
+    public void onNewRuleExecutor(final RuleInfo ruleInfo, RuleTranslationResult tResult) {
       numOnNewRuleExecutor++;
     }
 
-    public boolean preExecution(final RuleInfo ruleInfo, TranslateResult tResult) {
+    public boolean preExecution(final RuleInfo ruleInfo, RuleTranslationResult tResult) {
       numPreExecution++;
       return true;
     }
@@ -97,7 +97,7 @@ public class TestRuleExecutorPlugin extends MiniSmartClusterHarness {
     }
 
     public CmdletDescriptor preSubmitCmdletDescriptor(
-        final RuleInfo ruleInfo, TranslateResult tResult, CmdletDescriptor descriptor) {
+        final RuleInfo ruleInfo, RuleTranslationResult tResult, CmdletDescriptor descriptor) {
       return descriptor;
     }
 

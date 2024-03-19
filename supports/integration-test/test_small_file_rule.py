@@ -54,8 +54,8 @@ def run_small_file_rule(small_file_dir, debug):
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description='Auto-generate and submit compact rules.')
-    parser.add_argument("-d", "--testDir", default=TEST_DIR, dest="testDir",
-                        help="target test set directory Prefix, Default Value: TEST_DIR in util.py")
+    parser.add_argument("-d", "--testDir", default=HDFS_TEST_DIR, dest="testDir",
+                        help="target test set directory Prefix, Default Value: HDFS_TEST_DIR in util.py")
     parser.add_argument("-n", "--fileNum", default='5', dest="fileNum",
                         help="number of small files, string input, e.g. '10', Default Value: 5.")
     parser.add_argument("-s", "--fileSize", default='1MB', dest="fileSize",

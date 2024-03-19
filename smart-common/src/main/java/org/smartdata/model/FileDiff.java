@@ -91,6 +91,10 @@ public class FileDiff {
     this.parameters = parameters;
   }
 
+  public void setParameter(String key, String value) {
+    parameters.put(key, value);
+  }
+
   public String getParametersJsonString() {
     Gson gson = new Gson();
     return gson.toJson(parameters);

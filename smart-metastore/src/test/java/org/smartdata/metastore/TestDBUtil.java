@@ -18,6 +18,8 @@
 package org.smartdata.metastore;
 
 import org.apache.hadoop.conf.Configuration;
+import org.smartdata.metastore.dao.AccessCountTable;
+import org.smartdata.metastore.dao.AccessCountTableDeque;
 import org.smartdata.metastore.db.DBHandlersFactory;
 import org.smartdata.metastore.db.DbSchemaManager;
 
@@ -34,6 +36,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.SQLITE_URL_PREFIX;
 
@@ -59,6 +62,12 @@ public class TestDBUtil {
     String dbFile = getUniqueDBFilePath();
     new File(dbFile).deleteOnExit();
     return SQLITE_URL_PREFIX + getUniqueDBFilePath();
+  }
+
+  public static void addAccessCountTableToDeque(
+      AccessCountTableDeque deque, AccessCountTable table) throws Exception {
+    deque.addAndNotifyListener(table)
+        .get(1, TimeUnit.SECONDS);
   }
 
   /**

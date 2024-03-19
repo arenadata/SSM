@@ -31,23 +31,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS;
+import static org.smartdata.conf.SmartConfKeys.SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_DAY_TABLES_TO_KEEP_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_DAY_TABLES_TO_KEEP_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_HOUR_TABLES_TO_KEEP_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_HOUR_TABLES_TO_KEEP_MIN;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_NUM_MINUTE_TABLES_TO_KEEP_MIN;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_NUM_SECOND_TABLES_TO_KEEP_KEY;
+import static org.smartdata.metastore.utils.Constants.ONE_MINUTE_IN_MILLIS;
 
 public class AccessCountTableManager {
   private final MetaStore metaStore;
   private final Map<TimeGranularity, AccessCountTableDeque> tableDeques;
   private final AccessEventAggregator accessEventAggregator;
   private final ExecutorService executorService;
+  private final Configuration configuration;
   private AccessCountTableDeque secondTableDeque;
 
   public static final Logger LOG =
@@ -62,11 +69,29 @@ public class AccessCountTableManager {
     this.metaStore = adapter;
     this.tableDeques = new HashMap<>();
     this.executorService = service;
-    this.accessEventAggregator = new AccessEventAggregator(adapter, this);
-    this.initTables(configuration);
+    this.configuration = configuration;
+
+    int aggregationIntervalMs = configuration.getInt(
+        SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS,
+        SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS_DEFAULT);
+    this.accessEventAggregator = new AccessEventAggregator(adapter, this, aggregationIntervalMs);
+
+    initTables();
   }
 
-  private void initTables(Configuration configuration) {
+  private int getAccessTablesCount(String configKey, int defaultValue, int minimalCount) {
+    int tableCount = configuration.getInt(configKey, defaultValue);
+
+    if (tableCount < minimalCount) {
+      String errorMessage = String.format(
+          "Wrong value for option %s. It should be at least %d", configKey, minimalCount);
+      LOG.error(errorMessage);
+      throw new IllegalArgumentException(errorMessage);
+    }
+    return tableCount;
+  }
+
+  private void initTables() {
     AccessCountTableAggregator aggregator = new AccessCountTableAggregator(metaStore);
 
     int perDayAccessTablesCount = configuration.getInt(SMART_NUM_DAY_TABLES_TO_KEEP_KEY,
@@ -74,47 +99,68 @@ public class AccessCountTableManager {
     AccessCountTableDeque dayTableDeque = new AccessCountTableDeque(
         new CountEvictor(metaStore, perDayAccessTablesCount));
     TableAddOpListener dayTableListener =
-        new TableAddOpListener.DayTableListener(dayTableDeque, aggregator, executorService);
+        TableAddOpListener.perDay(dayTableDeque, aggregator, executorService);
 
-    int perHourAccessTablesCount = configuration.getInt(SMART_NUM_HOUR_TABLES_TO_KEEP_KEY,
-        SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT);
+    int perHourAccessTablesCount = getAccessTablesCount(
+        SMART_NUM_HOUR_TABLES_TO_KEEP_KEY,
+        SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT,
+        SMART_NUM_HOUR_TABLES_TO_KEEP_MIN);
     AccessCountTableDeque hourTableDeque = new AccessCountTableDeque(
         new CountEvictor(metaStore, perHourAccessTablesCount), dayTableListener);
     TableAddOpListener hourTableListener =
-        new TableAddOpListener.HourTableListener(hourTableDeque, aggregator, executorService);
+        TableAddOpListener.perHour(hourTableDeque, aggregator, executorService);
 
-    int perMinuteAccessTablesCount = configuration.getInt(SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY,
-        SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT);
+    int perMinuteAccessTablesCount = getAccessTablesCount(
+        SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY,
+        SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT,
+        SMART_NUM_MINUTE_TABLES_TO_KEEP_MIN);
     AccessCountTableDeque minuteTableDeque = new AccessCountTableDeque(
         new CountEvictor(metaStore, perMinuteAccessTablesCount), hourTableListener);
     TableAddOpListener minuteTableListener =
-        new TableAddOpListener.MinuteTableListener(minuteTableDeque, aggregator,
+        TableAddOpListener.perMinute(minuteTableDeque, aggregator,
             executorService);
 
-    int perSecondAccessTablesCount = configuration.getInt(SMART_NUM_SECOND_TABLES_TO_KEEP_KEY,
-        SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT);
+    int minimalSecondAccessTablesCount =
+        (int) (ONE_MINUTE_IN_MILLIS / accessEventAggregator.getAggregationGranularity());
+
+    int perSecondAccessTablesCount = getAccessTablesCount(
+        SMART_NUM_SECOND_TABLES_TO_KEEP_KEY,
+        SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT,
+        minimalSecondAccessTablesCount);
     this.secondTableDeque = new AccessCountTableDeque(
             new CountEvictor(metaStore, perSecondAccessTablesCount), minuteTableListener);
 
-    this.tableDeques.put(TimeGranularity.SECOND, this.secondTableDeque);
-    this.tableDeques.put(TimeGranularity.MINUTE, minuteTableDeque);
-    this.tableDeques.put(TimeGranularity.HOUR, hourTableDeque);
-    this.tableDeques.put(TimeGranularity.DAY, dayTableDeque);
-    this.recoverTables();
+    tableDeques.put(TimeGranularity.SECOND, secondTableDeque);
+    tableDeques.put(TimeGranularity.MINUTE, minuteTableDeque);
+    tableDeques.put(TimeGranularity.HOUR, hourTableDeque);
+    tableDeques.put(TimeGranularity.DAY, dayTableDeque);
+    recoverTables();
   }
 
   private void recoverTables() {
     try {
       List<AccessCountTable> tables = metaStore.getAllSortedTables();
+
+      if (tables.isEmpty()) {
+        LOG.info("No existing access count tables to recover.");
+        return;
+      }
+
+      LOG.info("Loading existing access count tables: {}", tables);
       for (AccessCountTable table : tables) {
-        TimeGranularity timeGranularity =
-            TimeUtils.getGranularity(table.getEndTime() - table.getStartTime());
-        if (tableDeques.containsKey(timeGranularity)) {
-          tableDeques.get(timeGranularity).add(table);
+        if (tableDeques.containsKey(table.getGranularity())) {
+          tableDeques.get(table.getGranularity()).add(table);
         }
       }
+
+      // aggregate old tables if needed
+      AccessCountTable lastOldTable = tables.get(tables.size() - 1);
+      Optional.ofNullable(tableDeques.get(lastOldTable.getGranularity()))
+          .ifPresent(deque -> deque.notifyListener(lastOldTable));
+
+      LOG.info("Existing access count tables were successfully loaded");
     } catch (MetaStoreException e) {
-      LOG.error(e.toString());
+      LOG.error("Error during recovering access count tables", e);
     }
   }
 
@@ -122,15 +168,15 @@ public class AccessCountTableManager {
     if (LOG.isDebugEnabled()) {
       LOG.debug(accessCountTable.toString());
     }
-    this.secondTableDeque.addAndNotifyListener(accessCountTable);
+    secondTableDeque.addAndNotifyListener(accessCountTable);
   }
 
   public void onAccessEventsArrived(List<FileAccessEvent> accessEvents) {
-    this.accessEventAggregator.addAccessEvents(accessEvents);
+    accessEventAggregator.addAccessEvents(accessEvents);
   }
 
   public List<AccessCountTable> getTables(long lengthInMillis) throws MetaStoreException {
-    return AccessCountTableManager.getTables(this.tableDeques, this.metaStore, lengthInMillis);
+    return AccessCountTableManager.getTables(tableDeques, metaStore, lengthInMillis);
   }
 
   public static List<AccessCountTable> getTables(

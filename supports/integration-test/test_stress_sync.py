@@ -5,13 +5,25 @@ from util import *
 
 
 class TestStressDR(unittest.TestCase):
+    rule_ids = []
+    @classmethod
+    def tearDownClass(cls):
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
+        for rid in cls.rule_ids:
+            delete_rule(rid)
 
-    @timeout_decorator.timeout(seconds=60)
     def test_sync_rule(self):
         file_paths = []
         cids = []
+
         # create a directory with random name
-        source_dir = TEST_DIR + random_string() + "/"
+        source_dir = HDFS_TEST_DIR + random_string() + "/"
+
+        rule_str = "file : path matches " + \
+                   "\"" + source_dir + "*\" | sync -dest " + DEST_DIR
+        rid = submit_rule(rule_str)
+        start_rule(rid)
+
         # create random files in the above directory
         for i in range(MAX_NUMBER):
             file_path, cid = create_random_file_parallel(FILE_SIZE, source_dir)
@@ -19,12 +31,7 @@ class TestStressDR(unittest.TestCase):
             cids.append(cid)
         wait_for_cmdlets(cids)
 
-        # wait for DB sync
-        time.sleep(5)
-        rule_str = "file : every 1s | path matches " + \
-            "\"" + source_dir + "*\" | sync -dest " + DEST_DIR
-        rid = submit_rule(rule_str)
-        start_rule(rid)
+
         # Status check
         while True:
             time.sleep(1)
@@ -36,6 +43,7 @@ class TestStressDR(unittest.TestCase):
         self.assertTrue(len(failed) == 0)
         time.sleep(5)
         stop_rule(rid)
+        self.rule_ids.append(rid)
 
 
 if __name__ == '__main__':
@@ -54,11 +62,11 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
-    print "The file number for test is {}.".format(args.num)
+    print("The file number for test is {}.".format(args.num))
     MAX_NUMBER = int(args.num)
-    print "The dest directory for test is {}.".format(args.dest)
+    print("The dest directory for test is {}.".format(args.dest))
     DEST_DIR = args.dest
 
     unittest.main()

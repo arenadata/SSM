@@ -4,6 +4,9 @@ from util import *
 
 
 class TestMover(unittest.TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
 
     def test_append(self):
         file_path = create_random_file(FILE_SIZE)
@@ -17,7 +20,7 @@ class TestMover(unittest.TestCase):
             file_paths += create_random_file(FILE_SIZE)
             if i != MAX_NUMBER - 1:
                 file_paths += ","
-        dest_path = TEST_DIR + random_string()
+        dest_path = HDFS_TEST_DIR + random_string()
         cid = submit_cmdlet("concat -file " + file_paths + " -dest " + dest_path)
         cmd = wait_for_cmdlet(cid)
         self.assertTrue(cmd['state'] == "DONE", "Test failed for concat action on multiple files.")
@@ -28,7 +31,7 @@ class TestMover(unittest.TestCase):
             file_paths += create_random_file(FILE_SIZE)
             if i != MAX_NUMBER - 1:
                 file_paths += ","
-        dest_path = TEST_DIR + random_string()
+        dest_path = HDFS_TEST_DIR + random_string()
         cid = submit_cmdlet("merge -file " + file_paths + " -dest " + dest_path)
         cmd = wait_for_cmdlet(cid)
         self.assertTrue(cmd['state'] == "DONE", "Test failed for merge action on multiple files.")
@@ -45,6 +48,7 @@ class TestMover(unittest.TestCase):
         cmd = wait_for_cmdlet(cid)
         self.assertTrue(cmd['state'] == "DONE", "Test failed for truncate0 action.")
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-size', default='64MB',
@@ -54,9 +58,9 @@ if __name__ == '__main__':
     parser.add_argument('unittest_args', nargs='*')
     args, unknown_args = parser.parse_known_args()
     sys.argv[1:] = unknown_args
-    print "The file size for test is {}.".format(args.size)
+    print("The file size for test is {}.".format(args.size))
     FILE_SIZE = convert_to_byte(args.size)
-    print "The file number for concat and merge test is {}.".format(args.num)
+    print("The file number for concat and merge test is {}.".format(args.num))
     MAX_NUMBER = int(args.num)
 
     unittest.main()

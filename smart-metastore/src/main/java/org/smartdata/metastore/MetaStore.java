@@ -339,7 +339,7 @@ public class MetaStore implements CopyMetaService,
       try {
         Map<Long, Integer> accessCounts =
             accessCountDao.getHotFiles(tables, topNum);
-        if (accessCounts.size() == 0) {
+        if (accessCounts.isEmpty()) {
           return new ArrayList<>();
         }
         Map<Long, String> idToPath = getFilePaths(accessCounts.keySet());

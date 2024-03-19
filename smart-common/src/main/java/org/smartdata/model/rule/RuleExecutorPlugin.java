@@ -31,7 +31,7 @@ public interface RuleExecutorPlugin {
    * @param ruleInfo
    * @param tResult
    */
-  void onNewRuleExecutor(RuleInfo ruleInfo, TranslateResult tResult);
+  void onNewRuleExecutor(RuleInfo ruleInfo, RuleTranslationResult tResult);
 
   /**
    * Called just before rule executor begin to execute rule.
@@ -40,7 +40,7 @@ public interface RuleExecutorPlugin {
    * @param tResult
    * @return continue this execution if true.
    */
-  boolean preExecution(RuleInfo ruleInfo, TranslateResult tResult);
+  boolean preExecution(RuleInfo ruleInfo, RuleTranslationResult tResult);
 
   /**
    * Called after rule condition checked.
@@ -56,7 +56,7 @@ public interface RuleExecutorPlugin {
    * @param descriptor
    * @return the descriptor that will be used to submit to CmdletManager
    */
-  CmdletDescriptor preSubmitCmdletDescriptor(RuleInfo ruleInfo, TranslateResult tResult,
+  CmdletDescriptor preSubmitCmdletDescriptor(RuleInfo ruleInfo, RuleTranslationResult tResult,
       CmdletDescriptor descriptor);
 
   /**

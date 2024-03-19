@@ -1,10 +1,9 @@
-# Performance Test for SSM Mover
+# Performance Test for SSM Mover[Not ready]
 Test the performance of SSM Mover and compare it with HDFS Mover. We use SSM mover & HDFS mover to migrate data from all_disk to all_ssd. You can also choose other storage policies to test the mover performance.
 
 ## Requirements
-- Deploy SSM, please refer to /SSM/doc/ssm-deployment-guide.md.
-- Deploy one HDFS cluster and configure its bin in $PATH of OS.
-- Install PAT(https://github.com/intel-hadoop/PAT).
+- Deploy SSM, please refer to /SSM/doc/ssm-deployment-guide.md or [ADH install guide](https://docs.arenadata.io/ru/ADH/current/get-started/start-here.html)..
+- Deploy one HDFS (or [ADH](https://docs.arenadata.io/ru/ADH/current/get-started/start-here.html)) cluster and configure its bin in $PATH of OS.
 
 ## Configuration
   Configure the file named `config`. For a test case, the corresponding test data should be created in the HDFS cluster beforehand by executing 'prepare.sh'.

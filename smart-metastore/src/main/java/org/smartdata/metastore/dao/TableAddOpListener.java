@@ -17,112 +17,36 @@
  */
 package org.smartdata.metastore.dao;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.utils.Constants;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-public abstract class TableAddOpListener {
-  static final Logger LOG = LoggerFactory.getLogger(TableAddOpListener.class);
-  private final Set<AccessCountTable> tablesUnderAggregating;
+public interface TableAddOpListener {
+  CompletableFuture<AccessCountTable> EMPTY_RESULT = CompletableFuture.completedFuture(null);
 
-  AccessCountTableDeque coarseGrainedTableDeque;
-  AccessCountTableAggregator tableAggregator;
-  ExecutorService executorService;
+  CompletableFuture<AccessCountTable> tableAdded(
+      AccessCountTableDeque fineGrainedTableDeque, AccessCountTable table);
 
-  TableAddOpListener(
-      AccessCountTableDeque deque,
-      AccessCountTableAggregator aggregator,
-      ExecutorService executorService) {
-    this.coarseGrainedTableDeque = deque;
-    this.tableAggregator = aggregator;
-    this.executorService = executorService;
-    this.tablesUnderAggregating = new HashSet<>();
+  static TableAddOpListener perDay(AccessCountTableDeque deque,
+      AccessCountTableAggregator aggregator, ExecutorService service) {
+    return new AggregatingTableAddOpListener(
+        deque, aggregator, service, Constants.ONE_DAY_IN_MILLIS);
   }
 
-  public void tableAdded(AccessCountTableDeque fineGrainedTableDeque, AccessCountTable table) {
-    final AccessCountTable lastCoarseGrainedTable = lastCoarseGrainedTableFor(table.getEndTime());
-    // Todo: optimize contains
-    if (!coarseGrainedTableDeque.contains(lastCoarseGrainedTable)) {
-      final List<AccessCountTable> tablesToAggregate =
-          fineGrainedTableDeque.getTables(
-              lastCoarseGrainedTable.getStartTime(), lastCoarseGrainedTable.getEndTime());
-      if (!tablesToAggregate.isEmpty()
-          && !tablesUnderAggregating.contains(lastCoarseGrainedTable)) {
-        tablesUnderAggregating.add(lastCoarseGrainedTable);
-        executorService.submit(
-            new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  tableAggregator.aggregate(lastCoarseGrainedTable, tablesToAggregate);
-                  coarseGrainedTableDeque.addAndNotifyListener(lastCoarseGrainedTable);
-                  tablesUnderAggregating.remove(lastCoarseGrainedTable);
-                } catch (MetaStoreException e) {
-                  LOG.error(
-                      "Add AccessCount Table {} error",
-                      lastCoarseGrainedTable.getTableName(), e);
-                }
-              }
-            });
-      }
-    }
+  static TableAddOpListener perHour(AccessCountTableDeque deque,
+      AccessCountTableAggregator aggregator, ExecutorService service) {
+    return new AggregatingTableAddOpListener(
+        deque, aggregator, service, Constants.ONE_HOUR_IN_MILLIS);
   }
 
-  public abstract AccessCountTable lastCoarseGrainedTableFor(Long startTime);
-
-  public static class MinuteTableListener extends TableAddOpListener {
-    public MinuteTableListener(
-        AccessCountTableDeque deque,
-        AccessCountTableAggregator aggregator,
-        ExecutorService service) {
-      super(deque, aggregator, service);
-    }
-
-    @Override
-    public AccessCountTable lastCoarseGrainedTableFor(Long endTime) {
-      long lastEnd = endTime - (endTime % Constants.ONE_MINUTE_IN_MILLIS);
-      long lastStart = lastEnd - Constants.ONE_MINUTE_IN_MILLIS;
-      return new AccessCountTable(lastStart, lastEnd);
-    }
+  static TableAddOpListener perMinute(AccessCountTableDeque deque,
+      AccessCountTableAggregator aggregator, ExecutorService service) {
+    return new AggregatingTableAddOpListener(
+        deque, aggregator, service, Constants.ONE_MINUTE_IN_MILLIS);
   }
 
-  public static class HourTableListener extends TableAddOpListener {
-    public HourTableListener(
-        AccessCountTableDeque deque,
-        AccessCountTableAggregator aggregator,
-        ExecutorService service) {
-      super(deque, aggregator, service);
-    }
-
-    @Override
-    public AccessCountTable lastCoarseGrainedTableFor(Long endTime) {
-      long lastEnd = endTime - (endTime % Constants.ONE_HOUR_IN_MILLIS);
-      long lastStart = lastEnd - Constants.ONE_HOUR_IN_MILLIS;
-      return new AccessCountTable(lastStart, lastEnd);
-    }
+  static TableAddOpListener noOp() {
+    return (deque, table) -> EMPTY_RESULT;
   }
-
-  public static class DayTableListener extends TableAddOpListener {
-    public DayTableListener(
-        AccessCountTableDeque deque,
-        AccessCountTableAggregator aggregator,
-        ExecutorService service) {
-      super(deque, aggregator, service);
-    }
-
-    @Override
-    public AccessCountTable lastCoarseGrainedTableFor(Long endTime) {
-      long lastEnd = endTime - (endTime % Constants.ONE_DAY_IN_MILLIS);
-      long lastStart = lastEnd - Constants.ONE_DAY_IN_MILLIS;
-      return new AccessCountTable(lastStart, lastEnd);
-    }
-  }
-
-  // Todo: WeekTableListener, MonthTableListener, YearTableListener
 }

@@ -93,7 +93,6 @@ public class CopyScheduler extends ActionSchedulerService {
   private final Map<Long, Integer> fileDiffFailedTimes;
   // BaseSync queue
   private final Map<String, String> initialSyncQueue;
-  private final Set<String> filesToCreate;
   // Check interval of executorService
   private final long checkInterval;
   // Cache of the file_diff
@@ -117,7 +116,6 @@ public class CopyScheduler extends ActionSchedulerService {
     this.fileDiffChains = new ConcurrentHashMap<>();
     this.fileDiffFailedTimes = new ConcurrentHashMap<>();
     this.initialSyncQueue = new ConcurrentHashMap<>();
-    this.filesToCreate = ConcurrentHashMap.newKeySet();
     this.executorService = Executors.newScheduledThreadPool(2);
     this.fileDiffCache = new ConcurrentHashMap<>();
     this.changedFileInCacheDiffIds = ConcurrentHashMap.newKeySet();
@@ -257,7 +255,7 @@ public class CopyScheduler extends ActionSchedulerService {
   public List<String> getSupportedActions() {
     return SUPPORTED_ACTIONS;
   }
-  
+
   private boolean isFileLocked(String path) {
     if(fileLocks.isEmpty()) {
       LOG.debug("File Lock is empty. Current path = {}", path);
@@ -473,9 +471,6 @@ public class CopyScheduler extends ActionSchedulerService {
       String src = fileInfo.getPath();
       String dest = src.replaceFirst(srcDir, destDir);
       initialSyncQueue.put(src, dest);
-      if (!fileInfo.isdir()) {
-       filesToCreate.add(src);
-      }
     }
     runBatchInitialSync();
   }
@@ -520,15 +515,7 @@ public class CopyScheduler extends ActionSchedulerService {
       return fileDiff;
     }
 
-    long remoteFileOffset = filesToCreate.remove(src)
-        ? NON_EXISTENT_FILE_OFFSET
-        : remoteFileLen(dest);
-
-    // todo use checksums instead of offsets
-    if (remoteFileOffset == srcFileInfo.getLength()) {
-      LOG.info("Src and dest files are equal, no need to copy");
-      return null;
-    }
+    long remoteFileOffset = remoteFileLen(dest);
 
     if (remoteFileOffset == NON_EXISTENT_FILE_OFFSET) {
       remoteFileOffset = 0;
@@ -539,13 +526,21 @@ public class CopyScheduler extends ActionSchedulerService {
       remoteFileOffset = 0;
     }
 
-    // Copy tails to remote
+    return createAppendFileDiff(src, srcFileInfo.getLength(), remoteFileOffset);
+  }
+
+  private FileDiff createAppendFileDiff(
+      String src, long srcFileLength, long copyStartOffset) {
     FileDiff fileDiff = new FileDiff(FileDiffType.APPEND, FileDiffState.PENDING);
     fileDiff.setSrc(src);
-    // Append changes to remote files
-    fileDiff.getParameters()
-        .put("-length", String.valueOf(srcFileInfo.getLength() - remoteFileOffset));
-    fileDiff.getParameters().put("-offset", String.valueOf(remoteFileOffset));
+
+    fileDiff.setParameter(CopyFileAction.LENGTH,
+        String.valueOf(srcFileLength - copyStartOffset));
+    fileDiff.setParameter(CopyFileAction.OFFSET_INDEX,
+        String.valueOf(copyStartOffset));
+    // todo use checksums instead of offsets
+    fileDiff.setParameter(CopyFileAction.COPY_CONTENT,
+        String.valueOf(srcFileLength != copyStartOffset));
     fileDiff.setRuleId(-1);
     return fileDiff;
   }

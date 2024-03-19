@@ -40,7 +40,7 @@ import static org.smartdata.conf.SmartConfKeys.SMART_INTERNAL_PATH_TEMPLATES_KEY
 public class PathChecker {
   private static final String IGNORED_PATH_TEMPLATES_DELIMITER = ",";
 
-  private final Matcher patternMatcher;
+  private final ThreadLocal<Matcher> patternMatcherThreadLocal;
   private final List<String> coverDirs;
 
   public PathChecker(SmartConf configuration) {
@@ -52,13 +52,15 @@ public class PathChecker {
     ignoredPathPatterns.forEach(patternBuilder::add);
 
     Pattern pattern = Pattern.compile(patternBuilder.toString());
-    this.patternMatcher = pattern.matcher("");
+    this.patternMatcherThreadLocal =
+        ThreadLocal.withInitial(() -> pattern.matcher(""));
     this.coverDirs = coverDirs;
   }
 
   public boolean isIgnored(String absolutePath) {
-    patternMatcher.reset(absolutePath);
-    return patternMatcher.find();
+    return patternMatcherThreadLocal.get()
+        .reset(absolutePath)
+        .find();
   }
 
   public boolean isCovered(String absolutePath) {

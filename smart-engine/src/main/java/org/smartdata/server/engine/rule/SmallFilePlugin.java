@@ -35,7 +35,7 @@ import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.rule.RuleExecutorPlugin;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 
@@ -77,11 +77,11 @@ public class SmallFilePlugin implements RuleExecutorPlugin {
   }
 
   @Override
-  public void onNewRuleExecutor(final RuleInfo ruleInfo, TranslateResult tResult) {
+  public void onNewRuleExecutor(final RuleInfo ruleInfo, RuleTranslationResult tResult) {
   }
 
   @Override
-  public boolean preExecution(final RuleInfo ruleInfo, TranslateResult tResult) {
+  public boolean preExecution(final RuleInfo ruleInfo, RuleTranslationResult tResult) {
     return true;
   }
 
@@ -225,7 +225,7 @@ public class SmallFilePlugin implements RuleExecutorPlugin {
 
   @Override
   public CmdletDescriptor preSubmitCmdletDescriptor(
-      final RuleInfo ruleInfo, TranslateResult tResult, CmdletDescriptor descriptor) {
+      final RuleInfo ruleInfo, RuleTranslationResult tResult, CmdletDescriptor descriptor) {
     for (int i = 0; i < descriptor.getActionSize(); i++) {
       if (COMPACT_ACTION_NAME.equals(descriptor.getActionName(i))) {
         String smallFiles = descriptor.getActionArgs(i).get(HdfsAction.FILE_PATH);

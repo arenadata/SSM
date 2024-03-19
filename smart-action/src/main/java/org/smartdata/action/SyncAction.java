@@ -25,13 +25,14 @@ import org.smartdata.action.annotation.ActionSignature;
  * dest path, e.g., "sync -src /test/1 -dest hdfs:/remoteIP:port/test/1"
  */
 @ActionSignature(
-    actionId = "sync",
+    actionId = SyncAction.NAME,
     displayName = "sync",
     usage = SyncAction.SRC + " $src "
         + SyncAction.DEST + " $dest "
         + SyncAction.PRESERVE + " $attributes"
 )
 public class SyncAction extends SmartAction {
+  public static final String NAME = "sync";
   // related to fileDiff.src
   public static final String SRC = "-src";
   // related to remote cluster and fileDiff.src

@@ -53,14 +53,14 @@ public class RulePluginManager {
     return copy;
   }
 
-  public static void onAddingNewRule(RuleInfo ruleInfo, TranslateResult tr)
+  public static void onAddingNewRule(RuleInfo ruleInfo, RuleTranslationResult tr)
       throws IOException {
     for (RulePlugin plugin : getPlugins()) {
       plugin.onAddingNewRule(ruleInfo, tr);
     }
   }
 
-  public static void onNewRuleAdded(RuleInfo ruleInfo, TranslateResult tr) {
+  public static void onNewRuleAdded(RuleInfo ruleInfo, RuleTranslationResult tr) {
     for (RulePlugin plugin : getPlugins()) {
       plugin.onNewRuleAdded(ruleInfo, tr);
     }

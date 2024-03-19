@@ -18,6 +18,7 @@
 package org.smartdata.hdfs.action;
 
 import com.google.gson.Gson;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class MoveFileAction extends AbstractMoveFileAction {
   protected void execute() throws Exception {
     this.setDfsClient(HadoopUtil.getDFSClient(
             HadoopUtil.getNameNodeUri(conf), conf));
-    if (fileName == null) {
+    if (StringUtils.isBlank(fileName)) {
       throw new IllegalArgumentException("File parameter is missing!");
     }
 
@@ -114,7 +115,7 @@ public class MoveFileAction extends AbstractMoveFileAction {
     int maxMoves = movePlan.getPropertyValueInt(FileMovePlan.MAX_CONCURRENT_MOVES, 10);
     int maxRetries = movePlan.getPropertyValueInt(FileMovePlan.MAX_NUM_RETRIES, 10);
     MoverExecutor executor = new MoverExecutor(status, getContext().getConf(), maxRetries, maxMoves);
-    return executor.executeMove(movePlan, getResultOs(), getLogOs());
+    return executor.executeMove(movePlan, getResultOutputStream(), getLogPrintStream());
   }
 
   private boolean recheckModification() {

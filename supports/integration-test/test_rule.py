@@ -1,12 +1,17 @@
 import argparse
-import timeout_decorator
 import unittest
 from util import *
 
 
 class TestRule(unittest.TestCase):
+    rule_ids = []
 
-    @timeout_decorator.timeout(seconds=60)
+    @classmethod
+    def tearDownClass(cls):
+        for rul_id in cls.rule_ids:
+            delete_rule(rul_id)
+        subprocess.call(f"hdfs dfs -rm -r {HDFS_TEST_DIR}", shell=True)
+
     def test_rule_access_count(self):
         # rule:
         # file : path matches "${file_path}" and accessCount(1m) > 1 | allssd
@@ -31,7 +36,6 @@ class TestRule(unittest.TestCase):
         self.assertTrue(len(failed) == 0)
         stop_rule(rid)
 
-    @timeout_decorator.timeout(seconds=60)
     def test_rule_age(self):
         # rule:
         # file : path matches "${file_path}" and age > 4s | archive
@@ -50,20 +54,20 @@ class TestRule(unittest.TestCase):
         failed = wait_for_cmdlets(cids)
         self.assertTrue(len(failed) == 0)
         stop_rule(rid)
+        self.rule_ids.append(rid)
 
-    @timeout_decorator.timeout(seconds=60)
     def test_rule_scheduled(self):
         # rule:
-        # file: every 4s from now to now + 15s | path matches "${TEST_DIR}${prefix}-*" | onessd
+        # file: every 4s from now to now + 15s | path matches "${HDFS_TEST_DIR}${prefix}-*" | onessd
         # From now to now + 15s
         # Create 3 random files
         prefix = random_string()
         for _ in range(3):
-            file_path = TEST_DIR + prefix + "-" + random_string()
+            file_path = HDFS_TEST_DIR + prefix + "-" + random_string()
             wait_for_cmdlet(create_file(file_path, 10 * 1024 * 1024))
         # submit rule
         rule_str = "file: " + "every 4s from now to now + 15s |" + \
-            " path matches " + "\"" + TEST_DIR + prefix + "-*" + "\"" + " | onessd "
+            " path matches " + "\"" + HDFS_TEST_DIR + prefix + "-*" + "\"" + " | onessd "
         rid = submit_rule(rule_str)
         # Activate rule
         start_rule(rid)
@@ -75,6 +79,7 @@ class TestRule(unittest.TestCase):
         failed = wait_for_cmdlets(cids)
         self.assertTrue(len(failed) == 0)
         stop_rule(rid)
+        self.rule_ids.append(rid)
 
 
 if __name__ == '__main__':

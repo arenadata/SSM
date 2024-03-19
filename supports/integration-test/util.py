@@ -9,10 +9,10 @@ import subprocess
 # Server info
 # ATTENTION
 # Unset Proxy before use RESTful API
-BASE_URL = "http://localhost:7045"
+SSM_BASE_URL = os.environ.get("SSM_BASE_URL", "http://localhost:7045")
 
 # Restapi root
-REST_ROOT = BASE_URL + "/smart/api/v1"
+REST_ROOT = SSM_BASE_URL + "/smart/api/v1"
 RULE_ROOT = REST_ROOT + "/rules"
 CMDLET_ROOT = REST_ROOT + "/cmdlets"
 ACTION_ROOT = REST_ROOT + "/actions"
@@ -23,7 +23,7 @@ PRIMARY_ROOT = REST_ROOT + "/primary"
 
 MOVE_TYPES = ['archive', 'alldisk', 'onedisk', 'allssd', 'onessd', 'cache', 'uncache']
 
-TEST_DIR = "/ssmtest/"
+HDFS_TEST_DIR = os.environ.get("HDFS_TEST_DIR", "/ssmtest/")
 
 
 def convert_to_byte(file_size):
@@ -103,7 +103,7 @@ def exec_commands(cmds):
 
 
 def random_file_path():
-    return TEST_DIR + random_string()
+    return HDFS_TEST_DIR + random_string()
 
 
 def random_string():
@@ -268,14 +268,14 @@ def create_random_file(length=1024):
     """
     create a random file in /ssmtest/
     """
-    file_path = TEST_DIR + random_string()
+    file_path = HDFS_TEST_DIR + random_string()
     cmdlet_str = "write -file " + \
                  file_path + " -length " + str(length)
     wait_for_cmdlet(submit_cmdlet(cmdlet_str))
     return file_path
 
 
-def create_random_file_parallel(length=1024, dest_path=TEST_DIR):
+def create_random_file_parallel(length=1024, dest_path=HDFS_TEST_DIR):
     """
     create a random file in dest_path, e.g., /ssmtest/
     """
@@ -307,11 +307,13 @@ def append_file(file_path, length=1024):
     return submit_cmdlet(cmdlet_str)
 
 
-def compress_file(src_file):
+def compress_file(src_file, codec: str = None):
     """
-    compress file with default codec (zlib)
+    compress :src_file with :codec (Default - smart.compression.codec)
     """
     cmdlet_str = "compress -file " + src_file
+    if codec:
+        cmdlet_str += f" -codec {codec}"
     return submit_cmdlet(cmdlet_str)
 
 
@@ -349,14 +351,14 @@ def check_storage(file_path):
 
 
 def move_random_file(mover_type, length):
-    file_path = TEST_DIR + random_string()
+    file_path = HDFS_TEST_DIR + random_string()
     cmd_create = wait_for_cmdlet(create_file(file_path, length))
     cmd_move = wait_for_cmdlet(move_cmdlet(mover_type, file_path))
     return cmd_create, cmd_move
 
 
 def move_random_file_twice(mover_type_1, mover_type_2, length):
-    file_path = TEST_DIR + random_string()
+    file_path = HDFS_TEST_DIR + random_string()
     cmd_create = wait_for_cmdlet(create_file(file_path, length))
     cmd_move_1 = wait_for_cmdlet(move_cmdlet(mover_type_1, file_path))
     cmd_move_2 = wait_for_cmdlet(move_cmdlet(mover_type_2, file_path))

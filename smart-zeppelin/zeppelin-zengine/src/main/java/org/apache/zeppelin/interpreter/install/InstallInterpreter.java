@@ -160,8 +160,8 @@ public class InstallInterpreter {
     File installDir = new File(interpreterBaseDir, name);
     if (installDir.exists()) {
       System.err.println("Directory " + installDir.getAbsolutePath()
-        + " already exists"
-        + "\n\nSkipped");
+          + " already exists"
+          + "\n\nSkipped");
       return;
     }
 
@@ -284,7 +284,7 @@ public class InstallInterpreter {
 
   private static void startTip() {
     System.out.println("\n1. Restart Zeppelin"
-      + "\n2. Create interpreter setting in 'Interpreter' menu on Zeppelin GUI"
-      + "\n3. Then you can bind the interpreter on your note");
+        + "\n2. Create interpreter setting in 'Interpreter' menu on Zeppelin GUI"
+        + "\n3. Then you can bind the interpreter on your note");
   }
 }

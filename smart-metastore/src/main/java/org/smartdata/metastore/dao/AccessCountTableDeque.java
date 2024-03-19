@@ -17,38 +17,58 @@
  */
 package org.smartdata.metastore.dao;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Use deque to accelerate remove operation.
  */
-public class AccessCountTableDeque extends ArrayDeque<AccessCountTable> {
+public class AccessCountTableDeque extends ConcurrentLinkedDeque<AccessCountTable> {
   private final TableAddOpListener listener;
   private final TableEvictor tableEvictor;
 
   public AccessCountTableDeque(TableEvictor tableEvictor) {
-    this(tableEvictor, null);
+    this(tableEvictor, TableAddOpListener.noOp());
   }
 
   public AccessCountTableDeque(TableEvictor tableEvictor, TableAddOpListener listener) {
     super();
-    this.listener = listener;
-    this.tableEvictor = tableEvictor;
+    this.listener = checkNotNull(
+        listener, "listener should not be null");
+    this.tableEvictor = checkNotNull(
+        tableEvictor, "tableEvictor should not be null");
   }
 
-  public boolean addAndNotifyListener(AccessCountTable table) {
-    if (!this.isEmpty()) {
-      assert table.getEndTime() > this.peekLast().getEndTime();
+  public CompletableFuture<Void> addAndNotifyListener(AccessCountTable table) {
+    boolean containsOverlappingTable = Optional.ofNullable(peekLast())
+        .map(AccessCountTable::getEndTime)
+        .filter(endTime -> table.getEndTime() <= endTime)
+        .isPresent();
+
+    if (containsOverlappingTable) {
+      throw new IllegalArgumentException("Overlapping access count table: " + table);
     }
 
-    super.add(table);
-    if (this.listener != null) {
-      this.listener.tableAdded(this, table);
+    add(table);
+    return notifyListener(table);
+  }
+
+  public CompletableFuture<Void> notifyListener(AccessCountTable table) {
+    return listener.tableAdded(this, table)
+        .thenAccept(this::evictTablesIfHigherGrainedCreated);
+  }
+
+  private void evictTablesIfHigherGrainedCreated(AccessCountTable higherGrainedTable) {
+    if (higherGrainedTable == null) {
+      return;
     }
-    tableEvictor.evictTables(this, this.size());
-    return true;
+
+    tableEvictor.evictTables(this, higherGrainedTable.getEndTime());
   }
 
   public List<AccessCountTable> getTables(Long start, Long end) {

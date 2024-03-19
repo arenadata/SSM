@@ -41,7 +41,7 @@ import java.util.List;
 public class ActionRestApi {
   SmartEngine smartEngine;
   private static final Logger logger =
-    LoggerFactory.getLogger(ActionRestApi.class);
+      LoggerFactory.getLogger(ActionRestApi.class);
 
   public ActionRestApi(SmartEngine smartEngine) {
     this.smartEngine = smartEngine;
@@ -68,7 +68,7 @@ public class ActionRestApi {
       @PathParam("isDesc") String isDesc) {
     if (logger.isDebugEnabled()) {
       logger.debug("pageIndex={}, numPerPage={}, orderBy={}, isDesc={}",
-        pageIndex, numPerPage, orderBy, isDesc);
+          pageIndex, numPerPage, orderBy, isDesc);
     }
     try {
       List<String> orderByList = Arrays.asList(orderBy.split(","));
@@ -142,7 +142,7 @@ public class ActionRestApi {
       @PathParam("numPerPage") String numPerPage) {
     if (logger.isDebugEnabled()) {
       logger.debug("ruleId={}, pageIndex={}, numPerPage={}", ruleId,
-        pageIndex, numPerPage);
+          pageIndex, numPerPage);
     }
     try {
       return new JsonResponse<>(Response.Status.OK,

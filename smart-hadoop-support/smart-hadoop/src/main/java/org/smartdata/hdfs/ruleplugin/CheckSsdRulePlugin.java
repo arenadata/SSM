@@ -21,7 +21,7 @@ import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.rule.RulePlugin;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 
 import java.io.IOException;
 
@@ -32,7 +32,7 @@ public class CheckSsdRulePlugin implements RulePlugin {
     this.metaStore = metaStore;
   }
 
-  public void onAddingNewRule(RuleInfo ruleInfo, TranslateResult tr)
+  public void onAddingNewRule(RuleInfo ruleInfo, RuleTranslationResult tr)
       throws IOException {
     boolean useSsd = false;
     for (String act : tr.getCmdDescriptor().getActionNames()) {
@@ -50,6 +50,6 @@ public class CheckSsdRulePlugin implements RulePlugin {
     }
   }
 
-  public void onNewRuleAdded(RuleInfo ruleInfo, TranslateResult tr) {
+  public void onNewRuleAdded(RuleInfo ruleInfo, RuleTranslationResult tr) {
   }
 }

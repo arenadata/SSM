@@ -24,7 +24,7 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RulePlugin;
 import org.smartdata.model.rule.RulePluginManager;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.server.MiniSmartClusterHarness;
 
 import java.io.IOException;
@@ -74,7 +74,7 @@ public class TestRulePlugin extends MiniSmartClusterHarness {
       return added;
     }
 
-    public void onAddingNewRule(RuleInfo ruleInfo, TranslateResult tr)
+    public void onAddingNewRule(RuleInfo ruleInfo, RuleTranslationResult tr)
         throws IOException {
       if (ruleInfo.getState() == RuleState.ACTIVE) {
         adding++;
@@ -83,7 +83,7 @@ public class TestRulePlugin extends MiniSmartClusterHarness {
       }
     }
 
-    public void onNewRuleAdded(RuleInfo ruleInfo, TranslateResult tr) {
+    public void onNewRuleAdded(RuleInfo ruleInfo, RuleTranslationResult tr) {
       added++;
     }
   }

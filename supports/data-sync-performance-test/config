@@ -1,24 +1,37 @@
-# These are test cases which specify file size and num. The base sync dir name is "size_num".
-# The files for these case should be created under them in advance.
-declare -A CASES=(["1MB"]="10000" ["100MB"]="1000")
 
-# SSM home, e.g., SMART_HOME=~/smart-data-1.4.0
-SMART_HOME=
 
-# PAT home, e.g., PAT_HOME=~/PAT
-PAT_HOME=
+###### Generate data config ######
+# HDFS dir
+BASE_DIR=/ssmtest/
+# Size for generate files
+FILE_SIZE=10MB
+# Batch size for write
+BATCH_SIZE=10MB
+# parallelism level for writing files
+PARALLELISM=5
+# number of files
+FILE_COUNT=10000
 
-# The src cluster hdfs url for sync, e.g., SRC_CLUSTER=hdfs://sr519:9000
+
+
+#####################
+# logging dir (example - /var/log/ssm_perf)
+LOG_DIR=/var/log/ssm_perf
+
+# SSM UI http://<ssm_host>:<ssm_port>
+SSM_BASE_URL=
+
+# The namenode's hostname/ip for src HDFS cluster
+SRC_NAMENODE=
+
+# The src cluster hdfs url for sync (example - hdfs://ssm)
 SRC_CLUSTER=
 
-# The dest cluster hdfs url for sync, e.g., DEST_CLUSTER=hdfs://sr518:9000
+# The dest cluster hdfs url for sync (example - hdfs://adh)
 DEST_CLUSTER=
 
-# The namenode's hostname for remote HDFS cluster
-REMOTE_NAMENODE=
+# Test round for log file 1,2,3...
+TEST_ROUND=
 
-# The hosts require dropping cache, e.g., HOSTS="host1 host2"
-HOSTS=""
-
-# the number of mapper for distcp, e.g., MAPPER_NUM="30 60 90"
-MAPPER_NUM="30"
+# the number of mapper for distcp, e.g., MAPPER_NUM=30
+MAPPER_NUM=30

@@ -129,8 +129,8 @@ public class HttpProxyClient {
     clientBuilder.setRedirectStrategy(new DefaultRedirectStrategy() {
       /** Redirectable methods. */
       private String[] REDIRECT_METHODS = new String[] { 
-        HttpGet.METHOD_NAME, HttpPost.METHOD_NAME, 
-        HttpPut.METHOD_NAME, HttpDelete.METHOD_NAME, HttpHead.METHOD_NAME 
+          HttpGet.METHOD_NAME, HttpPost.METHOD_NAME,
+          HttpPut.METHOD_NAME, HttpDelete.METHOD_NAME, HttpHead.METHOD_NAME
       };
 
       @Override

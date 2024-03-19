@@ -20,7 +20,7 @@ package org.smartdata.hdfs.ruleplugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.rule.RulePlugin;
-import org.smartdata.model.rule.TranslateResult;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.versioninfo.SsmVersionInfo;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class CheckErasureCodingRulePlugin implements RulePlugin {
     this.metaStore = metaStore;
   }
 
-  public void onAddingNewRule(RuleInfo ruleInfo, TranslateResult tr)
+  public void onAddingNewRule(RuleInfo ruleInfo, RuleTranslationResult tr)
       throws IOException {
     boolean ecRelated = false;
     for (String act : tr.getCmdDescriptor().getActionNames()) {
@@ -51,6 +51,6 @@ public class CheckErasureCodingRulePlugin implements RulePlugin {
     }
   }
 
-  public void onNewRuleAdded(RuleInfo ruleInfo, TranslateResult tr) {
+  public void onNewRuleAdded(RuleInfo ruleInfo, RuleTranslationResult tr) {
   }
 }

@@ -407,8 +407,7 @@ public class InterpreterSettingManager {
   }
 
   private List<RegisteredInterpreter> getInterpreterListFromJson(InputStream stream) {
-    Type registeredInterpreterListType = new TypeToken<List<RegisteredInterpreter>>() {
-    }.getType();
+    Type registeredInterpreterListType = new TypeToken<List<RegisteredInterpreter>>() {}.getType();
     return gson.fromJson(new InputStreamReader(stream), registeredInterpreterListType);
   }
 

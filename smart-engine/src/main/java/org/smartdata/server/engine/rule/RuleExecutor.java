@@ -29,8 +29,8 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.model.rule.RuleExecutorPluginManager;
+import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.model.rule.TimeBasedScheduleInfo;
-import org.smartdata.model.rule.TranslateResult;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.data.ExecutionContext;
 
@@ -45,29 +45,42 @@ import java.util.regex.Pattern;
 
 /** Execute rule queries and return result. */
 public class RuleExecutor implements Runnable {
-  private RuleManager ruleManager;
-  private TranslateResult tr;
-  private ExecutionContext ctx;
-  private MetaStore adapter;
-  private volatile boolean exited = false;
-  private long exitTime;
-  private Stack<String> dynamicCleanups = new Stack<>();
   private static final Logger LOG = LoggerFactory.getLogger(RuleExecutor.class.getName());
 
-  private static Pattern varPattern = Pattern.compile("\\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
-  private static Pattern callPattern =
+  private static final Pattern VAR_PATTERN = Pattern.compile("\\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
+  private static final Pattern CALL_PATTERN =
       Pattern.compile("\\$@([a-zA-Z_]+[a-zA-Z0-9_]*)\\(([a-zA-Z_][a-zA-Z0-9_]*)?\\)");
 
-  public RuleExecutor(
-      RuleManager ruleManager, ExecutionContext ctx, TranslateResult tr, MetaStore adapter) {
+  private final RuleManager ruleManager;
+  private final RuleTranslationResult translationResult;
+  // since we run RuleExecutorPlugin methods for each launch of the RuleExecutor
+  // we need to save the original rule translate result in order to use it
+  // after rule activation after pause
+  private final RuleTranslationResult originalTranslationResult;
+  private final ExecutionContext executionCtx;
+  private final MetaStore metastore;
+  private final Stack<String> dynamicCleanups;
+
+  private volatile boolean exited;
+  private long exitTime;
+
+  public RuleExecutor(RuleManager ruleManager, ExecutionContext executionCtx,
+                      RuleTranslationResult translationResult, MetaStore metastore) {
     this.ruleManager = ruleManager;
-    this.ctx = ctx;
-    this.tr = tr;
-    this.adapter = adapter;
+    this.executionCtx = executionCtx;
+    this.metastore = metastore;
+    this.translationResult = translationResult;
+    this.originalTranslationResult = translationResult.copy();
+    this.dynamicCleanups = new Stack<>();
+    this.exited = false;
   }
 
-  public TranslateResult getTranslateResult() {
-    return tr;
+  public RuleTranslationResult getTranslateResult() {
+    return translationResult;
+  }
+
+  public RuleTranslationResult getOriginalTranslateResult() {
+    return originalTranslationResult;
   }
 
   private String unfoldSqlStatement(String sql) {
@@ -76,12 +89,12 @@ public class RuleExecutor implements Runnable {
 
   private String unfoldVariables(String sql) {
     String ret = sql;
-    ctx.setProperty("NOW", System.currentTimeMillis());
-    Matcher m = varPattern.matcher(sql);
+    executionCtx.setProperty("NOW", System.currentTimeMillis());
+    Matcher m = VAR_PATTERN.matcher(sql);
     while (m.find()) {
       String rep = m.group();
       String varName = m.group(1);
-      String value = ctx.getString(varName);
+      String value = executionCtx.getString(varName);
       ret = ret.replace(rep, value);
     }
     return ret;
@@ -89,12 +102,12 @@ public class RuleExecutor implements Runnable {
 
   private String unfoldFunctionCalls(String sql) {
     String ret = sql;
-    Matcher m = callPattern.matcher(sql);
+    Matcher m = CALL_PATTERN.matcher(sql);
     while (m.find()) {
       String rep = m.group();
       String funcName = m.group(1);
       String paraName = m.groupCount() == 2 ? m.group(2) : null;
-      List<Object> params = tr.getParameter(paraName);
+      List<Object> params = translationResult.getParameter(paraName);
       String value = callFunction(funcName, params);
       ret = ret.replace(rep, value == null ? "" : value);
     }
@@ -104,23 +117,23 @@ public class RuleExecutor implements Runnable {
   public List<String> executeFileRuleQuery() {
     int index = 0;
     List<String> ret = new ArrayList<>();
-    for (String sql : tr.getSqlStatements()) {
+    for (String sql : translationResult.getSqlStatements()) {
       sql = unfoldSqlStatement(sql);
       try {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Rule " + ctx.getRuleId() + " --> " + sql);
+          LOG.debug("Rule " + executionCtx.getRuleId() + " --> " + sql);
         }
-        if (index == tr.getRetSqlIndex()) {
-          ret = adapter.executeFilesPathQuery(sql);
+        if (index == translationResult.getRetSqlIndex()) {
+          ret = metastore.executeFilesPathQuery(sql);
         } else {
           sql = sql.trim();
           if (sql.length() > 5) {
-            adapter.execute(sql);
+            metastore.execute(sql);
           }
         }
         index++;
       } catch (MetaStoreException e) {
-        LOG.error("Rule " + ctx.getRuleId() + " exception", e);
+        LOG.error("Rule " + executionCtx.getRuleId() + " exception", e);
         return ret;
       }
     }
@@ -128,9 +141,9 @@ public class RuleExecutor implements Runnable {
     while (!dynamicCleanups.empty()) {
       String sql = dynamicCleanups.pop();
       try {
-        adapter.execute(sql);
+        metastore.execute(sql);
       } catch (MetaStoreException e) {
-        LOG.error("Rule " + ctx.getRuleId() + " exception", e);
+        LOG.error("Rule " + executionCtx.getRuleId() + " exception", e);
       }
     }
     return ret;
@@ -139,10 +152,9 @@ public class RuleExecutor implements Runnable {
   public String callFunction(String funcName, List<Object> parameters) {
     try {
       Method m = getClass().getMethod(funcName, List.class);
-      String ret = (String) (m.invoke(this, parameters));
-      return ret;
+      return (String) (m.invoke(this, parameters));
     } catch (Exception e) {
-      LOG.error("Rule " + ctx.getRuleId() + " exception when call " + funcName, e);
+      LOG.error("Rule " + executionCtx.getRuleId() + " exception when call " + funcName, e);
       return null;
     }
   }
@@ -167,12 +179,12 @@ public class RuleExecutor implements Runnable {
         top ? "min" : "max", table, top ? "DESC " : "", num, table);
     Long count = null;
     try {
-      count = adapter.queryForLong(sql0);
+      count = metastore.queryForLong(sql0);
     } catch (MetaStoreException e) {
       LOG.error("Get " + (top ? "top" : "bottom") + " access count from table '"
           + table + "' error.", e);
     }
-    ctx.setProperty(var, count == null ? 0L : count);
+    executionCtx.setProperty(var, count == null ? 0L : count);
   }
 
   public String genVirtualAccessCountTableTopValueOnStoragePolicy(List<Object> parameters) {
@@ -199,7 +211,7 @@ public class RuleExecutor implements Runnable {
     } else {
       Integer id = null;
       try {
-        id = adapter.getStoragePolicyID(storage);
+        id = metastore.getStoragePolicyID(storage);
       } catch (Exception e) {
         // Ignore
       }
@@ -221,12 +233,12 @@ public class RuleExecutor implements Runnable {
         table + "_AL2_TMP");
     Long count = null;
     try {
-      count = adapter.queryForLong(sql0);
+      count = metastore.queryForLong(sql0);
     } catch (MetaStoreException e) {
       LOG.error(String.format("Get %s access count on storage [%s] from table '%s' error [%s].",
           top ? "top" : "bottom", storage, table, sql0), e);
     }
-    ctx.setProperty(var, count == null ? 0L : count);
+    executionCtx.setProperty(var, count == null ? 0L : count);
   }
 
   public String genVirtualAccessCountTable(List<Object> parameters) {
@@ -235,7 +247,7 @@ public class RuleExecutor implements Runnable {
     Long interval = (Long) paraList.get(0);
     String countFilter = "";
     List<String> tableNames = getAccessCountTablesDuringLast(interval);
-    return generateSQL(tableNames, newTable, countFilter, adapter);
+    return generateSQL(tableNames, newTable, countFilter, metastore);
   }
 
   @VisibleForTesting
@@ -243,7 +255,7 @@ public class RuleExecutor implements Runnable {
       List<String> tableNames, String newTable, String countFilter, MetaStore adapter) {
     String sqlFinal, sqlCreate;
     if (tableNames.size() <= 1) {
-      String tableName = tableNames.size() == 0 ? "blank_access_count_info" : tableNames.get(0);
+      String tableName = tableNames.isEmpty() ? "blank_access_count_info" : tableNames.get(0);
       sqlCreate = "CREATE TABLE " + newTable + "(fid INTEGER NOT NULL, count INTEGER NOT NULL);";
       try {
         adapter.execute(sqlCreate);
@@ -259,7 +271,7 @@ public class RuleExecutor implements Runnable {
       }
       String sqlSufix = ") as tmp GROUP BY fid ";
       String sqlCountFilter =
-          (countFilter == null || countFilter.length() == 0)
+          (countFilter == null || countFilter.isEmpty())
               ? ""
               : "HAVING SUM(count) " + countFilter;
       String sqlRe = sqlPrefix + sqlUnion + sqlSufix + sqlCountFilter;
@@ -274,10 +286,6 @@ public class RuleExecutor implements Runnable {
     return sqlFinal;
   }
 
-  /**
-   * @param lastInterval
-   * @return
-   */
   private List<String> getAccessCountTablesDuringLast(long lastInterval) {
     List<String> tableNames = new ArrayList<>();
     if (ruleManager == null || ruleManager.getStatesManager() == null) {
@@ -288,11 +296,11 @@ public class RuleExecutor implements Runnable {
     try {
       accTables = ruleManager.getStatesManager().getTablesInLast(lastInterval);
     } catch (MetaStoreException e) {
-      LOG.error("Rule " + ctx.getRuleId() + " get access info tables exception", e);
+      LOG.error("Rule " + executionCtx.getRuleId() + " get access info tables exception", e);
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Rule " + ctx.getRuleId() + " got " + accTables.size() + " tables:");
+      LOG.debug("Rule " + executionCtx.getRuleId() + " got " + accTables.size() + " tables:");
       int idx = 1;
       for (AccessCountTable t : accTables) {
         LOG.debug(
@@ -300,7 +308,7 @@ public class RuleExecutor implements Runnable {
       }
     }
 
-    if (accTables == null || accTables.size() == 0) {
+    if (accTables == null || accTables.isEmpty()) {
       return tableNames;
     }
 
@@ -320,13 +328,13 @@ public class RuleExecutor implements Runnable {
       exitSchedule();
     }
 
-    if (!tr.getTbScheduleInfo().isExecutable(startCheckTime)) {
+    if (!translationResult.getScheduleInfo().isExecutable(startCheckTime)) {
       return;
     }
 
     List<RuleExecutorPlugin> plugins = RuleExecutorPluginManager.getPlugins();
 
-    long rid = ctx.getRuleId();
+    long rid = executionCtx.getRuleId();
     try {
       if (ruleManager.isClosed()) {
         exitSchedule();
@@ -338,10 +346,10 @@ public class RuleExecutor implements Runnable {
 
       RuleInfo info = ruleManager.getRuleInfo(rid);
 
-      boolean doExec = true;
+      boolean continueExecution = true;
       for (RuleExecutorPlugin plugin : plugins) {
-        doExec &= plugin.preExecution(info, tr);
-        if (!doExec) {
+        continueExecution = plugin.preExecution(info, translationResult);
+        if (!continueExecution) {
           break;
         }
       }
@@ -353,7 +361,7 @@ public class RuleExecutor implements Runnable {
           || state == RuleState.DISABLED) {
         exitSchedule();
       }
-      TimeBasedScheduleInfo scheduleInfo = tr.getTbScheduleInfo();
+      TimeBasedScheduleInfo scheduleInfo = translationResult.getScheduleInfo();
 
       if (!scheduleInfo.isOnce() && scheduleInfo.getEndTime() != TimeBasedScheduleInfo.FOR_EVER) {
         boolean befExit = false;
@@ -367,20 +375,20 @@ public class RuleExecutor implements Runnable {
         }
 
         if (befExit) {
-          LOG.info("Rule " + ctx.getRuleId() + " exit rule executor due to time passed");
+          LOG.info("Rule " + executionCtx.getRuleId() + " exit rule executor due to time passed");
           ruleManager.updateRuleInfo(rid, RuleState.FINISHED, startCheckTime, 0, 0);
           exitSchedule();
         }
       }
 
-      if (doExec) {
+      if (continueExecution) {
         files = executeFileRuleQuery();
         if (exited) {
           exitSchedule();
         }
       }
       endCheckTime = System.currentTimeMillis();
-      if (doExec) {
+      if (continueExecution) {
         for (RuleExecutorPlugin plugin : plugins) {
           files = plugin.preSubmitCmdlet(info, files);
         }
@@ -392,7 +400,7 @@ public class RuleExecutor implements Runnable {
       if (endProcessTime - startCheckTime > 2000 || LOG.isDebugEnabled()) {
         LOG.warn(
             "Rule "
-                + ctx.getRuleId()
+                + executionCtx.getRuleId()
                 + " execution took "
                 + (endProcessTime - startCheckTime)
                 + "ms. QueryTime = "
@@ -410,7 +418,7 @@ public class RuleExecutor implements Runnable {
       }
 
       if (endProcessTime + scheduleInfo.getBaseEvery() > scheduleInfo.getEndTime()) {
-        LOG.info("Rule " + ctx.getRuleId() + " exit rule executor due to finished");
+        LOG.info("Rule " + executionCtx.getRuleId() + " exit rule executor due to finished");
         ruleManager.updateRuleInfo(rid, RuleState.FINISHED, startCheckTime, 0, 0);
         exitSchedule();
       }
@@ -419,7 +427,7 @@ public class RuleExecutor implements Runnable {
         exitSchedule();
       }
     } catch (IOException e) {
-      LOG.error("Rule " + ctx.getRuleId() + " exception", e);
+      LOG.error("Rule " + executionCtx.getRuleId() + " exception", e);
     }
   }
 
@@ -428,43 +436,42 @@ public class RuleExecutor implements Runnable {
     exitTime = System.currentTimeMillis();
     exited = true;
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Rule " + ctx.getRuleId() + " exit rule executor.");
+      LOG.debug("Rule " + executionCtx.getRuleId() + " exit rule executor.");
     }
-    String[] temp = new String[1];
-    temp[1] += "The exception is created deliberately";
+    // todo why do we exit with exception?
+    throw new RuntimeException("Rule executor exit exception");
   }
 
   private int submitCmdlets(RuleInfo ruleInfo, List<String> files) {
     long ruleId = ruleInfo.getId();
-    if (files == null || files.size() == 0 || ruleManager.getCmdletManager() == null) {
+    if (files == null || files.isEmpty() || ruleManager.getCmdletManager() == null) {
       return 0;
     }
     int nSubmitted = 0;
     List<RuleExecutorPlugin> plugins = RuleExecutorPluginManager.getPlugins();
-    String template = tr.getCmdDescriptor().toCmdletString();
+    String template = translationResult.getCmdDescriptor().toCmdletString();
     for (String file : files) {
-      if (!exited) {
-        try {
-          CmdletDescriptor cmd = new CmdletDescriptor(template, ruleId);
-          cmd.setCmdletParameter(CmdletDescriptor.HDFS_FILE_PATH, file);
-          for (RuleExecutorPlugin plugin : plugins) {
-            cmd = plugin.preSubmitCmdletDescriptor(ruleInfo, tr, cmd);
-          }
-          long cid = ruleManager.getCmdletManager().submitCmdlet(cmd);
-          // Not really submitted if cid is -1.
-          if (cid != -1) {
-            nSubmitted++;
-          }
-        } catch (QueueFullException e) {
-          break;
-        } catch (IOException e) {
-          // it's common here, ignore this and continue submit
-          LOG.debug("Failed to submit cmdlet for file: " + file, e);
-        } catch (ParseException e) {
-          LOG.error("Failed to submit cmdlet for file: " + file, e);
-        }
-      } else {
+      if (exited) {
         break;
+      }
+      try {
+        CmdletDescriptor cmd = new CmdletDescriptor(template, ruleId);
+        cmd.setCmdletParameter(CmdletDescriptor.HDFS_FILE_PATH, file);
+        for (RuleExecutorPlugin plugin : plugins) {
+          cmd = plugin.preSubmitCmdletDescriptor(ruleInfo, translationResult, cmd);
+        }
+        long cid = ruleManager.getCmdletManager().submitCmdlet(cmd);
+        // Not really submitted if cid is -1.
+        if (cid != -1) {
+          nSubmitted++;
+        }
+      } catch (QueueFullException e) {
+        break;
+      } catch (IOException e) {
+        // it's common here, ignore this and continue submit
+        LOG.debug("Failed to submit cmdlet for file {} due to IOException", file, e);
+      } catch (ParseException e) {
+        LOG.error("Failed to submit cmdlet for file: {}", file, e);
       }
     }
     return nSubmitted;

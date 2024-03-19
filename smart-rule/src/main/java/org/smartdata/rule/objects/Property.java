@@ -26,14 +26,14 @@ import java.util.Objects;
  * Property of SSM object.
  */
 public class Property {
-  private String propertyName;
-  private ValueType retType;
-  private List<ValueType> paramsTypes;
+  private final String propertyName;
+  private final ValueType retType;
+  private final List<ValueType> paramsTypes;
 
-  private String tableName;
-  private String tableItemName;
+  private final String tableName;
+  private final String tableItemName;
   private String formatTemplate;
-  private boolean isGlobal;
+  private final boolean isGlobal;
 
   public Property(String propertyName, ValueType retType, List<ValueType> paramsTypes,
        String tableName, String tableItemName, boolean isGlobal) {
@@ -115,22 +115,22 @@ public class Property {
     if (getParamsTypes() == null) {
       return propertyName;
     }
-    String ret = propertyName;
+    StringBuilder ret = new StringBuilder(propertyName);
     assert(values.size() == getParamsTypes().size());
-    for (int i = 0; i < values.size(); i++) {
+    for (Object value : values) {
       switch (getValueType()) {
         case TIMEINTVAL:
         case LONG:
-          ret += "_" + ((Long) values.get(i));
+          ret.append("_").append(value);
           break;
         case STRING:
-          ret += "_" + ((String) values.get(i)).replaceAll("[\t -\"']+", "_");
+          ret.append("_").append(((String) value).replaceAll("[\t -\"']+", "_"));
           break;
         default:
-           assert (false);  // TODO: throw exception
+          assert (false);  // TODO: throw exception
       }
     }
-    return ret;
+    return ret.toString();
   }
 
   public String formatParameters(List<Object> values) {
@@ -151,10 +151,10 @@ public class Property {
         switch (paramsTypes.get(i)) {
           case TIMEINTVAL:
           case LONG:
-            v = "" + ((Long) values.get(i));
+            v = values.get(i).toString();
             break;
           case STRING:
-            v = "'" + ((String) values.get(i)) + "'";
+            v = "'" + values.get(i) + "'";
             break;
           default:
             v = null;  // TODO: throw exception

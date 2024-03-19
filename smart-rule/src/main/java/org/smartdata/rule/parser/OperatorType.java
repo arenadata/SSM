@@ -34,12 +34,11 @@ public enum OperatorType {
   MATCHES("matches", true, "LIKE"),
   AND("and", true, "AND"),
   OR("or", true, "OR"),
-  NOT("not", true, "NOT"),
-  ;
+  NOT("not", true, "NOT");
 
-  private String name;
-  private boolean isLogical;
-  private String opInSql;
+  private final String name;
+  private final boolean isLogical;
+  private final String opInSql;
 
   public boolean isLogicalOperation() {
     return isLogical;
@@ -55,15 +54,14 @@ public enum OperatorType {
   }
 
   public String getOpInSql() {
-    return opInSql == null ? name : opInSql;
+    return opInSql;
   }
 
-  private OperatorType(String name, boolean isLogical) {
-    this.name = name;
-    this.isLogical = isLogical;
+  OperatorType(String name, boolean isLogical) {
+    this(name, isLogical, name);
   }
 
-  private OperatorType(String name, boolean isLogical, String opInSql) {
+  OperatorType(String name, boolean isLogical, String opInSql) {
     this.name = name;
     this.isLogical = isLogical;
     this.opInSql = opInSql;

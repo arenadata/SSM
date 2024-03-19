@@ -30,19 +30,20 @@ public class CountEvictor extends TableEvictor {
   }
 
   @Override
-  public void evictTables(AccessCountTableDeque tables, int size) {
-    if (size > maxCount) {
-      int evictedCount = 0;
-      for (Iterator<AccessCountTable> iterator = tables.iterator(); iterator.hasNext();) {
-        AccessCountTable table = iterator.next();
-        evictedCount++;
-        if (evictedCount > size - maxCount) {
-          break;
-        } else {
-          this.dropTable(table);
-          iterator.remove();
-        }
+  public void evictTables(AccessCountTableDeque tables, long lastAggregatedIntervalEndTimestamp) {
+    int elementsToRemove = tables.size() - maxCount;
+
+    for (Iterator<AccessCountTable> iterator = tables.iterator();
+         iterator.hasNext() && elementsToRemove-- > 0;) {
+      AccessCountTable table = iterator.next();
+
+      if (table.getEndTime() > lastAggregatedIntervalEndTimestamp) {
+        // table belongs to not yet aggregated higher granularity interval
+        return;
       }
+
+      iterator.remove();
+      dropTable(table);
     }
   }
 }

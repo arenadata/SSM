@@ -38,8 +38,8 @@ public class AccessEventFetcher {
 
   private final ScheduledExecutorService scheduledExecutorService;
   private final Long fetchInterval;
-  private ScheduledFuture scheduledFuture;
-  private FetchTask fetchTask;
+  private final FetchTask fetchTask;
+  private ScheduledFuture<?> scheduledFuture;
 
   public AccessEventFetcher(
       Configuration conf,
@@ -50,31 +50,29 @@ public class AccessEventFetcher {
         SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY,
         SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT
     );
-    this.fetchTask = new FetchTask(conf, manager, collector);
+    this.fetchTask = new FetchTask(manager, collector);
     this.scheduledExecutorService = service;
   }
 
   public void start() {
-    Long current = System.currentTimeMillis();
-    Long toWait = fetchInterval - (current % fetchInterval);
+    long current = System.currentTimeMillis();
+    long toWait = fetchInterval - (current % fetchInterval);
     this.scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(
         fetchTask, toWait, fetchInterval, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {
     if (scheduledFuture != null) {
-      this.scheduledFuture.cancel(true);
+      scheduledFuture.cancel(true);
     }
   }
 
   private static class FetchTask implements Runnable {
-    private final Configuration conf;
     private final AccessCountTableManager manager;
     private final FileAccessEventCollector collector;
 
     public FetchTask(
-        Configuration conf, AccessCountTableManager manager, FileAccessEventCollector collector) {
-      this.conf = conf;
+        AccessCountTableManager manager, FileAccessEventCollector collector) {
       this.manager = manager;
       this.collector = collector;
     }
@@ -83,7 +81,7 @@ public class AccessEventFetcher {
     public void run() {
       try {
         List<FileAccessEvent> events = this.collector.collect();
-        if (events.size() > 0) {
+        if (!events.isEmpty()) {
           this.manager.onAccessEventsArrived(events);
         }
       } catch (IOException e) {

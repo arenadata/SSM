@@ -49,7 +49,7 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
       int ruleCounts0 = ruleInfos.size();
       long ruleId = admin.submitRule(
           "file: every 5s | path matches \"/foo*\"| cache",
-          RuleState.DRYRUN);
+          RuleState.NEW);
       ruleInfos = admin.listRulesInfo();
       int ruleCounts1 = ruleInfos.size();
       assertEquals(1, ruleCounts1 - ruleCounts0);
@@ -69,13 +69,13 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
       RuleInfo ruleInfo = admin.getRuleInfo(ruleId);
       assertNotEquals(null, ruleInfo);
 
-      //test disableRule
-      admin.disableRule(ruleId, true);
-      assertEquals(RuleState.DISABLED, admin.getRuleInfo(ruleId).getState());
-
       //test activateRule
       admin.activateRule(ruleId);
       assertEquals(RuleState.ACTIVE, admin.getRuleInfo(ruleId).getState());
+
+      //test disableRule
+      admin.disableRule(ruleId, true);
+      assertEquals(RuleState.DISABLED, admin.getRuleInfo(ruleId).getState());
 
       //test deleteRule
       admin.deleteRule(ruleId, true);

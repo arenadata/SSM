@@ -3,26 +3,26 @@ SSM Small File Optimization Integration Test Plan
 
 I. Hardware Configuration
 ----------------------------
-Processor: Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz         
-DRAM: DDR4 187GB                
-Network: 10GbE              
-Disks: 1 * 1TB SATA SSD, 6 * 1TB HDDs               
+Processor: 
+DRAM:             
+Network:               
+Disks:             
 
 II. Software Configuration
 -----------------------------
 1. Hadoop Configuration                 
-Cluster: 1 NameNode + 3 DataNode            
-Data Disks: 6 * 1TB HDDs on each DataNode               
-Block Size: 128MB           
-Version: 2.7.3              
+ * Cluster:
+ * Data Disks: 
+ * Block Size:            
+ * Version: 3.2.X / ADH 3.2.4_arenadata2_b1 or higher           
 
 2. SSM Configuration                
-1 * Server Node             
-3 * Agents          
+ * Server Node             
+ * Agents          
 
 3. Other Configurations                 
-MySQL: 5.7                  
-Java: 1.8                   
+ * Postgresql/ADPG 14 or higher                
+ * Java: 1.8                   
 
 ### 1. Compact
 #### Purpose
@@ -33,6 +33,7 @@ Java: 1.8
 * Execution time of compacting small files.
 
 #### Data sets
+Use [pyarrow_create_file.py](..%2Fintegration-test%2Fpyarrow_create_file.py) for generate data.
 * a. Small files: 10MB * [100, 500, 1000, 10000, 50000] files
 * b. Tiny files: 1MB * [100, 500, 1000, 10000, 50000] files
 * c. 10KB * [100, 500, 1000, 10000, 50000] files
@@ -50,12 +51,14 @@ Java: 1.8
 #### Measurements
 * Verify whether tasks successfully executed.
 * Execution time of tasks.
+* Service metrics 
 
 #### Data sets
+Use [pyarrow_create_file.py](..%2Fintegration-test%2Fpyarrow_create_file.py) for generate data.
 * a. Small files: 10MB * [100, 500, 1000, 10000, 50000] files
 * b. Tiny files: 1MB * [100, 500, 1000, 10000, 50000] files
 * c. 10KB * [100, 500, 1000, 10000, 50000] files
 
 #### Test cases
-* a. Run hadoop bench of Hibench.
-* b. Run spark bench of Hibench. 
+* a. Run hadoop bench of Hibench before and after compaction.
+* b. Run spark bench of Hibench before and after compaction. 

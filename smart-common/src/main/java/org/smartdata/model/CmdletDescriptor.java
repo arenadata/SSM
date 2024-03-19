@@ -38,9 +38,9 @@ public class CmdletDescriptor {
   public static final String RULE_ID = "-ruleId";
   public static final String HDFS_FILE_PATH = "-file";
 
-  private Map<String, String> actionCommon = new HashMap<>();
-  private List<String> actionNames = new ArrayList<>();
-  private List<Map<String, String>> actionArgs = new ArrayList<>();
+  private final Map<String, String> actionCommon = new HashMap<>();
+  private final List<String> actionNames = new ArrayList<>();
+  private final List<Map<String, String>> actionArgs = new ArrayList<>();
   private String cmdletString = null;
   private long deferIntervalMs = 0L;  // Not persist into DB now
 
