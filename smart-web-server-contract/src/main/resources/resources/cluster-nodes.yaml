@@ -1,0 +1,31 @@
+get:
+  tags:
+    - Cluster
+  summary: List all cluster nodes
+  operationId: getClusterNodes
+  parameters:
+    - $ref: '../parameters/common/offset.yaml'
+    - $ref: '../parameters/common/limit.yaml'
+    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/cluster/node-states.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of SSM cluster nodes
+                    items:
+                      $ref: '../schemas/cluster/ClusterNode.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

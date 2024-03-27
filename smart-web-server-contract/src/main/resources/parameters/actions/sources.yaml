@@ -1,0 +1,8 @@
+name: sources
+in: query
+required: false
+description: List of action sources
+schema:
+  type: array
+  items:
+    $ref: "../../schemas/actions/ActionSource.yaml"

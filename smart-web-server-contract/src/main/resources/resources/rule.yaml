@@ -1,0 +1,28 @@
+get:
+  tags:
+    - Rules
+  summary: Get rule by id
+  operationId: getRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/rules/Rule.yaml'
+    '404':
+      description: Rule with specified id not found
+delete:
+  tags:
+    - Rules
+  summary: Delete rule by id
+  operationId: deleteRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Rule has been removed
+    '404':
+      description: Rule with specified id not found

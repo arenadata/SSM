@@ -1,0 +1,9 @@
+name: ruleIds
+in: query
+required: false
+description: Ids of the rules that cmdlets belong to
+schema:
+  type: array
+  items:
+    type: integer
+    format: int64

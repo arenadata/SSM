@@ -1,0 +1,8 @@
+name: hosts
+in: query
+required: false
+description: List of hosts on which the action is/was running
+schema:
+  type: array
+  items:
+    type: string

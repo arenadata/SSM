@@ -1,0 +1,7 @@
+title: ExecutorType
+type: string
+description: Type of the cmdlet executor
+enum:
+  - LOCAL
+  - REMOTE_SSM
+  - AGENT

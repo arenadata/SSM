@@ -1,0 +1,6 @@
+name: textRepresentationLike
+in: query
+required: false
+description: The object's text representation filter
+schema:
+  type: string

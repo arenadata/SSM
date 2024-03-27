@@ -1,0 +1,32 @@
+title: ActionInfo
+type: object
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Action id
+  cmdletId:
+    type: integer
+    format: int64
+    description: Id of the cmdlet this action belongs to
+  textRepresentation:
+    type: string
+    description: Action text representation
+  execHost:
+    type: string
+    description: SSM host on which this action is running
+  submissionTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the action submission
+  completionTime:
+    type: integer
+    format: int64
+    nullable: true
+    default: null
+    description: UNIX timestamp of the action completion
+  state:
+    $ref: "./ActionState.yaml"
+  source:
+    $ref: "./ActionSource.yaml"
+

@@ -1,0 +1,6 @@
+title: PageResponse
+type: object
+properties:
+  total:
+    type: integer
+    description: Total number of objects

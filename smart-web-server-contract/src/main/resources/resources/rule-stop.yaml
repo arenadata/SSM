@@ -1,0 +1,18 @@
+post:
+  tags:
+    - Rules
+  summary: Stop specified rule
+  operationId: stopRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Rule has been stopped
+    '404':
+      description: Rule with specified id not found
+    '400':
+      description: Unsupported state transition
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

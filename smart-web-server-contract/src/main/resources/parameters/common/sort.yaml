@@ -1,0 +1,8 @@
+name: sort
+in: query
+required: false
+description: Sort field names prefixed with '-' for descending order
+schema:
+  type: array
+  items:
+    type: string

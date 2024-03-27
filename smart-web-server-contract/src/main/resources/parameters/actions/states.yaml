@@ -1,0 +1,8 @@
+name: states
+in: query
+required: false
+description: List of action states
+schema:
+  type: array
+  items:
+    $ref: "../../schemas/actions/ActionState.yaml"

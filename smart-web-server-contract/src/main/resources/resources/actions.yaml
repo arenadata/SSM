@@ -1,0 +1,34 @@
+get:
+  tags:
+    - Actions
+  summary: List all actions
+  operationId: getActions
+  parameters:
+    - $ref: '../parameters/common/offset.yaml'
+    - $ref: '../parameters/common/limit.yaml'
+    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/text-representation-like.yaml'
+    - $ref: '../parameters/actions/hosts.yaml'
+    - $ref: '../parameters/actions/states.yaml'
+    - $ref: '../parameters/actions/sources.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of actions
+                    items:
+                      $ref: '../schemas/actions/ActionInfo.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

@@ -1,0 +1,6 @@
+name: pathLike
+in: query
+required: false
+description: The file path filter
+schema:
+  type: string

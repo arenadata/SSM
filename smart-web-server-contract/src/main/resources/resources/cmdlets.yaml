@@ -1,0 +1,56 @@
+get:
+  tags:
+    - Cmdlets
+  summary: List all cmdlets
+  operationId: getCmdlets
+  parameters:
+    - $ref: '../parameters/common/offset.yaml'
+    - $ref: '../parameters/common/limit.yaml'
+    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/text-representation-like.yaml'
+    - $ref: '../parameters/cmdlets/rule-ids.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of cmdlets
+                    items:
+                      $ref: '../schemas/cmdlets/Cmdlet.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+post:
+  tags:
+    - Cmdlets
+  summary: Submit cmdlet
+  operationId: addCmdlet
+  requestBody:
+    required: true
+    content:
+      text/plain:
+        schema:
+          type: string
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/cmdlets/Cmdlet.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

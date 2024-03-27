@@ -1,0 +1,31 @@
+get:
+  tags:
+    - Files
+  summary: List access counts of files
+  operationId: getAccessCounts
+  parameters:
+    - $ref: '../parameters/common/offset.yaml'
+    - $ref: '../parameters/common/limit.yaml'
+    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/files/path-like.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of files
+                    items:
+                      $ref: '../schemas/files/FileAccessInfo.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

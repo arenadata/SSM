@@ -1,0 +1,22 @@
+title: CachedFileInfo
+type: object
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Id of the file
+  path:
+    type: string
+    description: Path of the file
+  accessCount:
+    type: integer
+    format: int32
+    description: Number of accesses to the file
+  cachedTime:
+    type: integer
+    format: int32
+    description: UNIX timestamp when the file was cached
+  lastAccessTime:
+    type: integer
+    format: int32
+    description: UNIX timestamp of the last file access

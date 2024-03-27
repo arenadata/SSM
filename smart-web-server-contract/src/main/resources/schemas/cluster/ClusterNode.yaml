@@ -1,0 +1,27 @@
+title: ClusterNode
+type: object
+properties:
+  id:
+    type: string
+    description: id of the node
+  host:
+    type: string
+    description: host on which the node is running
+  port:
+    type: integer
+    format: int32
+    description: port to which the node is bound
+  executorType:
+    $ref: './ExecutorType.yaml'
+  registrationTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the node registration in master
+  executorsCount:
+    type: integer
+    format: int32
+    description: Number of cmdlet executors
+  cmdletsExecuted:
+    type: integer
+    format: int64
+    description: Number of executed cmdlets on this node

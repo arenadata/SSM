@@ -1,0 +1,12 @@
+title: ErrorResponse
+type: object
+properties:
+  code:
+    type: string
+    description: Error code
+  message:
+    type: string
+    description: Detailed error message
+  body:
+    type: object
+    description: Additional information about the error
