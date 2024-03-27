@@ -1,0 +1,22 @@
+get:
+  parameters:
+    - $ref: '../parameters/cluster/clusterName.yaml'
+    - $ref: '../parameters/common/xAdbmUser.yaml'
+  summary: ''
+  tags:
+    - Control panel
+  operationId: getClusterRestorePoint
+  description: Get information on settings for a restore point.
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/action/RestorePointAction.yaml'
+    '404':
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/AdbmApiError.yaml'

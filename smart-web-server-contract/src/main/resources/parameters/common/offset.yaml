@@ -1,0 +1,7 @@
+name: offset
+in: query
+required: false
+schema:
+  type: integer
+  default: 0
+description: Offset of the first record to search from

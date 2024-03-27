@@ -1,0 +1,6 @@
+name: sort
+in: query
+required: false
+schema:
+  type: string
+description: The name of a sorting field

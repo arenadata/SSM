@@ -37,6 +37,7 @@
     <module>smart-dist</module>
     <module>smart-integration</module>
     <module>smart-web-server</module>
+    <module>smart-web-server-contract</module>
   </modules>
 
   <properties>

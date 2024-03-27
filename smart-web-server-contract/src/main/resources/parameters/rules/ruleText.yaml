@@ -1,0 +1,6 @@
+name: ruleText
+in: query
+required: true
+schema:
+  type: string
+description: The rule definition

@@ -1,0 +1,12 @@
+name: order
+in: query
+required: false
+schema:
+  type: string
+  pattern: "^ASC|DESC|asc|desc"
+  enum:
+    - ASC
+    - DESC
+    - asc
+    - desc
+description: Direction of sorting

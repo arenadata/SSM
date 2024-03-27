@@ -1,0 +1,35 @@
+get:
+  tags:
+    - Rules
+  summary: List all rules
+  operationId: getRules
+  parameters:
+    - $ref: '../parameters/common/offset.yaml'
+    - $ref: '../parameters/common/limit.yaml'
+    - $ref: '../parameters/common/order.yaml'
+    - $ref: '../parameters/common/sort.yaml'
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RuleInfo'
+post:
+  tags:
+    - Rules
+  summary: Submit rule
+  operationId: addRule
+  parameters:
+    - $ref: '../parameters/rules/ruleText.yaml'
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: integer
+            format: int64
+
