@@ -5,6 +5,7 @@ info:
   title: SSM API Documentation
 tags:
   - name: Rules
+  - name: Cmdlets
   - name: Actions
   - name: Cluster
 
@@ -22,21 +23,21 @@ paths:
     $ref: './resources/rule-start.yaml'
   /api/v1/rules/{ruleId}/stop:
     $ref: './resources/rule-stop.yaml'
-#
-#  # Cmdlets
-#  /api/v1/cmdlets:
-#    $ref: './resources/cmdlets.yaml'
-#  /api/v1/cmdlets/{cmdletId}:
-#    $ref: './resources/cmdlet.yaml'
-#  /api/v1/cmdlets/{cmdletId}/stop:
-#    $ref: './resources/cmdlet-stop.yaml'
-#
-#  # Actions
-#  /api/v1/actions:
-#    $ref: './resources/actions.yaml'
-#  /api/v1/actions/{actionId}:
-#    $ref: './resources/action.yaml'
-#
+
+  # Cmdlets
+  /api/v1/cmdlets:
+    $ref: './resources/cmdlets.yaml'
+  /api/v1/cmdlets/{cmdletId}:
+    $ref: './resources/cmdlet.yaml'
+  /api/v1/cmdlets/{cmdletId}/stop:
+    $ref: './resources/cmdlet-stop.yaml'
+
+  # Actions
+  /api/v1/actions:
+    $ref: './resources/actions.yaml'
+  /api/v1/actions/{actionId}:
+    $ref: './resources/action.yaml'
+
 #  # Files
 #  /api/v1/files/hot:
 #    $ref: './resources/files-hot.yaml'

@@ -1,0 +1,39 @@
+type: object
+title: Action info
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Action id
+  cmdletId:
+    type: integer
+    format: int64
+    description: Id of the cmdlet this action belongs to
+  textRepresentation:
+    type: string
+    description: Action text representation
+  execHost:
+    type: string
+    description: SSM host which this action is running
+  submissionTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the action submission
+  completionTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the action completion
+  state:
+    type: string
+    enum:
+      - RUNNING
+      - SUCCESSFUL
+      - FAILED
+    description: Source of the action creation
+  source:
+    type: string
+    enum:
+      - RULE
+      - USER
+    description: Source of the action creation
+

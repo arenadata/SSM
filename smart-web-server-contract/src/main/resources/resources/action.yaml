@@ -1,0 +1,18 @@
+get:
+  tags:
+    - Actions
+  summary: Get action by id
+  operationId: getAction
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../schemas/actions/Action.yaml'
+    '404':
+      description: Action not found

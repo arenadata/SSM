@@ -1,13 +1,14 @@
 get:
   tags:
-    - Cmdlets
-  summary: List all cmdlets
-  operationId: getCmdlets
+    - Actions
+  summary: List all actions
+  operationId: getActions
   parameters:
     - $ref: '../parameters/common/offset.yaml'
     - $ref: '../parameters/common/limit.yaml'
     - $ref: '../parameters/common/sort.yaml'
     - $ref: '../parameters/common/definition-like.yaml'
+    - $ref: '../parameters/rules/rule-state-in.yaml'
   responses:
     '200':
       description: OK
@@ -20,33 +21,9 @@ get:
                 properties:
                   items:
                     type: array
-                    description: List of cmdlets
+                    description: List of actions
                     items:
-                      $ref: '../schemas/cmdlets/Cmdlet.yaml'
-    '400':
-      description: Data is filled incorrectly
-      content:
-        application/json:
-          schema:
-            $ref: '../schemas/common/ErrorResponse.yaml'
-post:
-  tags:
-    - Cmdlets
-  summary: Submit cmdlet
-  operationId: addCmdlet
-  requestBody:
-    required: true
-    content:
-      text/plain:
-        schema:
-          type: string
-  responses:
-    '200':
-      description: OK
-      content:
-        application/json:
-          schema:
-            $ref: '../schemas/cmdlets/Cmdlet.yaml'
+                      $ref: '../schemas/actions/ActionInfo.yaml'
     '400':
       description: Data is filled incorrectly
       content:

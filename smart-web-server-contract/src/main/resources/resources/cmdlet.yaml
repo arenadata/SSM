@@ -1,0 +1,30 @@
+get:
+  tags:
+    - Cmdlets
+  summary: Get cmdlet by id
+  operationId: getCmdlet
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../schemas/cmdlets/Cmdlet.yaml'
+    '404':
+      description: Cmdlet not found
+delete:
+  tags:
+    - Cmdlets
+  summary: Delete cmdlet by id
+  operationId: deleteCmdlet
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Cmdlet has been removed
+    '404':
+      description: Cmdlet not found

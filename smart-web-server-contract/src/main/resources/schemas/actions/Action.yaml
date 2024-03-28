@@ -1,0 +1,9 @@
+type: object
+title: Action detailed info
+allOf:
+  - $ref: "./ActionInfo.yaml"
+  - type: object
+    properties:
+      log:
+        type: string
+        description: Action log

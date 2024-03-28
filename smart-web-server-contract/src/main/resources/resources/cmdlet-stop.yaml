@@ -1,0 +1,12 @@
+post:
+  tags:
+    - Cmdlets
+  summary: Stop specified cmdlet
+  operationId: stopCmdlet
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Cmdlet has been stopped
+    '404':
+      description: Cmdlet not found

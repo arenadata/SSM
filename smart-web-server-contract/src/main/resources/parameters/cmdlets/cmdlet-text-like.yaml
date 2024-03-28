@@ -1,4 +1,4 @@
-name: ruleTextLike
+name: cmdletTextLike
 in: query
 required: false
 description: The rule definition filter

@@ -1,0 +1,42 @@
+type: object
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Cmdlet id
+  ruleId:
+    type: integer
+    format: int64
+    nullable: true
+    default: null
+    description: Id of the rule that generated this cmdlet
+  actionIds:
+    type: array
+    items:
+      type: integer
+      format: int64
+    description: List of the action ids belonging to the current cmdlet
+  state:
+    type: string
+    enum:
+      - NOT_INITED
+      - PENDING
+      - SCHEDULED
+      - DISPATCHED
+      - EXECUTING
+      - CANCELLED
+      - DISABLED
+      - FAILED
+      - DONE
+    description: Cmdlet state
+  textRepresentation:
+    type: string
+    description: Cmdlet text representation
+  submissionTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the cmdlet submission
+  stateChangedTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the cmdlet state modification

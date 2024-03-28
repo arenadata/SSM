@@ -7,7 +7,7 @@ get:
     - $ref: '../parameters/common/offset.yaml'
     - $ref: '../parameters/common/limit.yaml'
     - $ref: '../parameters/common/sort.yaml'
-    - $ref: '../parameters/rules/rule-text-like.yaml'
+    - $ref: '../parameters/common/definition-like.yaml'
     - $ref: '../parameters/rules/rule-state-in.yaml'
   responses:
     '200':
@@ -21,7 +21,7 @@ get:
                 properties:
                   items:
                     type: array
-                    description: Rule id
+                    description: List of rules
                     items:
                       $ref: '../schemas/rules/Rule.yaml'
     '400':
