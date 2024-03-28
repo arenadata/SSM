@@ -1,0 +1,6 @@
+name: ruleTextLike
+in: query
+required: false
+description: The rule definition filter
+schema:
+  type: string

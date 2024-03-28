@@ -22,34 +22,34 @@ paths:
     $ref: './resources/rule-start.yaml'
   /api/v1/rules/{ruleId}/stop:
     $ref: './resources/rule-stop.yaml'
-
-  # Cmdlets
-  /api/v1/cmdlets:
-    $ref: './resources/cmdlets.yaml'
-  /api/v1/cmdlets/{cmdletId}:
-    $ref: './resources/cmdlet.yaml'
-  /api/v1/cmdlets/{cmdletId}/stop:
-    $ref: './resources/cmdlet-stop.yaml'
-
-  # Actions
-  /api/v1/actions:
-    $ref: './resources/actions.yaml'
-  /api/v1/actions/{actionId}:
-    $ref: './resources/action.yaml'
-
-  # Files
-  /api/v1/files/hot:
-    $ref: './resources/files-hot.yaml'
-  /api/v1/files/cache:
-    $ref: './resources/files-cache.yaml'
-
-  # Cluster
-  /api/v1/cluster/nodes:
-    $ref: './resources/cluster-nodes.yaml'
-
-components:
-  schemas:
-    ApiValidationError:
-      $ref: './schemas/common/ApiValidationError.yaml'
-    ApiErrorResponse:
-      $ref: './schemas/common/ApiErrorResponse.yaml'
+#
+#  # Cmdlets
+#  /api/v1/cmdlets:
+#    $ref: './resources/cmdlets.yaml'
+#  /api/v1/cmdlets/{cmdletId}:
+#    $ref: './resources/cmdlet.yaml'
+#  /api/v1/cmdlets/{cmdletId}/stop:
+#    $ref: './resources/cmdlet-stop.yaml'
+#
+#  # Actions
+#  /api/v1/actions:
+#    $ref: './resources/actions.yaml'
+#  /api/v1/actions/{actionId}:
+#    $ref: './resources/action.yaml'
+#
+#  # Files
+#  /api/v1/files/hot:
+#    $ref: './resources/files-hot.yaml'
+#  /api/v1/files/cache:
+#    $ref: './resources/files-cache.yaml'
+#
+#  # Cluster
+#  /api/v1/cluster/nodes:
+#    $ref: './resources/cluster-nodes.yaml'
+#
+#components:
+#  schemas:
+#    ApiValidationError:
+#      $ref: './schemas/common/ApiValidationError.yaml'
+#    ApiErrorResponse:
+#      $ref: './schemas/common/ApiErrorResponse.yaml'

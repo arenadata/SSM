@@ -1,22 +1,30 @@
 get:
-  parameters:
-    - $ref: '../parameters/cluster/clusterName.yaml'
-    - $ref: '../parameters/common/xAdbmUser.yaml'
-  summary: ''
   tags:
-    - Control panel
-  operationId: getClusterRestorePoint
-  description: Get information on settings for a restore point.
+    - Rules
+  summary: Get rule by id
+  operationId: getRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
   responses:
     '200':
       description: OK
       content:
         application/json:
           schema:
-            $ref: '../schemas/action/RestorePointAction.yaml'
+            type: array
+            items:
+              $ref: '../schemas/rules/Rule.yaml'
     '404':
-      description: Not found
-      content:
-        application/json:
-          schema:
-            $ref: '../schemas/common/AdbmApiError.yaml'
+      description: Rule not found
+delete:
+  tags:
+    - Rules
+  summary: Delete rule by id
+  operationId: deleteRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Rule has been removed
+    '404':
+      description: Rule not found

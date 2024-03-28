@@ -1,0 +1,13 @@
+name: ruleStateIn
+in: query
+required: false
+description: List of rule states
+schema:
+  type: array
+  items:
+    enum:
+      - ACTIVE
+      - NEW
+      - DISABLED
+      - FINISHED
+      - DELETED

@@ -1,0 +1,12 @@
+post:
+  tags:
+    - Rules
+  summary: Start or continue specified rule
+  operationId: startRule
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Rule has been started
+    '404':
+      description: Rule not found

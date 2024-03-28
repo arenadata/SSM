@@ -1,0 +1,37 @@
+title: Rule
+type: object
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Rule id
+  submitTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp of the rule submission
+  ruleText:
+    type: string
+    description: Rule definition
+  state:
+    type: string
+    description: Rule current state
+    enum:
+      - ACTIVE
+      - NEW
+      - DISABLED
+      - FINISHED
+      - DELETED
+  activationCount:
+    type: integer
+    format: int64
+    description: Number of rule activations
+  cmdletsGenerated:
+    type: integer
+    format: int64
+    description: Number of generated cmdlets from this rule
+  lastActivationTime:
+    type: integer
+    format: int64
+    default: null
+    nullable: true
+    description: UNIX timestamp of the last rule activation

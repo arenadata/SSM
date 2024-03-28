@@ -1,8 +1,8 @@
 get:
   tags:
-    - Rules
-  summary: List all rules
-  operationId: getRules
+    - Cmdlets
+  summary: List all cmdlets
+  operationId: getCmdlets
   parameters:
     - $ref: '../parameters/common/offset.yaml'
     - $ref: '../parameters/common/limit.yaml'
@@ -15,15 +15,9 @@ get:
       content:
         application/json:
           schema:
-            allOf:
-              - $ref: '../schemas/common/PageResponse.yaml'
-              - type: object
-                properties:
-                  items:
-                    type: array
-                    description: Rule id
-                    items:
-                      $ref: '../schemas/rules/Rule.yaml'
+            type: array
+            items:
+              $ref: '../schemas/rules/Rule.yaml'
     '400':
       description: Data is filled incorrectly
       content:
