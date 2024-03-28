@@ -1,0 +1,12 @@
+name: state
+in: query
+required: false
+description: List of action states
+schema:
+  type: array
+  items:
+    type: string
+    enum:
+      - RUNNING
+      - SUCCESSFUL
+      - FAILED

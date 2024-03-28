@@ -1,6 +1,0 @@
-name: definitionLike
-in: query
-required: false
-description: The object's definition filter
-schema:
-  type: string

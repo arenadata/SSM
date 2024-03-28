@@ -7,7 +7,8 @@ get:
     - $ref: '../parameters/common/offset.yaml'
     - $ref: '../parameters/common/limit.yaml'
     - $ref: '../parameters/common/sort.yaml'
-    - $ref: '../parameters/common/definition-like.yaml'
+    - $ref: '../parameters/common/text-representation-like.yaml'
+    - $ref: '../parameters/cmdlets/ruleIds.yaml'
   responses:
     '200':
       description: OK

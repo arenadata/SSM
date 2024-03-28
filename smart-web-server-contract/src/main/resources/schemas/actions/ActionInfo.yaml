@@ -14,7 +14,7 @@ properties:
     description: Action text representation
   execHost:
     type: string
-    description: SSM host which this action is running
+    description: SSM host on which this action is running
   submissionTime:
     type: integer
     format: int64

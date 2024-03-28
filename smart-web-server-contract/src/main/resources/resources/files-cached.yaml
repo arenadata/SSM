@@ -1,16 +1,13 @@
 get:
   tags:
-    - Actions
-  summary: List all actions
-  operationId: getActions
+    - Files
+  summary: List access counts of files
+  operationId: getAccessCounts
   parameters:
     - $ref: '../parameters/common/offset.yaml'
     - $ref: '../parameters/common/limit.yaml'
     - $ref: '../parameters/common/sort.yaml'
-    - $ref: '../parameters/common/text-representation-like.yaml'
-    - $ref: '../parameters/actions/hosts.yaml'
-    - $ref: '../parameters/actions/states.yaml'
-    - $ref: '../parameters/actions/sources.yaml'
+    - $ref: '../parameters/files/path-like.yaml'
   responses:
     '200':
       description: OK
@@ -23,9 +20,9 @@ get:
                 properties:
                   items:
                     type: array
-                    description: List of actions
+                    description: List of files
                     items:
-                      $ref: '../schemas/actions/ActionInfo.yaml'
+                      $ref: '../schemas/files/CachedFileInfo.yaml'
     '400':
       description: Data is filled incorrectly
       content:

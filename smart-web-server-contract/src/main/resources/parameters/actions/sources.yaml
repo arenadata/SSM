@@ -1,0 +1,11 @@
+name: state
+in: query
+required: false
+description: List of action sources
+schema:
+  type: array
+  items:
+    type: string
+    enum:
+      - RULE
+      - USER
