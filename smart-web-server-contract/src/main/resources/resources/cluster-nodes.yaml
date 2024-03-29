@@ -4,9 +4,7 @@ get:
   summary: List all cluster nodes
   operationId: getClusterNodes
   parameters:
-    - $ref: '../parameters/common/offset.yaml'
-    - $ref: '../parameters/common/limit.yaml'
-    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/cluster/node-states.yaml'
   responses:
     '200':

@@ -4,9 +4,7 @@ get:
   summary: List all actions
   operationId: getActions
   parameters:
-    - $ref: '../parameters/common/offset.yaml'
-    - $ref: '../parameters/common/limit.yaml'
-    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
     - $ref: '../parameters/actions/hosts.yaml'
     - $ref: '../parameters/actions/states.yaml'

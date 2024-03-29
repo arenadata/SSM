@@ -1,7 +1,0 @@
-name: limit
-in: query
-required: false
-description: Maximum number of records in result set
-schema:
-  type: integer
-  default: 10
