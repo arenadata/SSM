@@ -36,7 +36,7 @@
     <module>smart-agent</module>
     <module>smart-dist</module>
     <module>smart-integration</module>
-    <module>smart-web-server-contract</module>
+    <module>smart-web-server-api</module>
   </modules>
 
   <properties>
