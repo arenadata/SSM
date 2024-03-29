@@ -1,8 +1,0 @@
-name: nodeStates
-in: query
-required: false
-description: List of SSM cluster node states
-schema:
-  type: array
-  items:
-    type: string

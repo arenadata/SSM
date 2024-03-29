@@ -5,7 +5,6 @@ get:
   operationId: getClusterNodes
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
-    - $ref: '../parameters/cluster/node-states.yaml'
   responses:
     '200':
       description: OK
