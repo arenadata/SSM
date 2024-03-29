@@ -9,4 +9,4 @@ post:
     '200':
       description: Cmdlet has been stopped
     '404':
-      description: Cmdlet not found
+      description: Cmdlet with specified id not found

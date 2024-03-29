@@ -9,4 +9,10 @@ post:
     '200':
       description: Rule has been started
     '404':
-      description: Rule not found
+      description: Rule with specified id not found
+    '400':
+      description: Unsupported state transition
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'

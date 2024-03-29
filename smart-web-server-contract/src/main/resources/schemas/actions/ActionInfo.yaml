@@ -22,6 +22,8 @@ properties:
   completionTime:
     type: integer
     format: int64
+    nullable: true
+    default: null
     description: UNIX timestamp of the action completion
   state:
     $ref: "./ActionState.yaml"

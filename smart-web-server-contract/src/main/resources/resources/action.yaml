@@ -11,8 +11,6 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '../schemas/actions/Action.yaml'
+            $ref: '../schemas/actions/Action.yaml'
     '404':
-      description: Action not found
+      description: Action with specified id not found

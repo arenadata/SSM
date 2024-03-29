@@ -6,7 +6,7 @@ properties:
     description: Error code
   message:
     type: string
-    description: Error message
+    description: Detailed error message
   body:
     type: object
     description: Additional information about the error

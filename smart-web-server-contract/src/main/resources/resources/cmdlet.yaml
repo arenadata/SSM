@@ -11,11 +11,9 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '../schemas/cmdlets/Cmdlet.yaml'
+            $ref: '../schemas/cmdlets/Cmdlet.yaml'
     '404':
-      description: Cmdlet not found
+      description: Cmdlet with specified id not found
 delete:
   tags:
     - Cmdlets
@@ -27,4 +25,4 @@ delete:
     '200':
       description: Cmdlet has been removed
     '404':
-      description: Cmdlet not found
+      description: Cmdlet with specified id not found

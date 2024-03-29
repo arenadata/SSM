@@ -11,11 +11,9 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '../schemas/rules/Rule.yaml'
+            $ref: '../schemas/rules/Rule.yaml'
     '404':
-      description: Rule not found
+      description: Rule with specified id not found
 delete:
   tags:
     - Rules
@@ -27,4 +25,4 @@ delete:
     '200':
       description: Rule has been removed
     '404':
-      description: Rule not found
+      description: Rule with specified id not found
