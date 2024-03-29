@@ -1,7 +1,7 @@
-name: hosts
+name: nodeStates
 in: query
 required: false
-description: List of hosts on which the action is/was running
+description: List of SSM cluster node states
 schema:
   type: array
   items:

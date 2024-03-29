@@ -1,11 +1,8 @@
-name: state
+name: sources
 in: query
 required: false
 description: List of action sources
 schema:
   type: array
   items:
-    type: string
-    enum:
-      - RULE
-      - USER
+    $ref: "../../schemas/actions/ActionSource.yaml"

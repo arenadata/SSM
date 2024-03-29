@@ -1,3 +1,4 @@
+title: Cmdlet
 type: object
 properties:
   id:
@@ -9,7 +10,7 @@ properties:
     format: int64
     nullable: true
     default: null
-    description: Id of the rule that generated this cmdlet
+    description: Id of the rule that generated cmdlet
   actionIds:
     type: array
     items:
@@ -17,18 +18,7 @@ properties:
       format: int64
     description: List of the action ids belonging to the current cmdlet
   state:
-    type: string
-    enum:
-      - NOT_INITED
-      - PENDING
-      - SCHEDULED
-      - DISPATCHED
-      - EXECUTING
-      - CANCELLED
-      - DISABLED
-      - FAILED
-      - DONE
-    description: Cmdlet state
+    $ref: './CmdletState.yaml'
   textRepresentation:
     type: string
     description: Cmdlet text representation

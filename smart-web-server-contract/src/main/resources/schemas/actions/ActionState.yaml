@@ -1,0 +1,7 @@
+title: ActionState
+type: string
+description: State of the action
+enum:
+  - RUNNING
+  - SUCCESSFUL
+  - FAILED

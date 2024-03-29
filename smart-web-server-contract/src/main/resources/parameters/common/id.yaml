@@ -1,8 +1,8 @@
 name: id
 in: path
 required: true
+description: Id of the resource
 schema:
   type: integer
   format: int64
   description: Reference to 'id' field
-description: Id of the resource

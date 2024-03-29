@@ -45,13 +45,6 @@ paths:
   /api/v1/files/cached:
     $ref: './resources/files-cached.yaml'
 
-#  # Cluster
-#  /api/v1/cluster/nodes:
-#    $ref: './resources/cluster-nodes.yaml'
-#
-#components:
-#  schemas:
-#    ApiValidationError:
-#      $ref: './schemas/common/ApiValidationError.yaml'
-#    ApiErrorResponse:
-#      $ref: './schemas/common/ApiErrorResponse.yaml'
+  # Cluster
+  /api/v1/cluster/nodes:
+    $ref: './resources/cluster-nodes.yaml'

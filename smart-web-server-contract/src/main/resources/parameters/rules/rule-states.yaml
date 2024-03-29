@@ -1,0 +1,6 @@
+name: ruleStates
+in: query
+required: false
+description: List of rule states
+schema:
+  $ref: "../../schemas/rules/RuleState.yaml"

@@ -1,0 +1,6 @@
+title: ActionSource
+type: string
+description: Source of the action creation
+enum:
+  - RULE
+  - USER

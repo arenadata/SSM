@@ -8,7 +8,7 @@ get:
     - $ref: '../parameters/common/limit.yaml'
     - $ref: '../parameters/common/sort.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
-    - $ref: '../parameters/rules/rule-state-in.yaml'
+    - $ref: '../parameters/rules/rule-states.yaml'
   responses:
     '200':
       description: OK

@@ -13,14 +13,7 @@ properties:
     type: string
     description: Rule definition
   state:
-    type: string
-    description: Rule current state
-    enum:
-      - ACTIVE
-      - NEW
-      - DISABLED
-      - FINISHED
-      - DELETED
+    $ref: './RuleState.yaml'
   activationCount:
     type: integer
     format: int64

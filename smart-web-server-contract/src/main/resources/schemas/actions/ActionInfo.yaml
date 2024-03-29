@@ -1,5 +1,5 @@
+title: ActionInfo
 type: object
-title: Action info
 properties:
   id:
     type: integer
@@ -24,16 +24,7 @@ properties:
     format: int64
     description: UNIX timestamp of the action completion
   state:
-    type: string
-    enum:
-      - RUNNING
-      - SUCCESSFUL
-      - FAILED
-    description: Source of the action creation
+    $ref: "./ActionState.yaml"
   source:
-    type: string
-    enum:
-      - RULE
-      - USER
-    description: Source of the action creation
+    $ref: "./ActionSource.yaml"
 

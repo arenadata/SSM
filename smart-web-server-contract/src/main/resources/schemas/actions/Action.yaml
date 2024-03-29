@@ -1,5 +1,5 @@
+title: ActionDetailedInfo
 type: object
-title: Action detailed info
 allOf:
   - $ref: "./ActionInfo.yaml"
   - type: object

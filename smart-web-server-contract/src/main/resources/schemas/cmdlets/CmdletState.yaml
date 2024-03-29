@@ -1,0 +1,13 @@
+title: CmdletState
+type: string
+description: Current state of the cmdlet
+enum:
+  - NOT_INITED
+  - PENDING
+  - SCHEDULED
+  - DISPATCHED
+  - EXECUTING
+  - CANCELLED
+  - DISABLED
+  - FAILED
+  - DONE

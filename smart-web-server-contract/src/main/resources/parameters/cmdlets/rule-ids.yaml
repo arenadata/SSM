@@ -1,7 +1,7 @@
-name: ruleIdIn
+name: ruleIds
 in: query
 required: false
-description: Id of rules cmdlets belong to
+description: Ids of the rules that cmdlets belong to
 schema:
   type: array
   items:
