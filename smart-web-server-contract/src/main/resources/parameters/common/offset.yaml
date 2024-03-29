@@ -1,7 +1,0 @@
-name: offset
-in: query
-required: false
-description: Offset of the first record to search from
-schema:
-  type: integer
-  default: 0

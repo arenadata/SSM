@@ -4,9 +4,7 @@ get:
   summary: List access counts of files
   operationId: getAccessCounts
   parameters:
-    - $ref: '../parameters/common/offset.yaml'
-    - $ref: '../parameters/common/limit.yaml'
-    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/files/path-like.yaml'
   responses:
     '200':

@@ -4,9 +4,7 @@ get:
   summary: List all rules
   operationId: getRules
   parameters:
-    - $ref: '../parameters/common/offset.yaml'
-    - $ref: '../parameters/common/limit.yaml'
-    - $ref: '../parameters/common/sort.yaml'
+    - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
     - $ref: '../parameters/rules/rule-states.yaml'
   responses:

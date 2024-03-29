@@ -1,0 +1,24 @@
+name: pageRequest
+in: query
+required: false
+explode: true
+schema:
+  type: object
+  properties:
+    limit:
+      type: integer
+      nullable: true
+      default: 10
+      minimum: 1
+      description: Maximum number of records in result set
+    offset:
+      type: integer
+      nullable: true
+      default: 0
+      description: Offset of the first record to search from
+    sort:
+      type: array
+      items:
+        type: string
+      nullable: true
+      description: Sort field names prefixed with '-' for descending order
