@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Console;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -114,8 +113,8 @@ public class SmartConf extends Configuration {
    * Add host for newly launched standby server after SSM cluster
    * becomes active.
    */
-  public boolean addServerHosts(String hostname) {
-    return serverHosts.add(hostname);
+  public void addServerHosts(String hostname) {
+    serverHosts.add(hostname);
   }
 
   public Set<String> getServerHosts() {
@@ -126,8 +125,8 @@ public class SmartConf extends Configuration {
    * Add host for newly launched agents after SSM cluster
    * becomes active.
    */
-  public boolean addAgentHost(String hostname) {
-    return agentHosts.add(hostname);
+  public void addAgentHost(String hostname) {
+    agentHosts.add(hostname);
   }
 
   public Set<String> getAgentHosts() {
@@ -137,17 +136,11 @@ public class SmartConf extends Configuration {
   /**
    * Get password for druid by Configuration.getPassword().
    */
-  public String getPasswordFromHadoop(String name)
-    throws IOException {
-    try {
-      char[] pw = this.getPassword(name);
-      if (pw == null) {
-        return null;
-      }
-      return new String(pw);
-    } catch (IOException err) {
-      throw new IOException(err.getMessage(), err);
-    }
+  public String getPasswordFromHadoop(String name) throws IOException {
+    char[] password = getPassword(name);
+    return password != null
+        ? new String(password)
+        : null;
   }
 
   public Map<String, String> asMap() {
@@ -156,14 +149,5 @@ public class SmartConf extends Configuration {
             Map.Entry::getKey,
             Map.Entry::getValue
         ));
-  }
-
-  public static void main(String[] args) {
-    Console console = System.console();
-    try {
-      Configuration.dumpConfiguration(new SmartConf(), console.writer());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 }
