@@ -4,3 +4,5 @@ properties:
   total:
     type: integer
     description: Total number of objects
+required:
+  - total

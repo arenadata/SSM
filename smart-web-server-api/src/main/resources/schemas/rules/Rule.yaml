@@ -9,9 +9,9 @@ properties:
     type: integer
     format: int64
     description: UNIX timestamp of the rule submission
-  ruleText:
+  textRepresentation:
     type: string
-    description: Rule definition
+    description: Rule text representation
   state:
     $ref: './RuleState.yaml'
   activationCount:
@@ -28,3 +28,10 @@ properties:
     default: null
     nullable: true
     description: UNIX timestamp of the last rule activation
+required:
+  - id
+  - submitTime
+  - textRepresentation
+  - state
+  - activationCount
+  - cmdletsGenerated

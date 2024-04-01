@@ -25,3 +25,11 @@ properties:
     type: integer
     format: int64
     description: Number of executed cmdlets on this node
+required:
+  - id
+  - host
+  - port
+  - executorType
+  - registrationTime
+  - executorsCount
+  - cmdletsExecuted

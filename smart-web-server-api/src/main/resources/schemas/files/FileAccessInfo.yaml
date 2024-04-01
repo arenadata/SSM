@@ -12,3 +12,7 @@ properties:
     type: integer
     format: int32
     description: Number of accesses to the file
+required:
+  - id
+  - path
+  - accessCount

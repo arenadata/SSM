@@ -1,0 +1,8 @@
+title: SubmitRuleRequest
+type: object
+properties:
+  rule:
+    type: string
+    description: Rule text representation
+required:
+  - rule

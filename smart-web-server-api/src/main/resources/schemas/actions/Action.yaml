@@ -7,3 +7,10 @@ allOf:
       log:
         type: string
         description: Action log
+required:
+  - id
+  - cmdletId
+  - textRepresentation
+  - submissionTime
+  - state
+  - source

@@ -10,3 +10,6 @@ properties:
   body:
     type: object
     description: Additional information about the error
+required:
+  - code
+  - message

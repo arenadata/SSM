@@ -36,9 +36,9 @@ post:
   requestBody:
     required: true
     content:
-      text/plain:
+      application/json:
         schema:
-          type: string
+          $ref: '../schemas/requests/SubmitRuleRequest.yaml'
   responses:
     '200':
       description: OK

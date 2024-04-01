@@ -14,6 +14,8 @@ properties:
     description: Action text representation
   execHost:
     type: string
+    nullable: true
+    default: null
     description: SSM host on which this action is running
   submissionTime:
     type: integer
@@ -29,4 +31,10 @@ properties:
     $ref: "./ActionState.yaml"
   source:
     $ref: "./ActionSource.yaml"
-
+required:
+  - id
+  - cmdletId
+  - textRepresentation
+  - submissionTime
+  - state
+  - source

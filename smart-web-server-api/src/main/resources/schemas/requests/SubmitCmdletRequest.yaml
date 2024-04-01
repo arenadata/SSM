@@ -1,0 +1,8 @@
+title: SubmitCmdletRequest
+type: object
+properties:
+  cmdlet:
+    type: string
+    description: Cmdlet text representation
+required:
+  - cmdlet

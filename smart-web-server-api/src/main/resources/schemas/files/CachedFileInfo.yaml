@@ -20,3 +20,9 @@ properties:
     type: integer
     format: int32
     description: UNIX timestamp of the last file access
+required:
+  - id
+  - path
+  - accessCount
+  - cachedTime
+  - lastAccessTime
