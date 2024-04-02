@@ -18,25 +18,25 @@ paths:
   # Rules
   /api/v1/rules:
     $ref: './resources/rules.yaml'
-  /api/v1/rules/{ruleId}:
+  /api/v1/rules/{id}:
     $ref: './resources/rule.yaml'
-  /api/v1/rules/{ruleId}/start:
+  /api/v1/rules/{id}/start:
     $ref: './resources/rule-start.yaml'
-  /api/v1/rules/{ruleId}/stop:
+  /api/v1/rules/{id}/stop:
     $ref: './resources/rule-stop.yaml'
 
   # Cmdlets
   /api/v1/cmdlets:
     $ref: './resources/cmdlets.yaml'
-  /api/v1/cmdlets/{cmdletId}:
+  /api/v1/cmdlets/{id}:
     $ref: './resources/cmdlet.yaml'
-  /api/v1/cmdlets/{cmdletId}/stop:
+  /api/v1/cmdlets/{id}/stop:
     $ref: './resources/cmdlet-stop.yaml'
 
   # Actions
   /api/v1/actions:
     $ref: './resources/actions.yaml'
-  /api/v1/actions/{actionId}:
+  /api/v1/actions/{id}:
     $ref: './resources/action.yaml'
 
   # Files

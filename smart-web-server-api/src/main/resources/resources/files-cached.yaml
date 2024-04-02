@@ -1,8 +1,8 @@
 get:
   tags:
     - Files
-  summary: List access counts of files
-  operationId: getAccessCounts
+  summary: List cached files
+  operationId: getCachedFiles
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/files/path-like.yaml'

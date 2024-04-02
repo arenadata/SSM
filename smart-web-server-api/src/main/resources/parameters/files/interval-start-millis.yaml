@@ -1,0 +1,8 @@
+name: intervalStartMillis
+in: query
+required: false
+description: Start of the requested time interval in which the files were accessed
+schema:
+  type: integer
+  format: int64
+  description: UNIX timestamp

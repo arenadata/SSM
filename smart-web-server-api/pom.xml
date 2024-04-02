@@ -11,4 +11,35 @@
 
   <artifactId>smart-web-server-api</artifactId>
 
+  <properties>
+    <merged.api.spec.name>ssm-web-api.yaml</merged.api.spec.name>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>${openapi.generator.version}</version>
+        <executions>
+          <execution>
+            <id>generate-ssm-server-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/ssm-api.yaml</inputSpec>
+              <generatorName>openapi-yaml</generatorName>
+              <configOptions>
+                <sourceFolder>src/java/main</sourceFolder>
+                <outputFile>${merged.api.spec.name}</outputFile>
+              </configOptions>
+              <output>${project.build.directory}/docs</output>
+              <supportingFilesToGenerate>${merged.api.spec.name}</supportingFilesToGenerate>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

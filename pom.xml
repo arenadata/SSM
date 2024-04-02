@@ -71,6 +71,7 @@
     <sqlite.version>3.34.0</sqlite.version>
     <commons-configuration.version>2.1.1</commons-configuration.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <openapi.generator.version>6.6.0</openapi.generator.version>
   </properties>
 
   <profiles>
