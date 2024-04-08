@@ -36,7 +36,7 @@ import org.smartdata.model.CompactFileState;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.LaunchAction;
-import org.smartdata.model.WhitelistHelper;
+import org.smartdata.model.PathChecker;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 import static org.smartdata.conf.SmartConfKeys.SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_KEY;
 import static org.smartdata.model.ActionInfo.OLD_FILE_ID;
+import static org.smartdata.model.WhitelistHelper.validatePathsCovered;
 
 public class SmallFileScheduler extends ActionSchedulerService {
   private MetaStore metaStore;
@@ -92,6 +93,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
    * Scheduled service to update meta store.
    */
   private ScheduledExecutorService executorService;
+  private PathChecker pathChecker;
 
   public static final String COMPACT_ACTION_NAME = "compact";
   public static final String UNCOMPACT_ACTION_NAME = "uncompact";
@@ -112,12 +114,13 @@ public class SmallFileScheduler extends ActionSchedulerService {
 
   @Override
   public void init() throws IOException {
-    this.containerFileLock = Collections.synchronizedSet(new HashSet<String>());
-    this.compactSmallFileLock = Collections.synchronizedSet(new HashSet<String>());
-    this.containerFileCache = Collections.synchronizedSet(new HashSet<String>());
-    this.handlingSmallFileCache = Collections.synchronizedSet(new HashSet<String>());
+    this.containerFileLock = Collections.synchronizedSet(new HashSet<>());
+    this.compactSmallFileLock = Collections.synchronizedSet(new HashSet<>());
+    this.containerFileCache = Collections.synchronizedSet(new HashSet<>());
+    this.handlingSmallFileCache = Collections.synchronizedSet(new HashSet<>());
     this.compactFileStateQueue = new ConcurrentLinkedQueue<>();
     this.executorService = Executors.newSingleThreadScheduledExecutor();
+    this.pathChecker = new PathChecker(getContext().getConf());
     try {
       final URI nnUri = HadoopUtil.getNameNodeUri(getContext().getConf());
       dfsClient = HadoopUtil.getDFSClient(nnUri, getContext().getConf());
@@ -185,13 +188,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
       }
 
       // Check whitelist
-      if (WhitelistHelper.isEnabled(getContext().getConf())) {
-        for (String filePath : smallFileList) {
-          if (!WhitelistHelper.isInWhitelist(filePath, getContext().getConf())) {
-            throw new IOException("Path " + filePath + " is not in the whitelist.");
-          }
-        }
-      }
+      validatePathsCovered(smallFileList, pathChecker);
 
       // Check if the small file list is valid
       if (checkIfValidSmallFiles(smallFileList)) {

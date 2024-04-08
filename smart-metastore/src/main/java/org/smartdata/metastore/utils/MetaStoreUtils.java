@@ -18,6 +18,7 @@
 package org.smartdata.metastore.utils;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
@@ -170,11 +171,9 @@ public class MetaStoreUtils {
       }
 
       try {
-        String pw = conf
-            .getPasswordFromHadoop(SmartConfKeys.SMART_METASTORE_PASSWORD);
-        if (pw != null && !pw.isEmpty()) {
-          p.setProperty("password", pw);
-        }
+        conf.getPasswordFromHadoop(SmartConfKeys.SMART_METASTORE_PASSWORD)
+            .filter(password -> !StringUtils.isBlank(password))
+            .ifPresent(password -> p.setProperty("password", password));
       } catch (IOException e) {
         LOG.info("Can not get metastore password from hadoop provision credentials,"
             + " use the one configured in druid.xml .");

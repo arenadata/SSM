@@ -44,7 +44,7 @@ public class PathChecker {
   private final List<String> coverDirs;
 
   public PathChecker(SmartConf configuration) {
-    this(getIgnorePatterns(configuration), configuration.getCoverDir());
+    this(getIgnorePatterns(configuration), configuration.getCoverDirs());
   }
 
   public PathChecker(List<String> ignoredPathPatterns, List<String> coverDirs) {
@@ -66,6 +66,10 @@ public class PathChecker {
   public boolean isCovered(String absolutePath) {
     return coverDirs.isEmpty()
         || coverDirs.stream().anyMatch(absolutePath::startsWith);
+  }
+
+  public List<String> getCoverDirs() {
+    return coverDirs;
   }
 
   private static List<String> getIgnorePatterns(Configuration configuration) {

@@ -41,6 +41,7 @@ import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
 import org.smartdata.model.DetailedFileAction;
 import org.smartdata.model.LaunchAction;
+import org.smartdata.model.PathChecker;
 import org.smartdata.model.UserInfo;
 import org.smartdata.model.WhitelistHelper;
 import org.smartdata.model.action.ActionScheduler;
@@ -115,6 +116,7 @@ public class CmdletManager extends AbstractService {
 
   private AtomicLong numCmdletsGen = new AtomicLong(0);
   private AtomicLong numCmdletsFinished = new AtomicLong(0);
+  private final PathChecker pathChecker;
 
   private long totalScheduled = 0;
 
@@ -141,6 +143,7 @@ public class CmdletManager extends AbstractService {
     this.tobeDeletedCmd = new LinkedList<>();
     this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlet,
       idToLaunchCmdlet, runningCmdlets, schedulers);
+    this.pathChecker = new PathChecker(context.getConf());
     maxNumPendingCmdlets = context.getConf()
       .getInt(SmartConfKeys.SMART_CMDLET_MAX_NUM_PENDING_KEY,
         SmartConfKeys.SMART_CMDLET_MAX_NUM_PENDING_DEFAULT);
@@ -430,11 +433,8 @@ public class CmdletManager extends AbstractService {
     // Check action names
     checkActionNames(cmdletDescriptor);
     // Check if action path is in whitelist
-    if (WhitelistHelper.isEnabled(getContext().getConf())) {
-      if (!WhitelistHelper.isCmdletInWhitelist(cmdletDescriptor)) {
-        throw new IOException("This path is not in the whitelist.");
-      }
-    }
+    WhitelistHelper.validateCmdletPathCovered(cmdletDescriptor, pathChecker);
+
     // Let Scheduler check actioninfo onsubmit and add them to cmdletinfo
     checkActionsOnSubmit(cmdletInfo, actionInfos);
     // Insert cmdletinfo and actionInfos to metastore and cache.

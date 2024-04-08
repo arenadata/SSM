@@ -20,18 +20,14 @@ package org.smartdata.conf;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdata.utils.PathUtil;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -41,7 +37,6 @@ import java.util.stream.StreamSupport;
  */
 public class SmartConf extends Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(SmartConf.class);
-  private final List<String> coverList;
   // Include hosts configured in conf/agents and
   // hosts added dynamically (by `start-agent.sh --host $host`)
   private Set<String> agentHosts;
@@ -51,62 +46,14 @@ public class SmartConf extends Configuration {
     Configuration.addDefaultResource("smart-default.xml");
     Configuration.addDefaultResource("smart-site.xml");
 
-    Collection<String> ignoreDirs = this.getTrimmedStringCollection(
-        SmartConfKeys.SMART_IGNORE_DIRS_KEY);
-    Collection<String> fetchDirs = this.getTrimmedStringCollection(
-        SmartConfKeys.SMART_COVER_DIRS_KEY);
-
-    coverList = new ArrayList<>();
-    for (String s : fetchDirs) {
-      coverList.add(s + (s.endsWith("/") ? "" : "/"));
-    }
-
-    try {
-      this.serverHosts = parseHost("servers", this);
-      this.agentHosts = parseHost("agents", this);
-    } catch (FileNotFoundException e) {
-      // In some unit test, these files may be not given. So such exception is tolerable.
-      LOG.warn("Could not get file named servers or agents to parse host.");
-    }
+    parseHostsFiles();
   }
 
-  public List<String> getCoverDir() {
-    return coverList;
-  }
-
-  public void setCoverDir(ArrayList<String> fetchDirs) {
-    coverList.clear();
-    for (String s : fetchDirs) {
-      coverList.add(s + (s.endsWith("/") ? "" : "/"));
-    }
-  }
-
-  public Set<String> parseHost(String fileName, SmartConf conf)
-      throws FileNotFoundException {
-    String hostName = "";
-    try {
-      InetAddress address = InetAddress.getLocalHost();
-      hostName = address.getHostName();
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-    }
-
-    String filePath = conf.get(SmartConfKeys.SMART_CONF_DIR_KEY,
-        SmartConfKeys.SMART_CONF_DIR_DEFAULT) + "/" + fileName;
-    Scanner sc;
-    HashSet<String> hostSet = new HashSet<>();
-    sc = new Scanner(new File(filePath));
-    while (sc != null && sc.hasNextLine()) {
-      String entry = sc.nextLine().trim();
-      if (!entry.startsWith("#") && !entry.isEmpty()) {
-        if (entry.equals("localhost")) {
-          hostSet.add(hostName);
-        } else {
-          hostSet.add(entry);
-        }
-      }
-    }
-    return hostSet;
+  public List<String> getCoverDirs() {
+    return getTrimmedStringCollection(SmartConfKeys.SMART_COVER_DIRS_KEY)
+        .stream()
+        .map(PathUtil::addPathSeparator)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -136,11 +83,9 @@ public class SmartConf extends Configuration {
   /**
    * Get password for druid by Configuration.getPassword().
    */
-  public String getPasswordFromHadoop(String name) throws IOException {
-    char[] password = getPassword(name);
-    return password != null
-        ? new String(password)
-        : null;
+  public Optional<String> getPasswordFromHadoop(String name) throws IOException {
+    return Optional.ofNullable(getPassword(name))
+        .map(String::new);
   }
 
   public Map<String, String> asMap() {
@@ -149,5 +94,27 @@ public class SmartConf extends Configuration {
             Map.Entry::getKey,
             Map.Entry::getValue
         ));
+  }
+
+  private void parseHostsFiles() {
+    SsmHostsFileReader ssmHostsFileReader = new SsmHostsFileReader();
+
+    try {
+      this.serverHosts = parseHostsFile(ssmHostsFileReader, "servers");
+      this.agentHosts = parseHostsFile(ssmHostsFileReader, "agents");
+    } catch (IOException exception) {
+      // In some unit tests, these files may be missing. So such exception is tolerable.
+      LOG.error("Error parsing SSM servers/agents hosts file", exception);
+    }
+  }
+
+  private Set<String> parseHostsFile(
+      SsmHostsFileReader hostFileReader, String fileName) throws IOException {
+    String configDir = get(
+        SmartConfKeys.SMART_CONF_DIR_KEY,
+        SmartConfKeys.SMART_CONF_DIR_DEFAULT);
+
+    Path hostsFilePath = Paths.get(configDir, fileName);
+    return hostFileReader.parse(hostsFilePath);
   }
 }

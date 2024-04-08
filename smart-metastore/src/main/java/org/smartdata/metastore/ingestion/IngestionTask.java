@@ -47,7 +47,7 @@ public abstract class IngestionTask implements Runnable {
   public static void init(SmartConf conf) {
     deque.clear();
     IngestionTask.isFinished = false;
-    List<String> fetchDirs = conf.getCoverDir();
+    List<String> fetchDirs = conf.getCoverDirs();
     if (fetchDirs.isEmpty()) {
       deque.add(ROOT);
     } else {

@@ -1,10 +1,11 @@
 package org.smartdata.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.conf.SmartConf;
+import org.smartdata.utils.PathUtil;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * It's a helper for whitelist function. It's used in action and rule submit process.
@@ -12,58 +13,46 @@ import java.util.Map;
  * whitelist check and invalid small files exception.
  */
 public class WhitelistHelper {
-    private static final Logger LOG = LoggerFactory.getLogger(WhitelistHelper.class);
+  private static final String COMPACT_ACTION_NAME = "compact";
+  private static final String UNCOMPACT_ACTION_NAME = "uncompact";
 
-    /**
-     * Check if whitelist is enabled.
-     * @param conf
-     * @return true/false
-     */
-    public static boolean isEnabled(SmartConf conf) {
-        return !conf.getCoverDir().isEmpty();
+  public static void validateCmdletPathCovered(
+      CmdletDescriptor cmdletDescriptor,
+      PathChecker pathChecker
+  ) throws IOException {
+    for (int actionIdx = 0; actionIdx < cmdletDescriptor.getActionSize(); actionIdx++) {
+      String actionName = cmdletDescriptor.getActionName(actionIdx);
+      Map<String, String> args = cmdletDescriptor.getActionArgs(actionIdx);
+      //check in the SmallFileScheduler for small file action
+      if (actionName.equals(COMPACT_ACTION_NAME)
+          || actionName.equals(UNCOMPACT_ACTION_NAME)
+          || !args.containsKey(CmdletDescriptor.HDFS_FILE_PATH)) {
+        continue;
+      }
+
+      String filePath = args.get(CmdletDescriptor.HDFS_FILE_PATH);
+      if (!pathChecker.isCovered(filePath)) {
+        throw new IOException("Path " + filePath + " is not in the whitelist.");
+      }
+    }
+  }
+
+  public static void validatePathsCovered(
+      List<String> paths, PathChecker pathChecker) throws IOException {
+    if (pathChecker.getCoverDirs().isEmpty()) {
+      return;
     }
 
-    /**
-     * Check if the work path in the whitelist.
-     * @param path
-     * @param conf
-     * @return true/false
-     */
-    public static boolean isInWhitelist(String path, SmartConf conf) {
-        String filePath = path.endsWith("/") ? path : path + "/";
-        for (String s : conf.getCoverDir()) {
-            if (filePath.startsWith(s)) {
-                LOG.debug("Path " + filePath + " is in whitelist.");
-                return true;
-            }
-        }
-        return false;
+    Optional<String> uncoveredPath = firstUncoveredPath(paths, pathChecker);
+    if (uncoveredPath.isPresent()) {
+      throw new IOException("Path " + uncoveredPath.get() + " is not in the whitelist.");
     }
+  }
 
-    /**
-     *  Check if  cmdlet in the whitelist.
-     * @param cmdletDescriptor
-     * @return true/false
-     */
-    public static boolean isCmdletInWhitelist(CmdletDescriptor cmdletDescriptor) {
-        SmartConf conf = new SmartConf();
-        int size = cmdletDescriptor.getActionSize();
-        for (int index = 0; index < size; index++) {
-            String actionName = cmdletDescriptor.getActionName(index);
-            Map<String, String> args = cmdletDescriptor.getActionArgs(index);
-            //check in the SmallFileScheduler for small file action
-            if (actionName.equals("compact") || actionName.equals("uncompact")) {
-                continue;
-            } else if (args.containsKey(CmdletDescriptor.HDFS_FILE_PATH)) {
-                String filePath = args.get(CmdletDescriptor.HDFS_FILE_PATH);
-                LOG.debug("WhiteList helper is checking path: " + filePath);
-                if (!isInWhitelist(filePath, conf)) {
-                    return false;
-                }
-            } else {
-                LOG.debug("This action text doesn't contain file path.");
-            }
-        }
-        return true;
-    }
+  private static Optional<String> firstUncoveredPath(List<String> paths, PathChecker pathChecker) {
+    return paths.stream()
+        .map(PathUtil::addPathSeparator)
+        .filter(path -> !pathChecker.isCovered(path))
+        .findFirst();
+  }
 }

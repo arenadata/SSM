@@ -37,7 +37,6 @@ import org.smartdata.conf.SmartConfKeys;
 
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.model.PathChecker;
 import org.smartdata.model.SystemInfo;
 import org.smartdata.utils.StringUtil;
 
@@ -105,7 +104,7 @@ public class InotifyEventFetcher {
       }
       //Update old whitelist
       try {
-        String currentList = StringUtil.join(",", conf.getCoverDir());
+        String currentList = StringUtil.join(",", conf.getCoverDirs());
         metaStore.updateWhitelistTable(currentList);
       } catch (MetaStoreException e) {
         LOG.warn("Failed to update whitelist.", e);
@@ -215,7 +214,7 @@ public class InotifyEventFetcher {
    *Verify if whitelist changed. It influences namespace fetching process.
    */
   public static boolean isWhitelistChanged(SmartConf conf, MetaStore metaStore) {
-    List<String> currentList = conf.getCoverDir();
+    List<String> currentList = conf.getCoverDirs();
     try {
       oldList = metaStore.getLastFetchedDirs();
     } catch (MetaStoreException e) {

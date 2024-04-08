@@ -26,9 +26,9 @@ import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.DetailedRuleInfo;
+import org.smartdata.model.PathChecker;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
-import org.smartdata.model.WhitelistHelper;
 import org.smartdata.model.rule.RuleExecutorPluginManager;
 import org.smartdata.model.rule.RulePluginManager;
 import org.smartdata.model.rule.RuleTranslationResult;
@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.smartdata.conf.SmartConfKeys.SMART_SYNC_SCHEDULE_STRATEGY_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_SYNC_SCHEDULE_STRATEGY_KEY;
+import static org.smartdata.model.WhitelistHelper.validatePathsCovered;
 
 /**
  * Manage and execute rules. We can have 'cache' here to decrease the needs to execute a SQL query.
@@ -62,6 +63,7 @@ public class RuleManager extends AbstractService {
   private final StatesManager statesManager;
   private final CmdletManager cmdletManager;
   private final MetaStore metaStore;
+  private final PathChecker pathChecker;
 
   private boolean isClosed = false;
 
@@ -85,6 +87,7 @@ public class RuleManager extends AbstractService {
     this.cmdletManager = cmdletManager;
     this.serverContext = context;
     this.metaStore = context.getMetaStore();
+    this.pathChecker = new PathChecker(context.getConf());
 
     FileCopyScheduleStrategy copyScheduleStrategy = FileCopyScheduleStrategy.of(
         context.getConf().get(
@@ -124,13 +127,7 @@ public class RuleManager extends AbstractService {
     doCheckActions(tr.getCmdDescriptor());
 
     //check whitelist
-    if (WhitelistHelper.isEnabled(serverContext.getConf())) {
-      for (String path : tr.getPathPatterns()) {
-        if (!WhitelistHelper.isInWhitelist(path, serverContext.getConf())) {
-          throw new IOException("Path " + path + " is not in the whitelist.");
-        }
-      }
-    }
+    validatePathsCovered(tr.getPathPatterns(), pathChecker);
 
     RuleInfo ruleInfo = RuleInfo.newBuilder()
         .setRuleText(rule)

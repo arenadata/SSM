@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.FileInfo;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
@@ -43,7 +44,6 @@ import static org.smartdata.conf.SmartConfKeys.SMART_IGNORE_DIRS_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_NAMESPACE_FETCH_INTERVAL_MS_KEY;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class TestNamespaceFetcher {
   final Set<String> pathesInDB = new HashSet<>();
@@ -178,9 +178,7 @@ public class TestNamespaceFetcher {
     final SmartConf conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
-    ArrayList<String> coverList = new ArrayList<>();
-    coverList.add("/user");
-    conf.setCoverDir(coverList);
+    conf.set(SmartConfKeys.SMART_COVER_DIRS_KEY, "/user");
     try {
       NamespaceFetcher fetcher = init(cluster, conf);
       fetcher.startFetch();
