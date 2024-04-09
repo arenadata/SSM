@@ -1,0 +1,8 @@
+name: lastCheckTime
+in: query
+required: false
+style: deepObject
+explode: true
+description: Time interval in which the rule was activated
+schema:
+  $ref: '../common/TimeInterval.yaml'

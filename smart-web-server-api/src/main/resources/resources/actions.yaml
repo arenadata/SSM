@@ -6,9 +6,11 @@ get:
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
+    - $ref: '../parameters/common/submission-time.yaml'
     - $ref: '../parameters/actions/hosts.yaml'
     - $ref: '../parameters/actions/states.yaml'
     - $ref: '../parameters/actions/sources.yaml'
+    - $ref: '../parameters/actions/completion-time.yaml'
   responses:
     '200':
       description: OK
@@ -24,6 +26,30 @@ get:
                     description: List of actions
                     items:
                       $ref: '../schemas/actions/ActionInfo.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+post:
+  tags:
+    - Actions
+  summary: Submit action
+  operationId: submitAction
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/SubmitActionRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/actions/ActionInfo.yaml'
     '400':
       description: Data is filled incorrectly
       content:

@@ -12,7 +12,12 @@ properties:
     type: integer
     format: int32
     description: Number of accesses to the file
+  lastAccessTime:
+    type: integer
+    format: int32
+    description: UNIX timestamp (UTC) of the last file access
 required:
   - id
   - path
   - accessCount
+  - lastAccessTime

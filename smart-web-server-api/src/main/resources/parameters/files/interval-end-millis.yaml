@@ -1,8 +1,0 @@
-name: intervalEndMillis
-in: query
-required: false
-description: End of the requested time interval in which the files were accessed
-schema:
-  type: integer
-  format: int64
-  description: UNIX timestamp

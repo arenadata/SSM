@@ -1,0 +1,8 @@
+name: registrationTime
+in: query
+required: false
+style: deepObject
+explode: true
+description: Time interval in which node was registered in master
+schema:
+  $ref: '../common/TimeInterval.yaml'

@@ -3,7 +3,4 @@ type: string
 description: Current state of the rule
 enum:
   - ACTIVE
-  - NEW
   - DISABLED
-  - FINISHED
-  - DELETED

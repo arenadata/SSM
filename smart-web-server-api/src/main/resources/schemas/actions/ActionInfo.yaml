@@ -20,13 +20,13 @@ properties:
   submissionTime:
     type: integer
     format: int64
-    description: UNIX timestamp of the action submission
+    description: UNIX timestamp (UTC) of the action submission
   completionTime:
     type: integer
     format: int64
     nullable: true
     default: null
-    description: UNIX timestamp of the action completion
+    description: UNIX timestamp (UTC) of the action completion
   state:
     $ref: "./ActionState.yaml"
   source:

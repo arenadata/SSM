@@ -1,0 +1,8 @@
+name: states
+in: query
+required: false
+description: List of cmdlet states
+schema:
+  type: array
+  items:
+    $ref: "../../schemas/cmdlets/CmdletState.yaml"

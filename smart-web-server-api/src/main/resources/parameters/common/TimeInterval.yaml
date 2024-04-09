@@ -1,0 +1,15 @@
+title: TimeInterval
+type: object
+properties:
+  from:
+    type: integer
+    format: int64
+    nullable: true
+    default: null
+    description: UNIX timestamp (UTC) of the interval start
+  to:
+    type: integer
+    format: int64
+    nullable: true
+    default: null
+    description: UNIX timestamp (UTC) of the interval end

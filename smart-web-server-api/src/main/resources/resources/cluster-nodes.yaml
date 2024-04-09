@@ -5,6 +5,7 @@ get:
   operationId: getClusterNodes
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
+    - $ref: '../parameters/cluster/registration-time.yaml'
   responses:
     '200':
       description: OK

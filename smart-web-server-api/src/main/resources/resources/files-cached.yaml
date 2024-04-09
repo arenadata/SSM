@@ -6,6 +6,8 @@ get:
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/files/path-like.yaml'
+    - $ref: '../parameters/files/last-accessed-time.yaml'
+    - $ref: '../parameters/files/cached-time.yaml'
   responses:
     '200':
       description: OK

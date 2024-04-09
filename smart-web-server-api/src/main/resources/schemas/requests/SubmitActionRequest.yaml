@@ -1,0 +1,8 @@
+title: SubmitActionRequest
+type: object
+properties:
+  action:
+    type: string
+    description: Action text representation
+required:
+  - action

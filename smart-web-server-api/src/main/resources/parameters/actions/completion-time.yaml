@@ -1,0 +1,8 @@
+name: completionTime
+in: query
+required: false
+style: deepObject
+explode: true
+description: Time interval in which the action was finished
+schema:
+  $ref: '../common/TimeInterval.yaml'

@@ -1,0 +1,8 @@
+name: lastAccessedTime
+in: query
+required: false
+style: deepObject
+explode: true
+description: Time interval in which the file was accessed
+schema:
+  $ref: '../common/TimeInterval.yaml'

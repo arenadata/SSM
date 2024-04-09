@@ -25,11 +25,11 @@ properties:
   submissionTime:
     type: integer
     format: int64
-    description: UNIX timestamp of the cmdlet submission
+    description: UNIX timestamp (UTC) of the cmdlet submission
   stateChangedTime:
     type: integer
     format: int64
-    description: UNIX timestamp of the cmdlet state modification
+    description: UNIX timestamp (UTC) of the cmdlet state modification
 required:
   - id
   - actionIds

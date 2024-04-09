@@ -2,7 +2,7 @@ get:
   tags:
     - Cmdlets
   summary: Get cmdlet by id
-  operationId: getCmdlet
+  operationId: submitCmdlet
   parameters:
     - $ref: '../parameters/common/id.yaml'
   responses:

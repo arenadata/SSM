@@ -6,7 +6,9 @@ get:
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
+    - $ref: '../parameters/common/submission-time.yaml'
     - $ref: '../parameters/rules/rule-states.yaml'
+    - $ref: '../parameters/rules/last-activation-time.yaml'
   responses:
     '200':
       description: OK

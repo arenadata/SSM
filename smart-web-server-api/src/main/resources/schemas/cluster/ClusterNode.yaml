@@ -16,7 +16,7 @@ properties:
   registrationTime:
     type: integer
     format: int64
-    description: UNIX timestamp of the node registration in master
+    description: UNIX timestamp (UTC) of the node registration in master
   executorsCount:
     type: integer
     format: int32

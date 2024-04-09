@@ -15,11 +15,11 @@ properties:
   cachedTime:
     type: integer
     format: int32
-    description: UNIX timestamp when the file was cached
+    description: UNIX timestamp (UTC) when the file was cached
   lastAccessTime:
     type: integer
     format: int32
-    description: UNIX timestamp of the last file access
+    description: UNIX timestamp (UTC) of the last file access
 required:
   - id
   - path

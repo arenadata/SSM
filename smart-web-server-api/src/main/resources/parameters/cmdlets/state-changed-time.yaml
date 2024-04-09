@@ -1,0 +1,8 @@
+name: stateChangedTime
+in: query
+required: false
+style: deepObject
+explode: true
+description: Time interval in which the state of the cmdlet was changed
+schema:
+  $ref: '../common/TimeInterval.yaml'
