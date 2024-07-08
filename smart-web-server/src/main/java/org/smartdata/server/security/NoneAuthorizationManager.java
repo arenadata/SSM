@@ -15,23 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.config;
+package org.smartdata.server.security;
 
-public class ConfigKeys {
-  public static final String WEB_SECURITY_ENABLED = "smart.rest.server.security.enabled";
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
-  public static final String SPNEGO_AUTH_ENABLED = "smart.rest.server.auth.spnego.enabled";
+import java.util.function.Supplier;
 
-  public static final String KERBEROS_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.kerberos.enabled";
+public class NoneAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
-  public static final String PREDEFINED_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.predefined.enabled";
-
-  public static final String PREDEFINED_USERS = "smart.rest.server.auth.predefined.users";
-
-  public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
-      "smart.rest.server.auth.spnego.keytab";
-  public static final String RANGER_AUTHORIZATION_ENABLED = "smart.rest.server.auth.ranger.enabled";
-
+  @Override
+  public AuthorizationDecision check(Supplier<Authentication> authentication,
+                                     RequestAuthorizationContext object) {
+    return new AuthorizationDecision(true);
+  }
 }

@@ -20,6 +20,7 @@ package org.smartdata.server;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.server.config.SsmContextInitializer;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.solr.SolrHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.hazelcast.HazelcastAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
@@ -72,7 +73,8 @@ public class SmartRestServer {
       EmbeddedWebServerFactoryCustomizerAutoConfiguration.class,
       // it's needed to prevent auto-registration of spring hazelcast node
       // in the SSM hazelcast workers cluster
-      HazelcastAutoConfiguration.class
+      HazelcastAutoConfiguration.class,
+      SolrHealthContributorAutoConfiguration.class
   })
   public static class RestServerApplication {
     // empty class just to enable auto configs

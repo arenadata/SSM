@@ -15,23 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.config;
+package org.smartdata.ranger.plugin.impl;
 
-public class ConfigKeys {
-  public static final String WEB_SECURITY_ENABLED = "smart.rest.server.security.enabled";
+import org.apache.ranger.plugin.audit.RangerDefaultAuditHandler;
+import org.apache.ranger.plugin.service.RangerBasePlugin;
 
-  public static final String SPNEGO_AUTH_ENABLED = "smart.rest.server.auth.spnego.enabled";
+public class RangerSsmPlugin extends RangerBasePlugin {
 
-  public static final String KERBEROS_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.kerberos.enabled";
+  private static final RangerSsmPlugin instance = new RangerSsmPlugin();
 
-  public static final String PREDEFINED_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.predefined.enabled";
+  private RangerSsmPlugin() {
+    super("ssm", "ssm");
+    init();
+  }
 
-  public static final String PREDEFINED_USERS = "smart.rest.server.auth.predefined.users";
+  public static RangerSsmPlugin getInstance() {
+    return instance;
+  }
 
-  public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
-      "smart.rest.server.auth.spnego.keytab";
-  public static final String RANGER_AUTHORIZATION_ENABLED = "smart.rest.server.auth.ranger.enabled";
-
+  @Override
+  public void init() {
+    super.init();
+    RangerDefaultAuditHandler auditHandler = new RangerDefaultAuditHandler();
+    super.setResultProcessor(auditHandler);
+  }
 }

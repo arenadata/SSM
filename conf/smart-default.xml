@@ -591,4 +591,12 @@
           for later submission and drop old failing events.
     </description>
   </property>
+
+  <property>
+    <name>smart.rest.server.auth.ranger.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable Apache Ranger authorization for SSM REST server.
+    </description>
+  </property>
 </configuration>

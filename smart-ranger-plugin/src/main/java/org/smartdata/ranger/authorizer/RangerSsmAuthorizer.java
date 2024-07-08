@@ -15,23 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.config;
+package org.smartdata.ranger.authorizer;
 
-public class ConfigKeys {
-  public static final String WEB_SECURITY_ENABLED = "smart.rest.server.security.enabled";
+import org.smartdata.ranger.authorizer.request.RangerAuthorizeRequest;
 
-  public static final String SPNEGO_AUTH_ENABLED = "smart.rest.server.auth.spnego.enabled";
+public interface RangerSsmAuthorizer {
 
-  public static final String KERBEROS_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.kerberos.enabled";
-
-  public static final String PREDEFINED_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.predefined.enabled";
-
-  public static final String PREDEFINED_USERS = "smart.rest.server.auth.predefined.users";
-
-  public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
-      "smart.rest.server.auth.spnego.keytab";
-  public static final String RANGER_AUTHORIZATION_ENABLED = "smart.rest.server.auth.ranger.enabled";
-
+    boolean authorize(RangerAuthorizeRequest request);
 }

@@ -25,8 +25,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -52,12 +55,12 @@ public class SecurityConfiguration {
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
       SmartPrincipalManager principalManager,
-      List<SsmAuthHttpConfigurer> authHttpConfigurers) throws Exception {
+      List<SsmAuthHttpConfigurer> authHttpConfigurers,
+      AuthorizationManager<RequestAuthorizationContext> authorizationManager) throws Exception {
     baseHttpSecurity(http)
-        .authorizeRequests()
-        .antMatchers("/api/**").authenticated()
-        .and()
-        .anonymous().disable()
+        .authorizeHttpRequests(
+            authorize -> authorize.antMatchers("/api/**").access(authorizationManager))
+        .anonymous(AbstractHttpConfigurer::disable)
         .addFilterAfter(
             new SmartPrincipalInitializerFilter(principalManager),
             BasicAuthenticationFilter.class);

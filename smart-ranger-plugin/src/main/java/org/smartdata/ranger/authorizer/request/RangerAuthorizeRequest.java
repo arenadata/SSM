@@ -15,23 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.config;
+package org.smartdata.ranger.authorizer.request;
 
-public class ConfigKeys {
-  public static final String WEB_SECURITY_ENABLED = "smart.rest.server.security.enabled";
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-  public static final String SPNEGO_AUTH_ENABLED = "smart.rest.server.auth.spnego.enabled";
+import java.util.List;
 
-  public static final String KERBEROS_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.kerberos.enabled";
-
-  public static final String PREDEFINED_BASIC_AUTH_ENABLED =
-      "smart.rest.server.auth.predefined.enabled";
-
-  public static final String PREDEFINED_USERS = "smart.rest.server.auth.predefined.users";
-
-  public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
-      "smart.rest.server.auth.spnego.keytab";
-  public static final String RANGER_AUTHORIZATION_ENABLED = "smart.rest.server.auth.ranger.enabled";
-
+@EqualsAndHashCode
+@Getter
+@RequiredArgsConstructor
+public class RangerAuthorizeRequest {
+  private final String userName;
+  private final List<String> userGroups;
+  private final String urlPath;
+  private final String accessMethod;
 }
