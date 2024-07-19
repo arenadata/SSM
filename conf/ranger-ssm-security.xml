@@ -17,13 +17,6 @@
 -->
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-    <property>
-        <name>ranger.plugin.ssm.policy.rest.url</name>
-        <value>http://10.92.6.199:6080</value>
-        <description>
-            URL to Ranger Admin
-        </description>
-    </property>
 
     <property>
         <name>ranger.plugin.ssm.service.name</name>

@@ -26,15 +26,15 @@ import java.util.HashSet;
 public class RangerSsmAccessRequest extends RangerAccessRequestImpl {
 
     public RangerSsmAccessRequest(RangerAuthorizeRequest request) {
-        super.setUser(request.getUserName());
+        setUser(request.getUserName());
         if (!request.getUserGroups().isEmpty()) {
             super.setUserGroups(new HashSet<>(request.getUserGroups()));
         }
         RangerAccessResourceImpl resource = new RangerAccessResourceImpl();
         resource.setValue("path", request.getUrlPath());
-        super.setResource(resource);
-        super.setAccessType(request.getAccessMethod());
-        super.setAction(request.getAccessMethod());
-        super.setAccessTime(new Date());
+        setResource(resource);
+        setAccessType(request.getAccessMethod());
+        setAction(request.getAccessMethod());
+        setAccessTime(new Date());
     }
 }

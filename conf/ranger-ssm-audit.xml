@@ -13,11 +13,6 @@
     </property>
 
     <property>
-        <name>xasecure.audit.destination.db.jdbc.url</name>
-        <value>jdbc:mysql://10.92.3.109/ranger_audit</value>
-    </property>
-
-    <property>
         <name>xasecure.audit.destination.db.password</name>
         <value>rangerlogger</value>
     </property>
@@ -32,7 +27,6 @@
         <value>/tmp/audit/db/spool</value>
     </property>
 
-
     <!-- HDFS audit provider configuration -->
     <property>
         <name>xasecure.audit.destination.hdfs</name>
@@ -40,15 +34,9 @@
     </property>
 
     <property>
-        <name>xasecure.audit.destination.hdfs.dir</name>
-        <value>hdfs://10.92.3.109:8020/ranger/audit</value>
-    </property>
-
-    <property>
         <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
         <value>/tmp/audit/hdfs/spool</value>
     </property>
-
 
     <!-- Log4j audit provider configuration -->
     <property>

@@ -27,7 +27,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -60,7 +59,7 @@ public class SecurityConfiguration {
     baseHttpSecurity(http)
         .authorizeHttpRequests(
             authorize -> authorize.antMatchers("/api/**").access(authorizationManager))
-        .anonymous(AbstractHttpConfigurer::disable)
+        .anonymous().disable()
         .addFilterAfter(
             new SmartPrincipalInitializerFilter(principalManager),
             BasicAuthenticationFilter.class);
