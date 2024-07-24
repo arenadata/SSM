@@ -23,7 +23,7 @@ import org.apache.commons.lang.mutable.MutableFloat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.XAttrSetFlag;
-import org.apache.hadoop.hdfs.CompressionCodec;
+import org.apache.hadoop.hdfs.CompressionCodecFactory;
 import org.apache.hadoop.hdfs.DFSInputStream;
 import org.apache.hadoop.hdfs.SmartCompressorStream;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
@@ -43,8 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This action is used to compress a file.
@@ -66,7 +66,8 @@ public class CompressionAction extends HdfsAction {
 
   public static final String BUF_SIZE = "-bufSize";
   public static final String CODEC = "-codec";
-  private static List<String> compressionCodecList = CompressionCodec.CODEC_LIST;
+  private static final Set<String> SUPPORTED_CODECS =
+      CompressionCodecFactory.getInstance().getSupportedCodecs();
 
   private String filePath;
   private Configuration conf;
@@ -118,7 +119,7 @@ public class CompressionAction extends HdfsAction {
     if (compressTmpPath == null) {
       throw new IllegalArgumentException("Compression tmp path is not specified!");
     }
-    if (!compressionCodecList.contains(compressCodec)) {
+    if (!SUPPORTED_CODECS.contains(compressCodec)) {
       throw new ActionException(
           "Compression Action failed due to unsupported codec: " + compressCodec);
     }

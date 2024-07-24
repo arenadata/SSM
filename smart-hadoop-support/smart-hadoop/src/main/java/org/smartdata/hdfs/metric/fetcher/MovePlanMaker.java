@@ -18,6 +18,7 @@
 package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
@@ -26,6 +27,7 @@ import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.protocol.HdfsLocatedFileStatus;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
 import org.apache.hadoop.hdfs.protocol.LocatedBlocks;
+import org.apache.hadoop.hdfs.protocol.LocatedStripedBlock;
 import org.apache.hadoop.hdfs.server.balancer.Matcher;
 import org.apache.hadoop.net.NetworkTopology;
 import org.slf4j.Logger;
@@ -171,7 +173,7 @@ public class MovePlanMaker {
       }
       final StorageTypeDiff diff =
           new StorageTypeDiff(types, CompatibilityHelperLoader.getHelper().getStorageTypes(lb));
-      int remainingReplications = diff.removeOverlap(true);
+      int remainingReplications = diff.removeOverlap();
       long toMove = lb.getBlockSize() * remainingReplications;
       schedulePlan.addSizeToMove(toMove);
       schedulePlan.incBlocksToMove();
@@ -189,7 +191,7 @@ public class MovePlanMaker {
    */
   void scheduleMoveBlock(StorageTypeDiff diff, LocatedBlock lb, HdfsFileStatus status) {
     final List<MLocation> locations = MLocation.toLocations(lb);
-    if (!CompatibilityHelperLoader.getHelper().isLocatedStripedBlock(lb)) {
+    if (!(lb instanceof LocatedStripedBlock)) {
       // Shuffle replica locations to make storage medium in balance.
       // E.g., if three replicas are under ALL_SSD policy and ONE_SSD is the target policy,
       // with shuffling locations, two randomly picked replicas will be moved to DISK.
@@ -294,43 +296,33 @@ public class MovePlanMaker {
    * Record and process the difference of storage types between source and
    * destination during Mover.
    */
-  class StorageTypeDiff {
+  static class StorageTypeDiff {
     final List<String> expected;
     final List<String> existing;
 
-    StorageTypeDiff(List<String> expected, String[] existing) {
-      this.expected = new LinkedList<String>(expected);
-      this.existing = new LinkedList<String>(Arrays.asList(existing));
+    StorageTypeDiff(List<String> expected, List<String> existing) {
+      this.expected = new LinkedList<>(expected);
+      this.existing = new LinkedList<>(existing);
     }
 
     /**
      * Remove the overlap between the expected types and the existing types.
-     * @param  ignoreNonMovable ignore non-movable storage types
-     *         by removing them from both expected and existing storage type list
-     *         to prevent non-movable storage from being moved.
+     *
      * @returns the remaining number of replications to move.
      */
-    int removeOverlap(boolean ignoreNonMovable) {
-      for(Iterator<String> i = existing.iterator(); i.hasNext(); ) {
-        final String t = i.next();
-        if (expected.remove(t)) {
-          i.remove();
-        }
-      }
-      if (ignoreNonMovable) {
-        removeNonMovable(existing);
-        removeNonMovable(expected);
-      }
-      return existing.size() < expected.size() ? existing.size() : expected.size();
+    int removeOverlap() {
+      existing.removeIf(expected::remove);
+
+      // ignore non-movable storage types by removing them
+      // from both expected and existing storage type list
+      // to prevent non-movable storage from being moved
+      removeNonMovable(existing);
+      removeNonMovable(expected);
+      return Math.min(existing.size(), expected.size());
     }
 
     void removeNonMovable(List<String> types) {
-      for (Iterator<String> i = types.iterator(); i.hasNext(); ) {
-        final String t = i.next();
-        if (!CompatibilityHelperLoader.getHelper().isMovable(t)) {
-          i.remove();
-        }
-      }
+      types.removeIf(type -> !StorageType.valueOf(type).isMovable());
     }
 
     @Override

@@ -9,3 +9,13 @@ server:
     session:
       cookie:
         name: SSM_SESSION_ID
+spring:
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          cache-private: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher

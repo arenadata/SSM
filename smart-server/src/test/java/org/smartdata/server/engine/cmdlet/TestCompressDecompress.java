@@ -21,7 +21,6 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.hdfs.CompressionCodec;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSInputStream;
 import org.apache.hadoop.hdfs.DFSTestUtil;
@@ -32,6 +31,7 @@ import org.junit.Test;
 import org.smartdata.hadoop.filesystem.SmartFileSystem;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.client.SmartDFSClient;
+import org.smartdata.hdfs.compression.ZLibCompressorFactory;
 import org.smartdata.hdfs.scheduler.CompressionScheduler;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.CmdletInfo;
@@ -63,7 +63,7 @@ public class TestCompressDecompress extends MiniSmartClusterHarness {
   public void init() throws Exception {
     DEFAULT_BLOCK_SIZE = 1024 * 1024;
     super.init();
-    this.codec = CompressionCodec.ZLIB;
+    this.codec = ZLibCompressorFactory.ZLIB_CODEC;
     smartDFSClient = new SmartDFSClient(ssm.getContext().getConf());
 
     cmdletManager = ssm.getCmdletManager();

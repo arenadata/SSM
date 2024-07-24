@@ -34,6 +34,7 @@ import org.smartdata.hdfs.action.move.StorageMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DatanodeStorageReportProcTask implements Runnable {
@@ -68,8 +69,7 @@ public class DatanodeStorageReportProcTask implements Runnable {
   public void run() {
     try {
       reset();
-      final List<DatanodeStorageReport> reports = getDNStorageReports();
-      for(DatanodeStorageReport r : reports) {
+      for(DatanodeStorageReport r : client.getDatanodeStorageReport(DatanodeReportType.LIVE)) {
         // TODO: store data abstracted from reports to MetaStore
         final DDatanode dn = new DDatanode(r.getDatanodeInfo(), maxConcurrentMovesPerNode);
         for(String t : CompatibilityHelperLoader.getHelper().getMovableTypes()) {
@@ -94,23 +94,5 @@ public class DatanodeStorageReportProcTask implements Runnable {
       }
     }
     return max;
-  }
-
-  /**
-   * Get live datanode storage reports and then build the network topology.
-   * @return
-   * @throws IOException
-   */
-  public List<DatanodeStorageReport> getDNStorageReports() throws IOException {
-    final DatanodeStorageReport[] reports =
-        client.getDatanodeStorageReport(DatanodeReportType.LIVE);
-    final List<DatanodeStorageReport> trimmed = new ArrayList<DatanodeStorageReport>();
-    // create network topology and classify utilization collections:
-    // over-utilized, above-average, below-average and under-utilized.
-    for (DatanodeStorageReport r : DFSUtil.shuffle(reports)) {
-      final DatanodeInfo datanode = r.getDatanodeInfo();
-      trimmed.add(r);
-    }
-    return trimmed;
   }
 }

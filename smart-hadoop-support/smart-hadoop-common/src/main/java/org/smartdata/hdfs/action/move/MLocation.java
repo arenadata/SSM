@@ -46,11 +46,11 @@ public class MLocation {
    */
   public static List<MLocation> toLocations(LocatedBlock lb) {
     final DatanodeInfo[] datanodeInfos = lb.getLocations();
-    final String[] storageTypes = CompatibilityHelperLoader.getHelper().getStorageTypes(lb);
+    final List<String> storageTypes = CompatibilityHelperLoader.getHelper().getStorageTypes(lb);
     final long size = lb.getBlockSize();
     final List<MLocation> locations = new LinkedList<MLocation>();
     for (int i = 0; i < datanodeInfos.length; i++) {
-      locations.add(new MLocation(datanodeInfos[i], storageTypes[i], size));
+      locations.add(new MLocation(datanodeInfos[i], storageTypes.get(i), size));
     }
     return locations;
   }

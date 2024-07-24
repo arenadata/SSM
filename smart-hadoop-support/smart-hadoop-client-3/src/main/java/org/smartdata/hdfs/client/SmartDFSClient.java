@@ -224,33 +224,21 @@ public class SmartDFSClient extends DFSClient {
   @Override
   public HdfsFileStatus getFileInfo(String src) throws IOException {
     HdfsFileStatus oldStatus = super.getFileInfo(src);
-    if (oldStatus == null) return null;
-    if (oldStatus.getLen() == 0) {
-      FileState fileState = getFileState(src);
-      if (fileState instanceof CompactFileState) {
-        long len = ((CompactFileState) fileState).getFileContainerInfo().getLength();
-        return CompatibilityHelperLoader.getHelper().createHdfsFileStatus(len, oldStatus.isDir(), oldStatus.getReplication(),
-            oldStatus.getBlockSize(), oldStatus.getModificationTime(), oldStatus.getAccessTime(),
-            oldStatus.getPermission(), oldStatus.getOwner(), oldStatus.getGroup(),
-            oldStatus.isSymlink() ? oldStatus.getSymlinkInBytes() : null,
-            oldStatus.isEmptyLocalName() ? new byte[0] : oldStatus.getLocalNameInBytes(),
-            oldStatus.getFileId(), oldStatus.getChildrenNum(),
-            oldStatus.getFileEncryptionInfo(), oldStatus.getStoragePolicy());
-      }
-    } else {
-      FileState fileState = getFileState(src);
-      if (fileState instanceof CompressionFileState) {
-        // To make SmartDFSClient return the original length of compressed file.
-        long len = ((CompressionFileState) fileState).getOriginalLength();
-        return CompatibilityHelperLoader.getHelper().createHdfsFileStatus(len, oldStatus.isDir(), oldStatus.getReplication(),
-            oldStatus.getBlockSize(), oldStatus.getModificationTime(), oldStatus.getAccessTime(),
-            oldStatus.getPermission(), oldStatus.getOwner(), oldStatus.getGroup(),
-            oldStatus.isSymlink() ? oldStatus.getSymlinkInBytes() : null,
-            oldStatus.isEmptyLocalName() ? new byte[0] : oldStatus.getLocalNameInBytes(),
-            oldStatus.getFileId(), oldStatus.getChildrenNum(),
-            oldStatus.getFileEncryptionInfo(), oldStatus.getStoragePolicy());
-      }
+    if (oldStatus == null) {
+      return null;
     }
+
+    FileState fileState = getFileState(src);
+
+    if (oldStatus.getLen() == 0 && fileState instanceof CompactFileState) {
+      long len = ((CompactFileState) fileState).getFileContainerInfo().getLength();
+      return withNewLength(oldStatus, len);
+    } else if (fileState instanceof CompressionFileState) {
+      // To make SmartDFSClient return the original length of compressed file.
+      long len = ((CompressionFileState) fileState).getOriginalLength();
+      return withNewLength(oldStatus, len);
+    }
+
     return oldStatus;
   }
 
@@ -570,6 +558,26 @@ public class SmartDFSClient extends DFSClient {
         healthy = false;
       }
     }
+  }
+
+  private HdfsFileStatus withNewLength(HdfsFileStatus oldStatus, long newLength) {
+    return new HdfsFileStatus.Builder()
+        .length(newLength)
+        .isdir(oldStatus.isDir())
+        .replication(oldStatus.getReplication())
+        .blocksize(oldStatus.getBlockSize())
+        .mtime(oldStatus.getModificationTime())
+        .atime(oldStatus.getAccessTime())
+        .perm(oldStatus.getPermission())
+        .owner(oldStatus.getOwner())
+        .group(oldStatus.getGroup())
+        .symlink(oldStatus.isSymlink() ? oldStatus.getSymlinkInBytes() : null)
+        .path(oldStatus.isEmptyLocalName() ? new byte[0] : oldStatus.getLocalNameInBytes())
+        .fileId(oldStatus.getFileId())
+        .children(oldStatus.getChildrenNum())
+        .feInfo(oldStatus.getFileEncryptionInfo())
+        .storagePolicy(oldStatus.getStoragePolicy())
+        .build();
   }
 
   /**

@@ -17,21 +17,21 @@
  */
 package org.smartdata.hdfs.metric.fetcher;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.inotify.Event;
 import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class TestEventBatchSerializer {
+public class TestEventBatchSerializer {
 
   @Test
-  public void testSerializer() throws InvalidProtocolBufferException {
+  public void testSerializer() throws IOException {
     Event close = new Event.CloseEvent("/user1", 1024, 0);
     Event create =
         new Event.CreateEvent.Builder()
@@ -59,9 +59,10 @@ public abstract class TestEventBatchSerializer {
         new Event.RenameEvent.Builder().dstPath("/file4").srcPath("/file3").timestamp(5).build();
     Event append = new Event.AppendEvent.Builder().path("/file5").build();
     Event unlink = new Event.UnlinkEvent.Builder().path("/file6").timestamp(6).build();
-//    Event truncate = new Event.TruncateEvent("/file7", 1024, 16);
-    List<Event> events = Arrays.asList(close, create, meta, rename, append, unlink);
+    Event truncate = new Event.TruncateEvent("/file7", 1024, 16);
+    List<Event> events = Arrays.asList(close, create, meta, rename, append, unlink, truncate);
     EventBatch batch = new EventBatch(1023, events.toArray(new Event[0]));
+
     List<String> expected = new ArrayList<>();
     for (Event event : events) {
       expected.add(event.toString());
@@ -75,6 +76,6 @@ public abstract class TestEventBatchSerializer {
     }
     Assert.assertEquals(batch.getTxid(), result.getTxid());
     Assert.assertEquals(expected.size(), actual.size());
-//    Assert.assertTrue(expected.containsAll(actual));
+    Assert.assertTrue(expected.containsAll(actual));
   }
 }

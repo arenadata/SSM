@@ -36,6 +36,7 @@ import org.smartdata.model.StorageCapacity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +116,8 @@ public class DataNodeInfoFetcher {
       StorageCapacity sc;
       Map<String, StorageCapacity> storagesNow = new HashMap<>();
       try {
-        final List<DatanodeStorageReport> reports = getDNStorageReports();
+        final DatanodeStorageReport[] reports =
+            client.getDatanodeStorageReport(HdfsConstants.DatanodeReportType.LIVE);
         metaStore.deleteAllDataNodeInfo();
         for (DatanodeStorageReport r : reports) {
           metaStore.insertDataNodeInfo(transform(r.getDatanodeInfo()));
@@ -184,28 +186,10 @@ public class DataNodeInfoFetcher {
       metaStore.insertUpdateStoragesTable(sc);
     }
 
-    /**
-     * Get live datanode storage reports and then build the network topology.
-     * @return
-     * @throws IOException
-     */
-    public List<DatanodeStorageReport> getDNStorageReports() throws IOException {
-      final DatanodeStorageReport[] reports =
-          client.getDatanodeStorageReport(HdfsConstants.DatanodeReportType.LIVE);
-      final List<DatanodeStorageReport> trimmed = new ArrayList<DatanodeStorageReport>();
-      // create network topology and classify utilization collections:
-      // over-utilized, above-average, below-average and under-utilized.
-      for (DatanodeStorageReport r : DFSUtil.shuffle(reports)) {
-        final DatanodeInfo datanode = r.getDatanodeInfo();
-        trimmed.add(r);
-      }
-      return trimmed;
-    }
-
     private DataNodeInfo transform(DatanodeInfo datanodeInfo) {
       return DataNodeInfo.newBuilder().setUuid(datanodeInfo.getDatanodeUuid()).
           setHostName(datanodeInfo.getHostName()).
-          setRpcAddress(datanodeInfo.getIpAddr() + ":" + 
+          setRpcAddress(datanodeInfo.getIpAddr() + ":" +
               Integer.toString(datanodeInfo.getIpcPort())).
           setCacheCapacity(datanodeInfo.getCacheCapacity()).
           setCacheUsed(datanodeInfo.getCacheUsed()).

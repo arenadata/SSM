@@ -18,6 +18,7 @@
 package org.smartdata.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import java.io.IOException;
@@ -28,13 +29,19 @@ public interface MiniClusterFactory {
   class DefaultMiniClusterFactory implements MiniClusterFactory {
     @Override
     public MiniDFSCluster create(int dataNodes, Configuration conf) throws IOException {
-      return new MiniDFSCluster.Builder(conf).numDataNodes(dataNodes).build();
+      return new MiniDFSCluster.Builder(conf)
+          .numDataNodes(dataNodes)
+          .build();
     }
 
     @Override
-    public MiniDFSCluster createWithStorages(int dataNodes, Configuration conf) {
-      throw new UnsupportedOperationException(
-          "DefaultMiniClusterFactory does not support creating cluster with storage types");
+    public MiniDFSCluster createWithStorages(int dataNodes, Configuration conf) throws IOException {
+      return new MiniDFSCluster.Builder(conf)
+          .numDataNodes(dataNodes)
+          .storagesPerDatanode(3)
+          .storageTypes(new StorageType[]{StorageType.DISK, StorageType.ARCHIVE,
+              StorageType.SSD})
+          .build();
     }
   }
 

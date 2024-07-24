@@ -32,7 +32,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class CompactInputStream extends SmartInputStream {
-  private FileContainerInfo fileContainerInfo;
+  private final FileContainerInfo fileContainerInfo;
   private boolean closed = false;
   private static final String INHERITED_CLASS = "org.apache.hadoop.hdfs.DFSInputStream";
 

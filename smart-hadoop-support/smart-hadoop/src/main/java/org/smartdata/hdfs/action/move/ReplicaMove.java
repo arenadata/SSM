@@ -18,8 +18,10 @@
 package org.smartdata.hdfs.action.move;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
+import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
 import org.apache.hadoop.hdfs.protocol.datatransfer.sasl.SaslDataTransferClient;
 import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos;
@@ -88,7 +90,7 @@ class ReplicaMove {
     try {
       sock.connect(
           NetUtils.createSocketAddr(target.getDatanodeInfo().getXferAddr()),
-          CompatibilityHelperLoader.getHelper().getReadTimeOutConstant());
+          HdfsConstants.READ_TIMEOUT);
 
       sock.setKeepAlive(true);
 
@@ -102,10 +104,13 @@ class ReplicaMove {
           unbufIn, km, accessToken, target.getDatanodeInfo());
       unbufOut = saslStreams.out;
       unbufIn = saslStreams.in;
-      out = new DataOutputStream(new BufferedOutputStream(unbufOut,
-          CompatibilityHelperLoader.getHelper().getIOFileBufferSize(conf)));
-      in = new DataInputStream(new BufferedInputStream(unbufIn,
-          CompatibilityHelperLoader.getHelper().getIOFileBufferSize(conf)));
+
+      int ioFileBufferSize = conf.getInt(
+          CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_KEY,
+          CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_DEFAULT);
+
+      out = new DataOutputStream(new BufferedOutputStream(unbufOut, ioFileBufferSize));
+      in = new DataInputStream(new BufferedInputStream(unbufIn, ioFileBufferSize));
 
       sendRequest(out, eb, accessToken);
       receiveResponse(in);

@@ -37,6 +37,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfiguration {
   private static final String SESSION_COOKIE_NAME = "SSM_SESSIONID";
+  private static final String API_ENDPOINTS_PATTERN = "/api/**";
 
   @Bean
   @ConditionalOnProperty(name = ConfigKeys.WEB_SECURITY_ENABLED, havingValue = "true")
@@ -58,7 +59,7 @@ public class SecurityConfiguration {
       AuthorizationManager<RequestAuthorizationContext> authorizationManager) throws Exception {
     baseHttpSecurity(http)
         .authorizeHttpRequests(
-            authorize -> authorize.antMatchers("/api/**").access(authorizationManager))
+            authorize -> authorize.antMatchers(API_ENDPOINTS_PATTERN).access(authorizationManager))
         .anonymous().disable()
         .addFilterAfter(
             new SmartPrincipalInitializerFilter(principalManager),

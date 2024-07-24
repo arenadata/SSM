@@ -41,5 +41,5 @@ Maven build goals:
   * Use -Dtar to create a TAR with the distribution (using -Pdist)
 
  For each build goal you should define the version of Hadoop by providing one of the following profiles:
-  * -Phadoop-3.1
   * -Phadoop-3.2
+  * -Phadoop-3.3

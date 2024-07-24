@@ -35,6 +35,7 @@
     <merged.api.spec.directory>${project.basedir}/src/main/resources/static</merged.api.spec.directory>
     <openapi.codegen.output.dir>${project.basedir}</openapi.codegen.output.dir>
     <openapi.codegen.package.base>org.smartdata.server.generated</openapi.codegen.package.base>
+    <ui.assets.directory>../smart-frontend/build/</ui.assets.directory>
   </properties>
 
   <dependencyManagement>
@@ -197,6 +198,41 @@
             </path>
           </annotationProcessorPaths>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven-resources-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <skip>${skip-build-web-ui}</skip>
+              <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${ui.assets.directory}</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                    <include>**/*.woff2</include>
+                    <include>**/*.ttf</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${ui.assets.directory}</directory>
+                  <filtering>true</filtering>
+                  <excludes>
+                    <exclude>**/*.woff2</exclude>
+                    <exclude>**/*.ttf</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

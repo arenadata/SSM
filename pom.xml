@@ -41,7 +41,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>smart-maven-plugins</module>
+    <module>smart-frontend</module>
     <module>smart-common</module>
     <module>smart-metrics</module>
     <module>smart-action</module>
@@ -57,6 +57,7 @@
     <module>smart-integration</module>
     <module>smart-web-server</module>
     <module>smart-ranger-plugin</module>
+    <module>smart-hadoop-support</module>
   </modules>
 
   <properties>
@@ -80,12 +81,12 @@
     <spring.version>5.3.31</spring.version>
     <antlr4.version>4.6</antlr4.version>
     <hazelcast.version>4.2.8</hazelcast.version>
-    <guava.version>20.0</guava.version>
+    <guava.version>27.0-jre</guava.version>
     <gson.version>2.10.1</gson.version>
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <kerby.version>1.0.1</kerby.version>
-    <jetty.version>9.3.24.v20180605</jetty.version>
+    <jetty.version>9.4.43.v20210629</jetty.version>
     <postgres.version>42.6.0</postgres.version>
     <jackson.version>2.13.5</jackson.version>
     <mysql.version>5.1.42</mysql.version>
@@ -103,75 +104,36 @@
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
     <aspectj.version>1.9.22</aspectj.version>
     <lombok.version>1.18.32</lombok.version>
+    <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+    <skip-build-web-ui>true</skip-build-web-ui>
+    <hamcrest.version>1.3</hamcrest.version>
+    <smart.hadoop.artifact>smart-hadoop-3.2</smart.hadoop.artifact>
+    <smart.hadoop.client.artifact>smart-hadoop-client-3</smart.hadoop.client.artifact>
     <ranger.version>2.4.0</ranger.version>
     <ranger.jna.version>5.8.0</ranger.jna.version>
   </properties>
 
   <profiles>
+    <profile>
+      <id>hadoop-3.3</id>
+      <properties>
+        <hadoop.version>3.3.6</hadoop.version>
+        <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
+        <mockito.version>2.28.2</mockito.version>
+        <jetty.version>9.4.51.v20230217</jetty.version>
+        <protobuf.version>3.21.1</protobuf.version>
+        <guava.version>32.0.1-jre</guava.version>
+      </properties>
+    </profile>
 
     <profile>
-      <id>hadoop-2.7</id>
-      <modules>
-        <module>smart-hadoop-support</module>
-      </modules>
-      <!-- Default hadoop profile. Uses global properties. -->
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-    </profile>
-    <profile>
-      <id>hadoop-cdh-2.6</id>
-      <modules>
-        <module>smart-hadoop-support</module>
-      </modules>
-      <properties>
-        <hadoop.version>2.6.0-cdh5.10.1</hadoop.version>
-      </properties>
-      <repositories>
-        <repository>
-          <id>cloudera</id>
-          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        </repository>
-      </repositories>
-    </profile>
-    <profile>
-      <id>hadoop-3.1</id>
-      <modules>
-        <module>smart-hadoop-support</module>
-      </modules>
-      <properties>
-        <hadoop.version>3.1.2</hadoop.version>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-    <profile>
       <id>hadoop-3.2</id>
-      <modules>
-        <module>smart-hadoop-support</module>
-      </modules>
       <properties>
         <hadoop.version>3.2.4</hadoop.version>
-        <guava.version>27.0-jre</guava.version>
-        <jetty.version>9.4.43.v20210629</jetty.version>
       </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
       <activation>
-        <activeByDefault>false</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
     </profile>
 
@@ -179,12 +141,17 @@
       <id>alluxio</id>
       <modules>
         <module>smart-alluxio-support</module>
-        <!-- TODO remove in future -->
-        <module>smart-hadoop-support</module>
       </modules>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
+    </profile>
+
+    <profile>
+      <id>web-ui</id>
+      <properties>
+        <skip-build-web-ui>false</skip-build-web-ui>
+      </properties>
     </profile>
   </profiles>
 
@@ -322,6 +289,30 @@
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>
         <version>${antlr4.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>${hamcrest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs-client</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -563,7 +554,7 @@
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
+        <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
@@ -616,7 +607,7 @@
         <plugin>
           <groupId>com.github.os72</groupId>
           <artifactId>protoc-jar-maven-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.11.4</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -717,6 +708,7 @@
                 <exclude>**/dist/**/*.js</exclude>
                 <exclude>**/local-repo/**/*.js</exclude>
                 <exclude>**/.tmp/**</exclude>
+                <exclude>**/build/assets/**</exclude>
               </excludes>
             </licenseSet>
           </licenseSets>

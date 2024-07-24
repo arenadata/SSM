@@ -46,19 +46,19 @@ import org.smartdata.model.FileState;
 import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CompatibilityHelper3 implements CompatibilityHelper {
   @Override
-  public String[] getStorageTypes(LocatedBlock lb) {
-    List<String> types = new ArrayList<>();
-    for (StorageType type : lb.getStorageTypes()) {
-      types.add(type.toString());
-    }
-    return types.toArray(new String[types.size()]);
+  public List<String> getStorageTypes(LocatedBlock lb) {
+    return Arrays.stream(lb.getStorageTypes())
+        .map(StorageType::toString)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -74,12 +74,11 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
   }
 
   @Override
-  public String[] getMovableTypes() {
-    List<String> types = new ArrayList<>();
-    for (StorageType type : StorageType.getMovableTypes()) {
-      types.add(type.toString());
-    }
-    return types.toArray(new String[types.size()]);
+  public List<String> getMovableTypes() {
+    return StorageType.getMovableTypes()
+        .stream()
+        .map(StorageType::toString)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -89,48 +88,17 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
 
   @Override
   public List<String> chooseStorageTypes(BlockStoragePolicy policy, short replication) {
-    List<String> types = new ArrayList<>();
-    for (StorageType type : policy.chooseStorageTypes(replication)) {
-      types.add(type.toString());
-    }
-    return types;
-  }
-
-  @Override
-  public boolean isMovable(String type) {
-    return StorageType.valueOf(type).isMovable();
+    return policy.chooseStorageTypes(replication)
+        .stream()
+        .map(StorageType::toString)
+        .collect(Collectors.toList());
   }
 
   @Override
   public DatanodeInfo newDatanodeInfo(String ipAddress, int xferPort) {
     DatanodeID datanodeID = new DatanodeID(ipAddress, null, null,
         xferPort, 0, 0, 0);
-    DatanodeDescriptor datanodeDescriptor = new DatanodeDescriptor(datanodeID);
-    return datanodeDescriptor;
-  }
-
-  @Override
-  public InotifyProtos.AppendEventProto getAppendEventProto(Event.AppendEvent event) {
-    return InotifyProtos.AppendEventProto.newBuilder()
-        .setPath(event.getPath())
-        .setNewBlock(event.toNewBlock()).build();
-  }
-
-  @Override
-  public Event.AppendEvent getAppendEvent(InotifyProtos.AppendEventProto proto) {
-    return new Event.AppendEvent.Builder().path(proto.getPath())
-        .newBlock(proto.hasNewBlock() && proto.getNewBlock())
-        .build();
-  }
-
-  @Override
-  public boolean truncate(DFSClient client, String src, long newLength) throws IOException {
-    return client.truncate(src, newLength);
-  }
-
-  @Override
-  public boolean truncate(DistributedFileSystem fileSystem, String src, long newLength) throws IOException {
-    return fileSystem.truncate(new Path(src), newLength);
+    return new DatanodeDescriptor(datanodeID);
   }
 
   @Override
@@ -157,8 +125,7 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
   @Override
   public OutputStream getDFSClientAppend(DFSClient client, String dest,
                                          int bufferSize) throws IOException {
-    return client
-        .append(dest, bufferSize,
+    return client.append(dest, bufferSize,
             EnumSet.of(CreateFlag.APPEND), null, null);
   }
 
@@ -169,25 +136,14 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
       throw new IOException();
     }
     // Copy to s3
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(URI.create(dest), conf);
+    FileSystem fs = FileSystem.get(URI.create(dest), conf);
     return fs.create(new Path(dest), true);
-  }
-
-  @Override
-  public int getReadTimeOutConstant() {
-    return HdfsConstants.READ_TIMEOUT;
   }
 
   @Override
   public Token<BlockTokenIdentifier> getAccessToken(
       KeyManager km, ExtendedBlock eb, StorageGroup target) throws IOException {
     return km.getAccessToken(eb, new StorageType[]{StorageType.parseStorageType(target.getStorageType())}, new String[0]);
-  }
-
-  @Override
-  public int getIOFileBufferSize(Configuration conf) {
-    return conf.getInt(CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_KEY,
-        CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_DEFAULT);
   }
 
   @Override
@@ -198,30 +154,6 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
   @Override
   public LocatedBlocks getLocatedBlocks(HdfsLocatedFileStatus status) {
     return status.getLocatedBlocks();
-  }
-
-  @Override
-  public HdfsFileStatus createHdfsFileStatus(
-      long length, boolean isdir, int block_replication, long blocksize, long modification_time,
-      long access_time, FsPermission permission, String owner, String group, byte[] symlink, byte[] path,
-      long fileId, int childrenNum, FileEncryptionInfo feInfo, byte storagePolicy) {
-    return new HdfsFileStatus.Builder()
-        .length(length)
-        .isdir(isdir)
-        .replication(block_replication)
-        .blocksize(blocksize)
-        .mtime(modification_time)
-        .atime(access_time)
-        .perm(permission)
-        .owner(owner)
-        .group(group)
-        .symlink(symlink)
-        .path(path)
-        .fileId(fileId)
-        .children(childrenNum)
-        .feInfo(feInfo)
-        .storagePolicy(storagePolicy)
-        .build();
   }
 
   @Override
@@ -305,19 +237,14 @@ public class CompatibilityHelper3 implements CompatibilityHelper {
       LocatedStripedBlock lsb = (LocatedStripedBlock) lb;
       byte[] indices = new byte[lsb.getBlockIndices().length];
       for (int i = 0; i < indices.length; i++) {
-        indices[i] = (byte) lsb.getBlockIndices()[i];
+        indices[i] = lsb.getBlockIndices()[i];
       }
-      db = (DBlock) new DBlockStriped(blk, indices, (short) ecPolicy.getNumDataUnits(),
+      db = new DBlockStriped(blk, indices, (short) ecPolicy.getNumDataUnits(),
           ecPolicy.getCellSize());
     } else {
       db = new DBlock(blk);
     }
     return db;
-  }
-
-  @Override
-  public boolean isLocatedStripedBlock(LocatedBlock lb) {
-    return lb instanceof LocatedStripedBlock;
   }
 
   @Override

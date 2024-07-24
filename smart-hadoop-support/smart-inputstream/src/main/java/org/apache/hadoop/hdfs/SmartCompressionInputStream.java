@@ -31,12 +31,12 @@ import java.nio.ByteBuffer;
 import java.util.EnumSet;
 
 public class SmartCompressionInputStream extends SmartInputStream {
-  private Decompressor decompressor = null;
+  private final Decompressor decompressor;
   private byte[] buffer;
   private boolean closed = false;
   private long pos = 0;
 
-  private CompressionFileState compressionFileState;
+  private final CompressionFileState compressionFileState;
   private final long originalLength;
 
   SmartCompressionInputStream(DFSClient dfsClient, String src, boolean verifyChecksum,
@@ -50,8 +50,8 @@ public class SmartCompressionInputStream extends SmartInputStream {
     originalLength = compressionFileState.getOriginalLength();
     int bufferSize = compressionFileState.getBufferSize();
     this.buffer = new byte[bufferSize];
-    this.decompressor = CompressionCodec.creatDecompressor(bufferSize,
-        compressionFileState.getCompressionImpl());
+    this.decompressor = CompressionCodecFactory.getInstance()
+        .creatDecompressor(bufferSize, compressionFileState.getCompressionImpl());
   }
 
   @Override
@@ -62,7 +62,7 @@ public class SmartCompressionInputStream extends SmartInputStream {
   }
 
   @Override
-  public synchronized int read(final byte b[], int off, int len) throws IOException {
+  public synchronized int read(final byte[] b, int off, int len) throws IOException {
     if ((off | len | (off + len) | (b.length - (off + len))) < 0) {
       throw new IndexOutOfBoundsException();
     } else if (len == 0) {

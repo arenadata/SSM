@@ -23,6 +23,10 @@ import org.apache.hadoop.io.compress.bzip2.Bzip2Compressor;
 import org.apache.hadoop.io.compress.lz4.Lz4Compressor;
 import org.apache.hadoop.io.compress.snappy.SnappyCompressor;
 import org.apache.hadoop.io.compress.zlib.ZlibCompressor;
+import org.smartdata.hdfs.compression.BZip2CompressorFactory;
+import org.smartdata.hdfs.compression.Lz4CompressorFactory;
+import org.smartdata.hdfs.compression.SnappyCompressorFactory;
+import org.smartdata.hdfs.compression.ZLibCompressorFactory;
 import org.smartdata.model.CompressionFileState;
 
 import java.io.IOException;
@@ -36,20 +40,19 @@ import java.util.List;
  */
 public class SmartCompressorStream {
 
-  private Compressor compressor;
-  private byte[] buffer;
+  private final Compressor compressor;
+  private final byte[] buffer;
   private final int bufferSize;
-  private CompressionFileState compressionInfo;
+  private final CompressionFileState compressionInfo;
 
-  private OutputStream out;
-  private InputStream in;
-  private final int maxLength;
-  private MutableFloat progress;
+  private final OutputStream out;
+  private final InputStream in;
+  private final MutableFloat progress;
 
   private long originPos = 0;
   private long compressedPos = 0;
-  private List<Long> originPositions = new ArrayList<>();
-  private List<Long> compressedPositions = new ArrayList<>();
+  private final List<Long> originPositions = new ArrayList<>();
+  private final List<Long> compressedPositions = new ArrayList<>();
 
   public SmartCompressorStream(InputStream inputStream, OutputStream outputStream,
       int bufferSize, CompressionFileState compressionInfo, MutableFloat progress) throws IOException {
@@ -62,12 +65,10 @@ public class SmartCompressorStream {
     this.bufferSize = bufferSize;
     // Compression overHead, e.g., Snappy's overHead is buffSize/6 + 32
 
-    int overHead = CompressionCodec.compressionOverhead(bufferSize,
-        compressionInfo.getCompressionImpl());
-    // Add overhead to buffer, such that actual buff is larger than bufferSize
-    this.maxLength = bufferSize;
+    int overHead = CompressionCodecFactory.getInstance()
+        .compressionOverhead(bufferSize, compressionInfo.getCompressionImpl());
     buffer = new byte[bufferSize + overHead];
-    this.compressor = CompressionCodec
+    this.compressor = CompressionCodecFactory.getInstance()
         .createCompressor(bufferSize + overHead,
             compressionInfo.getCompressionImpl());
     checkCompressor();
@@ -75,13 +76,13 @@ public class SmartCompressorStream {
 
   private void checkCompressor() {
     if (compressor instanceof ZlibCompressor) {
-      compressionInfo.setCompressionImpl(CompressionCodec.ZLIB);
+      compressionInfo.setCompressionImpl(ZLibCompressorFactory.ZLIB_CODEC);
     } else if (compressor instanceof SnappyCompressor) {
-      compressionInfo.setCompressionImpl(CompressionCodec.SNAPPY);
+      compressionInfo.setCompressionImpl(SnappyCompressorFactory.SNAPPY_CODEC);
     } else if (compressor instanceof Bzip2Compressor) {
-      compressionInfo.setCompressionImpl(CompressionCodec.BZIP2);
+      compressionInfo.setCompressionImpl(BZip2CompressorFactory.BZIP2_CODEC);
     } else if (compressor instanceof Lz4Compressor) {
-      compressionInfo.setCompressionImpl(CompressionCodec.LZ4);
+      compressionInfo.setCompressionImpl(Lz4CompressorFactory.LZ4_CODEC);
     }
   }
 
@@ -158,7 +159,7 @@ public class SmartCompressorStream {
     out.write((v >>> 24) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>>  8) & 0xFF);
-    out.write((v >>>  0) & 0xFF);
+    out.write((v) & 0xFF);
     compressedPos += 4;
   }
 }

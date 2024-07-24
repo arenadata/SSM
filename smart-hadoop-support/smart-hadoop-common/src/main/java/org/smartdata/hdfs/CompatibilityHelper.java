@@ -18,13 +18,16 @@
 package org.smartdata.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileEncryptionInfo;
-import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSInputStream;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.inotify.Event;
-import org.apache.hadoop.hdfs.protocol.*;
+import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
+import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
+import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
+import org.apache.hadoop.hdfs.protocol.HdfsLocatedFileStatus;
+import org.apache.hadoop.hdfs.protocol.LocatedBlock;
+import org.apache.hadoop.hdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.hdfs.protocol.proto.InotifyProtos;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier;
 import org.apache.hadoop.hdfs.server.balancer.KeyManager;
@@ -35,12 +38,16 @@ import org.smartdata.hdfs.action.move.DBlock;
 import org.smartdata.hdfs.action.move.StorageGroup;
 import org.smartdata.model.FileState;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
 public interface CompatibilityHelper {
-  String[] getStorageTypes(LocatedBlock lb);
+  List<String> getStorageTypes(LocatedBlock lb);
 
   void replaceBlock(
       DataOutputStream out,
@@ -51,50 +58,33 @@ public interface CompatibilityHelper {
       DatanodeInfo info)
       throws IOException;
 
-  String[] getMovableTypes();
+  List<String> getMovableTypes();
 
   String getStorageType(StorageReport report);
 
   List<String> chooseStorageTypes(BlockStoragePolicy policy, short replication);
 
-  boolean isMovable(String type);
-
   DatanodeInfo newDatanodeInfo(String ipAddress, int xferPort);
-
-  InotifyProtos.AppendEventProto getAppendEventProto(Event.AppendEvent event);
-
-  Event.AppendEvent getAppendEvent(InotifyProtos.AppendEventProto proto);
-
-  //Todo: Work-around, should remove this function in the future
-  boolean truncate(DFSClient client, String src, long newLength) throws IOException;
-
-  boolean truncate(DistributedFileSystem fileSystem, String src, long newLength) throws IOException;
 
   int getSidInDatanodeStorageReport(DatanodeStorage datanodeStorage);
 
   OutputStream getDFSClientAppend(DFSClient client, String dest,
-                                  int bufferSize, long offset, short replication) throws IOException;
+                                  int bufferSize, long offset, short replication)
+      throws IOException;
 
-  OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize, long offset) throws IOException;
+  OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize, long offset)
+      throws IOException;
 
   OutputStream getDFSClientAppend(DFSClient client, String dest, int bufferSize) throws IOException;
 
   OutputStream getS3outputStream(String dest, Configuration conf) throws IOException;
 
-  int getReadTimeOutConstant();
-
-  Token<BlockTokenIdentifier> getAccessToken(KeyManager km, ExtendedBlock eb, StorageGroup target) throws IOException;
-
-  int getIOFileBufferSize(Configuration conf);
+  Token<BlockTokenIdentifier> getAccessToken(KeyManager km, ExtendedBlock eb, StorageGroup target)
+      throws IOException;
 
   InputStream getVintPrefixed(DataInputStream in) throws IOException;
 
   LocatedBlocks getLocatedBlocks(HdfsLocatedFileStatus status);
-
-  HdfsFileStatus createHdfsFileStatus(
-      long length, boolean isdir, int block_replication, long blocksize, long modification_time,
-      long access_time, FsPermission permission, String owner, String group, byte[] symlink, byte[] path,
-      long fileId, int childrenNum, FileEncryptionInfo feInfo, byte storagePolicy);
 
   byte getErasureCodingPolicy(HdfsFileStatus fileStatus);
 
@@ -104,14 +94,13 @@ public interface CompatibilityHelper {
 
   Map<Byte, String> getErasureCodingPolicies(DFSClient client) throws IOException;
 
-  List<String> getStorageTypeForEcBlock(LocatedBlock lb, BlockStoragePolicy policy, byte policyId) throws IOException;
+  List<String> getStorageTypeForEcBlock(LocatedBlock lb, BlockStoragePolicy policy, byte policyId)
+      throws IOException;
 
   DBlock newDBlock(LocatedBlock lb, HdfsFileStatus status);
-
-  boolean isLocatedStripedBlock(LocatedBlock lb);
 
   DBlock getDBlock(DBlock block, StorageGroup source);
 
   DFSInputStream getNormalInputStream(DFSClient dfsClient, String src, boolean verifyChecksum,
-      FileState fileState) throws IOException;
+                                      FileState fileState) throws IOException;
 }

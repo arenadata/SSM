@@ -17,56 +17,57 @@
  */
 package org.smartdata.hdfs;
 
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ClassLoaderUtils;
 import org.apache.hadoop.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CompatibilityHelperLoader {
-  private static CompatibilityHelper instance;
-  private static final String HADOOP_26_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper26";
-  private static final String HADOOP_27_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper27";
-  private static final String HADOOP_3_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper3";
   public static final Logger LOG =
       LoggerFactory.getLogger(CompatibilityHelperLoader.class);
 
+  private static final String HADOOP_3_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper3";
+  public static final String DEFAULT_HDFS_VERSION = "3.2.4";
+  public static final String UNKNOWN_VERSION = "Unknown";
+
+  private static class CompatibilityHelperHolder {
+    static final CompatibilityHelper INSTANCE = createCompatibilityHelper(
+        VersionInfo.getVersion());
+  }
+
   public static CompatibilityHelper getHelper() {
-    if (instance == null) {
-      String version = VersionInfo.getVersion();
-      if (version == null || version.isEmpty() || version.equalsIgnoreCase("Unknown")) {
-        LOG.error("Cannot get Hadoop version. Use default 2.6.3 version. ");
-        version = "2.6.3";
-      }
-      String[] parts = version.split("\\.");
-      if (parts.length < 2) {
-        throw new RuntimeException("Illegal Hadoop Version: " + version + " (expected A.B.* format)");
-      }
-      Integer first = Integer.parseInt(parts[0]);
-      if (first == 0 || first == 1) {
-        throw new RuntimeException("Hadoop version 0.x and 1.x are not supported");
-      }
-      Integer second = Integer.parseInt(parts[1]);
-      if (first == 2 && second <= 6) {
-        instance = create(HADOOP_26_HELPER_CLASS);
-      } else if (first == 2 && second <= 9){
-        instance = create(HADOOP_27_HELPER_CLASS);
-      } else {
-        instance = create(HADOOP_3_HELPER_CLASS);
-      }
+    return CompatibilityHelperHolder.INSTANCE;
+  }
+
+  static CompatibilityHelper createCompatibilityHelper(String version) {
+    if (StringUtils.isBlank(version) || version.equalsIgnoreCase(UNKNOWN_VERSION)) {
+      LOG.error("Cannot get Hadoop version. Using default version: " + DEFAULT_HDFS_VERSION);
+      version = DEFAULT_HDFS_VERSION;
     }
-    return instance;
+    String[] parts = version.split("\\.");
+    if (parts.length < 2) {
+      throw new IllegalArgumentException(
+          "Illegal Hadoop Version, expected 'Major.Minor.*' format: " + version);
+    }
+
+    int majorVersion = Integer.parseInt(parts[0]);
+    int minorVersion = Integer.parseInt(parts[1]);
+
+    if (majorVersion < 3 || minorVersion < 2) {
+      throw new IllegalArgumentException("Hadoop versions below 3.2.X are not supported");
+    }
+
+    return create(HADOOP_3_HELPER_CLASS);
   }
 
   private static CompatibilityHelper create(String classString) {
     try {
-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
-      if (loader == null) {
-        loader = ClassLoader.getSystemClassLoader();
-      }
-      Class clazz = loader.loadClass(classString);
+      Class<?> clazz = ClassUtils.getClass(classString);
       return (CompatibilityHelper) clazz.newInstance();
     } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
+      throw new RuntimeException("Error loading HDFS compatibility helper", e);
     }
   }
 }

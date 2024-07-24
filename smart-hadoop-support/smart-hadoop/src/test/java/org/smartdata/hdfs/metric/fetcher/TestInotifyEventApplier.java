@@ -63,23 +63,23 @@ public class TestInotifyEventApplier extends TestDaoBase {
             .perms(new FsPermission("777"))
             .replication(3)
             .build();
-    HdfsFileStatus status1 =
-        CompatibilityHelperLoader.getHelper().createHdfsFileStatus(
-            0,
-            false,
-            1,
-            1024,
-            0,
-            0,
-            new FsPermission("777"),
-            "owner",
-            "group",
-            new byte[0],
-            new byte[0],
-            1010,
-            0,
-            null,
-            (byte) 0);
+    HdfsFileStatus status1 = new HdfsFileStatus.Builder()
+        .length(0)
+        .isdir(false)
+        .replication(1)
+        .blocksize(1024)
+        .mtime(0)
+        .atime(0)
+        .perm(new FsPermission("777"))
+        .owner("owner")
+        .group("group")
+        .symlink(new byte[0])
+        .path(new byte[0])
+        .fileId(1010)
+        .children(0)
+        .feInfo(null)
+        .storagePolicy((byte) 0)
+        .build();
     Mockito.when(client.getFileInfo(Matchers.startsWith("/file"))).thenReturn(status1);
     Mockito.when(client.getFileInfo(Matchers.startsWith("/dir")))
         .thenReturn(getDummyDirStatus("", 1010));
@@ -185,23 +185,23 @@ public class TestInotifyEventApplier extends TestDaoBase {
     BackUpInfo backUpInfo = new BackUpInfo(1L, "/file1", "remote/dest/", 10);
     metaStore.insertBackUpInfo(backUpInfo);
 
-    HdfsFileStatus status1 =
-        CompatibilityHelperLoader.getHelper().createHdfsFileStatus(
-            0,
-            false,
-            2,
-            123,
-            0,
-            0,
-            new FsPermission("777"),
-            "test",
-            "group",
-            new byte[0],
-            new byte[0],
-            1010,
-            0,
-            null,
-            (byte) 0);
+    HdfsFileStatus status1 = new HdfsFileStatus.Builder()
+        .length(0)
+        .isdir(false)
+        .replication(2)
+        .blocksize(123)
+        .mtime(0)
+        .atime(0)
+        .perm(new FsPermission("777"))
+        .owner("test")
+        .group("group")
+        .symlink(new byte[0])
+        .path(new byte[0])
+        .fileId(1010)
+        .children(0)
+        .feInfo(null)
+        .storagePolicy((byte) 0)
+        .build();
     Mockito.when(client.getFileInfo("/file1")).thenReturn(status1);
 
     List<Event> events = new ArrayList<>();
@@ -311,21 +311,22 @@ public class TestInotifyEventApplier extends TestDaoBase {
   }
 
   private HdfsFileStatus doGetDummyStatus(String file, long fid, boolean isdir) {
-    return CompatibilityHelperLoader.getHelper().createHdfsFileStatus(
-        0,
-        isdir,
-        1,
-        1024,
-        0,
-        0,
-        new FsPermission("777"),
-        "owner",
-        "group",
-        new byte[0],
-        file.getBytes(),
-        fid,
-        0,
-        null,
-        (byte) 0);
+    return new HdfsFileStatus.Builder()
+        .length(0)
+        .isdir(isdir)
+        .replication(1)
+        .blocksize(1024)
+        .mtime(0)
+        .atime(0)
+        .perm(new FsPermission("777"))
+        .owner("owner")
+        .group("group")
+        .symlink(new byte[0])
+        .path(file.getBytes())
+        .fileId(fid)
+        .children(0)
+        .feInfo(null)
+        .storagePolicy((byte) 0)
+        .build();
   }
 }
