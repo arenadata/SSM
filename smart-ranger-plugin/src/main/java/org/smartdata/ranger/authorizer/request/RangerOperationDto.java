@@ -17,24 +17,16 @@
  */
 package org.smartdata.ranger.authorizer.request;
 
-import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
-import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Date;
-import java.util.HashSet;
+import java.util.Map;
 
-public class RangerSsmAccessRequest extends RangerAccessRequestImpl {
-
-    public RangerSsmAccessRequest(RangerAuthorizeRequest request) {
-        setUser(request.getUserName());
-        if (!request.getUserGroups().isEmpty()) {
-            super.setUserGroups(new HashSet<>(request.getUserGroups()));
-        }
-        RangerAccessResourceImpl resource = new RangerAccessResourceImpl();
-        resource.setValue("path", request.getUrlPath());
-        setResource(resource);
-        setAccessType(request.getAccessMethod());
-        setAction(request.getAccessMethod());
-        setAccessTime(new Date());
-    }
+@EqualsAndHashCode
+@Getter
+@RequiredArgsConstructor
+public class RangerOperationDto {
+  private final String accessType;
+  private final Map<String, Object> resources;
 }

@@ -18,11 +18,14 @@
 package org.smartdata.ranger.authorizer.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
+import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.smartdata.ranger.authorizer.RangerSsmAuthorizer;
 import org.smartdata.ranger.authorizer.request.RangerAuthorizeRequest;
-import org.smartdata.ranger.authorizer.request.RangerSsmAccessRequest;
 import org.smartdata.ranger.plugin.impl.RangerSsmPlugin;
+
+import java.util.Date;
 
 @Slf4j
 public class RangerSsmAuthorizerImpl implements RangerSsmAuthorizer {
@@ -37,10 +40,16 @@ public class RangerSsmAuthorizerImpl implements RangerSsmAuthorizer {
 
   @Override
   public boolean authorize(RangerAuthorizeRequest request) {
-    log.debug("Perform authorization checking [user={}],[groups={}],[url={}],[accessMethod={}]",
-        request.getUserName(), request.getUserGroups(), request.getUrlPath(),
-        request.getAccessMethod());
-    RangerSsmAccessRequest rangerRequest = new RangerSsmAccessRequest(request);
+    log.debug("Perform authorization checking [user={}],[resources={}],[accessType={}]",
+        request.getUser(), request.getOperationDto().getResources(),
+        request.getOperationDto().getAccessType());
+    RangerAccessRequestImpl rangerRequest = new RangerAccessRequestImpl();
+    rangerRequest.setUser(request.getUser());
+    rangerRequest.setAccessType(request.getOperationDto().getAccessType());
+    rangerRequest.setAccessTime(new Date());
+    RangerAccessResourceImpl resource = new RangerAccessResourceImpl();
+    request.getOperationDto().getResources().forEach(resource::setValue);
+    rangerRequest.setResource(resource);
     RangerAccessResult result = ssmPlugin.isAccessAllowed(rangerRequest);
     boolean checkResult = result != null && result.getIsAllowed();
     log.debug("Authorization check [result={}]", checkResult);
