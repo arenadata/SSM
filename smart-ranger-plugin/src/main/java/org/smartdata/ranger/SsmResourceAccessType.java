@@ -15,16 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.ranger.authorizer.request;
+package org.smartdata.ranger;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@EqualsAndHashCode
-@Getter
-@RequiredArgsConstructor
-public class RangerAuthorizeRequest {
-  private final String user;
-  private final RangerOperationDto operationDto;
+public enum SsmResourceAccessType {
+  VIEW,
+  CREATE,
+  EDIT,
+  DELETE,
+  SUBMIT
 }
