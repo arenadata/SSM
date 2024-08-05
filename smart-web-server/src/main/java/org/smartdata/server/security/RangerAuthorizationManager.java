@@ -35,60 +35,59 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
-import static org.smartdata.ranger.SsmRangerResourceEnum.ACTION;
-import static org.smartdata.ranger.SsmRangerResourceEnum.AUDIT;
-import static org.smartdata.ranger.SsmRangerResourceEnum.CLUSTER;
-import static org.smartdata.ranger.SsmRangerResourceEnum.RULE;
+import static org.smartdata.ranger.SsmRangerResource.ACTION;
+import static org.smartdata.ranger.SsmRangerResource.AUDIT;
+import static org.smartdata.ranger.SsmRangerResource.CLUSTER;
+import static org.smartdata.ranger.SsmRangerResource.RULE;
 
 @RequiredArgsConstructor
 public class RangerAuthorizationManager
     implements AuthorizationManager<RequestAuthorizationContext> {
 
+  private static final String ALL_VALUES_EXPRESSION = "*";
   private static final
-  Map<String, Map<String, Function<RequestAuthorizationContext, RangerOperationDto>>>
+  Map<Pattern, Map<String, Function<RequestAuthorizationContext, RangerOperationDto>>>
       OPERATION_MAP =
-      new HashMap<String, Map<String,
+      new HashMap<Pattern, Map<String,
           Function<RequestAuthorizationContext, RangerOperationDto>>>() {{
         //cluster
-        put("/api/v2/cluster/nodes", ImmutableMap.of(HttpMethod.GET,
-            request -> CLUSTER.getRangerOperationDto(SsmResourceAccessType.VIEW.name(), "*",
-                ImmutableMap.of())));
-        //Rules
-        put("/api/v2/rules", ImmutableMap.of(HttpMethod.POST,
-            request -> RULE.getRangerOperationDto(SsmResourceAccessType.CREATE.name(), null,
-                ImmutableMap.of())));
-        //todo clarify
-        //"/api/v2/rules/start",
-        // ImmutableMap.of("POST", request ->
-        // SsmRangerResourceEnum.RULE.getRangerOperationDto("EDIT", null, ImmutableMap.of()));
-        put("/api/v2/rules/{id}", ImmutableMap.of(
-            HttpMethod.GET,
-            request -> RULE.getRangerOperationDto(SsmResourceAccessType.VIEW.name(),
-                request.getVariables().get("id"),
-                ImmutableMap.of()),
-            HttpMethod.DELETE,
-            request -> RULE.getRangerOperationDto(SsmResourceAccessType.DELETE.name(),
-                request.getVariables().get("id"),
-                ImmutableMap.of()))
-        );
-        //actions
-        put("/api/v2/actions/{id}", ImmutableMap.of(HttpMethod.GET,
-            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.VIEW.name(),
-                request.getVariables().get("id"),
-                ImmutableMap.of())));
-        put("/api/v2/actions", ImmutableMap.of(
+        put(Pattern.compile("^/api/v2/cluster/nodes$"), ImmutableMap.of(HttpMethod.GET,
+            request -> CLUSTER.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION)));
+        //rule
+        put(Pattern.compile("^/api/v2/rules$"), ImmutableMap.of(
             HttpMethod.POST,
-            //todo clarify about entityId
-            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.SUBMIT.name(), "*",
-                ImmutableMap.of()),
+            request -> RULE.getRangerOperationDto(SsmResourceAccessType.CREATE,
+                ALL_VALUES_EXPRESSION),
             HttpMethod.GET,
-            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.VIEW.name(), "*",
-                ImmutableMap.of())));
-        put("/api/v2/audit/events", ImmutableMap.of(HttpMethod.GET,
-            request -> AUDIT.getRangerOperationDto(SsmResourceAccessType.VIEW.name(), "*",
-                ImmutableMap.of())
+            request -> RULE.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION)));
+        put(Pattern.compile("^/api/v2/rules/\\d+$"), ImmutableMap.of(
+            HttpMethod.GET,
+            request -> RULE.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION),
+            HttpMethod.DELETE,
+            request -> RULE.getRangerOperationDto(SsmResourceAccessType.DELETE,
+                ALL_VALUES_EXPRESSION)));
+        //action
+        put(Pattern.compile("^/api/v2/actions$"), ImmutableMap.of(
+            HttpMethod.POST,
+            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.SUBMIT,
+                ALL_VALUES_EXPRESSION),
+            HttpMethod.GET,
+            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION)));
+        put(Pattern.compile("^/api/v2/actions/\\d+$"), ImmutableMap.of(
+            HttpMethod.GET,
+            request -> ACTION.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION)
         ));
+        //audit
+        put(Pattern.compile("^/api/v2/audit/events$"), ImmutableMap.of(HttpMethod.GET,
+            request -> AUDIT.getRangerOperationDto(SsmResourceAccessType.VIEW,
+                ALL_VALUES_EXPRESSION)));
       }};
 
   private final RangerSsmAuthorizer rangerSsmAuthorizer;
@@ -97,12 +96,15 @@ public class RangerAuthorizationManager
   public AuthorizationDecision check(Supplier<Authentication> authentication,
                                      RequestAuthorizationContext request) {
     return new AuthorizationDecision(
-        Optional.ofNullable(OPERATION_MAP.get(request.getRequest().getServletPath()))
-            .map(methodMap -> Optional.ofNullable(methodMap.get(request.getRequest().getMethod()))
+        OPERATION_MAP.entrySet().stream()
+            .filter(entry -> entry.getKey().matcher(request.getRequest().getServletPath()).find())
+            .map(entry -> Optional.ofNullable(entry.getValue().get(
+                    request.getRequest().getMethod()))
                 .map(func -> rangerSsmAuthorizer.authorize(
                     new RangerAuthorizeRequest(authentication.get().getName(),
                         func.apply(request))))
                 .orElse(true))
+            .findAny()
             .orElse(true));
   }
 }

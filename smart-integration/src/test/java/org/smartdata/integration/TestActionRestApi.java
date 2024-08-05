@@ -164,12 +164,4 @@ public class TestActionRestApi extends IntegrationTestBase {
     System.out.println("Action " + actionType + " is finished.");*/
     return actionInfoMap;
   }
-
-  @Test
-  public void test1() throws InterruptedException {
-    while (true) {
-      Thread.sleep(1000);
-    }
-
-  }
 }

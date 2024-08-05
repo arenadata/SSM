@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@
  */
 package org.smartdata.ranger;
 
+import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.smartdata.ranger.authorizer.request.RangerOperationDto;
@@ -26,38 +27,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Getter
 @RequiredArgsConstructor
-public enum SsmRangerResourceEnum {
-  CLUSTER(Collections.singleton("VIEW"), Collections.emptySet()),
-  RULE(Stream.of("CREATE", "VIEW", "EDIT", "DELETE")
-      .collect(Collectors.toSet()), Collections.emptySet()),
-  ACTION(Stream.of("SUBMIT", "VIEW")
-      .collect(Collectors.toSet()), Collections.emptySet()),
-  AUDIT(Collections.singleton("VIEW"), Collections.emptySet());
+public enum SsmRangerResource {
+  CLUSTER(Collections.singleton(SsmResourceAccessType.VIEW)),
+  RULE(Sets.newHashSet(SsmResourceAccessType.CREATE, SsmResourceAccessType.VIEW,
+      SsmResourceAccessType.EDIT, SsmResourceAccessType.DELETE)),
+  ACTION(Sets.newHashSet(SsmResourceAccessType.SUBMIT, SsmResourceAccessType.VIEW)),
+  AUDIT(Collections.singleton(SsmResourceAccessType.VIEW));
 
-  private final Set<String> accessTypes;
-  private final Set<SsmRangerResourceEnum> parentResources;
+  private final Set<SsmResourceAccessType> accessTypes;
 
-  public RangerOperationDto getRangerOperationDto(String accessType,
-                                                  String entityId,
-                                                  Map<SsmRangerResourceEnum, Object> parentResources) {
+  public RangerOperationDto getRangerOperationDto(SsmResourceAccessType accessType,
+                                                  String entityId) {
     if (!accessTypes.contains(accessType)) {
-      throw new IllegalArgumentException("Unknown action: " + accessType);
-    }
-    if (!parentResources.keySet().containsAll(this.parentResources)) {
       throw new IllegalArgumentException("Unknown action: " + accessType);
     }
     Map<String, Object> resources = new HashMap<>();
     Optional.ofNullable(entityId)
         .ifPresent(value -> resources.put(this.name().toLowerCase(), value));
-    resources.putAll(parentResources.entrySet().stream()
-        .collect(
-            Collectors.toMap(entry -> entry.getKey().name().toLowerCase(), Map.Entry::getValue)));
-    return new RangerOperationDto(accessType, resources);
+    return new RangerOperationDto(accessType.name(), resources);
   }
-
 }
