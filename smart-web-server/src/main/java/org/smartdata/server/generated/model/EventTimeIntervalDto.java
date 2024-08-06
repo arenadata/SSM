@@ -20,9 +20,11 @@ package org.smartdata.server.generated.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Objects;
+
 import javax.annotation.Generated;
 import javax.validation.constraints.Min;
+
+import java.util.Objects;
 
 /**
  * EventTimeIntervalDto
@@ -32,50 +34,50 @@ import javax.validation.constraints.Min;
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
 public class EventTimeIntervalDto {
 
-  private Long timestampFrom = null;
+  private Long eventTimeFrom = null;
 
-  private Long timestampTo = null;
+  private Long eventTimeTo = null;
 
-  public EventTimeIntervalDto timestampFrom(Long timestampFrom) {
-    this.timestampFrom = timestampFrom;
+  public EventTimeIntervalDto eventTimeFrom(Long eventTimeFrom) {
+    this.eventTimeFrom = eventTimeFrom;
     return this;
   }
 
   /**
    * UNIX timestamp (UTC) of the interval start
    * minimum: 0
-   * @return timestampFrom
-  */
-  @Min(0L) 
-  @Schema(name = "timestampFrom", description = "UNIX timestamp (UTC) of the interval start", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  @JsonProperty("timestampFrom")
-  public Long getTimestampFrom() {
-    return timestampFrom;
+   * @return eventTimeFrom
+   */
+  @Min(0L)
+  @Schema(name = "eventTimeFrom", description = "UNIX timestamp (UTC) of the interval start", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("eventTimeFrom")
+  public Long getEventTimeFrom() {
+    return eventTimeFrom;
   }
 
-  public void setTimestampFrom(Long timestampFrom) {
-    this.timestampFrom = timestampFrom;
+  public void setEventTimeFrom(Long eventTimeFrom) {
+    this.eventTimeFrom = eventTimeFrom;
   }
 
-  public EventTimeIntervalDto timestampTo(Long timestampTo) {
-    this.timestampTo = timestampTo;
+  public EventTimeIntervalDto eventTimeTo(Long eventTimeTo) {
+    this.eventTimeTo = eventTimeTo;
     return this;
   }
 
   /**
    * UNIX timestamp (UTC) of the interval end
    * minimum: 0
-   * @return timestampTo
-  */
-  @Min(0L) 
-  @Schema(name = "timestampTo", description = "UNIX timestamp (UTC) of the interval end", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  @JsonProperty("timestampTo")
-  public Long getTimestampTo() {
-    return timestampTo;
+   * @return eventTimeTo
+   */
+  @Min(0L)
+  @Schema(name = "eventTimeTo", description = "UNIX timestamp (UTC) of the interval end", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("eventTimeTo")
+  public Long getEventTimeTo() {
+    return eventTimeTo;
   }
 
-  public void setTimestampTo(Long timestampTo) {
-    this.timestampTo = timestampTo;
+  public void setEventTimeTo(Long eventTimeTo) {
+    this.eventTimeTo = eventTimeTo;
   }
 
   @Override
@@ -87,21 +89,21 @@ public class EventTimeIntervalDto {
       return false;
     }
     EventTimeIntervalDto eventTimeInterval = (EventTimeIntervalDto) o;
-    return Objects.equals(this.timestampFrom, eventTimeInterval.timestampFrom) &&
-        Objects.equals(this.timestampTo, eventTimeInterval.timestampTo);
+    return Objects.equals(this.eventTimeFrom, eventTimeInterval.eventTimeFrom) &&
+        Objects.equals(this.eventTimeTo, eventTimeInterval.eventTimeTo);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestampFrom, timestampTo);
+    return Objects.hash(eventTimeFrom, eventTimeTo);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class EventTimeIntervalDto {\n");
-    sb.append("    timestampFrom: ").append(toIndentedString(timestampFrom)).append("\n");
-    sb.append("    timestampTo: ").append(toIndentedString(timestampTo)).append("\n");
+    sb.append("    eventTimeFrom: ").append(toIndentedString(eventTimeFrom)).append("\n");
+    sb.append("    eventTimeTo: ").append(toIndentedString(eventTimeTo)).append("\n");
     sb.append("}");
     return sb.toString();
   }

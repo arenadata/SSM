@@ -77,7 +77,7 @@ public class TestCmdletLifecycleLogger extends SqliteTestDaoBase {
     String cmdlet = "cache -file /testCacheFile";
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet(cmdlet);
 
-    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getCid());
+    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getId());
     Assert.assertEquals(1, cmdletEvents.size());
 
     UserActivityEvent event = cmdletEvents.get(0);
@@ -106,9 +106,9 @@ public class TestCmdletLifecycleLogger extends SqliteTestDaoBase {
     String cmdlet = "cache -file /testCacheFile";
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet(cmdlet);
 
-    cmdletManager.disableCmdlet(cmdletInfo.getCid());
+    cmdletManager.disableCmdlet(cmdletInfo.getId());
 
-    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getCid());
+    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getId());
     Assert.assertEquals(2, cmdletEvents.size());
 
     UserActivityEvent event = cmdletEvents.get(1);
@@ -137,9 +137,9 @@ public class TestCmdletLifecycleLogger extends SqliteTestDaoBase {
     String cmdlet = "cache -file /testCacheFile";
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet(cmdlet);
 
-    cmdletManager.deleteCmdlet(cmdletInfo.getCid());
+    cmdletManager.deleteCmdlet(cmdletInfo.getId());
 
-    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getCid());
+    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getId());
     Assert.assertEquals(2, cmdletEvents.size());
 
     UserActivityEvent event = cmdletEvents.get(1);
@@ -179,7 +179,7 @@ public class TestCmdletLifecycleLogger extends SqliteTestDaoBase {
       SmartPrincipal expectedPrincipal, String file) throws IOException {
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet("read -file" + file);
 
-    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getCid());
+    List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getId());
     Assert.assertEquals(1, cmdletEvents.size());
     Assert.assertEquals(
         expectedPrincipal.getName(),

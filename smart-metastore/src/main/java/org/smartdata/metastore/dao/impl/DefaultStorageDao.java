@@ -53,7 +53,7 @@ public class DefaultStorageDao extends AbstractDao implements StorageDao {
   }
 
   @Override
-  public Map<Integer, String> getStoragePolicyIdNameMap() throws SQLException {
+  public Map<Integer, String> getStoragePolicyIdNameMap() {
     String sql = "SELECT * FROM storage_policy";
     List<StoragePolicy> list = jdbcTemplate.query(sql,
         (rs, rowNum) -> new StoragePolicy(
@@ -69,36 +69,23 @@ public class DefaultStorageDao extends AbstractDao implements StorageDao {
   @Override
   public StorageCapacity getStorageCapacity(String type) {
     String sql = "SELECT * FROM storage WHERE type = ?";
-    return jdbcTemplate.queryForObject(sql, new Object[]{type},
+    return jdbcTemplate.queryForObject(sql, new Object[] {type},
         new StorageCapacityRowMapper());
   }
 
   @Override
-  public String getStoragePolicyName(int sid) {
-    String sql = "SELECT policy_name FROM storage_policy WHERE sid = ?";
-    return jdbcTemplate.queryForObject(sql, new Object[]{sid}, String.class);
-  }
-
-  @Override
-  public synchronized void insertStoragePolicyTable(StoragePolicy s) {
-    String sql = "INSERT INTO storage_policy (sid, policy_name) VALUES('"
-        + s.getSid() + "','" + s.getPolicyName() + "');";
-    jdbcTemplate.execute(sql);
-  }
-
-  @Override
-  public int updateFileStoragePolicy(String path,
-                                     Integer policyId) throws SQLException {
+  public void updateFileStoragePolicy(String path,
+                                      Integer policyId) {
     String sql = String.format(
         "UPDATE file SET sid = %d WHERE path = '%s';",
         policyId, path);
-    return jdbcTemplate.update(sql);
+    jdbcTemplate.update(sql);
   }
 
   @Override
-  public void insertUpdateStoragesTable(final StorageCapacity[] storages)
+  public void insertUpdateStoragesTable(List<StorageCapacity> storages)
       throws SQLException {
-    if (storages.length == 0) {
+    if (storages.isEmpty()) {
       return;
     }
     final Long curr = System.currentTimeMillis();
@@ -107,55 +94,27 @@ public class DefaultStorageDao extends AbstractDao implements StorageDao {
         new BatchPreparedStatementSetter() {
           public void setValues(PreparedStatement ps,
                                 int i) throws SQLException {
-            ps.setString(1, storages[i].getType());
-            if (storages[i].getTimeStamp() == null) {
+            StorageCapacity capacity = storages.get(i);
+            ps.setString(1, capacity.getType());
+            if (capacity.getTimeStamp() == null) {
               ps.setLong(2, curr);
             } else {
-              ps.setLong(2, storages[i].getTimeStamp());
+              ps.setLong(2, capacity.getTimeStamp());
             }
-            ps.setLong(3, storages[i].getCapacity());
-            ps.setLong(4, storages[i].getFree());
+            ps.setLong(3, capacity.getCapacity());
+            ps.setLong(4, capacity.getFree());
           }
 
           public int getBatchSize() {
-            return storages.length;
+            return storages.size();
           }
         });
-  }
-
-  @Override
-  public int getCountOfStorageType(String type) {
-    String sql = "SELECT COUNT(*) FROM storage WHERE type = ?";
-    return jdbcTemplate.queryForObject(sql, Integer.class, type);
   }
 
   @Override
   public void deleteStorage(String storageType) {
     final String sql = "DELETE FROM storage WHERE type = ?";
     jdbcTemplate.update(sql, storageType);
-  }
-
-  @Override
-  public synchronized boolean updateStoragesTable(String type, Long timeStamp,
-                                                  Long capacity, Long free) throws SQLException {
-    String sql = null;
-    String sqlPrefix = "UPDATE storage SET";
-    String sqlCapacity = (capacity != null) ? ", capacity = '"
-        + capacity + "' " : null;
-    String sqlFree = (free != null) ? ", free = '" + free + "' " : null;
-    String sqlTimeStamp = (timeStamp != null) ? ", time_stamp = " + timeStamp + " " : null;
-    String sqlSuffix = "WHERE type = '" + type + "';";
-    if (capacity != null || free != null) {
-      sql = sqlPrefix + sqlCapacity + sqlFree + sqlTimeStamp + sqlSuffix;
-      sql = sql.replaceFirst(",", "");
-    }
-    return jdbcTemplate.update(sql) == 1;
-  }
-
-  @Override
-  public synchronized boolean updateStoragesTable(String type,
-                                                  Long capacity, Long free) throws SQLException {
-    return updateStoragesTable(type, System.currentTimeMillis(), capacity, free);
   }
 
   private static class StorageCapacityRowMapper implements RowMapper<StorageCapacity> {

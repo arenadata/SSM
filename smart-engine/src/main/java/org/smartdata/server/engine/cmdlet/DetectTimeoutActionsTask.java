@@ -77,7 +77,7 @@ public class DetectTimeoutActionsTask implements Runnable {
         }
         if (cmdletInfo.getState() == CmdletState.DISPATCHED
             || cmdletInfo.getState() == CmdletState.EXECUTING) {
-          for (long id : cmdletInfo.getAids()) {
+          for (long id : cmdletInfo.getActionIds()) {
             ActionInfo actionInfo = context.getInMemoryRegistry().getUnfinishedAction(id);
             if (!isTimeout(actionInfo)) {
               continue;

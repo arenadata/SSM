@@ -19,7 +19,7 @@ import type { PaginateCollection } from '@models/collection';
 import { httpClient } from '@api/httpClient';
 import type { AdhClusterNodesFilter, AdhClusterNode } from '@models/adh';
 import type { PaginationParams, SortParams } from '@models/table';
-import { prepareDateRange, prepareQueryParams } from '@utils/requestUtils';
+import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
 import qs from 'qs';
 
 export class AdhClusterInfoApi {
@@ -28,12 +28,10 @@ export class AdhClusterInfoApi {
     sortParams?: SortParams,
     paginationParams?: PaginationParams,
   ): Promise<PaginateCollection<AdhClusterNode>> {
-    const { from: registrationTimeFrom, to: registrationTimeTo } = prepareDateRange(registrationTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        registrationTime: { registrationTimeFrom, registrationTimeTo },
+        ...prepareNamedDateRange(registrationTime, 'registrationTime'),
       },
       sortParams,
       paginationParams,

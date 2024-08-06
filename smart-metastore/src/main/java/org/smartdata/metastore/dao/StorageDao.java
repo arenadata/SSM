@@ -18,9 +18,9 @@
 package org.smartdata.metastore.dao;
 
 import org.smartdata.model.StorageCapacity;
-import org.smartdata.model.StoragePolicy;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 public interface StorageDao {
@@ -31,23 +31,11 @@ public interface StorageDao {
 
   StorageCapacity getStorageCapacity(String type);
 
-  String getStoragePolicyName(int sid);
+  void updateFileStoragePolicy(String path,
+                               Integer policyId) throws SQLException;
 
-  void insertStoragePolicyTable(StoragePolicy s);
-
-  int updateFileStoragePolicy(String path,
-                              Integer policyId) throws SQLException;
-
-  void insertUpdateStoragesTable(StorageCapacity[] storages)
+  void insertUpdateStoragesTable(List<StorageCapacity> storages)
       throws SQLException;
 
-  int getCountOfStorageType(String type);
-
   void deleteStorage(String storageType);
-
-  boolean updateStoragesTable(String type, Long timeStamp,
-                              Long capacity, Long free) throws SQLException;
-
-  boolean updateStoragesTable(String type,
-                              Long capacity, Long free) throws SQLException;
 }

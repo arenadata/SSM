@@ -20,15 +20,12 @@ package org.smartdata.metastore.dao.impl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.SearchableAbstractDao;
 import org.smartdata.metastore.dao.ActionDao;
-import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.MetastoreQuery;
 import org.smartdata.metastore.queries.expression.MetastoreQueryExpression;
 import org.smartdata.metastore.queries.sort.ActionSortField;
 import org.smartdata.metastore.queries.sort.Sorting;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.ActionSource;
 import org.smartdata.model.ActionState;
@@ -41,7 +38,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 import java.lang.reflect.Type;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -64,33 +60,17 @@ public class DefaultActionDao
     implements ActionDao {
 
   private static final String TABLE_NAME = "action";
-  private static final String RUNNING_TIME = "running_time";
   private static final Type ACTION_ARGS_TYPE =
-      new TypeToken<Map<String, String>>() {}.getType();
+      new TypeToken<Map<String, String>>() {
+      }.getType();
 
-  private final List<String> tableColumns;
   private final Gson argsJsonSerializer;
 
   public DefaultActionDao(
       DataSource dataSource,
       PlatformTransactionManager transactionManager) {
     super(dataSource, transactionManager, TABLE_NAME);
-    // todo remove after zeppelin removal
-    try (Connection conn = dataSource.getConnection()) {
-      tableColumns = MetaStoreUtils.getTableColumns(conn, "action");
-    } catch (SQLException | MetaStoreException e) {
-      throw new RuntimeException(e);
-    }
-    tableColumns.add(RUNNING_TIME);
-
     this.argsJsonSerializer = new Gson();
-  }
-
-  // todo delete after zeppelin removal
-  @Override
-  public Long getCountOfAction() {
-    String sql = "SELECT COUNT(*) FROM " + TABLE_NAME;
-    return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
   @Override
@@ -127,127 +107,6 @@ public class DefaultActionDao
     }
 
     return executeQuery(query);
-  }
-
-  // todo delete after zeppelin removal
-  @Override
-  public List<ActionInfo> getLatestActions(String actionName, int size) {
-    if (size != 0) {
-      jdbcTemplate.setMaxRows(size);
-    }
-    String sql = "SELECT * FROM " + TABLE_NAME + " WHERE action_name = ? ORDER BY aid DESC";
-    return jdbcTemplate.query(sql, this::mapRow, actionName);
-  }
-
-  // todo delete after zeppelin removal
-  @Override
-  public List<ActionInfo> getAPageOfAction(long start, long offset, List<String> orderBy,
-                                           List<Boolean> isDesc) {
-    boolean ifHasAid = false;
-    String sql = "SELECT * FROM " + TABLE_NAME + " ORDER BY ";
-
-    for (int i = 0; i < orderBy.size(); i++) {
-      String ob = orderBy.get(i);
-      if (!tableColumns.contains(ob)) {
-        continue;
-      }
-
-      if (ob.equals("aid")) {
-        ifHasAid = true;
-      }
-
-      if (ob.equals(RUNNING_TIME)) {
-        sql = sql + "(finish_time - create_time)";
-      } else {
-        sql = sql + ob;
-      }
-      if (isDesc.size() > i) {
-        if (isDesc.get(i)) {
-          sql = sql + " desc ";
-        }
-        sql = sql + ",";
-      }
-    }
-
-    if (!ifHasAid) {
-      sql = sql + "aid,";
-    }
-
-    //delete the last char
-    sql = sql.substring(0, sql.length() - 1);
-    //add limit
-    sql = sql + " LIMIT " + offset + " OFFSET " + start + ";";
-    return jdbcTemplate.query(sql, this::mapRowPartially);
-  }
-
-  // todo delete after zeppelin removal
-  @Override
-  public List<ActionInfo> getAPageOfAction(long start, long offset) {
-    String sql = "SELECT * FROM " + TABLE_NAME + " LIMIT " + offset + " OFFSET " + start + ";";
-    return jdbcTemplate.query(sql, this::mapRowPartially);
-  }
-
-  // todo delete after zeppelin removal
-  @Override
-  public SearchResult<ActionInfo> searchAction(
-      String path, long start, long offset, List<String> orderBy, List<Boolean> isDesc
-  ) {
-    List<ActionInfo> ret;
-    boolean ifHasAid = false;
-    String sqlFilter = TABLE_NAME + " WHERE ("
-        + "aid LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR cid LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR args LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR result LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR exec_host LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR progress LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR log LIKE '%" + path + "%' ESCAPE '/' "
-        + "OR action_name LIKE '%" + path + "%' ESCAPE '/')";
-    StringBuilder sql = new StringBuilder("SELECT * FROM " + sqlFilter);
-    String sqlCount = "SELECT count(*) FROM " + sqlFilter + ";";
-    if (orderBy.isEmpty()) {
-      sql.append(" LIMIT ").append(offset).append(" OFFSET ").append(start).append(";");
-      ret = jdbcTemplate.query(sql.toString(), this::mapRow);
-    } else {
-      sql.append(" ORDER BY ");
-
-      for (int i = 0; i < orderBy.size(); i++) {
-        String ob = orderBy.get(i);
-        if (!tableColumns.contains(ob)) {
-          continue;
-        }
-
-        if (ob.equals("aid")) {
-          ifHasAid = true;
-        }
-
-        if (ob.equals(RUNNING_TIME)) {
-          sql.append("(finish_time - create_time)");
-        } else {
-          sql.append(ob);
-        }
-
-        if (isDesc.size() > i) {
-          if (isDesc.get(i)) {
-            sql.append(" desc ");
-          }
-          sql.append(",");
-        }
-      }
-
-      if (!ifHasAid) {
-        sql.append("aid,");
-      }
-
-      //delete the last char
-      sql = new StringBuilder(sql.substring(0, sql.length() - 1));
-      //add limit
-      sql.append(" LIMIT ").append(offset).append(" OFFSET ").append(start).append(";");
-      ret = jdbcTemplate.query(sql.toString(), this::mapRow);
-    }
-
-    long totalActions = jdbcTemplate.queryForObject(sqlCount, Long.class);
-    return SearchResult.of(ret, totalActions);
   }
 
   @Override
@@ -337,7 +196,7 @@ public class DefaultActionDao
 
   @Override
   public int update(final ActionInfo actionInfo) {
-    return update(new ActionInfo[]{actionInfo})[0];
+    return update(new ActionInfo[] {actionInfo})[0];
   }
 
   @Override
@@ -481,17 +340,6 @@ public class DefaultActionDao
         .build();
   }
 
-  /**
-   * No need to set result & log. If arg value is too long, it will be
-   * truncated.
-   */
-  private ActionInfo mapRowPartially(ResultSet resultSet, int rowNum) throws SQLException {
-    return sharedActionBuilder(resultSet)
-        .setArgs(
-            getTruncatedArgs(resultSet.getString("args")))
-        .build();
-  }
-
   private ActionInfo.Builder sharedActionBuilder(ResultSet resultSet) throws SQLException {
     return ActionInfo.builder()
         .setActionId(resultSet.getLong("aid"))
@@ -503,15 +351,5 @@ public class DefaultActionDao
         .setFinishTime(resultSet.getLong("finish_time"))
         .setExecHost(resultSet.getString("exec_host"))
         .setProgress(resultSet.getFloat("progress"));
-  }
-
-  private Map<String, String> getTruncatedArgs(String jsonArgs) {
-    Map<String, String> args = deserializeArgs(jsonArgs);
-    for (Map.Entry<String, String> entry : args.entrySet()) {
-      if (entry.getValue().length() > 50) {
-        entry.setValue(entry.getValue().substring(0, 50) + "...");
-      }
-    }
-    return args;
   }
 }

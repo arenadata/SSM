@@ -22,76 +22,39 @@ import org.smartdata.metastore.queries.sort.ClusterNodeSortField;
 import org.smartdata.metastore.queries.sort.Sorting;
 import org.smartdata.model.request.ClusterNodeSearchRequest;
 import org.smartdata.server.SearchableInMemoryService;
-import org.smartdata.server.engine.ActiveServerInfo;
 import org.smartdata.server.engine.CmdletManager;
-import org.smartdata.server.engine.StandbyServerInfo;
 import org.smartdata.server.engine.cmdlet.HazelcastExecutorService;
 import org.smartdata.server.engine.cmdlet.agent.AgentExecutorService;
-import org.smartdata.server.engine.cmdlet.agent.AgentInfo;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class ClusterNodesManager extends SearchableInMemoryService<
     ClusterNodeSearchRequest, NodeCmdletMetrics, ClusterNodeSortField> {
 
-  private final SmartConf conf;
   private final AgentExecutorService agentService;
   private final HazelcastExecutorService hazelcastService;
   private final ClusterNodeMetricsProvider nodeMetricsProvider;
 
   public ClusterNodesManager(
       SmartConf conf, CmdletManager cmdletManager) throws IOException {
-    this(conf, new AgentExecutorService(conf, cmdletManager),
+    this(new AgentExecutorService(conf, cmdletManager),
         new HazelcastExecutorService(cmdletManager), cmdletManager);
     cmdletManager.registerExecutorService(agentService);
     cmdletManager.registerExecutorService(hazelcastService);
   }
 
   public ClusterNodesManager(
-      SmartConf conf,
       AgentExecutorService agentExecutorService,
       HazelcastExecutorService hazelcastService,
       ClusterNodeMetricsProvider nodeMetricsProvider) {
-    this.conf = conf;
     this.nodeMetricsProvider = nodeMetricsProvider;
     this.agentService = agentExecutorService;
     this.hazelcastService = hazelcastService;
-  }
-
-  // todo remove after zeppelin removal
-  public List<AgentInfo> getAgents() {
-    return agentService.getAgentInfos();
-  }
-
-  // todo remove after zeppelin removal
-  public List<StandbyServerInfo> getStandbyServers() {
-    return hazelcastService.getStandbyServers();
-  }
-
-  // todo remove after zeppelin removal
-  public Set<String> getAgentHosts() {
-    return conf.getAgentHosts();
-  }
-
-  // todo remove after zeppelin removal
-  public Set<String> getServerHosts() {
-    return conf.getServerHosts();
-  }
-
-  // todo remove after zeppelin removal
-  public List<NodeInfo> getSsmNodesInfo() {
-    List<NodeInfo> nodes = new ArrayList<>();
-    nodes.add(ActiveServerInfo.getInstance());
-    nodes.addAll(getStandbyServers());
-    nodes.addAll(getAgents());
-    return nodes;
   }
 
   @Override

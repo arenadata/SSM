@@ -68,13 +68,6 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   }
 
   @Override
-  public List<FileDiff> getByState(FileDiffState fileDiffState) {
-    return jdbcTemplate
-        .query("SELECT * FROM " + TABLE_NAME + " WHERE state = ?",
-            new Object[]{fileDiffState.getValue()}, new FileDiffRowMapper());
-  }
-
-  @Override
   public List<FileDiff> getByState(String prefix, FileDiffState fileDiffState) {
     return jdbcTemplate
         .query(
@@ -239,7 +232,7 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   }
 
   @Override
-  public int[] update(final FileDiff[] fileDiffs) {
+  public void update(final List<FileDiff> fileDiffs) {
     String sql = "UPDATE " + TABLE_NAME + " SET "
         + "rid = ?, "
         + "diff_type = ?, "
@@ -248,23 +241,24 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
         + "state = ?, "
         + "create_time = ? "
         + "WHERE did = ?";
-    return jdbcTemplate.batchUpdate(sql,
+    jdbcTemplate.batchUpdate(sql,
         new BatchPreparedStatementSetter() {
           @Override
           public void setValues(PreparedStatement ps,
                                 int i) throws SQLException {
-            ps.setLong(1, fileDiffs[i].getRuleId());
-            ps.setInt(2, fileDiffs[i].getDiffType().getValue());
-            ps.setString(3, fileDiffs[i].getSrc());
-            ps.setString(4, fileDiffs[i].getParametersJsonString());
-            ps.setInt(5, fileDiffs[i].getState().getValue());
-            ps.setLong(6, fileDiffs[i].getCreateTime());
-            ps.setLong(7, fileDiffs[i].getDiffId());
+            FileDiff fileDiff = fileDiffs.get(i);
+            ps.setLong(1, fileDiff.getRuleId());
+            ps.setInt(2, fileDiff.getDiffType().getValue());
+            ps.setString(3, fileDiff.getSrc());
+            ps.setString(4, fileDiff.getParametersJsonString());
+            ps.setInt(5, fileDiff.getState().getValue());
+            ps.setLong(6, fileDiff.getCreateTime());
+            ps.setLong(7, fileDiff.getDiffId());
           }
 
           @Override
           public int getBatchSize() {
-            return fileDiffs.length;
+            return fileDiffs.size();
           }
         });
   }

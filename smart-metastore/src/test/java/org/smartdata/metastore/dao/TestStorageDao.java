@@ -42,8 +42,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.StorageCapacity;
-import org.smartdata.model.StoragePolicy;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -58,20 +59,14 @@ public class TestStorageDao extends TestDaoBase {
 
   @Test
   public void testInsertGetStorageTable() throws Exception {
-    StorageCapacity[] storageCapacities = new StorageCapacity[2];
-    storageCapacities[0] = new StorageCapacity("type1", 1L, 1L);
-    storageCapacities[1] = new StorageCapacity("type2", 2L, 2L);
+    List<StorageCapacity> storageCapacities = Arrays.asList(
+        new StorageCapacity("type1", 1L, 1L),
+        new StorageCapacity("type2", 2L, 2L)
+    );
     storageDao.insertUpdateStoragesTable(storageCapacities);
-    Assert.assertTrue(storageDao.getStorageCapacity("type1").equals(storageCapacities[0]));
+    Assert.assertEquals(storageCapacities.get(0), storageDao.getStorageCapacity("type1"));
     Map<String, StorageCapacity> map = storageDao.getStorageTablesItem();
-    Assert.assertTrue(map.get("type2").equals(storageCapacities[1]));
-  }
-
-  @Test
-  public void testInsertGetStorage_policyTable() throws Exception {
-    StoragePolicy storagePolicy = new StoragePolicy((byte) 1, "pName");
-    storageDao.insertStoragePolicyTable(storagePolicy);
-    Assert.assertTrue(storageDao.getStoragePolicyName(1).equals("pName"));
+    Assert.assertEquals(storageCapacities.get(1), map.get("type2"));
   }
 }
 

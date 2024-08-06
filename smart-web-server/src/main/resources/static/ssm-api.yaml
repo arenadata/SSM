@@ -1898,13 +1898,13 @@ components:
       title: ClusterNodes
     EventTimeInterval:
       properties:
-        timestampFrom:
+        eventTimeFrom:
           description: UNIX timestamp (UTC) of the interval start
           format: int64
           minimum: 0
           nullable: true
           type: integer
-        timestampTo:
+        eventTimeTo:
           description: UNIX timestamp (UTC) of the interval end
           format: int64
           minimum: 0

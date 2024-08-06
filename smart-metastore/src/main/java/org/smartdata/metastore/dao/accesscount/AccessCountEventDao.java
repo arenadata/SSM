@@ -19,15 +19,20 @@ package org.smartdata.metastore.dao.accesscount;
 
 
 import org.smartdata.metastore.MetaStoreException;
+import org.smartdata.metastore.dao.Searchable;
 import org.smartdata.metastore.model.AccessCountTable;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
+import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
 import org.smartdata.model.FileAccessInfo;
+import org.smartdata.model.request.FileAccessInfoSearchRequest;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface AccessCountEventDao {
+public interface AccessCountEventDao extends
+    Searchable<FileAccessInfoSearchRequest, FileAccessInfo, FileAccessInfoSortField> {
   String FILE_ID_FIELD = "fid";
   String ACCESS_COUNT_FIELD = "count";
   String LAST_ACCESSED_TIME_FIELD = "last_accessed_time";
@@ -35,9 +40,6 @@ public interface AccessCountEventDao {
   void insert(
       AccessCountTable table,
       Collection<AggregatedAccessCounts> aggregatedAccessCounts) throws MetaStoreException;
-
-  List<FileAccessInfo> getHotFiles(List<AccessCountTable> tables, int topNum)
-      throws MetaStoreException;
 
   void validate(AccessCountTable table) throws MetaStoreException;
 
@@ -47,6 +49,12 @@ public interface AccessCountEventDao {
   static String unionTablesQuery(List<AccessCountTable> tables) {
     return tables.stream()
         .map(AccessCountTable::getTableName)
+        .collect(Collectors.joining(
+            " UNION ALL SELECT * FROM ", "SELECT * FROM ", ""));
+  }
+
+  static String unionTablesQuery(Set<String> tables) {
+    return tables.stream()
         .collect(Collectors.joining(
             " UNION ALL SELECT * FROM ", "SELECT * FROM ", ""));
   }

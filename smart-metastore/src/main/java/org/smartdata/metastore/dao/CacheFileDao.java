@@ -39,7 +39,7 @@ public interface CacheFileDao
   void insert(long fid, String path, long fromTime,
               long lastAccessTime, int numAccessed);
 
-  void insert(CachedFileStatus[] cachedFileStatusList);
+  void insert(List<CachedFileStatus> cachedFileStatusList);
 
   int update(Long fid, Long lastAccessTime, Integer numAccessed);
 

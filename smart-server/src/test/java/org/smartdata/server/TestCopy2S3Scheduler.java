@@ -52,7 +52,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
         RuleState.ACTIVE);
     List<ActionInfo> actions;
     do {
-      actions = metaStore.getActions(ruleId, 0);
+      actions = metaStore.getActionsByRuleId(ruleId);
       Thread.sleep(1000);
     } while (actions.size() < 3);
   }
@@ -75,7 +75,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
         "file: path matches \"/src/*\"| copy2s3 -dest s3a://xxxctest/dest/",
         RuleState.ACTIVE);
     Thread.sleep(2500);
-    List<ActionInfo> actions = metaStore.getActions(ruleId, 0);
+    List<ActionInfo> actions = metaStore.getActionsByRuleId(ruleId);
     Assert.assertEquals(actions.size(), 0);
   }
 
@@ -111,7 +111,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
         "file: path matches \"/src/*\"| copy2s3 -dest s3a://xxxctest/dest/",
         RuleState.ACTIVE);
     Thread.sleep(2500);
-    List<ActionInfo> actions = metaStore.getActions(ruleId, 0);
+    List<ActionInfo> actions = metaStore.getActionsByRuleId(ruleId);
     Assert.assertEquals(0, actions.size());
   }
 }

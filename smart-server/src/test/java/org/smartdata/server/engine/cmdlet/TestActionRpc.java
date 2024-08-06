@@ -34,7 +34,7 @@ public class TestActionRpc extends MiniSmartClusterHarness {
     long cmdId = admin.submitCmdlet("sleep -ms 6000");
     try {
       CmdletInfo cinfo = admin.getCmdletInfo(cmdId);
-      long actId = cinfo.getAids().get(0);
+      long actId = cinfo.getActionIds().get(0);
 
       ActionInfo actionInfo;
       while (true) {

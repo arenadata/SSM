@@ -35,14 +35,11 @@ import org.smartdata.metastore.queries.sort.ActionSortField;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.CmdletInfo;
-import org.smartdata.model.DetailedFileAction;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.request.ActionSearchRequest;
 import org.smartdata.protocol.message.ActionStatus;
 import org.smartdata.server.engine.cmdlet.CmdletManagerContext;
 import org.smartdata.server.engine.cmdlet.InMemoryRegistry;
-import org.smartdata.server.engine.model.ActionGroup;
-import org.smartdata.server.engine.model.DetailedFileActionGroup;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -121,16 +118,6 @@ public class ActionInfoHandler
     return inMemoryRegistry.getUnfinishedAction(actionId);
   }
 
-  public List<ActionInfo> listNewCreatedActions(String actionName,
-                                                int actionNum) throws IOException {
-    try {
-      return metaStore.getNewCreatedActions(actionName, actionNum);
-    } catch (MetaStoreException e) {
-      LOG.error("ActionName -> [ {} ], list ActionInfo from DB error", actionName, e);
-      throw new IOException(e);
-    }
-  }
-
   public List<ActionInfo> listNewCreatedActions(int actionNum) throws IOException {
     try {
       Map<Long, ActionInfo> actionInfos = new HashMap<>();
@@ -145,86 +132,11 @@ public class ActionInfoHandler
     }
   }
 
-  public ActionGroup listActions(
-      long pageIndex,
-      long numPerPage,
-      List<String> orderBy,
-      List<Boolean> isDesc) throws MetaStoreException {
-    // todo remove it after zeppelin web removal
-    if (pageIndex == 0) {
-      pageIndex = 1;
-    }
-
-    List<ActionInfo> infos = metaStore.listPageAction((pageIndex - 1) * numPerPage,
-        numPerPage, orderBy, isDesc);
-    for (ActionInfo info : infos) {
-      ActionInfo memInfo = getUnfinishedAction(info.getActionId());
-      if (memInfo != null) {
-        info.setCreateTime(memInfo.getCreateTime());
-        info.setProgress(memInfo.getProgress());
-      }
-    }
-    return new ActionGroup(infos, metaStore.getCountOfAllAction());
-  }
-
-  public ActionGroup searchAction(String path, long pageIndex, long numPerPage,
-                                  List<String> orderBy, List<Boolean> isDesc) throws IOException {
-    try {
-      // todo remove it after zeppelin web removal
-      if (pageIndex == 0) {
-        pageIndex = 1;
-      }
-
-      String escapedPath = path.replaceAll("[%_\"/']", "/$0");
-      SearchResult<ActionInfo> infos = metaStore.searchAction(
-          escapedPath, (pageIndex - 1) * numPerPage, numPerPage, orderBy, isDesc);
-      for (ActionInfo info : infos.getItems()) {
-        LOG.debug("[metaStore search] {}", info.getActionName());
-        ActionInfo memInfo = getUnfinishedAction(info.getActionId());
-        if (memInfo != null) {
-          info.setCreateTime(memInfo.getCreateTime());
-          info.setProgress(memInfo.getProgress());
-        }
-      }
-      return new ActionGroup(infos.getItems(), infos.getTotal());
-    } catch (MetaStoreException e) {
-      LOG.error("Search [ {} ], Get Finished Actions by search from DB error", path, e);
-      throw new IOException(e);
-    }
-  }
-
   public List<ActionInfo> getActions(List<Long> aids) throws IOException {
     try {
       return metaStore.getActions(aids);
     } catch (MetaStoreException e) {
       LOG.error("Get Actions by aid list [{}] from DB error", aids.toString());
-      throw new IOException(e);
-    }
-  }
-
-  public List<ActionInfo> getActions(long rid, int size) throws IOException {
-    try {
-      return metaStore.getActions(rid, size);
-    } catch (MetaStoreException e) {
-      LOG.error("RuleId -> [ {} ], Get Finished Actions by rid and size from DB error", rid, e);
-      throw new IOException(e);
-    }
-  }
-
-  public DetailedFileActionGroup getFileActions(long rid,
-                                                long pageIndex,
-                                                long numPerPage)
-      throws MetaStoreException {
-    List<DetailedFileAction> detailedFileActions = metaStore.listFileActions(rid,
-        (pageIndex - 1) * numPerPage, numPerPage);
-    return new DetailedFileActionGroup(detailedFileActions, metaStore.getNumFileAction(rid));
-  }
-
-  public List<DetailedFileAction> getFileActions(long rid, int size) throws IOException {
-    try {
-      return metaStore.listFileActions(rid, size);
-    } catch (MetaStoreException e) {
-      LOG.error("RuleId -> [ {} ], Get Finished Actions by rid and size from DB error", rid, e);
       throw new IOException(e);
     }
   }
@@ -312,7 +224,7 @@ public class ActionInfoHandler
       CmdletDescriptor cmdletDescriptor, CmdletInfo cmdletInfo, int actionIndex) {
     return ActionInfo.builder()
         .setActionId(maxActionId.getAndIncrement())
-        .setCmdletId(cmdletInfo.getCid())
+        .setCmdletId(cmdletInfo.getId())
         .setCreateTime(cmdletInfo.getGenerateTime())
         .setActionName(cmdletDescriptor.getActionName(actionIndex))
         .setArgs(cmdletDescriptor.getActionArgs(actionIndex))

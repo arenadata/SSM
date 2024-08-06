@@ -24,8 +24,6 @@ import java.util.List;
 public interface BackUpInfoDao {
   List<BackUpInfo> getAll();
 
-  List<BackUpInfo> getByIds(List<Long> rids);
-
   int getCountByRid(int rid);
 
   BackUpInfo getByRid(long rid);

@@ -47,7 +47,7 @@ public class TestMoverScheduler extends MiniSmartClusterHarness {
       Thread.sleep(1000);
       CmdletState state = cmdletManager
           .getCmdletInfoHandler()
-          .getCmdletInfo(cmdletInfo.getCid())
+          .getCmdletInfo(cmdletInfo.getId())
           .getState();
       if (state == CmdletState.DONE) {
         return;

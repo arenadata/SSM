@@ -28,7 +28,6 @@ import org.smartdata.model.request.CmdletSearchRequest;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -69,7 +68,7 @@ public class TestCmdletDao
     cmdletDao.insert(cmdlet1, cmdlet2);
     cmdlet1.setState(CmdletState.DONE);
     cmdletDao.update(cmdlet1);
-    CmdletInfo dbcmdlet1 = cmdletDao.getById(cmdlet1.getCid());
+    CmdletInfo dbcmdlet1 = cmdletDao.getById(cmdlet1.getId());
     assertEquals(dbcmdlet1, cmdlet1);
     try {
       cmdletDao.getById(2000L);
@@ -99,33 +98,6 @@ public class TestCmdletDao
     assertEquals(0, cmdletDao.getMaxId());
     cmdletDao.insert(cmdlet1, cmdlet2);
     assertEquals(2, cmdletDao.getMaxId());
-  }
-
-  @Test
-  public void testGetByRid() {
-    CmdletInfo cmdlet1 = new CmdletInfo(0, 1,
-        CmdletState.EXECUTING, "test", 123123333L, 232444444L);
-    CmdletInfo cmdlet2 = new CmdletInfo(1, 1,
-        CmdletState.PAUSED, "tt", 123178333L, 232444994L);
-    CmdletInfo cmdlet3 = new CmdletInfo(2, 1,
-        CmdletState.EXECUTING, "test", 123123333L, 232444444L);
-    CmdletInfo cmdlet4 = new CmdletInfo(3, 1,
-        CmdletState.PAUSED, "tt", 123178333L, 232444994L);
-    CmdletInfo cmdlet5 = new CmdletInfo(4, 1,
-        CmdletState.EXECUTING, "test", 123123333L, 232444444L);
-    CmdletInfo cmdlet6 = new CmdletInfo(5, 1,
-        CmdletState.PAUSED, "tt", 123178333L, 232444994L);
-    cmdletDao.insert(cmdlet1, cmdlet2, cmdlet3, cmdlet4, cmdlet5, cmdlet6);
-    List<CmdletInfo> cmdlets = cmdletDao.getByRuleId(1, 1, 2);
-    List<String> order = new ArrayList<>();
-    order.add("cid");
-    List<Boolean> desc = new ArrayList<>();
-    desc.add(false);
-    assertEquals(2, cmdlets.size());
-    cmdlets = cmdletDao.getByRuleId(1, 1, 2, order, desc);
-    assertEquals(2, cmdlets.size());
-    assertEquals(cmdlets.get(0), cmdlet2);
-    assertEquals(6, cmdletDao.getNumByRuleId(1));
   }
 
   @Test
@@ -222,10 +194,10 @@ public class TestCmdletDao
     insertCmdletsForSearch();
 
     CmdletSearchRequest searchRequest = CmdletSearchRequest.builder()
-            .state(CmdletState.DISABLED)
-            .state(CmdletState.PAUSED)
-            .state(CmdletState.EXECUTING)
-            .build();
+        .state(CmdletState.DISABLED)
+        .state(CmdletState.PAUSED)
+        .state(CmdletState.EXECUTING)
+        .build();
 
     testSearch(searchRequest,
         FIRST_CMDLET_ID, SECOND_CMDLET_ID, THIRD_CMDLET_ID);
@@ -236,7 +208,7 @@ public class TestCmdletDao
         .build();
     testSearch(searchRequest, SECOND_CMDLET_ID);
 
-    searchRequest =  CmdletSearchRequest.builder()
+    searchRequest = CmdletSearchRequest.builder()
         .state(CmdletState.DONE)
         .build();
     testSearch(searchRequest);
@@ -270,7 +242,7 @@ public class TestCmdletDao
 
   @Override
   protected Long getIdentifier(CmdletInfo cmdletInfo) {
-    return cmdletInfo.getCid();
+    return cmdletInfo.getId();
   }
 
   @Override
@@ -280,9 +252,9 @@ public class TestCmdletDao
 
   private void insertCmdletsForSearch() {
     CmdletInfo cmdlet1 = CmdletInfo.builder()
-        .setCid(FIRST_CMDLET_ID)
-        .setRid(1)
-        .setAids(Arrays.asList(1L, 2L, 3L))
+        .setId(FIRST_CMDLET_ID)
+        .setRuleId(1)
+        .setActionIds(Arrays.asList(1L, 2L, 3L))
         .setState(CmdletState.DISABLED)
         .setParameters("action -key val1")
         .setGenerateTime(1L)
@@ -290,9 +262,9 @@ public class TestCmdletDao
         .build();
 
     CmdletInfo cmdlet2 = CmdletInfo.builder()
-        .setCid(SECOND_CMDLET_ID)
-        .setRid(2)
-        .setAids(Collections.singletonList(4L))
+        .setId(SECOND_CMDLET_ID)
+        .setRuleId(2)
+        .setActionIds(Collections.singletonList(4L))
         .setState(CmdletState.EXECUTING)
         .setParameters("write -file test.txt")
         .setGenerateTime(2L)
@@ -300,9 +272,9 @@ public class TestCmdletDao
         .build();
 
     CmdletInfo cmdlet3 = CmdletInfo.builder()
-        .setCid(THIRD_CMDLET_ID)
-        .setRid(1)
-        .setAids(Collections.singletonList(5L))
+        .setId(THIRD_CMDLET_ID)
+        .setRuleId(1)
+        .setActionIds(Collections.singletonList(5L))
         .setState(CmdletState.DISABLED)
         .setParameters("action -key another_val")
         .setGenerateTime(10L)

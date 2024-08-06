@@ -38,11 +38,9 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CmdletInfoMapper extends SmartMapper {
-  @Mapping(source = "cid", target = "id")
-  @Mapping(source = "rid", target = "ruleId", conditionQualifiedByName = "isValidRuleId")
+  @Mapping(source = "ruleId", target = "ruleId", conditionQualifiedByName = "isValidRuleId")
   @Mapping(source = "parameters", target = "textRepresentation")
   @Mapping(source = "generateTime", target = "submissionTime")
-  @Mapping(source = "aids", target = "actionIds")
   CmdletDto toCmdletDto(CmdletInfo cmdletInfo);
 
   CmdletsDto toCmdletsDto(SearchResult<CmdletInfo> searchResult);

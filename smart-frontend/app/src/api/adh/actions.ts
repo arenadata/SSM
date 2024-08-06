@@ -18,7 +18,7 @@
 import type { AdhAction, AdhActionsFilter } from '@models/adh';
 import type { PaginationParams, SortParams } from '@models/table';
 import type { PaginateCollection } from '@models/collection';
-import { prepareDateRange, prepareQueryParams } from '@utils/requestUtils';
+import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
 import { httpClient } from '@api/httpClient';
 import qs from 'qs';
 
@@ -28,14 +28,11 @@ export class AdhActionsApi {
     sortParams: SortParams,
     paginationParams: PaginationParams,
   ): Promise<PaginateCollection<AdhAction>> {
-    const { from: submissionTimeFrom, to: submissionTimeTo } = prepareDateRange(submissionTime);
-    const { from: completionTimeFrom, to: completionTimeTo } = prepareDateRange(completionTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        submissionTime: { submissionTimeFrom, submissionTimeTo },
-        completionTime: { completionTimeFrom, completionTimeTo },
+        ...prepareNamedDateRange(submissionTime, 'submissionTime'),
+        ...prepareNamedDateRange(completionTime, 'completionTime'),
       },
       sortParams,
       paginationParams,

@@ -19,24 +19,18 @@ package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
-import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.server.protocol.DatanodeStorageReport;
 import org.apache.hadoop.hdfs.server.protocol.StorageReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.model.DataNodeInfo;
-import org.smartdata.model.DataNodeStorageInfo;
 import org.smartdata.model.StorageCapacity;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +43,11 @@ import java.util.concurrent.TimeUnit;
  * Fetch and maintain data nodes related info.
  */
 public class DataNodeInfoFetcher {
-  private long updateInterval;
+  private final long updateInterval;
   private final DFSClient client;
   private final MetaStore metaStore;
   private final ScheduledExecutorService scheduledExecutorService;
-  private ScheduledFuture dnStorageReportProcTaskFuture;
-  private Configuration conf;
+  private ScheduledFuture<?> dnStorageReportProcTaskFuture;
   private DataNodeInfoFetchTask procTask;
   public static final Logger LOG =
       LoggerFactory.getLogger(DataNodeInfoFetcher.class);
@@ -64,15 +57,15 @@ public class DataNodeInfoFetcher {
     this.client = client;
     this.metaStore = metaStore;
     this.scheduledExecutorService = service;
-    this.conf = conf;
-    updateInterval = conf.getInt(SmartConfKeys.SMART_STORAGE_INFO_UPDATE_INTERVAL_KEY,
-        SmartConfKeys.SMART_STORAGE_INFO_UPDATE_INTERVAL_DEFAULT) * 1000;
+    updateInterval = conf.getInt(
+        SmartConfKeys.SMART_STORAGE_INFO_UPDATE_INTERVAL_KEY,
+        SmartConfKeys.SMART_STORAGE_INFO_UPDATE_INTERVAL_DEFAULT) * 1000L;
   }
 
   public void start() throws IOException {
     LOG.info("Starting DataNodeInfoFetcher service ...");
 
-    procTask = new DataNodeInfoFetchTask(client, conf, metaStore);
+    procTask = new DataNodeInfoFetchTask(client, metaStore);
     dnStorageReportProcTaskFuture = scheduledExecutorService.scheduleAtFixedRate(
         procTask, 0, updateInterval, TimeUnit.MILLISECONDS);
 
@@ -89,19 +82,17 @@ public class DataNodeInfoFetcher {
     }
   }
 
-  private class DataNodeInfoFetchTask implements Runnable {
-    private DFSClient client;
-    private Configuration conf;
-    private MetaStore metaStore;
+  private static class DataNodeInfoFetchTask implements Runnable {
+    private final DFSClient client;
+    private final MetaStore metaStore;
     private volatile boolean isFinished = false;
     private Map<String, StorageCapacity> storages;
     public final Logger LOG =
         LoggerFactory.getLogger(DataNodeInfoFetchTask.class);
 
-    public DataNodeInfoFetchTask(DFSClient client, Configuration conf, MetaStore metaStore)
+    public DataNodeInfoFetchTask(DFSClient client, MetaStore metaStore)
         throws IOException {
       this.client = client;
-      this.conf = conf;
       this.metaStore = metaStore;
 
       try {
@@ -118,25 +109,12 @@ public class DataNodeInfoFetcher {
       try {
         final DatanodeStorageReport[] reports =
             client.getDatanodeStorageReport(HdfsConstants.DatanodeReportType.LIVE);
-        metaStore.deleteAllDataNodeInfo();
         for (DatanodeStorageReport r : reports) {
-          metaStore.insertDataNodeInfo(transform(r.getDatanodeInfo()));
-          List<DataNodeStorageInfo> infos = new ArrayList<>();
           //insert record in DataNodeStorageInfoTable
           for (int i = 0; i < r.getStorageReports().length; i++) {
             StorageReport storageReport = r.getStorageReports()[i];
-            long sid = CompatibilityHelperLoader.getHelper().getSidInDatanodeStorageReport(
-                storageReport.getStorage());
-            String uuid = r.getDatanodeInfo().getDatanodeUuid();
-            long state = storageReport.getStorage().getState().ordinal();
-            String storageId = storageReport.getStorage().getStorageID();
-            boolean fail = storageReport.isFailed();
             long capacity = storageReport.getCapacity();
-            long dfsUsed = storageReport.getDfsUsed();
             long remaining = storageReport.getRemaining();
-            long blockPoolUsed = storageReport.getBlockPoolUsed();
-            infos.add(new DataNodeStorageInfo(uuid, sid, state,
-                storageId, fail, capacity, dfsUsed, remaining, blockPoolUsed));
 
             String sn = storageReport.getStorage().getStorageType().name();
             if (!storagesNow.containsKey(sn)) {
@@ -148,15 +126,11 @@ public class DataNodeInfoFetcher {
               sc.addFree(remaining);
             }
           }
-          metaStore.deleteDataNodeStorageInfo(r.getDatanodeInfo().getDatanodeUuid());
-          metaStore.insertDataNodeStorageInfos(infos);
         }
         updateStorages(storagesNow);
         storages = storagesNow;
         isFinished = true;
-      } catch (IOException e) {
-        LOG.error("Process datanode report error", e);
-      } catch (MetaStoreException e) {
+      } catch (IOException | MetaStoreException e) {
         LOG.error("Process datanode report error", e);
       }
     }
@@ -184,16 +158,6 @@ public class DataNodeInfoFetcher {
         }
       }
       metaStore.insertUpdateStoragesTable(sc);
-    }
-
-    private DataNodeInfo transform(DatanodeInfo datanodeInfo) {
-      return DataNodeInfo.newBuilder().setUuid(datanodeInfo.getDatanodeUuid()).
-          setHostName(datanodeInfo.getHostName()).
-          setRpcAddress(datanodeInfo.getIpAddr() + ":" +
-              Integer.toString(datanodeInfo.getIpcPort())).
-          setCacheCapacity(datanodeInfo.getCacheCapacity()).
-          setCacheUsed(datanodeInfo.getCacheUsed()).
-          setLocation(datanodeInfo.getNetworkLocation()).build();
     }
 
     public boolean isFinished() {

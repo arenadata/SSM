@@ -20,7 +20,6 @@ package org.smartdata.server;
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.dao.SearchableTestSupport;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.ClusterNodeSortField;
@@ -47,7 +46,7 @@ public class ClusterNodesManagerTest {
   @Before
   public void initCmdletManager() {
     ClusterNodesManager clusterNodesManager = new ClusterNodesManager(
-        new SmartConf(), null, null, this::nodeCmdletMetrics);
+        null, null, this::nodeCmdletMetrics);
     searchableTestSupport = new SearchableTestSupport<>(
         clusterNodesManager, ClusterNodeSortField.ID, this::getNodeId);
   }

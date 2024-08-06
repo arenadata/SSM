@@ -17,7 +17,7 @@
  */
 import type { PaginationParams, SortParams } from '@models/table';
 import type { PaginateCollection } from '@models/collection';
-import { prepareDateRange, prepareQueryParams } from '@utils/requestUtils';
+import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
 import { httpClient } from '@api/httpClient';
 import qs from 'qs';
 import type { AdhAuditEvent, AdhAuditEventsFilter } from '@models/adh/auditEvent';
@@ -28,12 +28,10 @@ export class AdhAuditEventsApi {
     sortParams: SortParams,
     paginationParams: PaginationParams,
   ): Promise<PaginateCollection<AdhAuditEvent>> {
-    const { from: eventTimeTimeFrom, to: eventTimeTimeTo } = prepareDateRange(eventTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        eventTimeTime: { eventTimeTimeFrom, eventTimeTimeTo },
+        ...prepareNamedDateRange(eventTime, 'eventTime'),
       },
       sortParams,
       paginationParams,

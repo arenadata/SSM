@@ -32,7 +32,6 @@ import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.metric.fetcher.CachedListFetcher;
 import org.smartdata.hdfs.metric.fetcher.DataNodeInfoFetcher;
 import org.smartdata.hdfs.metric.fetcher.InotifyEventFetcher;
-import org.smartdata.hdfs.metric.fetcher.StorageInfoSampler;
 import org.smartdata.hdfs.ruleplugin.CheckErasureCodingRulePlugin;
 import org.smartdata.hdfs.ruleplugin.CheckSsdRulePlugin;
 import org.smartdata.metastore.MetaStore;
@@ -58,7 +57,6 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
   private DataNodeInfoFetcher dataNodeInfoFetcher;
   private FSDataOutputStream moverIdOutputStream;
   private FSDataOutputStream ssmIdOutputStream;
-  private StorageInfoSampler storageInfoSampler;
 
   public static final Logger LOG =
       LoggerFactory.getLogger(HdfsStatesUpdateService.class);
@@ -96,7 +94,6 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
         metaStore, executorService, new FetchFinishedCallBack(), context.getConf());
     this.dataNodeInfoFetcher = new DataNodeInfoFetcher(
         client, metaStore, executorService, context.getConf());
-    this.storageInfoSampler = new StorageInfoSampler(metaStore, conf);
     LOG.info("Initialized.");
   }
 
@@ -122,7 +119,6 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
     this.inotifyEventFetcher.start();
     this.cachedListFetcher.start();
     this.dataNodeInfoFetcher.start();
-    this.storageInfoSampler.start();
     RulePluginManager.addPlugin(new CheckSsdRulePlugin(metaStore));
     RulePluginManager.addPlugin(new CheckErasureCodingRulePlugin(metaStore));
     LOG.info("Started. ");
@@ -159,12 +155,8 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
       this.cachedListFetcher.stop();
     }
 
-    if (dataNodeInfoFetcher != null) {
-      dataNodeInfoFetcher.stop();
-    }
-
-    if (storageInfoSampler != null) {
-      storageInfoSampler.stop();
+    if (this.dataNodeInfoFetcher != null) {
+      this.dataNodeInfoFetcher.stop();
     }
 
     executorService.shutdown();
@@ -213,7 +205,8 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
     }
   }
 
-  private FSDataOutputStream checkAndMarkRunning(URI namenodeURI, Configuration conf, String filePath)
+  private FSDataOutputStream checkAndMarkRunning(URI namenodeURI, Configuration conf,
+                                                 String filePath)
       throws IOException {
     Path path = new Path(filePath);
     DistributedFileSystem fs = (DistributedFileSystem) FileSystem.get(namenodeURI, conf);

@@ -30,8 +30,6 @@ public interface FileDiffDao {
 
   List<FileDiff> getPendingDiff();
 
-  List<FileDiff> getByState(FileDiffState fileDiffState);
-
   List<FileDiff> getByState(String prefix, FileDiffState fileDiffState);
 
   List<FileDiff> getPendingDiff(long rid);
@@ -72,7 +70,7 @@ public interface FileDiffDao {
   int update(long did, FileDiffState state,
              String parameters);
 
-  int[] update(FileDiff[] fileDiffs);
+  void update(List<FileDiff> fileDiffs);
 
   int update(FileDiff fileDiff);
 

@@ -40,14 +40,14 @@ public class ActionStatusFactory {
    */
   public static ActionStatus createTimeoutActionStatus(
       CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    long cid = cmdletInfo.getCid();
+    long cid = cmdletInfo.getId();
     long aid = actionInfo.getActionId();
     long startTime = actionInfo.getCreateTime();
     if (startTime == 0) {
       startTime = cmdletInfo.getGenerateTime();
     }
     long finishTime = System.currentTimeMillis();
-    long lastAid = cmdletInfo.getAids().get(cmdletInfo.getAids().size() - 1);
+    long lastAid = cmdletInfo.getActionIds().get(cmdletInfo.getActionIds().size() - 1);
     return new ActionStatus(cid, aid == lastAid, aid, TIMEOUT_LOG,
         startTime, finishTime, new Throwable(), true);
   }
@@ -57,14 +57,14 @@ public class ActionStatusFactory {
    */
   public static ActionStatus createSuccessActionStatus(
       CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    long cid = cmdletInfo.getCid();
+    long cid = cmdletInfo.getId();
     long aid = actionInfo.getActionId();
     long startTime = actionInfo.getCreateTime();
     if (startTime == 0) {
       startTime = cmdletInfo.getGenerateTime();
     }
     long finishTime = System.currentTimeMillis();
-    long lastAid = cmdletInfo.getAids().get(cmdletInfo.getAids().size() - 1);
+    long lastAid = cmdletInfo.getActionIds().get(cmdletInfo.getActionIds().size() - 1);
     // Action result can be set by scheduler.
     String result =
         actionInfo.getResult() != null ? actionInfo.getResult() : "";

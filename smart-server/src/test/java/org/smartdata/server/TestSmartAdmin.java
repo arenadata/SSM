@@ -87,7 +87,7 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
       assertTrue("cache -file /foo*".equals(cmdletInfo.getParameters()));
 
       //test actioninfo
-      List<Long> aidlist = cmdletInfo.getAids();
+      List<Long> aidlist = cmdletInfo.getActionIds();
       assertNotEquals(0, aidlist.size());
       ActionInfo actionInfo = admin.getActionInfo(aidlist.get(0));
       assertEquals(id, actionInfo.getCmdletId());

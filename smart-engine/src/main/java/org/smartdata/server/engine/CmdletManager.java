@@ -262,11 +262,11 @@ public class CmdletManager extends AbstractService
       Consumer<List<ActionInfo>> actionInfosHandler) throws IOException {
     CmdletDescriptor cmdletDescriptor =
         buildCmdletDescriptor(cmdletInfo.getParameters());
-    cmdletDescriptor.setRuleId(cmdletInfo.getRid());
-    tracker.track(cmdletInfo.getCid(), cmdletDescriptor);
+    cmdletDescriptor.setRuleId(cmdletInfo.getRuleId());
+    tracker.track(cmdletInfo.getId(), cmdletDescriptor);
 
     LOG.debug("Reload cmdlet: {}", cmdletInfo);
-    List<ActionInfo> actionInfos = actionInfoHandler.getActions(cmdletInfo.getAids());
+    List<ActionInfo> actionInfos = actionInfoHandler.getActions(cmdletInfo.getActionIds());
     actionInfosHandler.accept(actionInfos);
     syncCmdAction(cmdletInfo, actionInfos);
   }
@@ -403,8 +403,8 @@ public class CmdletManager extends AbstractService
     syncCmdAction(cmdletInfo, actionInfos);
     // Track in the submission portal. For cmdlets recovered from DB
     // (see #recover), they will be not be tracked.
-    tracker.track(cmdletInfo.getCid(), cmdletDescriptor);
-    return cmdletInfo.getCid();
+    tracker.track(cmdletInfo.getId(), cmdletDescriptor);
+    return cmdletInfo.getId();
   }
 
   /**
@@ -418,12 +418,12 @@ public class CmdletManager extends AbstractService
 
     if (cmdletInfo.getState() == CmdletState.PENDING) {
       synchronized (pendingCmdlets) {
-        pendingCmdlets.add(cmdletInfo.getCid());
+        pendingCmdlets.add(cmdletInfo.getId());
       }
     } else if (cmdletInfo.getState() == CmdletState.DISPATCHED) {
-      runningCmdlets.add(cmdletInfo.getCid());
+      runningCmdlets.add(cmdletInfo.getId());
       LaunchCmdlet launchCmdlet = cmdletInfoHandler.createLaunchCmdlet(cmdletInfo);
-      idToLaunchCmdlets.put(cmdletInfo.getCid(), launchCmdlet);
+      idToLaunchCmdlets.put(cmdletInfo.getId(), launchCmdlet);
     }
   }
 
@@ -498,8 +498,8 @@ public class CmdletManager extends AbstractService
       switch (result) {
         case SUCCESS:
           cmdlet.updateState(CmdletState.SCHEDULED);
-          idToLaunchCmdlets.put(cmdlet.getCid(), launchCmdlet);
-          scheduledCmdlets.add(cmdlet.getCid());
+          idToLaunchCmdlets.put(cmdlet.getId(), launchCmdlet);
+          scheduledCmdlets.add(cmdlet.getId());
           break;
         case FAIL:
           cmdlet.updateState(CmdletState.CANCELLED);
@@ -520,11 +520,11 @@ public class CmdletManager extends AbstractService
 
   private CmdletStatus statusFromCmdletInfo(CmdletInfo cmdletInfo) {
     return new CmdletStatus(
-        cmdletInfo.getCid(), cmdletInfo.getStateChangedTime(), cmdletInfo.getState());
+        cmdletInfo.getId(), cmdletInfo.getStateChangedTime(), cmdletInfo.getState());
   }
 
   private ScheduleResult scheduleCmdletActions(CmdletInfo info, LaunchCmdlet launchCmdlet) {
-    List<Long> actionIds = info.getAids();
+    List<Long> actionIds = info.getActionIds();
     int actionIdx;
     int schIdx = 0;
     boolean skipped = false;
@@ -612,7 +612,7 @@ public class CmdletManager extends AbstractService
       return false;
     }
     onCmdletStatusUpdate(
-        new CmdletStatus(info.getCid(), System.currentTimeMillis(), CmdletState.DISABLED));
+        new CmdletStatus(info.getId(), System.currentTimeMillis(), CmdletState.DISABLED));
 
     boolean cmdletDeleted = false;
 
@@ -643,9 +643,9 @@ public class CmdletManager extends AbstractService
   private void cmdletFinished(CmdletInfo cmdletInfo) {
     cmdletPurgeTask.onCmdletFinished();
 
-    dispatcher.onCmdletFinished(cmdletInfo.getCid());
-    runningCmdlets.remove(cmdletInfo.getCid());
-    idToLaunchCmdlets.remove(cmdletInfo.getCid());
+    dispatcher.onCmdletFinished(cmdletInfo.getId());
+    runningCmdlets.remove(cmdletInfo.getId());
+    idToLaunchCmdlets.remove(cmdletInfo.getId());
 
     cmdletInfoHandler.store(cmdletInfo);
   }
@@ -753,7 +753,7 @@ public class CmdletManager extends AbstractService
     long cmdletId = actionInfo.getCmdletId();
 
     CmdletInfo cmdletInfo = cmdletInfoHandler.getUnfinishedCmdlet(cmdletId);
-    List<Long> actionIds = cmdletInfo.getAids();
+    List<Long> actionIds = cmdletInfo.getActionIds();
     int actionIndex = actionIds.indexOf(actionInfo.getActionId());
 
     if (!actionInfo.isSuccessful()) {

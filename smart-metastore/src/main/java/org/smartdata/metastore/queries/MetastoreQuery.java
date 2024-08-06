@@ -23,6 +23,7 @@ import org.smartdata.metastore.queries.column.MetastoreQueryColumn;
 import org.smartdata.metastore.queries.expression.MetastoreQueryExpression;
 import org.smartdata.metastore.queries.sort.Sorting;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ public class MetastoreQuery {
   private final StringBuilder queryBuilder;
   private final StringBuilder filtersBuilder;
   private final Map<String, Object> parameters;
+  private final List<JoinedTable> joinedTables;
   private String table;
 
   private MetastoreQuery(String baseQuery) {
@@ -50,6 +52,7 @@ public class MetastoreQuery {
     this.filtersBuilder = new StringBuilder();
     this.parameters = parameters;
     this.table = null;
+    this.joinedTables = new ArrayList<>();
 
     queryBuilder.append(baseQuery).append("\n");
   }
@@ -78,6 +81,35 @@ public class MetastoreQuery {
         .append(table)
         .append("\n");
     this.table = table;
+    return this;
+  }
+
+  public MetastoreQuery fromSubQuery(String subQuery, String alias) {
+    subQuery = "(" + subQuery + ") AS " + alias;
+    return from(subQuery);
+  }
+
+  public MetastoreQuery join(JoinedTable joinedTable) {
+    return join(joinedTable.getTable(), joinedTable.getJoinColumns());
+  }
+
+  public MetastoreQuery join(String joinedTable, Map<String, String> joinConditions) {
+    joinedTables.add(new JoinedTable(joinedTable, joinConditions));
+
+    queryBuilder.append("JOIN ")
+        .append(joinedTable)
+        .append(" ON ")
+        .append(joinConditions.entrySet().stream()
+            .map(jc -> jc.getKey() + " = " + jc.getValue())
+            .collect(Collectors.joining(" AND ")))
+        .append("\n");
+    return this;
+  }
+
+  public MetastoreQuery groupBy(String... fields) {
+    queryBuilder.append("GROUP BY ")
+        .append(String.join(", ", fields))
+        .append("\n");
     return this;
   }
 
@@ -159,8 +191,9 @@ public class MetastoreQuery {
 
   public String toSqlCountQuery() {
     checkTableSet();
-    return select("COUNT(*)")
-        .from(table)
+    MetastoreQuery query = select("COUNT(*)").from(table);
+    joinedTables.forEach(query::join);
+    return query
         .where(filtersBuilder.toString(), parameters)
         .toSqlQuery();
   }

@@ -28,25 +28,23 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(setterPrefix = "set")
 public class CmdletInfo {
-  // todo rename cid, rid and aids after zeppelin removal,
-  // since this class is used directly as response in the old cmdlets REST API
-  private long cid;
-  private long rid;
+  private long id;
+  private long ruleId;
   @lombok.Builder.Default
-  private List<Long> aids = new ArrayList<>();
+  private List<Long> actionIds = new ArrayList<>();
   private CmdletState state;
   private String parameters;
   private final long generateTime;
   private long stateChangedTime;
 
   public CmdletInfo(
-      long cid,
-      long rid,
+      long id,
+      long ruleId,
       CmdletState state,
       String parameters,
       long generateTime,
       long stateChangedTime) {
-    this(cid, rid, new ArrayList<>(), state,
+    this(id, ruleId, new ArrayList<>(), state,
         parameters, generateTime, stateChangedTime);
   }
 
@@ -54,13 +52,13 @@ public class CmdletInfo {
   public String toString() {
     return String.format("CmdletId -> [ %s ] {rid = %d, aids = %s, genTime = %d, "
             + "stateChangedTime = %d, state = %s, params = %s}",
-        cid, rid, aids,
+        id, ruleId, actionIds,
         generateTime, stateChangedTime, state,
         parameters);
   }
 
   public void addAction(long aid) {
-    aids.add(aid);
+    actionIds.add(aid);
   }
 
   public void updateState(CmdletState state) {

@@ -32,40 +32,40 @@ public class TestSystemRestApi extends IntegrationTestBase {
   public void testVersion() throws Exception {
     Response response1 = RestAssured.get(RestApiBase.SYSTEMROOT + "/version");
     String json1 = response1.asString();
-    response1.then().body("body", Matchers.equalTo("1.6.0-SNAPSHOT"));
+    response1.then().body("body", Matchers.equalTo("2.0.0-SNAPSHOT"));
   }
 
-//  @Test
-//  public void testServers() throws IOException, InterruptedException {
-//    Response response = RestAssured.get(RestApiBase.SYSTEMROOT + "/servers");
-//    response.then().body("body", Matchers.empty());
-//    Process worker = null;
-//    Process agent = null;
-//
-//    try {
-//      worker = Util.startNewServer();
-//      Util.waitSlaveServerAvailable();
-//
-//      agent = Util.startNewAgent();
-//      Util.waitAgentAvailable();
-//    } finally {
-//      if (worker != null) {
-//        try {
-//          worker.destroy();
-//          Util.waitSlaveServersDown();
-//        } catch (Throwable t) {
-//          // ignore
-//        }
-//      }
-//
-//      if (agent != null) {
-//        try {
-//          agent.destroy();
-//          Util.waitAgentsDown();
-//        } catch (Throwable t) {
-//          // ignore
-//        }
-//      }
-//    }
-//  }
+  // @Test
+  // public void testServers() throws IOException, InterruptedException {
+  // Response response = RestAssured.get(RestApiBase.SYSTEMROOT + "/servers");
+  // response.then().body("body", Matchers.empty());
+  // Process worker = null;
+  // Process agent = null;
+  //
+  // try {
+  // worker = Util.startNewServer();
+  // Util.waitSlaveServerAvailable();
+  //
+  // agent = Util.startNewAgent();
+  // Util.waitAgentAvailable();
+  // } finally {
+  // if (worker != null) {
+  // try {
+  // worker.destroy();
+  // Util.waitSlaveServersDown();
+  // } catch (Throwable t) {
+  // // ignore
+  // }
+  // }
+  //
+  // if (agent != null) {
+  // try {
+  // agent.destroy();
+  // Util.waitAgentsDown();
+  // } catch (Throwable t) {
+  // // ignore
+  // }
+  // }
+  // }
+  // }
 }

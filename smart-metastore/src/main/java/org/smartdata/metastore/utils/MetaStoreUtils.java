@@ -41,9 +41,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
 import java.util.List;
 import java.util.Properties;
@@ -135,28 +133,6 @@ public class MetaStoreUtils {
 
     return new MetaStore(druidPool, dbSchemaManager, daoProvider, dbMetadataProvider,
         transactionManager);
-  }
-
-  /**
-   * Retrieve table column names.
-   *
-   * @param conn
-   * @param tableName
-   * @return
-   * @throws MetaStoreException
-   */
-  public static List<String> getTableColumns(Connection conn, String tableName)
-      throws MetaStoreException {
-    List<String> ret = new ArrayList<>();
-    try {
-      ResultSet res = conn.getMetaData().getColumns(null, null, tableName, null);
-      while (res.next()) {
-        ret.add(res.getString("COLUMN_NAME"));
-      }
-      return ret;
-    } catch (Exception e) {
-      throw new MetaStoreException(e);
-    }
   }
 
   private static Properties loadDruidConfig(SmartConf conf, File cpConfigFile)

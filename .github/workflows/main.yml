@@ -24,7 +24,8 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn clean install -Pdist,web,hadoop-${{ matrix.hdfs-version }} -DskipTests
+        run: mvn clean install -Pdist,web-ui,hadoop-${{ matrix.hdfs-version }} -DskipTests
 
       - name: Run tests
-        run: mvn test -Dmaven.test.redirectTestOutputToFile=false -pl '!smart-zeppelin,!org.smartdata:smart-zeppelin-interpreter,!org.smartdata:smart-zeppelin-zengine,!org.smartdata:smart-zeppelin-display,!org.smartdata:smart-zeppelin-server' -am -Phadoop-${{ matrix.hdfs-version }}
+        # TODO unignore smart-integration module when ADH-4721 will be merged
+        run: mvn test -pl '!smart-integration' -am -Dmaven.test.redirectTestOutputToFile=false -Phadoop-${{ matrix.hdfs-version }}

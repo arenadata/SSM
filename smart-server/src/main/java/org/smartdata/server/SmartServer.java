@@ -23,7 +23,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.zeppelin.server.SmartZeppelinServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -62,7 +61,6 @@ public class SmartServer {
   private boolean enabled;
 
   private SmartRpcServer rpcServer;
-  private SmartZeppelinServer zeppelinServer;
   private SmartRestServer restServer;
 
   static {
@@ -84,7 +82,6 @@ public class SmartServer {
     initServiceMode(conf);
     engine = new SmartEngine(context);
     rpcServer = new SmartRpcServer(this, conf);
-    zeppelinServer = new SmartZeppelinServer(conf, engine);
     restServer = new SmartRestServer(conf, engine);
 
     LOG.info("Finish Init Smart Server");
@@ -232,10 +229,6 @@ public class SmartServer {
 
     rpcServer.start();
 
-    if (zeppelinServer != null) {
-      zeppelinServer.start();
-    }
-
     if (enabled && restServer != null) {
       restServer.start();
     }
@@ -268,14 +261,6 @@ public class SmartServer {
       }
     } catch (Exception exception) {
       LOG.error("Error during stopping SmartEngine", exception);
-    }
-
-    try {
-      if (zeppelinServer != null) {
-        zeppelinServer.stop();
-      }
-    } catch (Exception exception) {
-      LOG.error("Error during stopping Zeppelin server", exception);
     }
 
     try {

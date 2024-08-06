@@ -81,7 +81,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
         "allssd -file /testMoveFile/file1 ; cache -file /testCacheFile ; "
             + "write -file /test -length 1024";
     CmdletDescriptor cmdletDescriptor = generateCmdletDescriptor(cmd);
-    CmdletInfo cmdletInfo = CmdletInfo.builder().setCid(0).build();
+    CmdletInfo cmdletInfo = CmdletInfo.builder().setId(0).build();
     List<ActionInfo> actionInfos = actionInfoHandler
         .createActionInfos(cmdletDescriptor, cmdletInfo);
     Assert.assertEquals(cmdletDescriptor.getActionSize(), actionInfos.size());
@@ -111,7 +111,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     Assert.assertFalse(actionInfos.isEmpty());
 
     while (true) {
-      CmdletState state = cmdletInfoHandler.getCmdletInfo(cmdletInfo.getCid()).getState();
+      CmdletState state = cmdletInfoHandler.getCmdletInfo(cmdletInfo.getId()).getState();
       if (state == CmdletState.DONE) {
         break;
       }
@@ -208,8 +208,8 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     CmdletInfo info = cmdletManager.getCmdletInfoHandler().getCmdletInfo(cmdletId);
     Assert.assertNotNull(info);
     Assert.assertEquals(info.getParameters(), "echo");
-    Assert.assertEquals(info.getAids().size(), 1);
-    Assert.assertEquals((long) info.getAids().get(0), actionId);
+    Assert.assertEquals(info.getActionIds().size(), 1);
+    Assert.assertEquals((long) info.getActionIds().get(0), actionId);
     Assert.assertEquals(info.getState(), CmdletState.EXECUTING);
 
     long finishTime = System.currentTimeMillis();
@@ -265,8 +265,8 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     // init cmdletmanager
     cmdletManager.init();
 //    cmdletManager.start();
-    CmdletInfo cmdlet0 = cmdletInfoHandler.getCmdletInfo(cmdletInfo0.getCid());
-    CmdletInfo cmdlet1 = cmdletInfoHandler.getCmdletInfo(cmdletInfo1.getCid());
+    CmdletInfo cmdlet0 = cmdletInfoHandler.getCmdletInfo(cmdletInfo0.getId());
+    CmdletInfo cmdlet1 = cmdletInfoHandler.getCmdletInfo(cmdletInfo1.getId());
     while (cmdlet0.getState() != CmdletState.FAILED && cmdlet1.getState() != CmdletState.DONE) {
       Thread.sleep(100);
     }

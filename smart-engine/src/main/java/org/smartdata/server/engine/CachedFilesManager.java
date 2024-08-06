@@ -17,30 +17,23 @@
  */
 package org.smartdata.server.engine;
 
-import org.smartdata.metastore.MetaStore;
-import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.dao.CacheFileDao;
 import org.smartdata.metastore.dao.Searchable;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.CachedFilesSortField;
 import org.smartdata.model.CachedFileStatus;
-import org.smartdata.model.StorageCapacity;
-import org.smartdata.model.Utilization;
 import org.smartdata.model.request.CachedFileSearchRequest;
 
-import java.io.IOException;
 import java.util.List;
 
 public class CachedFilesManager implements
     Searchable<CachedFileSearchRequest, CachedFileStatus, CachedFilesSortField> {
 
   private final CacheFileDao cacheFileDao;
-  private final MetaStore metaStore;
 
-  public CachedFilesManager(MetaStore metaStore) {
-    this.metaStore = metaStore;
-    this.cacheFileDao = metaStore.cacheFileDao();
+  public CachedFilesManager(CacheFileDao cacheFileDao) {
+    this.cacheFileDao = cacheFileDao;
   }
 
   @Override
@@ -52,18 +45,5 @@ public class CachedFilesManager implements
   @Override
   public List<CachedFileStatus> search(CachedFileSearchRequest searchRequest) {
     return cacheFileDao.search(searchRequest);
-  }
-
-  // todo remove after zeppelin removal
-  public Utilization getCacheStorageUtilization() throws IOException {
-    try {
-      long now = System.currentTimeMillis();
-      StorageCapacity storageCapacity = metaStore.getStorageCapacity("cache");
-      return new Utilization(now,
-          storageCapacity.getCapacity(),
-          storageCapacity.getCapacity() - storageCapacity.getFree());
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
   }
 }

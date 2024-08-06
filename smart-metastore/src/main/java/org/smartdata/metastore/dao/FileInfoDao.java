@@ -43,9 +43,6 @@ public interface FileInfoDao {
   Map<String, Long> getPathFids(Collection<String> paths)
       throws SQLException;
 
-  Map<Long, String> getFidPaths(Collection<Long> ids)
-      throws SQLException;
-
   void insert(FileInfo fileInfo);
 
   void insert(FileInfo[] fileInfos);

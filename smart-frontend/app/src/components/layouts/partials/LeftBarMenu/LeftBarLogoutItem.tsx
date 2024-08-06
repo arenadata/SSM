@@ -38,6 +38,7 @@ const LeftBarLogoutItem: React.FC = () => {
         onOpenChange={setIsOpenConfirm}
         width="440px"
         title="Are you sure you want to log out?"
+        actionButtonLabel="Logout"
         onAction={handleLogout}
       />
     </>

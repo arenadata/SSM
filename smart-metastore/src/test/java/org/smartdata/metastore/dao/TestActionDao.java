@@ -33,7 +33,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -56,44 +55,13 @@ public class TestActionDao
   }
 
   @Test
-  public void testGetAPageOfAction() {
-    Map<String, String> args = new HashMap<>();
-    // ActionInfo's result and log queried from Metastore will be discarded
-    // and they are set by "".
-    ActionInfo actionInfo = new ActionInfo(1, 1,
-        "cache", args, "",
-        "", false, 123213213L, true, 123123L,
-        100);
-    ActionInfo actionInfo1 = new ActionInfo(2, 1,
-        "cache", args, "",
-        "", false, 123213213L, true, 123123L,
-        100);
-    ActionInfo actionInfo2 = new ActionInfo(3, 1,
-        "cache", args, "",
-        "", false, 123213213L, true, 123123L,
-        100);
-    ActionInfo actionInfo3 = new ActionInfo(4, 1,
-        "cache", args, "",
-        "", false, 123213213L, true, 123123L,
-        100);
-
-    actionDao.insert(actionInfo, actionInfo1, actionInfo2, actionInfo3);
-
-    List<String> order = new ArrayList<>();
-    order.add("aid");
-    List<Boolean> desc = new ArrayList<>();
-    desc.add(false);
-    Assert.assertEquals(actionInfo2, actionDao.getAPageOfAction(2, 1, order, desc).get(0));
-  }
-
-  @Test
   public void testInsertGetAction() {
     Map<String, String> args = new HashMap<>();
     ActionInfo actionInfo = new ActionInfo(1, 1,
         "cache", args, "Test",
         "Test", false, 123213213L, true, 123123L,
         100);
-    actionDao.insert(new ActionInfo[]{actionInfo});
+    actionDao.insert(new ActionInfo[] {actionInfo});
     ActionInfo dbActionInfo = actionDao.getById(1L);
     Assert.assertEquals(actionInfo, dbActionInfo);
     // Get wrong id

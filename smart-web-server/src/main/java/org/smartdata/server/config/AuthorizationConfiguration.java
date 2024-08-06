@@ -20,6 +20,7 @@ package org.smartdata.server.config;
 import org.smartdata.ranger.authorizer.impl.RangerSsmAuthorizerImpl;
 import org.smartdata.server.security.NoneAuthorizationManager;
 import org.smartdata.server.security.RangerAuthorizationManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,10 +41,7 @@ public class AuthorizationConfiguration {
     return new RangerAuthorizationManager(new RangerSsmAuthorizerImpl());
   }
 
-  @ConditionalOnProperty(
-      name = ConfigKeys.WEB_SECURITY_ENABLED,
-      havingValue = "false",
-      matchIfMissing = true)
+  @ConditionalOnMissingBean(AuthorizationManager.class)
   @Bean
   public AuthorizationManager<RequestAuthorizationContext> noneAuthorizationManager() {
     return new NoneAuthorizationManager();

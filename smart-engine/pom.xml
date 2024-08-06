@@ -26,12 +26,12 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smartdata-project</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>smart-engine</artifactId>
-    <version>1.6.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -48,17 +48,17 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metrics</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-configuration</groupId>
@@ -77,28 +77,28 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-admin</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-action</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-rule</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
@@ -134,12 +134,12 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.artifact}</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.client.artifact}</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.dbunit</groupId>
@@ -191,12 +191,12 @@
                 <dependency>
                     <groupId>org.smartdata</groupId>
                     <artifactId>smart-alluxio</artifactId>
-                    <version>1.6.0-SNAPSHOT</version>
+                    <version>2.0.0-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>org.smartdata</groupId>
                     <artifactId>smart-alluxio-client</artifactId>
-                    <version>1.6.0-SNAPSHOT</version>
+                    <version>2.0.0-SNAPSHOT</version>
                 </dependency>
             </dependencies>
         </profile>

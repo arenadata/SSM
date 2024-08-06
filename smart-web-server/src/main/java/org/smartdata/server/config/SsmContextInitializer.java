@@ -51,5 +51,7 @@ public class SsmContextInitializer implements
           "cachedFilesManager", smartEngine.getStatesManager().getCachedFilesManager());
       beanFactory.registerSingleton(
           "smartPrincipalManager", smartEngine.getSmartPrincipalManager());
+      beanFactory.registerSingleton("accessCountTableManager",
+          smartEngine.getStatesManager().getAccessCountTableManager());
     }
 }

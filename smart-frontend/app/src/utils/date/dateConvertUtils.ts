@@ -62,14 +62,14 @@ export const millisecondsToDuration = (milliseconds: number) => {
   return dateDuration(curDate, new Date(curDate.getTime() + milliseconds));
 };
 
-export const secondsToDate = (seconds: number): Date => {
-  return new Date(Math.floor(seconds * 1000));
+export const millisecondsToDate = (milliseconds: number): Date => {
+  return new Date(milliseconds);
 };
 
-export const dateToSeconds = (date: Date): number => {
+export const dateToMilliseconds = (date: Date): number => {
   if (date === null) return 0;
-  return Math.floor(date.getTime() / 1000);
+  return date.getTime();
 };
 
-export const deserializeDate = (seconds: SerializedDate): Date => secondsToDate(seconds);
-export const serializeDate = (date: Date): SerializedDate => dateToSeconds(date);
+export const deserializeDate = (milliseconds: SerializedDate): Date => millisecondsToDate(milliseconds);
+export const serializeDate = (date: Date): SerializedDate => dateToMilliseconds(date);

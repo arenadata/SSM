@@ -28,8 +28,6 @@ import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
 import org.smartdata.model.CompressionFileState;
-import org.smartdata.model.DataNodeInfo;
-import org.smartdata.model.DataNodeStorageInfo;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.GlobalConfig;
@@ -37,9 +35,7 @@ import org.smartdata.model.NormalFileState;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.StorageCapacity;
-import org.smartdata.model.StoragePolicy;
 import org.smartdata.model.SystemInfo;
-import org.smartdata.model.XAttribute;
 import org.smartdata.model.request.ActionSearchRequest;
 
 import java.util.ArrayList;
@@ -49,7 +45,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import static org.smartdata.utils.StringUtil.ssmPatternToRegex;
 
@@ -195,46 +190,18 @@ public class TestMetaStore extends TestDaoBase {
   public void testInsertStoragesTable() throws Exception {
     StorageCapacity storage1 = new StorageCapacity("Flash", 12343333L, 2223333L);
     StorageCapacity storage2 = new StorageCapacity("RAM", 12342233L, 2223663L);
-    StorageCapacity[] storages = {storage1, storage2};
-    metaStore.insertUpdateStoragesTable(storages);
+    metaStore.insertUpdateStoragesTable(Arrays.asList(storage1, storage2));
     StorageCapacity storageCapacity1 = metaStore.getStorageCapacity("Flash");
     StorageCapacity storageCapacity2 = metaStore.getStorageCapacity("RAM");
     Assert.assertEquals(storageCapacity1, storage1);
     Assert.assertEquals(storageCapacity2, storage2);
-    Assert.assertTrue(metaStore.updateStoragesTable("Flash", 123456L, 4562233L));
-    Assert.assertEquals(123456L, (long) metaStore.getStorageCapacity("Flash").getCapacity());
-  }
-
-  @Test
-  public void testGetStoreCapacityOfDifferentStorageType() throws Exception {
-    DataNodeStorageInfo info1 = new DataNodeStorageInfo("1", "ssd", 1, "1", true, 1, 1, 1, 1);
-    DataNodeStorageInfo info2 = new DataNodeStorageInfo("2", "ssd", 2, "2", true, 2, 2, 2, 2);
-
-    metaStore.insertDataNodeStorageInfo(info1);
-    metaStore.insertDataNodeStorageInfo(info2);
-
-    long capacity = metaStore.getStoreCapacityOfDifferentStorageType("ssd");
-    Assert.assertEquals(3, capacity);
-  }
-
-  @Test
-  public void testGetStoreFreeOfDifferentStorageType() throws Exception {
-    DataNodeStorageInfo info1 = new DataNodeStorageInfo("1", "ssd", 1, "1", false, 1, 1, 1, 1);
-    DataNodeStorageInfo info2 = new DataNodeStorageInfo("2", "ssd", 2, "2", true, 2, 2, 2, 2);
-
-    metaStore.insertDataNodeStorageInfo(info1);
-    metaStore.insertDataNodeStorageInfo(info2);
-
-    long free = metaStore.getStoreFreeOfDifferentStorageType("ssd");
-    Assert.assertEquals(3, free);
   }
 
   @Test
   public void testGetStorageCapacity() throws Exception {
     StorageCapacity storage1 = new StorageCapacity("HDD", 12343333L, 2223333L);
     StorageCapacity storage2 = new StorageCapacity("RAM", 12342233L, 2223663L);
-    StorageCapacity[] storages = {storage1, storage2};
-    metaStore.insertUpdateStoragesTable(storages);
+    metaStore.insertUpdateStoragesTable(Arrays.asList(storage1, storage2));
     Assert.assertEquals(storage1, metaStore.getStorageCapacity("HDD"));
     Assert.assertEquals(storage2, metaStore.getStorageCapacity("RAM"));
 
@@ -268,64 +235,6 @@ public class TestMetaStore extends TestDaoBase {
 
     List<RuleInfo> infos = metaStore.getRuleInfos();
     Assert.assertEquals(2, infos.size());
-  }
-
-  @Test
-  public void testMoveSyncRules() throws Exception {
-    String pathString = "/src/1";
-    long length = 123L;
-    boolean isDir = false;
-    int blockReplication = 1;
-    long blockSize = 128 * 1024L;
-    long modTime = 123123123L;
-    long accessTime = 123123120L;
-    String owner = "root";
-    String group = "admin";
-    long fileId = 56L;
-    byte storagePolicy = 0;
-    byte erasureCodingPolicy = 0;
-    FileInfo fileInfo =
-        new FileInfo(
-            pathString,
-            fileId,
-            length,
-            isDir,
-            (short) blockReplication,
-            blockSize,
-            modTime,
-            accessTime,
-            (short) 1,
-            owner,
-            group,
-            storagePolicy,
-            erasureCodingPolicy);
-    metaStore.insertFile(fileInfo);
-    Map<String, String> args = new HashMap<>();
-    args.put("-file", "/src/1");
-    String rule = "file : accessCount(10m) > 20 \n\n" + "and length() > 3 | ";
-    long submitTime = System.currentTimeMillis();
-    RuleInfo ruleInfo =
-        new RuleInfo(0, submitTime, rule + "sync -dest /dest/", RuleState.ACTIVE, 0, 0, 0);
-    metaStore.insertNewRule(ruleInfo);
-    metaStore.insertBackUpInfo(new BackUpInfo(ruleInfo.getId(), "/src/", "/dest/", 100));
-    metaStore.insertNewRule(
-        new RuleInfo(1, submitTime, rule + "allssd", RuleState.ACTIVE, 0, 0, 0));
-    metaStore.insertNewRule(
-        new RuleInfo(2, submitTime, rule + "archive", RuleState.ACTIVE, 0, 0, 0));
-    metaStore.insertNewRule(
-        new RuleInfo(2, submitTime, rule + "onessd", RuleState.ACTIVE, 0, 0, 0));
-    metaStore.insertNewRule(new RuleInfo(2, submitTime, rule + "cache", RuleState.ACTIVE, 0, 0, 0));
-    Assert.assertEquals(3, metaStore.listMoveRules().size());
-    Assert.assertEquals(1, metaStore.listSyncRules().size());
-    CmdletInfo cmdletInfo =
-        new CmdletInfo(1, ruleInfo.getId(), CmdletState.EXECUTING, "test", 123123333L,
-            232444444L);
-    cmdletInfo.setAids(Collections.singletonList(1L));
-    metaStore.insertCmdlet(cmdletInfo);
-    metaStore.insertAction(
-        new ActionInfo(1, 1, "allssd", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100));
-    Assert.assertTrue(metaStore.listFileActions(ruleInfo.getId(), 0).size() >= 0);
   }
 
   @Test
@@ -434,13 +343,8 @@ public class TestMetaStore extends TestDaoBase {
     metaStore.insertCmdlet(command1);
     CmdletInfo command2 = new CmdletInfo(1, 78, CmdletState.PAUSED, "tt", 123178333L, 232444994L);
     metaStore.insertCmdlet(command2);
-    Assert.assertEquals(command1, metaStore.getCmdletById(command1.getCid()));
-    Assert.assertEquals(command2, metaStore.getCmdletById(command2.getCid()));
-    metaStore.updateCmdlet(command1.getCid(), "TestParameter", CmdletState.EXECUTING);
-    Assert.assertEquals("TestParameter",
-        metaStore.getCmdletById(command1.getCid()).getParameters());
-    Assert.assertEquals(CmdletState.EXECUTING,
-        metaStore.getCmdletById(command1.getCid()).getState());
+    Assert.assertEquals(command1, metaStore.getCmdletById(command1.getId()));
+    Assert.assertEquals(command2, metaStore.getCmdletById(command2.getId()));
   }
 
   @Test
@@ -504,19 +408,12 @@ public class TestMetaStore extends TestDaoBase {
     CmdletInfo command2 = new CmdletInfo(1, 78, CmdletState.PENDING, "tt", 123178333L, 232444994L);
     List<CmdletInfo> commands = Arrays.asList(command1, command2);
     metaStore.upsertCmdlets(commands);
-    List<CmdletInfo> com = metaStore.getCmdlets(CmdletState.PENDING);
     commandId = metaStore.getMaxCmdletId();
     Assert.assertEquals(commandId, commands.size());
-    for (CmdletInfo cmd : com) {
-      metaStore.updateCmdlet(cmd.getCid(), CmdletState.DONE);
-    }
-    List<CmdletInfo> com1 = metaStore.getCmdlets(CmdletState.DONE);
-    Assert.assertEquals(2, com1.size());
 
-    Assert.assertEquals(CmdletState.DONE, com1.get(0).getState());
-    metaStore.deleteCmdlet(command2.getCid());
-    com1 = metaStore.getCmdlets(CmdletState.DONE);
-    Assert.assertEquals(1, com1.size());
+    metaStore.deleteCmdlet(command2.getId());
+    List<CmdletInfo> cmdlets = metaStore.getCmdlets(CmdletState.PENDING);
+    Assert.assertEquals(1, cmdlets.size());
   }
 
   @Test
@@ -557,34 +454,6 @@ public class TestMetaStore extends TestDaoBase {
   }
 
   @Test
-  public void testInsertStoragePolicyTable() throws Exception {
-    metaStore.insertStoragePolicy(new StoragePolicy((byte) 53, "COOL"));
-    metaStore.insertStoragePolicy(new StoragePolicy((byte) 52, "COLD"));
-    String value = metaStore.getStoragePolicyName(53);
-    Assert.assertEquals(metaStore.getStoragePolicyName(52), "COLD");
-    int key = metaStore.getStoragePolicyID("COOL");
-    Assert.assertEquals(value, "COOL");
-    Assert.assertEquals(key, 53);
-  }
-
-  @Test
-  public void testInsertXattrTable() throws Exception {
-    long fid = 567L;
-    List<XAttribute> attributes = new ArrayList<>();
-    Random random = new Random();
-    byte[] value1 = new byte[1024];
-    byte[] value2 = new byte[1024];
-    random.nextBytes(value1);
-    random.nextBytes(value2);
-    attributes.add(new XAttribute("user", "a1", value1));
-    attributes.add(new XAttribute("raw", "you", value2));
-    Assert.assertTrue(metaStore.insertXattrList(fid, attributes));
-    List<XAttribute> result = metaStore.getXattrList(fid);
-    Assert.assertEquals(result.size(), attributes.size());
-    Assert.assertTrue(result.containsAll(attributes));
-  }
-
-  @Test
   public void testSetClusterConfig() throws MetaStoreException {
     ClusterConfig clusterConfig = new ClusterConfig(1, "test", "test1");
     metaStore.setClusterConfig(clusterConfig);
@@ -614,83 +483,6 @@ public class TestMetaStore extends TestDaoBase {
 
     metaStore.setGlobalConfig(globalConfig);
     Assert.assertEquals(globalConfig, metaStore.getDefaultGlobalConfigByName("test"));
-  }
-
-  @Test
-  public void testInsertDataNodeInfo() throws Exception {
-    DataNodeInfo insertInfo1 = new DataNodeInfo("UUID1", "hostname", "www.ssm.com", 100, 50, "lab");
-    metaStore.insertDataNodeInfo(insertInfo1);
-    List<DataNodeInfo> getInfo1 = metaStore.getDataNodeInfoByUuid("UUID1");
-    Assert.assertEquals(insertInfo1, getInfo1.get(0));
-
-    DataNodeInfo insertInfo2 = new DataNodeInfo("UUID2", "HOSTNAME", "www.ssm.com", 0, 0, null);
-    DataNodeInfo insertInfo3 = new DataNodeInfo("UUID3", "HOSTNAME", "www.ssm.com", 0, 0, null);
-    metaStore.insertDataNodeInfos(new DataNodeInfo[] {insertInfo2, insertInfo3});
-    List<DataNodeInfo> getInfo2 = metaStore.getDataNodeInfoByUuid("UUID2");
-    Assert.assertEquals(insertInfo2, getInfo2.get(0));
-    List<DataNodeInfo> getInfo3 = metaStore.getDataNodeInfoByUuid("UUID3");
-    Assert.assertEquals(insertInfo3, getInfo3.get(0));
-  }
-
-  @Test
-  public void testDeleteDataNodeInfo() throws Exception {
-    DataNodeInfo insertInfo1 = new DataNodeInfo("UUID1", "hostname", "www.ssm.com", 100, 50, "lab");
-    DataNodeInfo insertInfo2 = new DataNodeInfo("UUID2", "HOSTNAME", "www.ssm.com", 0, 0, null);
-    DataNodeInfo insertInfo3 = new DataNodeInfo("UUID3", "HOSTNAME", "www.ssm.com", 0, 0, null);
-    metaStore.insertDataNodeInfos(new DataNodeInfo[] {insertInfo1, insertInfo2, insertInfo3});
-
-    List<DataNodeInfo> infos = metaStore.getAllDataNodeInfo();
-    Assert.assertEquals(3, infos.size());
-
-    metaStore.deleteDataNodeInfo(insertInfo1.getUuid());
-    infos = metaStore.getAllDataNodeInfo();
-    Assert.assertEquals(2, infos.size());
-
-    metaStore.deleteAllDataNodeInfo();
-    infos = metaStore.getAllDataNodeInfo();
-    Assert.assertTrue(infos.isEmpty());
-  }
-
-  @Test
-  public void testInsertDataNodeStorageInfo() throws Exception {
-    DataNodeStorageInfo insertInfo1 =
-        new DataNodeStorageInfo("UUID1", 10, 10, "storageid1", false, 0, 0, 0, 0);
-    metaStore.insertDataNodeStorageInfo(insertInfo1);
-    List<DataNodeStorageInfo> getInfo1 = metaStore.getDataNodeStorageInfoByUuid("UUID1");
-    Assert.assertEquals(insertInfo1, getInfo1.get(0));
-
-    DataNodeStorageInfo insertInfo2 =
-        new DataNodeStorageInfo("UUID2", 10, 10, "storageid2", false, 0, 0, 0, 0);
-    DataNodeStorageInfo insertInfo3 =
-        new DataNodeStorageInfo("UUID3", 10, 10, "storageid2", false, 0, 0, 0, 0);
-    metaStore.insertDataNodeStorageInfos(new DataNodeStorageInfo[] {insertInfo2, insertInfo3});
-    List<DataNodeStorageInfo> getInfo2 = metaStore.getDataNodeStorageInfoByUuid("UUID2");
-    Assert.assertEquals(insertInfo2, getInfo2.get(0));
-    List<DataNodeStorageInfo> getInfo3 = metaStore.getDataNodeStorageInfoByUuid("UUID3");
-    Assert.assertEquals(insertInfo3, getInfo3.get(0));
-  }
-
-  @Test
-  public void testDeleteDataNodeStorageInfo() throws Exception {
-    DataNodeStorageInfo insertInfo1 =
-        new DataNodeStorageInfo("UUID1", 10, 10, "storageid1", false, 0, 0, 0, 0);
-    DataNodeStorageInfo insertInfo2 =
-        new DataNodeStorageInfo("UUID2", 10, 10, "storageid2", false, 0, 0, 0, 0);
-    DataNodeStorageInfo insertInfo3 =
-        new DataNodeStorageInfo("UUID3", 10, 10, "storageid3", false, 0, 0, 0, 0);
-    metaStore.insertDataNodeStorageInfos(
-        new DataNodeStorageInfo[] {insertInfo1, insertInfo2, insertInfo3});
-
-    List<DataNodeStorageInfo> infos = metaStore.getAllDataNodeStorageInfo();
-    Assert.assertEquals(3, infos.size());
-
-    metaStore.deleteDataNodeStorageInfo(insertInfo1.getUuid());
-    infos = metaStore.getAllDataNodeStorageInfo();
-    Assert.assertEquals(2, infos.size());
-
-    metaStore.deleteAllDataNodeStorageInfo();
-    infos = metaStore.getAllDataNodeStorageInfo();
-    Assert.assertTrue(infos.isEmpty());
   }
 
   @Test
@@ -762,14 +554,6 @@ public class TestMetaStore extends TestDaoBase {
 
     Assert.assertEquals(clusterInfo1, clusterInfos.get(0));
     Assert.assertEquals(clusterInfo2, clusterInfos.get(1));
-  }
-
-  @Test
-  public void testGetClusterInfoById() throws MetaStoreException {
-    ClusterInfo clusterInfo = new ClusterInfo(1, "test1", "test1", "test1", "test1", "test1");
-    metaStore.insertClusterInfo(clusterInfo);
-
-    Assert.assertEquals(clusterInfo, metaStore.getClusterInfoByCid(1));
   }
 
   @Test

@@ -57,4 +57,23 @@ public enum TimeGranularity {
         return null;
     }
   }
+
+  public static TimeGranularity increaseGranularity(TimeGranularity granularity) {
+    switch (granularity) {
+      case MONTH:
+        return TimeGranularity.YEAR;
+      case WEEK:
+        return TimeGranularity.MONTH;
+      case DAY:
+        return TimeGranularity.WEEK;
+      case HOUR:
+        return TimeGranularity.DAY;
+      case MINUTE:
+        return TimeGranularity.HOUR;
+      case SECOND:
+        return TimeGranularity.MINUTE;
+      default:
+        return null;
+    }
+  }
 }

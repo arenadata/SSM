@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
 import org.smartdata.model.BackUpInfo;
@@ -44,13 +43,6 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
   }
 
   @Override
-  public List<BackUpInfo> getByIds(List<Long> rids) {
-    return jdbcTemplate.query("SELECT * FROM backup_file WHERE rid IN (?)",
-        new Object[]{StringUtils.join(rids, ",")},
-        new BackUpInfoRowMapper());
-  }
-
-  @Override
   public int getCountByRid(int rid) {
     return jdbcTemplate.queryForObject(
         "SELECT COUNT(*) FROM backup_file WHERE rid = ?", new Object[rid], Integer.class);
@@ -59,20 +51,20 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
   @Override
   public BackUpInfo getByRid(long rid) {
     return jdbcTemplate.queryForObject("SELECT * FROM backup_file WHERE rid = ?",
-        new Object[]{rid}, new BackUpInfoRowMapper());
+        new Object[] {rid}, new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getBySrc(String src) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE src = ?", new Object[]{src},
+        "SELECT * FROM backup_file WHERE src = ?", new Object[] {src},
         new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getByDest(String dest) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE dest = ?", new Object[]{dest},
+        "SELECT * FROM backup_file WHERE dest = ?", new Object[] {dest},
         new BackUpInfoRowMapper());
   }
 

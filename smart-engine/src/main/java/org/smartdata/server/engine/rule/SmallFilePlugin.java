@@ -206,7 +206,7 @@ public class SmallFilePlugin implements RuleExecutorPlugin {
             .listCmdletsInfo(ruleInfo.getId());
         for (CmdletInfo cmdletInfo : list) {
           if (!CmdletState.isTerminalState(cmdletInfo.getState())) {
-            aids.addAll(cmdletInfo.getAids());
+            aids.addAll(cmdletInfo.getActionIds());
           }
         }
         List<ActionInfo> actionInfos = cmdletManager
