@@ -6,14 +6,14 @@ schema:
   title: EventTimeInterval
   type: object
   properties:
-    timestampFrom:
+    eventTimeFrom:
       type: integer
       format: int64
       nullable: true
       default: null
       minimum: 0
       description: UNIX timestamp (UTC) of the interval start
-    timestampTo:
+    eventTimeTo:
       type: integer
       format: int64
       nullable: true

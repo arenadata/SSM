@@ -104,3 +104,11 @@ export const prepareDateRange = (
     to: utcDateToLocal(to),
   }) as StaticDateRange<SerializedDate>;
 };
+
+export const prepareNamedDateRange = (dateRange: DateRange<SerializedDate> | undefined, keyName: string) => {
+  const dateObject = prepareDateRange(dateRange);
+  return {
+    [`${keyName}From`]: dateObject.from,
+    [`${keyName}To`]: dateObject.to,
+  };
+};

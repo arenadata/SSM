@@ -89,7 +89,7 @@ public class ActionsControllerDelegate implements ActionsApiDelegate {
         submitActionRequestDto.getAction());
 
     ActionInfo actionInfo = cmdletManager.getCmdletInfoHandler()
-        .getSingleActionInfo(cmdletInfo.getCid());
+        .getSingleActionInfo(cmdletInfo.getId());
     return actionInfoMapper.toActionInfoDto(actionInfo);
   }
 }

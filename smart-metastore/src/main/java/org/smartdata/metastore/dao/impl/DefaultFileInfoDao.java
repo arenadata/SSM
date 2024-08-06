@@ -101,23 +101,6 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
   }
 
   @Override
-  public Map<Long, String> getFidPaths(Collection<Long> ids)
-      throws SQLException {
-    NamedParameterJdbcTemplate namedParameterJdbcTemplate =
-        new NamedParameterJdbcTemplate(dataSource);
-    Map<Long, String> idToPath = new HashMap<>();
-    String sql = "SELECT * FROM file WHERE fid IN (:ids)";
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-    parameterSource.addValue("ids", ids);
-    List<FileInfo> files = namedParameterJdbcTemplate.query(sql,
-        parameterSource, new FileInfoRowMapper());
-    for (FileInfo file : files) {
-      idToPath.put(file.getFileId(), file.getPath());
-    }
-    return idToPath;
-  }
-
-  @Override
   public void insert(FileInfo fileInfo) {
     insert(fileInfo, this::toMap);
   }

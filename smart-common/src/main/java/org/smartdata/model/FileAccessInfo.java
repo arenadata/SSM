@@ -17,9 +17,13 @@
  */
 package org.smartdata.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
+@Builder(setterPrefix = "set")
 public class FileAccessInfo {
   private final long fid;
   private final String path;

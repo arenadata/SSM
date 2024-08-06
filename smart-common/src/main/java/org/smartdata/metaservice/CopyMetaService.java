@@ -28,9 +28,5 @@ public interface CopyMetaService extends MetaService {
 
   List<FileDiff> getPendingDiff() throws MetaServiceException;
 
-  List<FileDiff> getPendingDiff(long rid) throws MetaServiceException;
-
   boolean updateFileDiff(long did, FileDiffState state) throws MetaServiceException;
-
-  void deleteAllFileDiff() throws MetaServiceException;
 }

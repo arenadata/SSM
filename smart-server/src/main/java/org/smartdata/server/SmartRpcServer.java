@@ -261,7 +261,7 @@ public class SmartRpcServer implements SmartServerProtocols {
     checkIfActive();
     try {
       CmdletInfo cmdletInfo = ssm.getCmdletManager().submitCmdlet(cmd);
-      return cmdletInfo.getCid();
+      return cmdletInfo.getId();
     } catch (Exception exception) {
       throw new IOException(exception);
     }

@@ -31,12 +31,7 @@ import org.smartdata.metastore.model.AccessCountTable;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventSource;
 import org.smartdata.metrics.impl.MetricsFactory;
-import org.smartdata.model.CachedFileStatus;
-import org.smartdata.model.FileAccessInfo;
-import org.smartdata.model.FileInfo;
 import org.smartdata.model.PathChecker;
-import org.smartdata.model.Utilization;
-import org.smartdata.model.request.CachedFileSearchRequest;
 import org.smartdata.server.engine.data.AccessEventFetcher;
 
 import java.io.IOException;
@@ -85,7 +80,7 @@ public class StatesManager extends AbstractService implements Reconfigurable {
         fileAccessEventSource.getCollector());
     this.pathChecker = new PathChecker(serverContext.getConf());
     this.cachedFilesManager =
-        new CachedFilesManager(serverContext.getMetaStore());
+        new CachedFilesManager(serverContext.getMetaStore().cacheFileDao());
 
     initStatesUpdaterService();
     if (statesUpdaterService == null) {
@@ -160,40 +155,6 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     this.fileAccessEventSource.insertEventFromSmartClient(event);
   }
 
-  public List<FileAccessInfo> getHotFilesForLast(long timeInMills, int fileLimit)
-      throws MetaStoreException {
-    return accessCountTableManager.getHotFiles(timeInMills, fileLimit);
-  }
-
-  // todo remove after zeppelin removal
-  public List<CachedFileStatus> getCachedFileStatus() {
-      return cachedFilesManager.search(CachedFileSearchRequest.noFilters());
-  }
-
-  // todo remove after zeppelin removal
-  public Utilization getStorageUtilization(String resourceName) throws IOException {
-    try {
-      if (resourceName.equals("cache")) {
-        return cachedFilesManager.getCacheStorageUtilization();
-      }
-      long now = System.currentTimeMillis();
-      long capacity =
-          serverContext.getMetaStore().getStoreCapacityOfDifferentStorageType(resourceName);
-      long free = serverContext.getMetaStore().getStoreFreeOfDifferentStorageType(resourceName);
-      return new Utilization(now, capacity, capacity - free);
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
-  }
-
-  public FileInfo getFileInfo(String path) throws IOException {
-    try {
-      return serverContext.getMetaStore().getFile(path);
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
-  }
-
   public void reconfigureProperty(String property, String newVal)
       throws ReconfigureException {
     LOG.debug("Received reconfig event: property={} newVal={}",
@@ -241,5 +202,9 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     } catch (Throwable t) {
       LOG.info("", t);
     }
+  }
+
+  public AccessCountTableManager getAccessCountTableManager() {
+    return accessCountTableManager;
   }
 }

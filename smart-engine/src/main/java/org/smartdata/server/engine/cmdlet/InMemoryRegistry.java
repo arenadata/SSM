@@ -108,11 +108,11 @@ public class InMemoryRegistry implements SmartService {
   }
 
   public void addUnfinishedCmdlet(CmdletInfo cmdletInfo) {
-    unfinishedCmdlets.put(cmdletInfo.getCid(), cmdletInfo);
+    unfinishedCmdlets.put(cmdletInfo.getId(), cmdletInfo);
   }
 
   public void addCmdlet(CmdletInfo cmdletInfo) {
-    cmdlets.put(cmdletInfo.getCid(), cmdletInfo);
+    cmdlets.put(cmdletInfo.getId(), cmdletInfo);
   }
 
   public void deleteCmdletsAsync(List<Long> cmdletIds) {
@@ -157,7 +157,7 @@ public class InMemoryRegistry implements SmartService {
       if (cmdletInfo.getState() != CmdletState.DISABLED) {
         cmdletInfos.add(cmdletInfo);
 
-        cmdletInfo.getAids()
+        cmdletInfo.getActionIds()
             .stream()
             .map(actions::get)
             .filter(Objects::nonNull)
@@ -192,10 +192,10 @@ public class InMemoryRegistry implements SmartService {
 
   private void removeFinishedCmdlets(List<CmdletInfo> cmdletFinished) {
     for (CmdletInfo cmdletInfo : cmdletFinished) {
-      unfinishedCmdlets.remove(cmdletInfo.getCid());
-      tracker.stopTracking(cmdletInfo.getCid());
+      unfinishedCmdlets.remove(cmdletInfo.getId());
+      tracker.stopTracking(cmdletInfo.getId());
 
-      cmdletInfo.getAids().forEach(actions::remove);
+      cmdletInfo.getActionIds().forEach(actions::remove);
     }
   }
 

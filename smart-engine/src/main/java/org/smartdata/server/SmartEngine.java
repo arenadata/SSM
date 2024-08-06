@@ -22,8 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.model.StorageCapacity;
-import org.smartdata.model.Utilization;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
@@ -36,7 +34,6 @@ import org.smartdata.server.engine.audit.AuditService;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class SmartEngine extends AbstractService {
@@ -124,26 +121,5 @@ public class SmartEngine extends AbstractService {
 
   public SmartConf getConf() {
     return serverContext.getConf();
-  }
-
-  public Utilization getUtilization(String resourceName) throws IOException {
-    return getStatesManager().getStorageUtilization(resourceName);
-  }
-
-  // todo remove after zeppelin removal
-  public List<Utilization> getHistUtilization(String resourceName, long granularity,
-                                              long begin, long end) throws IOException {
-    long now = System.currentTimeMillis();
-    if (begin == end && Math.abs(begin - now) <= 5) {
-      return Collections.singletonList(getUtilization(resourceName));
-    }
-
-    List<StorageCapacity> cs = serverContext.getMetaStore().getStorageHistoryData(
-        resourceName, granularity, begin, end);
-    List<Utilization> us = new ArrayList<>(cs.size());
-    for (StorageCapacity c : cs) {
-      us.add(new Utilization(c.getTimeStamp(), c.getCapacity(), c.getUsed()));
-    }
-    return us;
   }
 }

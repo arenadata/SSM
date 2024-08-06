@@ -18,7 +18,7 @@
 import type { AdhFileInfo, AdhFileInfoFilter, AdhCachedFileInfo, AdhCachedFileInfoFilter } from '@models/adh';
 import type { PaginationParams, SortParams } from '@models/table';
 import type { PaginateCollection } from '@models/collection';
-import { prepareDateRange, prepareQueryParams } from '@utils/requestUtils';
+import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
 import { httpClient } from '@api/httpClient';
 import qs from 'qs';
 
@@ -28,12 +28,10 @@ export class AdhFilesApi {
     sortParams: SortParams,
     paginationParams: PaginationParams,
   ): Promise<PaginateCollection<AdhFileInfo>> {
-    const { from: lastAccessedTimeFrom, to: lastAccessedTimeTo } = prepareDateRange(lastAccessedTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        lastAccessedTime: { lastAccessedTimeFrom, lastAccessedTimeTo },
+        ...prepareNamedDateRange(lastAccessedTime, 'lastAccessedTime'),
       },
       sortParams,
       paginationParams,
@@ -50,14 +48,11 @@ export class AdhFilesApi {
     sortParams: SortParams,
     paginationParams: PaginationParams,
   ): Promise<PaginateCollection<AdhCachedFileInfo>> {
-    const { from: lastAccessedTimeFrom, to: lastAccessedTimeTo } = prepareDateRange(lastAccessedTime);
-    const { from: cachedTimeFrom, to: cachedTimeTo } = prepareDateRange(cachedTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        lastAccessedTime: { lastAccessedTimeFrom, lastAccessedTimeTo },
-        cachedTime: { cachedTimeFrom, cachedTimeTo },
+        ...prepareNamedDateRange(lastAccessedTime, 'lastAccessedTime'),
+        ...prepareNamedDateRange(cachedTime, 'cachedTime'),
       },
       sortParams,
       paginationParams,

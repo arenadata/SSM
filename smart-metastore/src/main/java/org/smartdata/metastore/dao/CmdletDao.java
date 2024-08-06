@@ -29,16 +29,6 @@ public interface CmdletDao extends Searchable<CmdletSearchRequest, CmdletInfo, C
 
   List<CmdletInfo> getByRuleId(long ruleId);
 
-  // todo remove after zeppelin removal
-  long getNumByRuleId(long ruleId);
-
-  // todo remove after zeppelin removal
-  List<CmdletInfo> getByRuleId(long ruleId, long start, long offset);
-
-  // todo remove after zeppelin removal
-  List<CmdletInfo> getByRuleId(long ruleId, long start, long offset,
-                               List<String> orderBy, List<Boolean> isDesc);
-
   List<CmdletInfo> getByState(CmdletState state);
 
   long getNumCmdletsInTerminiatedStates();
@@ -56,10 +46,6 @@ public interface CmdletDao extends Searchable<CmdletSearchRequest, CmdletInfo, C
   void insert(CmdletInfo... cmdletInfos);
 
   void upsert(List<CmdletInfo> cmdletInfos);
-
-  int update(long id, int state);
-
-  int update(long id, String parameters, int state);
 
   int update(CmdletInfo cmdletInfo);
 

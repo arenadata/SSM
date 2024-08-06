@@ -48,7 +48,7 @@ public class TestCacheScheduler extends MiniSmartClusterHarness {
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet("cache -file " + filePath);
     while (true) {
       if (cmdletManager.getCmdletInfoHandler()
-          .getCmdletInfo(cmdletInfo.getCid())
+          .getCmdletInfo(cmdletInfo.getId())
           .getState()
           .equals(CmdletState.DONE)) {
         break;
@@ -72,7 +72,7 @@ public class TestCacheScheduler extends MiniSmartClusterHarness {
     CmdletInfo uncacheCmdlet = cmdletManager.submitCmdlet("uncache -file " + filePath);
     while (true) {
       if (cmdletManager.getCmdletInfoHandler()
-          .getCmdletInfo(uncacheCmdlet.getCid())
+          .getCmdletInfo(uncacheCmdlet.getId())
           .getState()
           .equals(CmdletState.DONE)) {
         break;

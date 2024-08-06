@@ -397,7 +397,7 @@ public class TestCompressDecompress extends MiniSmartClusterHarness {
         return;
       } else if (state == CmdletState.FAILED) {
         // Reasonably assume that there is only one action wrapped by a given cmdlet.
-        long aid = cmdletInfoHandler.getCmdletInfo(cmdId).getAids().get(0);
+        long aid = cmdletInfoHandler.getCmdletInfo(cmdId).getActionIds().get(0);
         Assert.fail(
             "Action failed. " + actionInfoHandler.getActionInfo(aid).getLog());
       } else {
@@ -441,6 +441,6 @@ public class TestCompressDecompress extends MiniSmartClusterHarness {
 
   private long submitCmdlet(String cmdlet) throws Exception {
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet(cmdlet);
-    return cmdletInfo.getCid();
+    return cmdletInfo.getId();
   }
 }

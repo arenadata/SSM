@@ -35,7 +35,7 @@
 
   <groupId>org.smartdata</groupId>
   <artifactId>smartdata-project</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <description>Smart Data Project</description>
   <name>SmartData Project</name>
   <packaging>pom</packaging>
@@ -51,7 +51,6 @@
     <module>smart-engine</module>
     <module>smart-server</module>
     <module>smart-rule</module>
-    <module>smart-zeppelin</module>
     <module>smart-agent</module>
     <module>smart-dist</module>
     <module>smart-integration</module>

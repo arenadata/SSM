@@ -64,7 +64,7 @@ public class DeleteTerminatedCmdletsTask implements Runnable {
   }
 
   public void init() throws MetaStoreException {
-    numCmdletsFinished.addAndGet(metaStore.getNumCmdletsInTerminiatedStates());
+    numCmdletsFinished.addAndGet(metaStore.getNumCmdletsInTerminatedStates());
   }
 
   @Override

@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao;
 
-import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.sort.ActionSortField;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.request.ActionSearchRequest;
@@ -26,29 +25,12 @@ import java.util.List;
 
 public interface ActionDao
     extends Searchable<ActionSearchRequest, ActionInfo, ActionSortField> {
-  // todo delete after zeppelin removal
-  Long getCountOfAction();
-
   ActionInfo getById(long aid);
 
   List<ActionInfo> getByIds(List<Long> aids);
 
   // todo do we need it at rpc?
   List<ActionInfo> getLatestActions(int size);
-
-  // todo delete after zeppelin removal
-  List<ActionInfo> getLatestActions(String actionName, int size);
-
-  // todo delete after zeppelin removal
-  List<ActionInfo> getAPageOfAction(long start, long offset, List<String> orderBy,
-                                    List<Boolean> isDesc);
-
-  // todo delete after zeppelin removal
-  List<ActionInfo> getAPageOfAction(long start, long offset);
-
-  // todo delete after zeppelin removal
-  SearchResult<ActionInfo> searchAction(String path, long start, long offset, List<String> orderBy,
-                                        List<Boolean> isDesc);
 
   void delete(long aid);
 

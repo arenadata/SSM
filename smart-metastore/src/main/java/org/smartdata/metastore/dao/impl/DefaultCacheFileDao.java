@@ -92,7 +92,7 @@ public class DefaultCacheFileDao extends SearchableAbstractDao<
   }
 
   @Override
-  public void insert(CachedFileStatus[] cachedFileStatusList) {
+  public void insert(List<CachedFileStatus> cachedFileStatusList) {
     insert(cachedFileStatusList, this::toMap);
   }
 

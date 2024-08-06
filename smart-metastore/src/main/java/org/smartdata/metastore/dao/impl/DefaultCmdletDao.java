@@ -84,54 +84,6 @@ public class DefaultCmdletDao
     return executeQuery(query);
   }
 
-  // todo remove after zeppelin removal
-  @Override
-  public long getNumByRuleId(long ruleId) {
-    return jdbcTemplate.queryForObject(
-        "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE rid = ?",
-        new Object[]{ruleId},
-        Long.class);
-  }
-
-  // todo remove after zeppelin removal
-  @Override
-  public List<CmdletInfo> getByRuleId(long ruleId, long start, long offset) {
-    String sql = "SELECT * FROM " + TABLE_NAME + " WHERE rid = " + ruleId
-        + " LIMIT " + offset + " OFFSET " + start + ";";
-    return jdbcTemplate.query(sql, this::mapRow);
-  }
-
-  // todo remove after zeppelin removal
-  @Override
-  public List<CmdletInfo> getByRuleId(long ruleId, long start, long offset,
-                                      List<String> orderBy, List<Boolean> isDesc) {
-    boolean ifHasAid = false;
-    StringBuilder sql =
-        new StringBuilder("SELECT * FROM " + TABLE_NAME + " WHERE rid = " + ruleId
-            + " ORDER BY ");
-    for (int i = 0; i < orderBy.size(); i++) {
-      if (orderBy.get(i).equals("cid")) {
-        ifHasAid = true;
-      }
-      sql.append(orderBy.get(i));
-      if (isDesc.size() > i) {
-        if (isDesc.get(i)) {
-          sql.append(" desc ");
-        }
-        sql.append(",");
-      }
-    }
-    if (!ifHasAid) {
-      sql.append("cid,");
-    }
-
-    //delete the last char
-    sql = new StringBuilder(sql.substring(0, sql.length() - 1));
-    //add limit
-    sql.append(" LIMIT ").append(offset).append(" OFFSET ").append(start).append(";");
-    return jdbcTemplate.query(sql.toString(), this::mapRow);
-  }
-
   @Override
   public List<CmdletInfo> getByState(CmdletState state) {
     MetastoreQuery query = selectAll()
@@ -180,7 +132,7 @@ public class DefaultCmdletDao
 
     final String querysql = "SELECT cid FROM " + TABLE_NAME
         + " WHERE  generate_time < ? AND state IN (" + terminatedStates + ")";
-    List<Long> cids = jdbcTemplate.queryForList(querysql, new Object[]{timestamp}, Long.class);
+    List<Long> cids = jdbcTemplate.queryForList(querysql, new Object[] {timestamp}, Long.class);
     if (cids.isEmpty()) {
       return 0;
     }
@@ -237,9 +189,9 @@ public class DefaultCmdletDao
         new BatchPreparedStatementSetter() {
           public void setValues(PreparedStatement ps, int i) throws SQLException {
             CmdletInfo cmdletInfo = cmdletInfos.get(i);
-            ps.setLong(1, cmdletInfo.getCid());
-            ps.setLong(2, cmdletInfo.getRid());
-            ps.setString(3, actionIdsToString(cmdletInfo.getAids()));
+            ps.setLong(1, cmdletInfo.getId());
+            ps.setLong(2, cmdletInfo.getRuleId());
+            ps.setString(3, actionIdsToString(cmdletInfo.getActionIds()));
             ps.setLong(4, cmdletInfo.getState().getValue());
             ps.setString(5, cmdletInfo.getParameters());
             ps.setLong(6, cmdletInfo.getGenerateTime());
@@ -250,22 +202,6 @@ public class DefaultCmdletDao
             return cmdletInfos.size();
           }
         });
-  }
-
-  @Override
-  public int update(long id, int state) {
-    String sql =
-        "UPDATE " + TABLE_NAME + " SET state = ?, state_changed_time = ? WHERE cid = ?";
-    return jdbcTemplate.update(sql, state, System.currentTimeMillis(), id);
-  }
-
-  @Override
-  public int update(long id, String parameters, int state) {
-    String sql =
-        "UPDATE "
-            + TABLE_NAME
-            + " SET parameters = ?, state = ?, state_changed_time = ? WHERE cid = ?";
-    return jdbcTemplate.update(sql, parameters, state, System.currentTimeMillis(), id);
   }
 
   @Override
@@ -284,7 +220,7 @@ public class DefaultCmdletDao
           public void setValues(PreparedStatement ps, int i) throws SQLException {
             ps.setInt(1, cmdletInfos.get(i).getState().getValue());
             ps.setLong(2, cmdletInfos.get(i).getStateChangedTime());
-            ps.setLong(3, cmdletInfos.get(i).getCid());
+            ps.setLong(3, cmdletInfos.get(i).getId());
           }
 
           public int getBatchSize() {
@@ -305,9 +241,9 @@ public class DefaultCmdletDao
 
   protected Map<String, Object> toMap(CmdletInfo cmdletInfo) {
     Map<String, Object> parameters = new HashMap<>();
-    parameters.put("cid", cmdletInfo.getCid());
-    parameters.put("rid", cmdletInfo.getRid());
-    parameters.put("aids", actionIdsToString(cmdletInfo.getAids()));
+    parameters.put("cid", cmdletInfo.getId());
+    parameters.put("rid", cmdletInfo.getRuleId());
+    parameters.put("aids", actionIdsToString(cmdletInfo.getActionIds()));
     parameters.put("state", cmdletInfo.getState().getValue());
     parameters.put("parameters", cmdletInfo.getParameters());
     parameters.put("generate_time", cmdletInfo.getGenerateTime());
@@ -353,9 +289,9 @@ public class DefaultCmdletDao
   @Override
   protected CmdletInfo mapRow(ResultSet resultSet, int rowNum) throws SQLException {
     return CmdletInfo.builder()
-        .setCid(resultSet.getLong("cid"))
-        .setRid(resultSet.getLong("rid"))
-        .setAids(parseRawIds(resultSet.getString("aids")))
+        .setId(resultSet.getLong("cid"))
+        .setRuleId(resultSet.getLong("rid"))
+        .setActionIds(parseRawIds(resultSet.getString("aids")))
         .setState(CmdletState.fromValue(resultSet.getByte("state")))
         .setParameters(resultSet.getString("parameters"))
         .setGenerateTime(resultSet.getLong("generate_time"))

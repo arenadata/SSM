@@ -18,7 +18,7 @@
 import type { AdhRule, AdhRuleFilter } from '@models/adh';
 import type { PaginationParams, SortParams } from '@models/table';
 import type { PaginateCollection } from '@models/collection';
-import { prepareDateRange, prepareQueryParams } from '@utils/requestUtils';
+import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
 import { httpClient } from '@api/httpClient';
 import qs from 'qs';
 
@@ -28,14 +28,11 @@ export class AdhRulesApi {
     sortParams?: SortParams,
     paginationParams?: PaginationParams,
   ): Promise<PaginateCollection<AdhRule>> {
-    const { from: submissionTimeFrom, to: submissionTimeTo } = prepareDateRange(submissionTime);
-    const { from: lastActivationTimeFrom, to: lastActivationTimeTo } = prepareDateRange(lastActivationTime);
-
     const queryParams = prepareQueryParams(
       {
         ...filter,
-        submissionTime: { submissionTimeFrom, submissionTimeTo },
-        lastActivationTime: { lastActivationTimeFrom, lastActivationTimeTo },
+        ...prepareNamedDateRange(submissionTime, 'submissionTime'),
+        ...prepareNamedDateRange(lastActivationTime, 'lastActivationTime'),
       },
       sortParams,
       paginationParams,

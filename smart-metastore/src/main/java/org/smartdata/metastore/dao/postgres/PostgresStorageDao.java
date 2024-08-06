@@ -23,6 +23,7 @@ import org.smartdata.model.StorageCapacity;
 import javax.sql.DataSource;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PostgresStorageDao extends DefaultStorageDao {
@@ -37,8 +38,8 @@ public class PostgresStorageDao extends DefaultStorageDao {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void insertUpdateStoragesTable(StorageCapacity[] storages) {
-    if (storages.length == 0) {
+  public void insertUpdateStoragesTable(List<StorageCapacity> storages) {
+    if (storages.isEmpty()) {
       return;
     }
     upsertSupport.batchUpsert(storages,

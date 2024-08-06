@@ -32,7 +32,6 @@ import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.RuleSortField;
 import org.smartdata.model.CmdletDescriptor;
-import org.smartdata.model.DetailedRuleInfo;
 import org.smartdata.model.PathChecker;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
@@ -265,24 +264,6 @@ public class RuleManager
   public RuleInfo getRuleInfo(long ruleID) throws IOException {
     RuleInfoRepo infoRepo = checkIfExists(ruleID);
     return infoRepo.getRuleInfo();
-  }
-
-  // todo remove after zeppelin removal
-  public List<DetailedRuleInfo> listRulesMoveInfo() throws IOException {
-    try {
-      return metaStore.listMoveRules();
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
-  }
-
-  // todo remove after zeppelin removal
-  public List<DetailedRuleInfo> listRulesSyncInfo() throws IOException {
-    try {
-      return metaStore.listSyncRules();
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
   }
 
   public List<RuleInfo> listRulesInfo() {

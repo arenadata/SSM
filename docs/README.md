@@ -4,10 +4,6 @@
 
   [ssm-deployment-guide.md](https://github.com/arenadata/SSM/blob/develop/docs/ssm-deployment-guide.md)
 
-* Web authentication
-
-  [web-authentication-enable-guide.md](https://github.com/arenadata/SSM/blob/develop/docs/web-authentication-enable-guide.md)
-
 * Feature design & usage
 
   [disaster-recovery.md](https://github.com/arenadata/SSM/blob/develop/docs/disaster-recovery.md)

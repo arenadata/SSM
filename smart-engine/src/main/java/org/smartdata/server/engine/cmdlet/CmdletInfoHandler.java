@@ -37,7 +37,6 @@ import org.smartdata.protocol.message.CmdletStatus;
 import org.smartdata.protocol.message.LaunchCmdlet;
 import org.smartdata.server.engine.ActiveServerInfo;
 import org.smartdata.server.engine.action.ActionInfoHandler;
-import org.smartdata.server.engine.model.CmdletGroup;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,8 +81,8 @@ public class CmdletInfoHandler
   public CmdletInfo createCmdletInfo(CmdletDescriptor cmdletDescriptor) {
     long submitTime = System.currentTimeMillis();
     return CmdletInfo.builder()
-        .setCid(maxCmdletId.getAndIncrement())
-        .setRid(cmdletDescriptor.getRuleId())
+        .setId(maxCmdletId.getAndIncrement())
+        .setRuleId(cmdletDescriptor.getRuleId())
         .setState(CmdletState.PENDING)
         .setParameters(cmdletDescriptor.getCmdletString())
         .setGenerateTime(submitTime)
@@ -96,14 +95,14 @@ public class CmdletInfoHandler
       return null;
     }
 
-    List<LaunchAction> launchActions = cmdletInfo.getAids()
+    List<LaunchAction> launchActions = cmdletInfo.getActionIds()
         .stream()
         .map(inMemoryRegistry::getUnfinishedAction)
         .filter(Objects::nonNull)
         .map(actionInfoHandler::createLaunchAction)
         .collect(Collectors.toList());
 
-    return new LaunchCmdlet(cmdletInfo.getCid(), launchActions);
+    return new LaunchCmdlet(cmdletInfo.getId(), launchActions);
   }
 
   public CmdletInfo getCmdletInfo(long cid) throws IOException {
@@ -125,20 +124,12 @@ public class CmdletInfoHandler
 
   public ActionInfo getSingleActionInfo(long cmdletId) throws IOException {
     Long actionId = Optional.ofNullable(getCmdletInfo(cmdletId))
-        .map(CmdletInfo::getAids)
+        .map(CmdletInfo::getActionIds)
         .flatMap(actionIds -> actionIds.stream().findFirst())
         .orElseThrow(() -> new NotFoundException(
             "Cmdlet doesn't generate actions: " + cmdletId));
 
     return actionInfoHandler.getActionInfo(actionId);
-  }
-
-  public CmdletGroup listCmdletsInfo(
-      long rid, long pageIndex, long numPerPage,
-      List<String> orderBy, List<Boolean> isDesc) throws MetaStoreException {
-    List<CmdletInfo> cmdlets = metaStore.listPageCmdlets(rid,
-        (pageIndex - 1) * numPerPage, numPerPage, orderBy, isDesc);
-    return new CmdletGroup(cmdlets, metaStore.getNumCmdletsByRid(rid));
   }
 
   public void storeUnfinished(CmdletInfo cmdletInfo) {
@@ -165,7 +156,7 @@ public class CmdletInfoHandler
 
     return searchWithCache(
         searchRequest,
-        cmdletInfo -> cmdletInfo.getRid() == ruleId
+        cmdletInfo -> cmdletInfo.getRuleId() == ruleId
             && cmdletInfo.getState().equals(cmdletState));
   }
 
@@ -175,11 +166,11 @@ public class CmdletInfoHandler
         .build();
     return searchWithCache(
         searchRequest,
-        cmdletInfo -> cmdletInfo.getRid() == ruleId);
+        cmdletInfo -> cmdletInfo.getRuleId() == ruleId);
   }
 
   public void onCmdletFinished(CmdletInfo cmdletInfo, boolean success) {
-    for (Long aid : cmdletInfo.getAids()) {
+    for (Long aid : cmdletInfo.getActionIds()) {
 
       inMemoryRegistry.updateAction(aid, actionInfo -> {
         actionInfo.setProgress(1.0F);
@@ -205,7 +196,7 @@ public class CmdletInfoHandler
 
   public void updateCmdletExecHost(long cmdletId, String host) throws IOException {
     List<Long> actionIds = Optional.ofNullable(getCmdletInfo(cmdletId))
-        .map(CmdletInfo::getAids)
+        .map(CmdletInfo::getActionIds)
         .orElseGet(Collections::emptyList);
 
     for (long id : actionIds) {
@@ -222,7 +213,7 @@ public class CmdletInfoHandler
   public List<Long> deleteCmdletsByRule(long ruleId) throws IOException {
     List<Long> cmdletIds = listCmdletsInfo(ruleId)
         .stream()
-        .map(CmdletInfo::getCid)
+        .map(CmdletInfo::getId)
         .collect(Collectors.toList());
 
     inMemoryRegistry.deleteCmdletsAsync(cmdletIds);
@@ -233,9 +224,9 @@ public class CmdletInfoHandler
     List<Long> cmdletIds = inMemoryRegistry.getUnfinishedCmdlets()
         .values()
         .stream()
-        .filter(cmdlet -> cmdlet.getRid() == ruleId
+        .filter(cmdlet -> cmdlet.getRuleId() == ruleId
             && !CmdletState.isTerminalState(cmdlet.getState()))
-        .map(CmdletInfo::getCid)
+        .map(CmdletInfo::getId)
         .collect(Collectors.toList());
 
     inMemoryRegistry.deleteCmdletsAsync(cmdletIds);
@@ -267,7 +258,7 @@ public class CmdletInfoHandler
       results = search(searchRequest)
           .stream()
           .collect(Collectors.toMap(
-              CmdletInfo::getCid,
+              CmdletInfo::getId,
               Function.identity()
           ));
     } catch (Exception exception) {
@@ -276,7 +267,7 @@ public class CmdletInfoHandler
 
     for (CmdletInfo info : inMemoryRegistry.getUnfinishedCmdlets().values()) {
       if (cachedCmdletInfoPicker.test(info)) {
-        results.put(info.getCid(), info);
+        results.put(info.getId(), info);
       }
     }
     return new ArrayList<>(results.values());

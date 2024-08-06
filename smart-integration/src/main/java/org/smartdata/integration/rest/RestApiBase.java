@@ -22,7 +22,6 @@ public class RestApiBase {
   public static final String RULEROOT = ROOT + "/rules";
   public static final String CMDLETROOT = ROOT + "/cmdlets";
   public static final String ACTIONROOT = ROOT + "/actions";
-  public static final String CLUSTERROOT = ROOT + "/cluster";
   public static final String SYSTEMROOT = ROOT + "/system";
   public static final String CONFROOT = ROOT + "/conf";
   public static final String PRIMCLUSTERROOT = ROOT + "/cluster/primary";

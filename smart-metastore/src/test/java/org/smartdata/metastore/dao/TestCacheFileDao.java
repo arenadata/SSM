@@ -28,6 +28,7 @@ import org.smartdata.model.TimeInterval;
 import org.smartdata.model.request.CachedFileSearchRequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,11 +94,11 @@ public class TestCacheFileDao extends TestSearchableDao<
     Assert.assertEquals(123455L, cacheFileDao
         .getAll().get(0)
         .getLastAccessTime());
-    CachedFileStatus[] cachedFileStatuses = new CachedFileStatus[] {
+    List<CachedFileStatus> cachedFileStatuses = Collections.singletonList(
         new CachedFileStatus(321L, "testPath",
-            113334L, 222222L, 222)};
+            113334L, 222222L, 222));
     cacheFileDao.insert(cachedFileStatuses);
-    Assert.assertEquals(cachedFileStatuses[0], cacheFileDao.getById(321L));
+    Assert.assertEquals(cachedFileStatuses.get(0), cacheFileDao.getById(321L));
     Assert.assertEquals(2, cacheFileDao.getAll().size());
     // Delete one record
     cacheFileDao.deleteById(321L);

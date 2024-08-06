@@ -18,17 +18,10 @@
 package org.smartdata.metaservice;
 
 import org.smartdata.model.CmdletInfo;
-import org.smartdata.model.CmdletState;
 
 public interface CmdletMetaService extends MetaService {
 
   CmdletInfo getCmdletById(long cid) throws MetaServiceException;
-
-  boolean updateCmdlet(long cid, CmdletState state)
-      throws MetaServiceException;
-
-  boolean updateCmdlet(long cid, String parameters, CmdletState state)
-      throws MetaServiceException;
 
   boolean deleteCmdlet(long cid) throws MetaServiceException;
 

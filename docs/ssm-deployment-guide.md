@@ -164,15 +164,6 @@ If this property is not set or exception occurs when SSM tries to get metastore 
 
 For getting more details, please refer to https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/CredentialProviderAPI.html.
 
-## **Configure SSM user account**
-
-By default, anonymous user can login on SSM web UI without authentication. To address security concerns, user can refer to [web-authentication-enable-guide.md](https://github.com/arenadata/SSM/blob/develop/docs/web-authentication-enable-guide.md)
-to enable the authentication. After that, please login with the default username and password (admin/ssm@123).
-
-Authenticated user can change password on SSM web UI (top right corner, admin/Change Password) after login.
-
-Admin can also add new user on web UI (admin/Add New User). Please note only admin user has this permission.
-
 # Deploy SSM
 ---------------------------------------------------------------------------------
 

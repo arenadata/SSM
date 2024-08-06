@@ -25,8 +25,12 @@ import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.CacheFileDao;
 import org.smartdata.metastore.model.AccessCountTable;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
+import org.smartdata.metastore.model.SearchResult;
+import org.smartdata.metastore.queries.PageRequest;
+import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
 import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.model.FileAccessInfo;
+import org.smartdata.model.request.FileAccessInfoSearchRequest;
 
 import javax.sql.DataSource;
 
@@ -95,10 +99,14 @@ public class DbAccessCountTableManager
     });
   }
 
-  // todo ADH-4496 replace with searchable
-  public List<FileAccessInfo> getHotFiles(List<AccessCountTable> tables, int fileLimit)
-      throws MetaStoreException {
-    return accessCountEventDao.getHotFiles(tables, fileLimit);
+  public SearchResult<FileAccessInfo> getFileAccessInfoList(
+      FileAccessInfoSearchRequest searchRequest,
+      PageRequest<FileAccessInfoSortField> pageRequest) {
+    return accessCountEventDao.search(searchRequest, pageRequest);
+  }
+
+  public List<FileAccessInfo> getFileAccessInfoList(FileAccessInfoSearchRequest searchRequest) {
+    return accessCountEventDao.search(searchRequest);
   }
 
   @Override

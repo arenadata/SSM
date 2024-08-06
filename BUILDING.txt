@@ -35,7 +35,6 @@ Maven build goals:
 
  Build options:
 
-  * Use -Pweb to compile/bundle zeppelin-web
   * Use -Pnative to compile/bundle native code
   * Use -Psrc to create a project source TAR.GZ
   * Use -Dtar to create a TAR with the distribution (using -Pdist)

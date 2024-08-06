@@ -26,8 +26,6 @@ import org.smartdata.metastore.dao.ClusterInfoDao;
 import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.DaoProvider;
-import org.smartdata.metastore.dao.DataNodeInfoDao;
-import org.smartdata.metastore.dao.DataNodeStorageInfoDao;
 import org.smartdata.metastore.dao.ErasureCodingPolicyDao;
 import org.smartdata.metastore.dao.FileDiffDao;
 import org.smartdata.metastore.dao.FileInfoDao;
@@ -37,13 +35,10 @@ import org.smartdata.metastore.dao.GlobalConfigDao;
 import org.smartdata.metastore.dao.RuleDao;
 import org.smartdata.metastore.dao.SmallFileDao;
 import org.smartdata.metastore.dao.StorageDao;
-import org.smartdata.metastore.dao.StorageHistoryDao;
 import org.smartdata.metastore.dao.StoragePolicyDao;
 import org.smartdata.metastore.dao.SystemInfoDao;
 import org.smartdata.metastore.dao.UserActivityDao;
-import org.smartdata.metastore.dao.UserInfoDao;
 import org.smartdata.metastore.dao.WhitelistDao;
-import org.smartdata.metastore.dao.XattrDao;
 import org.smartdata.metastore.dao.accesscount.AccessCountEventDao;
 import org.smartdata.metastore.dao.accesscount.AccessCountTableDao;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -90,16 +85,6 @@ public class DefaultDaoProvider implements DaoProvider {
   }
 
   @Override
-  public StorageHistoryDao storageHistoryDao() {
-    return new DefaultStorageHistoryDao(dataSource);
-  }
-
-  @Override
-  public XattrDao xattrDao() {
-    return new DefaultXattrDao(dataSource);
-  }
-
-  @Override
   public FileDiffDao fileDiffDao() {
     return new DefaultFileDiffDao(dataSource);
   }
@@ -125,16 +110,6 @@ public class DefaultDaoProvider implements DaoProvider {
   }
 
   @Override
-  public DataNodeInfoDao dataNodeInfoDao() {
-    return new DefaultDataNodeInfoDao(dataSource);
-  }
-
-  @Override
-  public DataNodeStorageInfoDao dataNodeStorageInfoDao() {
-    return new DefaultDataNodeStorageInfoDao(dataSource);
-  }
-
-  @Override
   public BackUpInfoDao backUpInfoDao() {
     return new DefaultBackUpInfoDao(dataSource);
   }
@@ -147,11 +122,6 @@ public class DefaultDaoProvider implements DaoProvider {
   @Override
   public SystemInfoDao systemInfoDao() {
     return new DefaultSystemInfoDao(dataSource);
-  }
-
-  @Override
-  public UserInfoDao userInfoDao() {
-    return new DefaultUserInfoDao(dataSource);
   }
 
   @Override

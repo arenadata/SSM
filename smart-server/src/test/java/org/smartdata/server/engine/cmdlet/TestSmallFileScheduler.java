@@ -75,7 +75,7 @@ public class TestSmallFileScheduler extends MiniSmartClusterHarness {
     while (true) {
       Thread.sleep(3000);
       CmdletState state = cmdletManager.getCmdletInfoHandler()
-          .getCmdletInfo(cmdletInfo.getCid())
+          .getCmdletInfo(cmdletInfo.getId())
           .getState();
       if (state == CmdletState.DONE) {
         long containerFileLen = dfsClient.getFileInfo(

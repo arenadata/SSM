@@ -71,14 +71,4 @@ public class ActionRestApi extends RestApiBase {
     resp.then().body("status", Matchers.equalTo("OK"));
     return resp.jsonPath().setRoot("body");
   }
-
-  /**
-   * Get list of action names supported in SmartServer.
-   * @return
-   */
-  public static List<String> getActionsSupported() {
-    Response response = RestAssured.get(ACTIONROOT + "/registry/list");
-    response.then().body("status", Matchers.equalTo("OK"));
-    return response.jsonPath().getList("body");
-  }
 }

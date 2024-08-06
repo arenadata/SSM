@@ -27,6 +27,7 @@ import org.smartdata.integration.cluster.SmartMiniCluster;
 
 /**
  * Integration test base.
+ * TODO: ADH-4721 - use new REST API.
  */
 public class IntegrationTestBase {
 
@@ -53,7 +54,6 @@ public class IntegrationTestBase {
     String httpAddr = conf.get(SmartConfKeys.SMART_SERVER_HTTP_ADDRESS_KEY,
         SmartConfKeys.SMART_SERVER_HTTP_ADDRESS_DEFAULT);
     zeppelinPort = Integer.parseInt(httpAddr.split(":")[1]);
-    conf.setBoolean(SmartConfKeys.SMART_ENABLE_ZEPPELIN_WEB, false);
     smartServer = new IntegrationSmartServer();
     smartServer.setUp(conf);
 
