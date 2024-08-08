@@ -102,8 +102,9 @@ public class RangerAuthorizationManager
                     request.getRequest().getMethod()))
                 .map(func -> rangerSsmAuthorizer.authorize(
                     new RangerAuthorizeRequest(authentication.get().getName(),
-                        func.apply(request))))
-                .orElse(true))
+                        func.apply(request)))))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .findAny()
             .orElse(true));
   }
