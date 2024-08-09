@@ -25,6 +25,8 @@ import org.smartdata.action.SmartAction;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.CmdletDescriptor;
 
+import java.io.IOException;
+
 /**
  * Base class for all HDFS actions.
  */
@@ -42,5 +44,17 @@ public abstract class HdfsAction extends SmartAction {
     Configuration conf = getContext().getConf();
     String nameNodeURL = conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
     conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
+  }
+
+  @Override
+  protected void stop() {
+    super.stop();
+    if (dfsClient != null) {
+      try {
+        dfsClient.close();
+      } catch (IOException e) {
+        throw new RuntimeException("Error closing action dfsClient", e);
+      }
+    }
   }
 }

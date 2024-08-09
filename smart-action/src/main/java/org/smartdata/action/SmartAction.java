@@ -192,7 +192,7 @@ public abstract class SmartAction {
         finished);
   }
 
-  private void stop() {
+  protected void stop() {
     logPrintStream.close();
     resultPrintStream.close();
   }
