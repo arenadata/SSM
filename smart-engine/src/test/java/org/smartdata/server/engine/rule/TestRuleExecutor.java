@@ -17,16 +17,14 @@
  */
 package org.smartdata.server.engine.rule;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.metastore.SqliteTestDaoBase;
+import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.dao.MetaStoreHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.Assert.assertTrue;
 
-public class TestRuleExecutor extends SqliteTestDaoBase {
+public class TestRuleExecutor extends TestDaoBase {
   private MetaStoreHelper metaStoreHelper;
 
   @Before
@@ -38,31 +36,28 @@ public class TestRuleExecutor extends SqliteTestDaoBase {
   public void generateSQL() {
     String countFilter = "";
     String newTable = "test";
-    List<String> tableNames = new ArrayList<>();
-    tableNames.add("blank_access_count_info");
     String sql;
-    /*sql = "CREATE TABLE actual as SELECT fid, SUM(count)" +
-        " as count FROM (SELECT * FROM blank_access_count_info " +
-        "UNION ALL SELECT * FROM blank_access_count_info " +
-        "UNION ALL SELECT * FROM blank_access_count_info) as tmp GROUP BY fid";
-    metaStoreHelper.execute(sql);
-    metaStoreHelper.dropTable("actual");*/
-    // Test single element
-    sql = RuleExecutor.generateSQL(tableNames, newTable, countFilter, metaStore);
+    long interval = 60000;
+    long currentTimeMillis = System.currentTimeMillis();
+    sql = RuleExecutor.generateSQL(newTable, countFilter, metaStore, currentTimeMillis - interval,
+        currentTimeMillis);
     try {
       metaStoreHelper.execute(sql);
+      assertTrue(sql.contains("GROUP BY fid ;"));
       metaStoreHelper.dropTable(newTable);
     } catch (Exception e) {
-      Assert.assertTrue(false);
+      assertTrue(false);
     }
-    // Test multiple elements
-    tableNames.add("blank_access_count_info");
-    sql = RuleExecutor.generateSQL(tableNames, newTable, countFilter, metaStore);
+    // Test with count filter
+    countFilter = "> 10";
+    sql = RuleExecutor.generateSQL(newTable, countFilter, metaStore, currentTimeMillis - interval,
+        currentTimeMillis);
     try {
       metaStoreHelper.execute(sql);
+      assertTrue(sql.contains("GROUP BY fid HAVING count(*) > 10 ;"));
       metaStoreHelper.dropTable(newTable);
     } catch (Exception e) {
-      Assert.assertTrue(false);
+      assertTrue(false);
     }
   }
 }

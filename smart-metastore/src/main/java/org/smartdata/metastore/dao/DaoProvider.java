@@ -17,9 +17,6 @@
  */
 package org.smartdata.metastore.dao;
 
-import org.smartdata.metastore.dao.accesscount.AccessCountEventDao;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableDao;
-
 public interface DaoProvider {
   RuleDao ruleDao();
 
@@ -35,9 +32,7 @@ public interface DaoProvider {
 
   FileDiffDao fileDiffDao();
 
-  AccessCountTableDao accessCountDao();
-
-  AccessCountEventDao accessCountEventDao();
+  FileAccessDao fileAccessDao();
 
   ClusterConfigDao clusterConfigDao();
 
@@ -64,4 +59,6 @@ public interface DaoProvider {
   StoragePolicyDao storagePolicyDao();
 
   UserActivityDao userActivityDao();
+
+  FileAccessPartitionDao fileAccessPartitionDao();
 }

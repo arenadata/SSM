@@ -36,7 +36,7 @@ import org.smartdata.hdfs.MiniClusterFactory;
 import org.smartdata.hdfs.action.CacheFileAction;
 import org.smartdata.hdfs.action.UncacheFileAction;
 import org.smartdata.hdfs.scheduler.CacheScheduler;
-import org.smartdata.metastore.SqliteTestDaoBase;
+import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.FileInfo;
 
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class TestCachedListFetcher extends SqliteTestDaoBase {
+public class TestCachedListFetcher extends TestDaoBase {
 
   private long fid;
 

@@ -21,19 +21,21 @@ import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.metastore.dao.DaoProvider;
-import org.smartdata.metastore.dao.sqlite.SqliteDaoProvider;
+import org.smartdata.metastore.dao.postgres.PostgresDaoProvider;
 import org.smartdata.metastore.db.DBHandlersFactory;
 import org.smartdata.metastore.db.DbSchemaManager;
 import org.smartdata.metastore.db.metadata.DbMetadataProvider;
-import org.smartdata.metastore.db.metadata.SqliteDbMetadataProvider;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.testcontainers.jdbc.ContainerDatabaseDriver;
 
 import java.io.InputStream;
 import java.util.Properties;
+
+import static com.alibaba.druid.pool.DruidDataSourceFactory.PROP_DRIVERCLASSNAME;
+import static com.alibaba.druid.pool.DruidDataSourceFactory.PROP_URL;
 
 public class TestDruid {
 
@@ -43,22 +45,20 @@ public class TestDruid {
         .getResourceAsStream("druid-template.xml");
     Properties p = new Properties();
     p.loadFromXML(in);
-
-    String dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-    String url = MetaStoreUtils.SQLITE_URL_PREFIX + dbFile;
-    p.setProperty("url", url);
-
+    p.setProperty(PROP_URL, "jdbc:tc:postgresql:12.19:///ssm_postgres");
+    p.setProperty(PROP_DRIVERCLASSNAME, ContainerDatabaseDriver.class.getName());
     DruidPool druidPool = new DruidPool(p);
-    DbSchemaManager dbSchemaManager = new DBHandlersFactory()
+    DBHandlersFactory dbHandlersFactory = new DBHandlersFactory();
+    DbSchemaManager dbSchemaManager = dbHandlersFactory
         .createDbManager(druidPool, new Configuration());
     PlatformTransactionManager transactionManager =
         new JdbcTransactionManager(druidPool.getDataSource());
-    DaoProvider daoProvider = new SqliteDaoProvider(druidPool, transactionManager);
-    DbMetadataProvider dbMetadataProvider = new SqliteDbMetadataProvider(
-        druidPool.getDataSource());
+    DaoProvider daoProvider = new PostgresDaoProvider(druidPool, transactionManager);
+    DbMetadataProvider dbMetadataProvider =
+        dbHandlersFactory.createDbMetadataProvider(druidPool, DBType.POSTGRES);
     MetaStore adapter = new MetaStore(
         druidPool, dbSchemaManager, daoProvider, dbMetadataProvider, transactionManager);
-
+    dbSchemaManager.initializeDatabase();
     String rule = "file : accessCount(10m) > 20 \n\n"
         + "and length() > 3 | cache";
     long submitTime = System.currentTimeMillis();

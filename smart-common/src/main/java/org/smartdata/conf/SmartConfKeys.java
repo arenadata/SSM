@@ -79,41 +79,22 @@ public class SmartConfKeys {
     // Password which get from hadoop credentialProvider used for metastore connect
     public static final String SMART_METASTORE_PASSWORD = "smart.metastore.password";
 
-    public static final String SMART_METASTORE_MIGRATION_CHANGELOG_PATH_KEY =
-            "smart.metastore.migration.liquibase.changelog.path";
-    public static final String SMART_METASTORE_MIGRATION_CHANGELOG_PATH_DEFAULT =
-            "db/changelog/changelog-root.xml";
-    public static final String SMART_METASTORE_LEGACY_MYSQL_SUPPORT_KEY =
-            "smart.metastore.mysql.legacy.enabled";
-    public static final boolean SMART_METASTORE_LEGACY_MYSQL_SUPPORT_DEFAULT = false;
-
-    public static final String SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS =
-            "smart.access.count.aggregation.interval.ms";
-    public static final int SMART_ACCESS_COUNT_AGGREGATION_INTERVAL_MS_DEFAULT = 5000;
+  public static final String SMART_METASTORE_MIGRATION_CHANGELOG_PATH_KEY =
+      "smart.metastore.migration.liquibase.changelog.path";
+  public static final String SMART_METASTORE_MIGRATION_CHANGELOG_PATH_DEFAULT =
+      "db/changelog/changelog-root.xml";
 
     public static final String SMART_ACCESS_COUNT_AGGREGATOR_FAILOVER_KEY =
-            "smart.access.count.aggregator.failover";
+            "smart.file.access.count.aggregator.failover";
+    public static final String SMART_ACCESS_COUNT_AGGREGATOR_FAILOVER_MAX_RETRIES_KEY =
+            "smart.file.access.count.aggregator.failover.retry.count";
+    public static final int SMART_ACCESS_COUNT_AGGREGATOR_FAILOVER_MAX_RETRIES_DEFAULT = 60;
 
-    public static final String SMART_NUM_DAY_TABLES_TO_KEEP_KEY =
-            "smart.access.count.day.tables.num";
-    public static final int SMART_NUM_DAY_TABLES_TO_KEEP_DEFAULT = 30;
-
-    public static final String SMART_NUM_HOUR_TABLES_TO_KEEP_KEY =
-            "smart.access.count.hour.tables.num";
-    public static final int SMART_NUM_HOUR_TABLES_TO_KEEP_DEFAULT = 48;
-    public static final int SMART_NUM_HOUR_TABLES_TO_KEEP_MIN = 24;
-
-    public static final String SMART_NUM_MINUTE_TABLES_TO_KEEP_KEY =
-            "smart.access.count.minute.tables.num";
-    public static final int SMART_NUM_MINUTE_TABLES_TO_KEEP_DEFAULT = 120;
-    public static final int SMART_NUM_MINUTE_TABLES_TO_KEEP_MIN = 60;
-
-    public static final String SMART_NUM_SECOND_TABLES_TO_KEEP_KEY =
-            "smart.access.count.second.tables.num";
-    public static final int SMART_NUM_SECOND_TABLES_TO_KEEP_DEFAULT = 30;
+    public static final String SMART_FILE_ACCESS_PARTITIONS_RETENTION_POLICY_KEY =
+            "smart.file.access.partition.retention.policy";
 
     public static final String SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY =
-            "smart.access.event.fetch.interval.ms";
+            "smart.file.access.event.fetch.interval.ms";
     public static final long SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT = 1000L;
 
     public static final String SMART_CACHED_FILE_FETCH_INTERVAL_MS_KEY =
@@ -124,7 +105,12 @@ public class SmartConfKeys {
             "smart.namespace.fetch.interval.ms";
     public static final long SMART_NAMESPACE_FETCH_INTERVAL_MS_DEFAULT = 1L;
 
-    // StatesManager
+    // File access partitions
+  public static final String SMART_FILE_ACCESS_PARTITIONS_RETENTION_COUNT_KEY =
+      "smart.file.access.partition.retention.count";
+  public static final int SMART_FILE_ACCESS_PARTITIONS_RETENTION_COUNT_DEFAULT = 24;
+
+  // StatesManager
 
     // RuleManager
     public static final String SMART_RULE_EXECUTORS_KEY = "smart.rule.executors";

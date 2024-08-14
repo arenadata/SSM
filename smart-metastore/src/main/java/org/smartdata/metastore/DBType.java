@@ -21,7 +21,5 @@ package org.smartdata.metastore;
  * Type of database.
  */
 public enum DBType {
-  SQLITE,
-  MYSQL,
   POSTGRES
 }

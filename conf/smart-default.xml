@@ -368,15 +368,6 @@
   </property>
 
   <property>
-    <name>smart.metastore.mysql.legacy.enabled</name>
-    <value>false</value>
-    <description>
-      Whether to enable support for versions of MySQL lesser than 5.7.
-      Warning: it requires admin privileges for ssm user to be able to configure the db.
-    </description>
-  </property>
-
-  <property>
     <name>smart.ignore.path.templates</name>
     <value></value>
     <description>
@@ -393,45 +384,7 @@
   </property>
 
   <property>
-    <name>smart.access.count.day.tables.num</name>
-    <value>30</value>
-    <description>
-      The max number of access count per day tables in the Metastore.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.access.count.hour.tables.num</name>
-    <value>48</value>
-    <description>
-      The max number of access count per hour tables in the Metastore.
-      It should be at least 24 to cover the full day to be successfully
-      aggregated into a per day access count table.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.access.count.minute.tables.num</name>
-    <value>120</value>
-    <description>
-      The max number of access count per minute tables in the Metastore.
-      It should be at least 60 to cover the full hour to be successfully
-      aggregated into a per hour access count table.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.access.count.second.tables.num</name>
-    <value>30</value>
-    <description>
-      The max number of access count per second tables in the Metastore.
-      It should be at least 60000/'smart.access.count.aggregation.interval.ms'
-      to cover the full minute to be successfully aggregated into a per minute access count table.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.access.event.fetch.interval.ms</name>
+    <name>smart.file.access.event.fetch.interval.ms</name>
     <value>1000</value>
     <description>
       The interval in milliseconds between access event fetches.
@@ -479,7 +432,7 @@
   </property>
 
   <property>
-    <name>smart.access.count.aggregation.interval.ms</name>
+    <name>smart.file.access.count.aggregation.interval.ms</name>
     <value>5000</value>
     <description>
       The interval in milliseconds that is covered by single second-granularity access count table.
@@ -578,17 +531,21 @@
   </property>
 
   <property>
-    <name>smart.access.count.aggregator.failover</name>
-    <value>SUBMIT_NEW_FAILED_EVENTS_LATER</value>
+    <name>smart.file.access.count.aggregator.failover.retry.count</name>
+    <value>60</value>
+    <description>
+      Maximum number of attempts to save file access events
+    </description>
+  </property>
+
+  <property>
+    <name>smart.file.access.count.aggregator.failover</name>
+    <value>SUBMIT_FAILED_EVENTS_WITH_RETRY</value>
     <description>
       Failover strategy for file access events aggregator. Possible values:
-        DROP_EVENTS - drop file access events that caused exception.
         FAIL - throw exception, no failover.
-        SUBMIT_FAILED_EVENTS_LATER - save all file access events that caused exception
-          for later submission. Should be used carefully, because in case of repeated
-          exceptions can potentially cause OOM error.
-        SUBMIT_NEW_FAILED_EVENTS_LATER - save new file access events that caused exception
-          for later submission and drop old failing events.
+        SUBMIT_FAILED_EVENTS_WITH_RETRY - save all file access events that caused exception
+          for later submission with max attempts less or equals than smart.access.count.aggregator.failover.retry.count
     </description>
   </property>
 

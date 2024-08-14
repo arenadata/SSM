@@ -914,28 +914,6 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
           return new NodeTransResult(null, "$" + mStrValue);
         }
 
-        if (p.getPropertyName().equals("accessCountTopOnStoragePolicy")
-            || p.getPropertyName().equals("accessCountBottomOnStoragePolicy")
-            || p.getPropertyName().equals("acTopSp")
-            || p.getPropertyName().equals("acBotSp")) {
-          boolean topFlag = p.getPropertyName().equals("accessCountTopOnStoragePolicy")
-              || p.getPropertyName().equals("acTopSp");
-          String virTab = genAccessCountTable(transCtx == null ? 0 : transCtx.getRuleId(),
-              (Long) realParas.getValues().get(0));
-          String func = "$@genVirtualAccessCountTable" + (topFlag ? "Top" : "Bottom")
-              + "ValueOnStoragePolicy";
-          String mStr = virTab + (topFlag ? "_top_" : "_bottom_")
-              + realParas.getValues().get(1).toString() + "_on_storage_policy_"
-              + realParas.getValues().get(2).toString();
-          String mStrValue = mStr + "_value";
-          if (!sqlStatements.contains(func + "(" + mStr + ")")) {
-            sqlStatements.add(func + "(" + mStr + ")");
-            dynamicParameters.put(mStr, Arrays.asList(realParas.getValues(), virTab, mStrValue));
-          }
-          procAcc = true;
-          return new NodeTransResult(null, "$" + mStrValue);
-        }
-
         return new NodeTransResult(p.getTableName(), realParas.formatParameters());
       }
     }

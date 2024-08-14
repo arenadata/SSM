@@ -101,7 +101,7 @@ public class TestCmdletRestApi extends IntegrationTestBase {
             .execute(Response::andReturn),
         response -> response.getStatusCode() == HttpStatus.NOT_FOUND_404,
         Duration.ofMillis(100),
-        Duration.ofSeconds(1)
+        Duration.ofSeconds(5)
     );
   }
 

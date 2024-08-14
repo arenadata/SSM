@@ -35,14 +35,12 @@ import java.util.Map;
 public class LiquibaseDbSchemaManager implements DbSchemaManager {
   private final DBPool pool;
   private final String changelogPath;
-  private final String labelFilterExpr;
 
   private final Map<String, Object> scopeConfig;
 
-  public LiquibaseDbSchemaManager(DBPool pool, String changelogPath, String labelFilterExpr) {
+  public LiquibaseDbSchemaManager(DBPool pool, String changelogPath) {
     this.pool = pool;
     this.changelogPath = changelogPath;
-    this.labelFilterExpr = labelFilterExpr;
     this.scopeConfig = new HashMap<>();
 
     scopeConfig.put(Scope.Attr.ui.name(), new LoggerUIService());
@@ -57,8 +55,7 @@ public class LiquibaseDbSchemaManager implements DbSchemaManager {
 
       CommandScope updateCommand = new CommandScope(UpdateCommandStep.COMMAND_NAME)
           .addArgumentValue(DbUrlConnectionCommandStep.DATABASE_ARG, db)
-          .addArgumentValue(UpdateCommandStep.CHANGELOG_FILE_ARG, changelogPath)
-          .addArgumentValue(UpdateCommandStep.LABEL_FILTER_ARG, labelFilterExpr);
+          .addArgumentValue(UpdateCommandStep.CHANGELOG_FILE_ARG, changelogPath);
 
       executeWithLogging(updateCommand);
     }

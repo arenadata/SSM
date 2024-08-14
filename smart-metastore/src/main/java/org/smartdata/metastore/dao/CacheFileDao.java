@@ -41,7 +41,7 @@ public interface CacheFileDao
 
   void insert(List<CachedFileStatus> cachedFileStatusList);
 
-  int update(Long fid, Long lastAccessTime, Integer numAccessed);
+  int update(Long fid, Long lastAccessTime, long numAccessed);
 
   void update(Collection<AggregatedAccessCounts> events);
 

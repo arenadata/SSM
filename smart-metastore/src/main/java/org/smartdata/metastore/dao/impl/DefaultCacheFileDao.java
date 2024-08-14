@@ -97,7 +97,7 @@ public class DefaultCacheFileDao extends SearchableAbstractDao<
   }
 
   @Override
-  public int update(Long fid, Long lastAccessTime, Integer numAccessed) {
+  public int update(Long fid, Long lastAccessTime, long numAccessed) {
     String sql = "UPDATE cached_file SET last_access_time = ?, accessed_num = ? WHERE fid = ?";
     return jdbcTemplate.update(sql, lastAccessTime, numAccessed, fid);
   }
@@ -136,8 +136,7 @@ public class DefaultCacheFileDao extends SearchableAbstractDao<
     long lastAccessTime = Math.max(
         cachedFileStatus.getLastAccessTime(),
         aggregatedAccessCounts.getLastAccessedTimestamp());
-
-    int accessCounts = cachedFileStatus.getNumAccessed()
+    long accessCounts = cachedFileStatus.getNumAccessed()
         + aggregatedAccessCounts.getAccessCount();
 
     update(aggregatedAccessCounts.getFileId(), lastAccessTime, accessCounts);

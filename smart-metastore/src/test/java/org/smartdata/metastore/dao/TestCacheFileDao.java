@@ -56,8 +56,8 @@ public class TestCacheFileDao extends TestSearchableDao<
         "testPath2", 2000L, 3000L, 200);
     cacheFileDao.insert(second);
     List<AggregatedAccessCounts> accessCounts = new ArrayList<>();
-    accessCounts.add(new AggregatedAccessCounts(80L, 2, 4000L));
-    accessCounts.add(new AggregatedAccessCounts(90L, 2, 5000L));
+    accessCounts.add(new AggregatedAccessCounts(80L, 2,  4000L));
+    accessCounts.add(new AggregatedAccessCounts(90L,  2, 5000L));
     accessCounts.add(new AggregatedAccessCounts(100L, 2, 9000L));
 
     // Sync status

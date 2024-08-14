@@ -33,6 +33,8 @@ import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.DaoProvider;
 import org.smartdata.metastore.dao.ErasureCodingPolicyDao;
+import org.smartdata.metastore.dao.FileAccessDao;
+import org.smartdata.metastore.dao.FileAccessPartitionDao;
 import org.smartdata.metastore.dao.FileDiffDao;
 import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.metastore.dao.FileStateDao;
@@ -45,11 +47,8 @@ import org.smartdata.metastore.dao.StorageDao;
 import org.smartdata.metastore.dao.SystemInfoDao;
 import org.smartdata.metastore.dao.UserActivityDao;
 import org.smartdata.metastore.dao.WhitelistDao;
-import org.smartdata.metastore.dao.accesscount.AccessCountEventDao;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableDao;
 import org.smartdata.metastore.db.DbSchemaManager;
 import org.smartdata.metastore.db.metadata.DbMetadataProvider;
-import org.smartdata.metastore.model.AccessCountTable;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
 import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.metastore.utils.MetaStoreUtils;
@@ -112,8 +111,8 @@ public class MetaStore implements CopyMetaService,
   private final CacheFileDao cacheFileDao;
   private final StorageDao storageDao;
   private final FileDiffDao fileDiffDao;
-  private final AccessCountTableDao accessCountTableDao;
-  private final AccessCountEventDao accessCountEventDao;
+  private final FileAccessDao fileAccessDao;
+  private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
   private final GlobalConfigDao globalConfigDao;
@@ -144,8 +143,6 @@ public class MetaStore implements CopyMetaService,
     fileInfoDao = daoProvider.fileInfoDao();
     cacheFileDao = daoProvider.cacheFileDao();
     storageDao = daoProvider.storageDao();
-    accessCountTableDao = daoProvider.accessCountDao();
-    accessCountEventDao = daoProvider.accessCountEventDao();
     fileDiffDao = daoProvider.fileDiffDao();
     metaStoreHelper = new MetaStoreHelper(pool.getDataSource());
     clusterConfigDao = daoProvider.clusterConfigDao();
@@ -160,6 +157,8 @@ public class MetaStore implements CopyMetaService,
     ecDao = daoProvider.ecDao();
     whitelistDao = daoProvider.whitelistDao();
     userActivityDao = daoProvider.userActivityDao();
+    fileAccessPartitionDao = daoProvider.fileAccessPartitionDao();
+    fileAccessDao = daoProvider.fileAccessDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -182,12 +181,8 @@ public class MetaStore implements CopyMetaService,
     return ruleDao;
   }
 
-  public AccessCountTableDao accessCountTableDao() {
-    return accessCountTableDao;
-  }
-
-  public AccessCountEventDao accessCountEventDao() {
-    return accessCountEventDao;
+  public FileAccessDao accessCountEventDao() {
+    return fileAccessDao;
   }
 
   public CacheFileDao cacheFileDao() {
@@ -196,6 +191,10 @@ public class MetaStore implements CopyMetaService,
 
   public FileInfoDao fileInfoDao() {
     return fileInfoDao;
+  }
+
+  public FileAccessPartitionDao fileAccessPartitionDao() {
+    return fileAccessPartitionDao;
   }
 
 
@@ -351,9 +350,9 @@ public class MetaStore implements CopyMetaService,
   }
 
   /**
-   * @param srcFileId the fid of old file.
+   * @param srcFileId  the fid of old file.
    * @param destFileId the fid of new file that will take over the access
-   *                count of old file.
+   *                   count of old file.
    */
   public void updateAccessCountTableFileIds(long srcFileId, long destFileId)
       throws MetaStoreException {
@@ -362,11 +361,7 @@ public class MetaStore implements CopyMetaService,
     }
 
     try {
-      defaultTransactionRunner.inTransaction(() -> {
-        List<AccessCountTable> accessCountTables =
-            accessCountTableDao.getAllSortedTables();
-        accessCountEventDao.updateFileIds(accessCountTables, srcFileId, destFileId);
-      });
+      fileAccessDao.updateFileIds(srcFileId, destFileId);
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }

@@ -19,10 +19,8 @@ package org.smartdata.metastore;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableDeque;
 import org.smartdata.metastore.db.DBHandlersFactory;
 import org.smartdata.metastore.db.DbSchemaManager;
-import org.smartdata.metastore.model.AccessCountTable;
 
 import javax.sql.DataSource;
 
@@ -37,7 +35,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.SQLITE_URL_PREFIX;
 
@@ -58,20 +55,6 @@ public class TestDBUtil {
 
   public static String getUniqueDBFilePath() {
     return getUniqueFilePath() + ".db";
-  }
-
-  public static String getUniqueSqliteUrl() {
-    String dbFile = getUniqueDBFilePath();
-    new File(dbFile).deleteOnExit();
-    String url = SQLITE_URL_PREFIX + getUniqueDBFilePath();
-    log.info("sqlite url: {}", url);
-    return url;
-  }
-
-  public static void addAccessCountTableToDeque(
-      AccessCountTableDeque deque, AccessCountTable table) throws Exception {
-    deque.addAndNotifyListener(table)
-        .get(1, TimeUnit.SECONDS);
   }
 
   /**

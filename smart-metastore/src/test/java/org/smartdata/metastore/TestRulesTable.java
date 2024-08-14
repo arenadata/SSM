@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Tests for table 'rules'.
  */
-public class TestRulesTable extends SqliteTestDaoBase {
+public class TestRulesTable extends TestDaoBase {
 
   /**
    * Insert rules into table and retrieve them back.

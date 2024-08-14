@@ -25,9 +25,13 @@ import org.smartdata.conf.Reconfigurable;
 import org.smartdata.conf.ReconfigurableRegistry;
 import org.smartdata.conf.ReconfigureException;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableManager;
-import org.smartdata.metastore.model.AccessCountTable;
+import org.smartdata.metastore.accesscount.DbAccessEventAggregator;
+import org.smartdata.metastore.accesscount.FileAccessManager;
+import org.smartdata.metastore.accesscount.failover.AccessCountFailoverFactory;
+import org.smartdata.metastore.partition.FileAccessPartitionManagerImpl;
+import org.smartdata.metastore.partition.FileAccessPartitionService;
+import org.smartdata.metastore.partition.cleanup.FileAccessPartitionRetentionPolicyExecutorFactory;
+import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventSource;
 import org.smartdata.metrics.impl.MetricsFactory;
@@ -40,6 +44,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+
 /**
  * Polls metrics and events from NameNode.
  */
@@ -47,12 +53,14 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   private final ServerContext serverContext;
 
   private ScheduledExecutorService executorService;
-  private AccessCountTableManager accessCountTableManager;
+  @Getter
+  private FileAccessManager fileAccessManager;
   private AccessEventFetcher accessEventFetcher;
   private FileAccessEventSource fileAccessEventSource;
   @Getter
   private CachedFilesManager cachedFilesManager;
   private AbstractService statesUpdaterService;
+  private FileAccessPartitionService fileAccessPartitionService;
   private PathChecker pathChecker;
   private volatile boolean working = false;
 
@@ -69,18 +77,39 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   @Override
   public void init() throws IOException {
     LOG.info("Initializing ...");
-    this.executorService = Executors.newScheduledThreadPool(4);
-    this.accessCountTableManager = new AccessCountTableManager(
-        serverContext.getMetaStore(), executorService, serverContext.getConf());
+    this.executorService = Executors.newScheduledThreadPool(5);
+    TransactionRunner transactionRunner =
+        new TransactionRunner(serverContext.getMetaStore().transactionManager());
+    transactionRunner.setIsolationLevel(SERIALIZABLE);
+    this.fileAccessManager = new FileAccessManager(
+        transactionRunner,
+        serverContext.getMetaStore().accessCountEventDao(),
+        serverContext.getMetaStore().cacheFileDao());
     this.fileAccessEventSource = MetricsFactory.createAccessEventSource(serverContext.getConf());
+    AccessCountFailoverFactory accessCountFailoverFactory =
+        new AccessCountFailoverFactory(serverContext.getConf());
+    DbAccessEventAggregator accessEventAggregator = new DbAccessEventAggregator(
+        serverContext.getMetaStore().fileInfoDao(),
+        fileAccessManager,
+        accessCountFailoverFactory.create());
     this.accessEventFetcher = new AccessEventFetcher(
         serverContext.getConf(),
-        accessCountTableManager.getAccessEventAggregator(),
+        accessEventAggregator,
         executorService,
         fileAccessEventSource.getCollector());
     this.pathChecker = new PathChecker(serverContext.getConf());
     this.cachedFilesManager =
         new CachedFilesManager(serverContext.getMetaStore().cacheFileDao());
+    FileAccessPartitionRetentionPolicyExecutorFactory
+        fileAccessPartitionRetentionPolicyExecutorFactory =
+        new FileAccessPartitionRetentionPolicyExecutorFactory(
+            serverContext.getMetaStore());
+    this.fileAccessPartitionService = new FileAccessPartitionService(
+        executorService,
+        new FileAccessPartitionManagerImpl(serverContext.getMetaStore()),
+        fileAccessPartitionRetentionPolicyExecutorFactory.createPolicyExecutor(
+            serverContext.getConf())
+    );
 
     initStatesUpdaterService();
     if (statesUpdaterService == null) {
@@ -105,6 +134,7 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   @Override
   public void start() throws IOException {
     LOG.info("Starting ...");
+    fileAccessPartitionService.start();
     accessEventFetcher.start();
     if (statesUpdaterService != null) {
       statesUpdaterService.start();
@@ -118,6 +148,9 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     working = false;
     LOG.info("Stopping ...");
 
+    if (fileAccessPartitionService != null) {
+      fileAccessPartitionService.stop();
+    }
     if (accessEventFetcher != null) {
       accessEventFetcher.stop();
     }
@@ -132,10 +165,6 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     }
 
     LOG.info("Stopped.");
-  }
-
-  public List<AccessCountTable> getTablesForLast(long timeInMills) throws MetaStoreException {
-    return accessCountTableManager.getTablesForLast(timeInMills);
   }
 
   public void reportFileAccessEvent(FileAccessEvent event) {
@@ -202,9 +231,5 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     } catch (Throwable t) {
       LOG.info("", t);
     }
-  }
-
-  public AccessCountTableManager getAccessCountTableManager() {
-    return accessCountTableManager;
   }
 }

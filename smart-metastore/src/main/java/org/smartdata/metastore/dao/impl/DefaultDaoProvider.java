@@ -27,6 +27,8 @@ import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.DaoProvider;
 import org.smartdata.metastore.dao.ErasureCodingPolicyDao;
+import org.smartdata.metastore.dao.FileAccessDao;
+import org.smartdata.metastore.dao.FileAccessPartitionDao;
 import org.smartdata.metastore.dao.FileDiffDao;
 import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.metastore.dao.FileStateDao;
@@ -39,8 +41,6 @@ import org.smartdata.metastore.dao.StoragePolicyDao;
 import org.smartdata.metastore.dao.SystemInfoDao;
 import org.smartdata.metastore.dao.UserActivityDao;
 import org.smartdata.metastore.dao.WhitelistDao;
-import org.smartdata.metastore.dao.accesscount.AccessCountEventDao;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableDao;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -90,13 +90,8 @@ public class DefaultDaoProvider implements DaoProvider {
   }
 
   @Override
-  public AccessCountTableDao accessCountDao() {
-    return new DefaultAccessCountTableDao(dataSource, transactionManager);
-  }
-
-  @Override
-  public AccessCountEventDao accessCountEventDao() {
-    return new DefaultAccessCountEventDao(dataSource, transactionManager);
+  public FileAccessDao fileAccessDao() {
+    return new DefaultFileAccessDao(dataSource, transactionManager);
   }
 
   @Override
@@ -162,5 +157,10 @@ public class DefaultDaoProvider implements DaoProvider {
   @Override
   public UserActivityDao userActivityDao() {
     return new DefaultUserActivityDao(dataSource, transactionManager);
+  }
+
+  @Override
+  public FileAccessPartitionDao fileAccessPartitionDao() {
+    return new DefaultFileAccessPartitionDao(dataSource);
   }
 }
