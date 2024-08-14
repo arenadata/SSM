@@ -8,13 +8,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
-    <changeSet id="2023.09.28_000" author="tmanasyan" labels="old_mysql" failOnError="false">
-        <sql dbms="mysql, mariadb">
-            SET GLOBAL innodb_file_format=barracuda;
-            SET GLOBAL innodb_file_per_table=true;
-            SET GLOBAL innodb_large_prefix = ON;
-        </sql>
-    </changeSet>
 
     <changeSet id="2023.09.28_001" author="tmanasyan">
         <preConditions onFail="MARK_RAN">
@@ -74,15 +67,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="2023.09.28_0031" author="tmanasyan" labels="old_mysql">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="cached_file"/>
-        </preConditions>
-        <sql dbms="mysql, mariadb">
-            ALTER TABLE cached_file ROW_FORMAT= DYNAMIC ENGINE=INNODB;
-        </sql>
     </changeSet>
 
     <changeSet id="2023.09.28_004" author="tmanasyan">
@@ -170,9 +154,6 @@
         <createIndex indexName="file_path_idx" tableName="file">
             <column name="path"/>
         </createIndex>
-        <modifySql dbms="mysql, mariadb" labels="old_mysql">
-            <replace replace="`path`" with="`path`(767)"/>
-        </modifySql>
     </changeSet>
 
     <changeSet id="2023.09.28_010" author="tmanasyan">
@@ -499,15 +480,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="2023.09.28_0231" author="tmanasyan" labels="old_mysql">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="file_diff"/>
-        </preConditions>
-        <sql dbms="mysql, mariadb">
-            ALTER TABLE file_diff ROW_FORMAT= DYNAMIC ENGINE=INNODB;
-        </sql>
-    </changeSet>
-
     <changeSet id="2023.09.28_024" author="tmanasyan">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -517,9 +489,6 @@
         <createIndex indexName="file_diff_idx" tableName="file_diff">
             <column name="src"/>
         </createIndex>
-        <modifySql dbms="mysql, mariadb" labels="old_mysql">
-            <replace replace="`src`" with="`src`(767)"/>
-        </modifySql>
     </changeSet>
 
     <changeSet id="2023.09.28_025" author="tmanasyan">
@@ -734,9 +703,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <modifySql dbms="mysql, mariadb" labels="old_mysql">
-            <replace replace="(`path`))" with="(`path`)) ROW_FORMAT=DYNAMIC ENGINE=INNODB;"/>
-        </modifySql>
     </changeSet>
 
     <changeSet id="2023.09.28_036" author="tmanasyan">

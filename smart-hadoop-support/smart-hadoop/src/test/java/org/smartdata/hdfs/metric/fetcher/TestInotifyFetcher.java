@@ -38,7 +38,7 @@ import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.hdfs.MiniClusterFactory;
 import org.smartdata.metastore.MetaStore;
-import org.smartdata.metastore.SqliteTestDaoBase;
+import org.smartdata.metastore.TestDaoBase;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
-public class TestInotifyFetcher extends SqliteTestDaoBase {
+public class TestInotifyFetcher extends TestDaoBase {
   private static final int BLOCK_SIZE = 1024;
 
   private static class EventApplierForTest extends InotifyEventApplier {

@@ -22,46 +22,29 @@ import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.DBType;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.db.metadata.DbMetadataProvider;
-import org.smartdata.metastore.db.metadata.MySqlDbMetadataProvider;
 import org.smartdata.metastore.db.metadata.PostgresDbMetadataProvider;
-import org.smartdata.metastore.db.metadata.SqliteDbMetadataProvider;
 
 import javax.sql.DataSource;
 
-import static org.smartdata.conf.SmartConfKeys.SMART_METASTORE_LEGACY_MYSQL_SUPPORT_DEFAULT;
-import static org.smartdata.conf.SmartConfKeys.SMART_METASTORE_LEGACY_MYSQL_SUPPORT_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_METASTORE_MIGRATION_CHANGELOG_PATH_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_METASTORE_MIGRATION_CHANGELOG_PATH_KEY;
 
 public class DBHandlersFactory {
-  private static final String OLD_MYSQL_LABEL = "old_mysql";
 
   public DbSchemaManager createDbManager(DBPool dbPool, Configuration conf) {
     String changelogPath = conf.get(
         SMART_METASTORE_MIGRATION_CHANGELOG_PATH_KEY,
         SMART_METASTORE_MIGRATION_CHANGELOG_PATH_DEFAULT);
-
-    boolean legacyMysqlSupportEnabled = conf.getBoolean(
-        SMART_METASTORE_LEGACY_MYSQL_SUPPORT_KEY,
-        SMART_METASTORE_LEGACY_MYSQL_SUPPORT_DEFAULT);
-
-    String labelsFilter = legacyMysqlSupportEnabled
-        ? OLD_MYSQL_LABEL
-        : "!" + OLD_MYSQL_LABEL;
-
-    return new LiquibaseDbSchemaManager(dbPool, changelogPath, labelsFilter);
+    return new LiquibaseDbSchemaManager(dbPool, changelogPath);
   }
 
   public DbMetadataProvider createDbMetadataProvider(DBPool dbPool, DBType dbType)
       throws MetaStoreException {
     DataSource dataSource = dbPool.getDataSource();
     switch (dbType) {
-      case MYSQL:
-        return new MySqlDbMetadataProvider(dataSource);
       case POSTGRES:
-        return new PostgresDbMetadataProvider(dataSource);
       default:
-        return new SqliteDbMetadataProvider(dataSource);
+        return new PostgresDbMetadataProvider(dataSource);
     }
   }
 }

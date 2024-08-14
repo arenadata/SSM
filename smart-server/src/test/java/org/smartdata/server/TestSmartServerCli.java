@@ -23,8 +23,6 @@ import org.junit.Test;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.MiniClusterHarness;
-import org.smartdata.metastore.TestDBUtil;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -38,12 +36,7 @@ public class TestSmartServerCli extends MiniClusterHarness {
     try {
       Collection<URI> namenodes = DFSUtil.getInternalNsRpcUris(smartContext.getConf());
       List<URI> uriList = new ArrayList<>(namenodes);
-
       SmartConf conf = new SmartConf();
-      // Set db used
-      String dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-      String dbUrl = MetaStoreUtils.SQLITE_URL_PREFIX + dbFile;
-      conf.set(SmartConfKeys.SMART_METASTORE_DB_URL_KEY, dbUrl);
 
       // rpcServer start in SmartServer
       SmartServer ssm = null;
@@ -71,7 +64,7 @@ public class TestSmartServerCli extends MiniClusterHarness {
       Thread.sleep(1000);
       regServer.shutdown();
 
-      args = new String[] {
+      args = new String[]{
           "-h"
       };
       SmartServer.launchWith(args, conf);

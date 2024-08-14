@@ -24,7 +24,6 @@ import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.metastore.model.AccessCountTable;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
@@ -43,7 +42,9 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Execute rule queries and return result. */
+/**
+ * Execute rule queries and return result.
+ */
 public class RuleExecutor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(RuleExecutor.class.getName());
 
@@ -187,138 +188,38 @@ public class RuleExecutor implements Runnable {
     executionCtx.setProperty(var, count == null ? 0L : count);
   }
 
-  public String genVirtualAccessCountTableTopValueOnStoragePolicy(List<Object> parameters) {
-    genVirtualAccessCountTableValueOnStoragePolicy(parameters, true);
-    return null;
-  }
-
-  public String genVirtualAccessCountTableBottomValueOnStoragePolicy(List<Object> parameters) {
-    genVirtualAccessCountTableValueOnStoragePolicy(parameters, false);
-    return null;
-  }
-
-  private void genVirtualAccessCountTableValueOnStoragePolicy(List<Object> parameters,
-      boolean top) {
-    List<Object> paraList = (List<Object>) parameters.get(0);
-    String table = (String) parameters.get(1);
-    String var = (String) parameters.get(2);
-    Long num = (Long) paraList.get(1);
-    String storage = ((String) paraList.get(2)).toUpperCase();
-    String sqlsub;
-    if (storage.equals("CACHE")) {
-      sqlsub = String.format("SELECT %s.fid, %s.count FROM %s LEFT JOIN cached_file ON "
-          + "(%s.fid = cached_file.fid)", table, table, table, table);
-    } else {
-      Integer id = null;
-      try {
-        id = metastore.getStoragePolicyID(storage);
-      } catch (Exception e) {
-        // Ignore
-      }
-      if (id == null) {
-        id = -1; // safe return
-      }
-      sqlsub = String.format("SELECT %s.fid, %s.count FROM %s LEFT JOIN file ON "
-          + "(%s.fid = file.fid) WHERE file.sid = %d",
-          table, table, table, table, id);
-    }
-
-    String sql0 = String.format(
-        "SELECT %s(count) FROM ( SELECT * FROM (%s) AS %s ORDER BY count %sLIMIT %d ) AS %s;",
-        top ? "min" : "max",
-        sqlsub,
-        table + "_AL1_TMP",
-        top ? "DESC " : "",
-        num,
-        table + "_AL2_TMP");
-    Long count = null;
-    try {
-      count = metastore.queryForLong(sql0);
-    } catch (MetaStoreException e) {
-      LOG.error(String.format("Get %s access count on storage [%s] from table '%s' error [%s].",
-          top ? "top" : "bottom", storage, table, sql0), e);
-    }
-    executionCtx.setProperty(var, count == null ? 0L : count);
-  }
-
   public String genVirtualAccessCountTable(List<Object> parameters) {
     List<Object> paraList = (List<Object>) parameters.get(0);
     String newTable = (String) parameters.get(1);
-    Long interval = (Long) paraList.get(0);
+    long interval = paraList.isEmpty() ? 0L : (long) paraList.get(0);
     String countFilter = "";
-    List<String> tableNames = getAccessCountTablesDuringLast(interval);
-    return generateSQL(tableNames, newTable, countFilter, metastore);
+    long currentTimeMillis = System.currentTimeMillis();
+    return generateSQL(newTable, countFilter, metastore, currentTimeMillis - interval,
+        currentTimeMillis);
   }
 
   @VisibleForTesting
   static String generateSQL(
-      List<String> tableNames, String newTable, String countFilter, MetaStore adapter) {
+      String newTable,
+      String countFilter,
+      MetaStore adapter,
+      long startTime,
+      long endTime) {
     String sqlFinal, sqlCreate;
-    if (tableNames.size() <= 1) {
-      String tableName = tableNames.isEmpty() ? "blank_access_count_info" : tableNames.get(0);
-      sqlCreate = "CREATE TABLE " + newTable + "(fid INTEGER NOT NULL, count INTEGER NOT NULL);";
-      try {
-        adapter.execute(sqlCreate);
-      } catch (MetaStoreException e) {
-        LOG.error("Cannot create table " + newTable, e);
-      }
-      sqlFinal = "INSERT INTO " + newTable + " SELECT * FROM " + tableName + ";";
-    } else {
-      String sqlPrefix = "SELECT fid, SUM(count) AS count FROM (\n";
-      String sqlUnion = "SELECT fid, count FROM " + tableNames.get(0) + " \n";
-      for (int i = 1; i < tableNames.size(); i++) {
-        sqlUnion += "UNION ALL\n" + "SELECT fid, count FROM " + tableNames.get(i) + " \n";
-      }
-      String sqlSufix = ") as tmp GROUP BY fid ";
-      String sqlCountFilter =
-          (countFilter == null || countFilter.isEmpty())
-              ? ""
-              : "HAVING SUM(count) " + countFilter;
-      String sqlRe = sqlPrefix + sqlUnion + sqlSufix + sqlCountFilter;
-      sqlCreate = "CREATE TABLE " + newTable + "(fid INTEGER NOT NULL, count INTEGER NOT NULL);";
-      try {
-        adapter.execute(sqlCreate);
-      } catch (MetaStoreException e) {
-        LOG.error("Cannot create table " + newTable, e);
-      }
-      sqlFinal = "INSERT INTO " + newTable + " SELECT * FROM (" + sqlRe + ") temp;";
-    }
-    return sqlFinal;
-  }
-
-  private List<String> getAccessCountTablesDuringLast(long lastInterval) {
-    List<String> tableNames = new ArrayList<>();
-    if (ruleManager == null || ruleManager.getStatesManager() == null) {
-      return tableNames;
-    }
-
-    List<AccessCountTable> accTables = null;
+    sqlCreate = "CREATE TABLE " + newTable + "(fid INTEGER NOT NULL, count INTEGER NOT NULL);";
     try {
-      accTables = ruleManager.getStatesManager().getTablesForLast(lastInterval);
+      adapter.execute(sqlCreate);
     } catch (MetaStoreException e) {
-      LOG.error("Rule " + executionCtx.getRuleId() + " get access info tables exception", e);
+      LOG.error("Cannot create table " + newTable, e);
     }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Rule " + executionCtx.getRuleId() + " got " + accTables.size() + " tables:");
-      int idx = 1;
-      for (AccessCountTable t : accTables) {
-        LOG.debug(
-            idx + ".  " + (t.isEphemeral() ? " [TABLE] " : "        ") + t.getTableName() + " ");
-      }
-    }
-
-    if (accTables == null || accTables.isEmpty()) {
-      return tableNames;
-    }
-
-    for (AccessCountTable t : accTables) {
-      tableNames.add(t.getTableName());
-      if (t.isEphemeral()) {
-        dynamicCleanups.push("DROP TABLE IF EXISTS " + t.getTableName() + ";");
-      }
-    }
-    return tableNames;
+    String sqlCountFilter =
+        (countFilter == null || countFilter.isEmpty())
+            ? ""
+            : " HAVING count(*) " + countFilter;
+    sqlFinal = "INSERT INTO " + newTable + " SELECT fid, count(*) AS count FROM file_access\n"
+        + "WHERE access_time >= " + startTime + " AND access_time <= " + endTime
+        + " GROUP BY fid" + sqlCountFilter + " ;";
+    return sqlFinal;
   }
 
   @Override

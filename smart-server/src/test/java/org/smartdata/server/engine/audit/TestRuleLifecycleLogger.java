@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.metastore.SqliteTestDaoBase;
+import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.audit.UserActivityEvent;
@@ -47,7 +47,7 @@ import static org.smartdata.model.audit.UserActivityOperation.STOP;
 import static org.smartdata.model.audit.UserActivityResult.FAILURE;
 import static org.smartdata.model.audit.UserActivityResult.SUCCESS;
 
-public class TestRuleLifecycleLogger extends SqliteTestDaoBase {
+public class TestRuleLifecycleLogger extends TestDaoBase {
   private RuleManager ruleManager;
   private AuditService auditService;
   private SmartPrincipalManager principalManager;

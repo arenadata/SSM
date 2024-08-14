@@ -20,7 +20,7 @@ package org.smartdata.server.engine.data;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartdata.metastore.dao.accesscount.AccessEventAggregator;
+import org.smartdata.metastore.accesscount.AccessEventAggregator;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventCollector;
 
@@ -55,10 +55,8 @@ public class AccessEventFetcher {
   }
 
   public void start() {
-    long current = System.currentTimeMillis();
-    long toWait = fetchInterval - (current % fetchInterval);
     this.scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(
-        fetchTask, toWait, fetchInterval, TimeUnit.MILLISECONDS);
+        fetchTask, 0, fetchInterval, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {
@@ -71,8 +69,8 @@ public class AccessEventFetcher {
     private final AccessEventAggregator accessEventAggregator;
     private final FileAccessEventCollector collector;
 
-    public FetchTask(
-        AccessEventAggregator accessEventAggregator, FileAccessEventCollector collector) {
+    public FetchTask(AccessEventAggregator accessEventAggregator,
+                     FileAccessEventCollector collector) {
       this.accessEventAggregator = accessEventAggregator;
       this.collector = collector;
     }

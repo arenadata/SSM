@@ -78,23 +78,21 @@ Table-4 Condition Ingredient
 
 Table-5 Object Properties
 
-| Object   | Property                         | Description                                                                                 |
-|----------|----------------------------------|---------------------------------------------------------------------------------------------|
-|          | age                              | The time span from last modification moment to now                                          |
-|          | atime                            | The last access time                                                                        |
-|          | blocksize                        | The block size of the file                                                                  |
-|          | inCache                          | The file is in cache storage                                                                |
-|          | isDir                            | The file is a directory                                                                     |
-|          | length                           | Length of the file. Currently, only pure digital is supported, which indicates bytes number.|
-|   file   | path                             | The file path in HDFS                                                                       |
-|          | mtime                            | The last modification time of the file                                                      |
-|          | unsynced                         | The file is not synced                                                                      |
-|          | storagePolicy                    | Storage policy of file                                                                      |
-|          | accessCount(Time Interval)       | The access counts during the last time interval                                             |
-|          | accessCountTop(interval,N )      | The topmost N for access counts during the last time interval                               |
-|          | accessCountBottom(interval,N)    | The bottommost N for access counts during the last time interval                            |
-|          | accessCountTopOnStoragePolicy(interval,N,$StoragePolicy")    | The topmost N for access counts with regard to a storage policy.The supported HDFS storage policies are COLD,WARM,HOT,ONE_SSD,ALL_SSD,LAZY_PERSIST |
-|          | accessCountBottomOnStoragePolicy(interval,N,$StoragePolicy") | The bottommost N for access counts with regard to a storage policy during the last time interval |
+| Object   | Property                                                     | Description                                                                                                                                        |
+|----------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+|          | age                                                          | The time span from last modification moment to now                                                                                                 |
+|          | atime                                                        | The last access time                                                                                                                               |
+|          | blocksize                                                    | The block size of the file                                                                                                                         |
+|          | inCache                                                      | The file is in cache storage                                                                                                                       |
+|          | isDir                                                        | The file is a directory                                                                                                                            |
+|          | length                                                       | Length of the file. Currently, only pure digital is supported, which indicates bytes number.                                                       |
+|   file   | path                                                         | The file path in HDFS                                                                                                                              |
+|          | mtime                                                        | The last modification time of the file                                                                                                             |
+|          | unsynced                                                     | The file is not synced                                                                                                                             |
+|          | storagePolicy                                                | Storage policy of file                                                                                                                             |
+|          | accessCount(Time Interval)                                   | The access counts during the last time interval                                                                                                    |
+|          | accessCountTop(interval,N )                                  | The topmost N for access counts during the last time interval                                                                                      |
+|          | accessCountBottom(interval,N)                                | The bottommost N for access counts during the last time interval                                                                                   |
 
 Table-6 Commands
 

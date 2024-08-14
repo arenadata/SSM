@@ -23,15 +23,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.metastore.TestDBUtil;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 
 public class TestSmartServer {
   protected SmartConf conf;
   protected SmartServer ssm;
-  protected String dbFile;
-  protected String dbUrl;
 
   private static final int DEFAULT_BLOCK_SIZE = 100;
 
@@ -43,11 +38,6 @@ public class TestSmartServer {
   public void setUp() throws Exception {
     conf = new SmartConf();
     initConf(conf);
-
-    // Set db used
-    dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-    dbUrl = MetaStoreUtils.SQLITE_URL_PREFIX + dbFile;
-    conf.set(SmartConfKeys.SMART_METASTORE_DB_URL_KEY, dbUrl);
 
     // rpcServer start in SmartServer
     ssm = SmartServer.launchWith(conf);

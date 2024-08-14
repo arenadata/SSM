@@ -18,7 +18,7 @@
 package org.smartdata.server.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.smartdata.metastore.dao.accesscount.AccessCountTableManager;
+import org.smartdata.metastore.accesscount.FileAccessManager;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
@@ -44,7 +44,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FilesControllerDelegate implements FilesApiDelegate {
 
-  private final AccessCountTableManager accessCountTableManager;
+  private final FileAccessManager fileAccessManager;
   private final FileAccessInfoMapper fileInfoMapper;
   private final FileAccessInfoPageRequestMapper pageRequestMapper;
   private final CachedFilesControllerDelegate cachedFilesControllerDelegate;
@@ -72,7 +72,7 @@ public class FilesControllerDelegate implements FilesApiDelegate {
         lastAccessedTime);
 
     SearchResult<FileAccessInfo> searchResult =
-        accessCountTableManager.search(searchRequest, pageRequest);
+        fileAccessManager.search(searchRequest, pageRequest);
     return fileInfoMapper.toFileAccessCountsDto(searchResult);
   }
 }

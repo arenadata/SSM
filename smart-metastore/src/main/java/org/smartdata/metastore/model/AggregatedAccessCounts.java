@@ -27,7 +27,7 @@ import org.smartdata.metrics.FileAccessEvent;
 @RequiredArgsConstructor
 public class AggregatedAccessCounts {
   private long fileId;
-  private final int accessCount;
+  private final long accessCount;
   private final long lastAccessedTimestamp;
 
   public AggregatedAccessCounts merge(AggregatedAccessCounts other) {

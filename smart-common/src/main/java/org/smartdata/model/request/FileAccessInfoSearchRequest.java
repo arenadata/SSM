@@ -24,7 +24,6 @@ import lombok.With;
 import org.smartdata.model.TimeInterval;
 
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Builder
@@ -34,7 +33,6 @@ public class FileAccessInfoSearchRequest {
   private final List<Long> ids;
   private final String pathLike;
   private final TimeInterval lastAccessedTime;
-  private final Set<String> accessCountTables;
 
   public static FileAccessInfoSearchRequest noFilters() {
     return builder().build();

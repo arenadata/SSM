@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.MiniClusterFactory;
-import org.smartdata.metastore.TestDBUtil;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -47,8 +45,6 @@ public class TestSmartServerLogin {
   private int serverPort = -1;
   private SmartConf conf;
   private MiniDFSCluster cluster;
-  private String dbFile;
-  private String dbUrl;
   private SmartServer ssm;
 
   private final String keytabFileName = "smart.keytab";
@@ -74,12 +70,6 @@ public class TestSmartServerLogin {
     conf.set(DFS_NAMENODE_HTTP_ADDRESS_KEY, uriList.get(0).toString());
     conf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
         uriList.get(0).toString());
-
-    // Set db used
-    dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-    dbUrl = MetaStoreUtils.SQLITE_URL_PREFIX + dbFile;
-    conf.set(SmartConfKeys.SMART_METASTORE_DB_URL_KEY, dbUrl);
-
     conf.setBoolean(SmartConfKeys.SMART_SECURITY_ENABLE, true);
     conf.set(SmartConfKeys.SMART_SERVER_KEYTAB_FILE_KEY, keytabFileName);
     conf.set(SmartConfKeys.SMART_SERVER_KERBEROS_PRINCIPAL_KEY, principal);

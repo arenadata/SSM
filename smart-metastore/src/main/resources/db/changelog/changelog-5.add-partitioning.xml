@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2024.07.09_001" author="VArkhipov">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="access_count_table"/>
+        </preConditions>
+        <dropTable tableName="access_count_table"/>
+    </changeSet>
+
+    <changeSet id="2024.07.09_002" author="VArkhipov">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_access"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_access">
+            <column name="fid" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="access_time" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <modifySql dbms="postgresql">
+            <append value=" PARTITION BY RANGE (access_time)"/>
+        </modifySql>
+    </changeSet>
+
+    <changeSet id="2024.07.09_003" author="VArkhipov" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from pg_proc where proname = 'create_file_access_partition'
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/create_file_access_partition.sql"/>
+        <sql>select create_file_access_partition(cast(now() as date));</sql>
+    </changeSet>
+
+    <changeSet id="2024.07.09_004" author="VArkhipov">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="idx_file_access_time"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="file_access" indexName="idx_file_access_time">
+            <column name="access_time"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

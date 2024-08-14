@@ -25,8 +25,6 @@ import org.smartdata.admin.SmartAdmin;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.MiniClusterWithStoragesHarness;
-import org.smartdata.metastore.TestDBUtil;
-import org.smartdata.metastore.utils.MetaStoreUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -49,11 +47,7 @@ public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
     List<URI> uriList = new ArrayList<>(namenodes);
     conf.set(DFS_NAMENODE_HTTP_ADDRESS_KEY, uriList.get(0).toString());
     conf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
-      uriList.get(0).toString());
-
-    String dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-    String dbUrl = MetaStoreUtils.SQLITE_URL_PREFIX + dbFile;
-    smartContext.getConf().set(SmartConfKeys.SMART_METASTORE_DB_URL_KEY, dbUrl);
+        uriList.get(0).toString());
 
     // rpcServer start in SmartServer
     ssm = SmartServer.launchWith(conf);

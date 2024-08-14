@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.metastore.SqliteTestDaoBase;
+import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.audit.UserActivityEvent;
 import org.smartdata.model.request.AuditSearchRequest;
@@ -46,7 +46,7 @@ import static org.smartdata.model.audit.UserActivityOperation.STOP;
 import static org.smartdata.model.audit.UserActivityResult.FAILURE;
 import static org.smartdata.model.audit.UserActivityResult.SUCCESS;
 
-public class TestCmdletLifecycleLogger extends SqliteTestDaoBase {
+public class TestCmdletLifecycleLogger extends TestDaoBase {
   private CmdletManager cmdletManager;
   private AuditService auditService;
   private SmartPrincipalManager principalManager;

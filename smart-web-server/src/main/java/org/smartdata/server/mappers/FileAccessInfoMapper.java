@@ -37,7 +37,6 @@ public interface FileAccessInfoMapper extends SmartMapper {
 
   @Mapping(target = "ids", ignore = true)
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "accessCountTables", ignore = true)
   FileAccessInfoSearchRequest toSearchRequest(String pathLike,
                                               LastAccessedTimeIntervalDto lastAccessedTime);
 

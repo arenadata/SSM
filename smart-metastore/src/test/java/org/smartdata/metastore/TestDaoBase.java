@@ -33,7 +33,6 @@ import org.smartdata.metastore.db.DbSchemaManager;
 import org.smartdata.metastore.db.metadata.DbMetadataProvider;
 import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.sqlite.JDBC;
 import org.testcontainers.jdbc.ContainerDatabaseDriver;
 
 import java.io.InputStream;
@@ -41,7 +40,6 @@ import java.util.Properties;
 
 import static com.alibaba.druid.pool.DruidDataSourceFactory.PROP_DRIVERCLASSNAME;
 import static com.alibaba.druid.pool.DruidDataSourceFactory.PROP_URL;
-import static org.smartdata.metastore.TestDBUtil.getUniqueSqliteUrl;
 
 @RunWith(Parameterized.class)
 public abstract class TestDaoBase {
@@ -62,12 +60,9 @@ public abstract class TestDaoBase {
 
   @Parameters(name = "{0}")
   public static Object[] parameters() {
-    return new Object[][] {
-        {DBType.SQLITE, JDBC.class.getName(), getUniqueSqliteUrl()},
-        {DBType.MYSQL, ContainerDatabaseDriver.class.getName(),
-            "jdbc:tc:mysql:5.7.34:///ssm_mysql"},
+    return new Object[][]{
         {DBType.POSTGRES, ContainerDatabaseDriver.class.getName(),
-            "jdbc:tc:postgresql:9.6.8:///ssm_postgres"},
+            "jdbc:tc:postgresql:12.19:///ssm_postgres"},
     };
   }
 
