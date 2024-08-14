@@ -17,7 +17,7 @@
  */
 import { useEffect, useState } from 'react';
 import Calendar from '@uikit/Calendar/Calendar';
-import { endOfDay, isBefore, startOfDay } from '@utils/date/calendarUtils';
+import { endOfDay, getToday, isBefore, startOfDay } from '@utils/date/calendarUtils';
 import TabActions from './TabActions';
 import ts from './Tabs.module.scss';
 import FormField from '@uikit/FormField/FormField';
@@ -32,8 +32,8 @@ interface CalendarTabProps {
 
 const CalendarTab = ({ rangeFrom, rangeTo, onApply, onRevert }: CalendarTabProps) => {
   const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
-  const [localRangeFrom, setLocalRangeFrom] = useState<Date | undefined>(rangeFrom);
-  const [localRangeTo, setLocalRangeTo] = useState<Date | undefined>(rangeTo);
+  const [localRangeFrom, setLocalRangeFrom] = useState<Date | undefined>(() => rangeFrom ?? startOfDay(getToday()));
+  const [localRangeTo, setLocalRangeTo] = useState<Date | undefined>(() => rangeTo ?? endOfDay(getToday()));
 
   useEffect(() => {
     if (localRangeFrom && localRangeTo) {

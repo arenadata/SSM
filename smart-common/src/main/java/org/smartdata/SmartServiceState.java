@@ -17,16 +17,17 @@
  */
 package org.smartdata;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum SmartServiceState {
   SAFEMODE(0),
   ACTIVE(1),
   DISABLED(2);
 
-  private int value;
-
-  SmartServiceState(int value) {
-    this.value = value;
-  }
+  private final int value;
 
   public static SmartServiceState fromValue(int v) {
     for (SmartServiceState s : values()) {
@@ -35,10 +36,6 @@ public enum SmartServiceState {
       }
     }
     return null;
-  }
-
-  public int getValue() {
-    return value;
   }
 
   public String getName() {

@@ -17,6 +17,7 @@
  */
 package org.smartdata.integration.cluster;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.smartdata.conf.SmartConf;
 
 /**
@@ -38,4 +39,6 @@ public interface SmartCluster {
    * Cleaning-up work to quit the cluster.
    */
   void cleanUp() throws Exception;
+
+  FileSystem getFileSystem();
 }

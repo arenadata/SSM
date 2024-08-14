@@ -81,18 +81,6 @@ public class MetaStoreUtils {
       "whitelist"
   );
 
-  public static void formatDatabase(SmartConf conf) throws MetaStoreException {
-    try (MetaStore metaStore = getDBAdapter(conf)) {
-      metaStore.formatDataBase();
-    }
-  }
-
-  public static void checkTables(SmartConf conf) throws MetaStoreException {
-    try (MetaStore metaStore = getDBAdapter(conf)) {
-      metaStore.checkTables();
-    }
-  }
-
   public static MetaStore getDBAdapter(
       SmartConf conf) throws MetaStoreException {
     DaoProviderFactory daoProviderFactory = new DaoProviderFactory();

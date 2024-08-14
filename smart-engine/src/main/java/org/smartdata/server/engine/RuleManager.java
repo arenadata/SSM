@@ -231,6 +231,7 @@ public class RuleManager
       }
     } finally {
       infoRepo.delete();
+      mapRules.remove(ruleId);
     }
   }
 

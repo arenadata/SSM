@@ -20,6 +20,7 @@ package org.smartdata.server.engine.rule;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -343,7 +344,13 @@ public class RuleExecutor implements Runnable {
       int numCmdSubmitted = 0;
       List<String> files = new ArrayList<>();
 
-      RuleInfo info = ruleManager.getRuleInfo(rid);
+      RuleInfo info;
+      try {
+         info = ruleManager.getRuleInfo(rid);
+      } catch (NotFoundException notFoundException) {
+        exitSchedule();
+        return;
+      }
 
       boolean continueExecution = true;
       for (RuleExecutorPlugin plugin : plugins) {

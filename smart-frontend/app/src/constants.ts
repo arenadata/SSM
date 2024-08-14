@@ -25,3 +25,7 @@ export const defaultPerPagesList = [
 // in milliseconds
 export const defaultSpinnerDelay = 250;
 export const defaultDebounceDelay = 300;
+
+// in seconds
+export const defaultActionsFrequency = 5;
+export const defaultAuditFrequency = 5;

@@ -15,8 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.util;
+package org.smartdata.integration.api;
 
-public interface RetryTask {
-  boolean retry();
+import io.restassured.response.Response;
+import org.eclipse.jetty.http.HttpStatus;
+import org.smartdata.client.generated.api.ClusterApi;
+import org.smartdata.client.generated.invoker.ApiClient;
+import org.smartdata.client.generated.model.ClusterNodesDto;
+
+public class ClusterApiWrapper {
+
+  private final ClusterApi apiClient;
+
+  public ClusterApiWrapper() {
+    this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).cluster();
+  }
+
+  public ClusterNodesDto getClusterNodes() {
+    return apiClient.getClusterNodes()
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .executeAs(Response::andReturn);
+  }
 }

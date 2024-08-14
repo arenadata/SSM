@@ -30,7 +30,7 @@ const RulesPage: React.FC = () => {
   return (
     <div>
       <FlexGroup gap="20px">
-        <Title variant="h1">Rules page</Title>
+        <Title variant="h1">Rules</Title>
         <RuleCreateBtn />
       </FlexGroup>
       <RulesCards />

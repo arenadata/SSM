@@ -17,62 +17,93 @@
  */
 package org.smartdata.integration;
 
-import io.restassured.RestAssured;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.apache.hadoop.fs.Path;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.smartdata.SmartServiceState;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.integration.cluster.SmartCluster;
 import org.smartdata.integration.cluster.SmartMiniCluster;
+import org.smartdata.server.SmartServer;
 
-/**
- * Integration test base.
- * TODO: ADH-4721 - use new REST API.
- */
+import java.io.IOException;
+import java.time.Duration;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 public class IntegrationTestBase {
 
-  protected static SmartCluster cluster;
-  protected static SmartConf conf;
-  protected static IntegrationSmartServer smartServer;
-  private static int zeppelinPort;
+  protected SmartCluster cluster;
+  protected SmartConf conf;
+  protected SmartServer smartServer;
 
-  @BeforeClass
-  public static void setup() throws Exception {
+  @Before
+  public void setup() throws Exception {
     // Set up an HDFS cluster
     conf = new SmartConf();
-    String nn = conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
-    if (nn == null || nn.length() == 0) {
-      System.out.println("Setting up an mini cluster for testing");
-      cluster = new SmartMiniCluster();
-      cluster.setUp();
-      conf = cluster.getConf();
-    } else {
-      System.out.println("Using extern HDFS cluster:" + nn);
+    cluster = new SmartMiniCluster();
+    cluster.setUp();
+
+    conf = cluster.getConf();
+    conf.setLong(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY, 100);
+
+    smartServer = SmartServer.launchWith(conf);
+    waitTillSSMExitSafeMode();
+  }
+
+  public static <T> T retryUntil(
+      Supplier<T> entitySupplier,
+      Predicate<T> entityFinishPredicate,
+      Duration interval,
+      Duration timeout) {
+
+    long totalWaitTimeout = timeout.toMillis();
+    T entity;
+    do {
+      if (totalWaitTimeout <= 0) {
+        Assert.fail("Timeout waiting for the predicate to happen");
+      }
+
+      try {
+        Thread.sleep(interval.toMillis());
+      } catch (InterruptedException exception) {
+        // ignore
+      }
+
+      totalWaitTimeout -= interval.toMillis();
+
+      entity = entitySupplier.get();
+    } while (!entityFinishPredicate.test(entity));
+
+    return entity;
+  }
+
+  protected void createFile(String path) {
+    try {
+      cluster.getFileSystem().createNewFile(new Path(path));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-
-    // Start a Smart server
-    String httpAddr = conf.get(SmartConfKeys.SMART_SERVER_HTTP_ADDRESS_KEY,
-        SmartConfKeys.SMART_SERVER_HTTP_ADDRESS_DEFAULT);
-    zeppelinPort = Integer.parseInt(httpAddr.split(":")[1]);
-    smartServer = new IntegrationSmartServer();
-    smartServer.setUp(conf);
-
-    // Initialize RestAssured
-    initRestAssured();
   }
 
-  private static void initRestAssured() {
-    RestAssured.port = zeppelinPort;
-    //RestAssured.registerParser("text/plain", Parser.JSON);
-  }
-
-  @AfterClass
-  public static void cleanUp() throws Exception {
+  @After
+  public void cleanUp() throws Exception {
     if (smartServer != null) {
-      smartServer.cleanUp();
+      smartServer.shutdown();
     }
     if (cluster != null) {
       cluster.cleanUp();
     }
+  }
+
+  private void waitTillSSMExitSafeMode() {
+    retryUntil(
+        () -> smartServer.getSSMServiceState(),
+        state -> state != SmartServiceState.SAFEMODE,
+        Duration.ofMillis(500),
+        Duration.ofSeconds(5)
+    );
   }
 }

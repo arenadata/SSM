@@ -33,14 +33,14 @@ interface RangesTabProps {
 }
 
 const RangesTab = ({ range, onApply, onRevert, rangesPreset }: RangesTabProps) => {
-  const [selectedRangeId, setSelectedRangeId] = useState<DynamicDateRange | undefined>(range);
+  const [selectedRangeId, setSelectedRangeId] = useState<DynamicDateRange>(range ?? rangesPreset[0].id);
 
   const handleClick = (item: RangePreset) => {
     setSelectedRangeId(item.id);
   };
 
   const handleApply = () => {
-    selectedRangeId && onApply(selectedRangeId);
+    onApply(selectedRangeId);
   };
 
   return (
@@ -61,10 +61,10 @@ const RangesTab = ({ range, onApply, onRevert, rangesPreset }: RangesTabProps) =
       <div className={ts.dateRangePickerTab__right}>
         <div className={ts.dateRangePickerTab__rightInputs}>
           <FormField label="From">
-            <Input size="small" value={selectedRangeId ?? ''} readOnly />
+            <Input size="small" value={selectedRangeId} readOnly />
           </FormField>
           <FormField label="To">
-            <Input size="small" value={selectedRangeId ? 'now' : ''} readOnly disabled={!!selectedRangeId} />
+            <Input size="small" value="now" readOnly />
           </FormField>
         </div>
         <TabActions onApply={handleApply} onRevert={onRevert} />

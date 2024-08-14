@@ -33,6 +33,10 @@
     <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <properties>
+        <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -124,7 +128,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>3.0.2</version>
+            <version>${rest-assured.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -138,6 +142,10 @@
             <version>${gson.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
             <version>2.0.0-SNAPSHOT</version>
@@ -148,6 +156,16 @@
             <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>jdbc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
@@ -209,6 +227,58 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi.generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-api-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../smart-web-server/src/main/resources/api/ssm-api.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <openApiNullable>false</openApiNullable>
+                                <serializationLibrary>jackson</serializationLibrary>
+                            </configOptions>
+                            <library>rest-assured</library>
+                            <skipIfSpecIsUnchanged>false</skipIfSpecIsUnchanged>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <modelPackage>${openapi.codegen.package.base}.model</modelPackage>
+                            <apiPackage>${openapi.codegen.package.base}.api</apiPackage>
+                            <invokerPackage>${openapi.codegen.package.base}.invoker</invokerPackage>
+                            <modelNameSuffix>Dto</modelNameSuffix>
+                            <enablePostProcessFile>true</enablePostProcessFile>
+                            <skipOperationExample>true</skipOperationExample>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

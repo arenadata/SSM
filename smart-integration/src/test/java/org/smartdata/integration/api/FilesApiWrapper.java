@@ -15,33 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration;
+package org.smartdata.integration.api;
 
 import io.restassured.response.Response;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Before;
-import org.junit.Test;
-import org.smartdata.client.generated.api.SystemApi;
+import org.smartdata.client.generated.api.FilesApi;
 import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.UserInfoDto;
+import org.smartdata.client.generated.model.CachedFilesDto;
+import org.smartdata.client.generated.model.FileAccessCountsDto;
 
-import static org.junit.Assert.assertEquals;
+public class FilesApiWrapper {
 
-public class TestSystemRestApi extends IntegrationTestBase {
+  private final FilesApi apiClient;
 
-  private SystemApi apiClient;
-
-  @Before
-  public void createApi() {
-    apiClient = ApiClient.api(ApiClient.Config.apiConfig()).system();
+  public FilesApiWrapper() {
+    this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).files();
   }
 
-  @Test
-  public void testGetCurrentUser() {
-    UserInfoDto userInfoDto = apiClient.getCurrentUser()
+  public FileAccessCountsDto getAccessCounts() {
+    return apiClient.getAccessCounts()
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .executeAs(Response::andReturn);
+  }
 
-    assertEquals("anonymous", userInfoDto.getName());
+  public CachedFilesDto getCachedFiles() {
+    return apiClient.getCachedFiles()
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .executeAs(Response::andReturn);
   }
 }

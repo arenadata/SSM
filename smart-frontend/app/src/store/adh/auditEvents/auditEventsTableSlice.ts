@@ -18,6 +18,7 @@
 import type { TableState } from '@models/table';
 import { createTableSlice } from '@store/redux';
 import type { AdhAuditEventsFilter } from '@models/adh';
+import { defaultAuditFrequency } from '@constants';
 
 type AdhTablesTableState = TableState<AdhAuditEventsFilter>;
 
@@ -34,10 +35,10 @@ const createInitialState = (): AdhTablesTableState => ({
     perPage: 10,
     pageNumber: 0,
   },
-  requestFrequency: 0,
+  requestFrequency: defaultAuditFrequency,
   sortParams: {
     sortBy: 'id',
-    sortDirection: 'asc',
+    sortDirection: 'desc',
   },
 });
 
@@ -55,6 +56,7 @@ const {
   setSortParams: setAuditEventsSortParams,
   setFilter: setAuditEventsFilter,
   resetFilter: resetAuditEventsFilter,
+  setRequestFrequency,
 } = auditEventsTableSlice.actions;
 
 export {
@@ -64,5 +66,6 @@ export {
   setAuditEventsSortParams,
   setAuditEventsFilter,
   resetAuditEventsFilter,
+  setRequestFrequency,
 };
 export default auditEventsTableSlice.reducer;

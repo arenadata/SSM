@@ -17,37 +17,32 @@
  */
 package org.smartdata.integration;
 
-import io.restassured.RestAssured;
-import io.restassured.path.json.JsonPath;
-import io.restassured.response.Response;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.integration.rest.RestApiBase;
+import org.smartdata.client.generated.model.ClusterNodeDto;
+import org.smartdata.client.generated.model.ClusterNodesDto;
+import org.smartdata.integration.api.ClusterApiWrapper;
 
-import static org.smartdata.integration.rest.ClusterRestApi.getFileInfo;
-import static org.smartdata.integration.rest.CmdletRestApi.submitCmdlet;
-import static org.smartdata.integration.rest.CmdletRestApi.waitCmdletComplete;
+import java.util.List;
 
-/**
- * Test for ClusterRestApi.
- */
+import static org.junit.Assert.assertEquals;
+
 public class TestClusterRestApi extends IntegrationTestBase {
-  @Test
-  public void testPrimary() {
-    Response response = RestAssured.get(RestApiBase.PRIMCLUSTERROOT);
-    String json = response.asString();
-    response.then().body("message", Matchers.equalTo("Namenode URL"));
-    response.then().body("body", Matchers.containsString("localhost"));
+
+  private ClusterApiWrapper apiClient;
+
+  @Before
+  public void createApi() {
+    apiClient = new ClusterApiWrapper();
   }
 
   @Test
-  public void testGetFileInfo() throws Exception {
-    long cid = submitCmdlet("write -file /hello -length 1011");
-    waitCmdletComplete(cid);
-    Thread.sleep(2000);
+  public void testGetClusterNodes() {
+    ClusterNodesDto clusterNodes = apiClient.getClusterNodes();
 
-    JsonPath jsonPath = getFileInfo("/hello");
-    Assert.assertEquals(jsonPath.getLong("length"), 1011);
+    List<ClusterNodeDto> items = clusterNodes.getItems();
+    assertEquals(1L, clusterNodes.getTotal().longValue());
+    assertEquals(1, items.size());
+    assertEquals("127.0.0.1", items.get(0).getHost());
   }
 }

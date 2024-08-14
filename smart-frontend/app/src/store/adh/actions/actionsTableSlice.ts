@@ -21,6 +21,7 @@ import type { AdhActionsFilter, AdhClusterNode } from '@models/adh';
 import { AdhClusterInfoApi, type RequestError } from '@api';
 import { showError } from '@store/notificationsSlice';
 import { getErrorMessage } from '@utils/responseUtils';
+import { defaultActionsFrequency } from '@constants';
 
 export const loadHosts = createAsyncThunk('adh/actionsTable/loadHosts', async (_, thunkAPI) => {
   try {
@@ -57,10 +58,10 @@ const createInitialState = (): AdhTablesTableState => ({
     perPage: 10,
     pageNumber: 0,
   },
-  requestFrequency: 0,
+  requestFrequency: defaultActionsFrequency,
   sortParams: {
     sortBy: 'id',
-    sortDirection: 'asc',
+    sortDirection: 'desc',
   },
   relatedData: {
     hosts: [],
@@ -91,6 +92,7 @@ const {
   setSortParams: setActionsSortParams,
   setFilter: setActionsFilter,
   resetFilter: resetActionsFilter,
+  setRequestFrequency,
 } = actionsTableSlice.actions;
 
 export {
@@ -100,5 +102,6 @@ export {
   setActionsSortParams,
   setActionsFilter,
   resetActionsFilter,
+  setRequestFrequency,
 };
 export default actionsTableSlice.reducer;

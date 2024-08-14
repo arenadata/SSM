@@ -614,21 +614,19 @@ public class CmdletManager extends AbstractService
     onCmdletStatusUpdate(
         new CmdletStatus(info.getId(), System.currentTimeMillis(), CmdletState.DISABLED));
 
-    boolean cmdletDeleted = false;
-
     synchronized (pendingCmdlets) {
-      cmdletDeleted |= pendingCmdlets.remove(cmdletId);
+      pendingCmdlets.remove(cmdletId);
     }
 
-    cmdletDeleted |= schedulingCmdlets.remove(cmdletId);
+    schedulingCmdlets.remove(cmdletId);
 
-    cmdletDeleted |= scheduledCmdlets.remove(cmdletId);
+    scheduledCmdlets.remove(cmdletId);
 
     // Wait status update from status reporter, so need to update to MetaStore
     if (runningCmdlets.contains(cmdletId)) {
       dispatcher.stopCmdlet(cmdletId);
     }
-    return cmdletDeleted;
+    return true;
   }
 
   /**

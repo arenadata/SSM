@@ -20,6 +20,7 @@ package org.smartdata.server.engine.rule;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
+import org.smartdata.metastore.dao.RuleDao;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RuleExecutorPlugin;
@@ -40,6 +41,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RuleInfoRepo {
   private final RuleInfo ruleInfo;
   private final MetaStore metaStore;
+  private final RuleDao ruleDao;
   private final SmartConf conf;
   private RuleExecutor ruleExecutor;
 
@@ -48,6 +50,7 @@ public class RuleInfoRepo {
   public RuleInfoRepo(RuleInfo ruleInfo, MetaStore metaStore, SmartConf conf) {
     this.ruleInfo = ruleInfo;
     this.metaStore = metaStore;
+    this.ruleDao = metaStore.ruleDao();
     this.conf = conf;
   }
 
@@ -77,6 +80,11 @@ public class RuleInfoRepo {
     lockWrite();
     try {
       changeRuleState(RuleState.DELETED);
+      try {
+        ruleDao.delete(ruleInfo.getId());
+      } catch (Exception exception) {
+        throw new IOException(exception);
+      }
     } finally {
       unlockWrite();
     }

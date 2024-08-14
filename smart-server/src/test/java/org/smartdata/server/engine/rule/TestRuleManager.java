@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.exception.NotFoundException;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
@@ -42,6 +43,8 @@ import org.smartdata.server.engine.audit.AuditService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
+import static org.junit.Assert.assertThrows;
 
 /**
  * Testing RuleManager service.
@@ -133,29 +136,18 @@ public class TestRuleManager extends TestDaoBase {
   }
 
   @Test
-  public void testStopRule() throws Exception {
+  public void testDeleteRule() throws Exception {
     String rule = "file: every 1s from now to now + 100s \n | "
         + "length > 300 | cache";
 
     long id = ruleManager.submitRule(rule, RuleState.ACTIVE);
     RuleInfo ruleInfo = ruleManager.getRuleInfo(id);
     Assert.assertEquals(ruleInfo.getRuleText(), rule);
-    RuleInfo info = ruleInfo;
-    for (int i = 0; i < 2; i++) {
-      Thread.sleep(1000);
-      info = ruleManager.getRuleInfo(id);
-      System.out.println(info);
-    }
 
     ruleManager.deleteRule(ruleInfo.getId(), true);
-    Thread.sleep(3000);
 
-    RuleInfo endInfo = ruleManager.getRuleInfo(info.getId());
-    System.out.println(endInfo);
-
-    Assert.assertSame(endInfo.getState(), RuleState.DELETED);
-    Assert.assertTrue(endInfo.getNumChecked()
-        - info.getNumChecked() <= 1);
+    assertThrows(NotFoundException.class,
+        () -> ruleManager.getRuleInfo(ruleInfo.getId()));
   }
 
   @Test
@@ -212,9 +204,10 @@ public class TestRuleManager extends TestDaoBase {
     }
 
     for (int i = 0; i < nRules; i++) {
-      ruleManager.deleteRule(ids[i], true);
-      RuleInfo info = ruleManager.getRuleInfo(ids[i]);
-      Assert.assertSame(info.getState(), RuleState.DELETED);
+      long ruleId = ids[i];
+      ruleManager.deleteRule(ruleId, true);
+      assertThrows(NotFoundException.class,
+          () -> ruleManager.getRuleInfo(ruleId));
     }
 
     long[] ids2 = new long[nRules];

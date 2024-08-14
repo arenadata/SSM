@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration;
+package org.smartdata.server.engine.rule;
 
 import com.google.gson.Gson;
 import org.apache.hadoop.fs.FSDataOutputStream;

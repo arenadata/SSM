@@ -28,7 +28,7 @@ const ClusterInfoPage: React.FC = () => {
 
   return (
     <div>
-      <Title variant="h1">Cluster Info</Title>
+      <Title variant="h1">Cluster info</Title>
       <ClusterInfoCards />
       <ClusterInfoToolbar />
       <ClusterInfoTable />

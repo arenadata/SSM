@@ -18,13 +18,14 @@
 import type { TableColumnSchema } from '@uikit/Table/Table.types';
 import { SchemaColumnType } from '@uikit/Table/Table.types';
 import { TableDateRangePickerFilter, TableMultiSelectFilter, TableSearchFilter } from '@uikit/Table/TableFilter';
-import { AdhAuditObjectType, AdhAuditOperation } from '@models/adh';
+import { AdhAuditEventResult, AdhAuditObjectType, AdhAuditOperation } from '@models/adh';
 import type { AdhAuditEvent, AdhAuditEventsFilter } from '@models/adh';
 import { getOptionsFromEnum } from '@uikit/Select/Select.utils';
 import AuditEventResult from './AuditEventResultCell/AuditEventResult';
 
 const auditEventObjectTypeOptions = getOptionsFromEnum(AdhAuditObjectType);
 const auditEventOperationsOptions = getOptionsFromEnum(AdhAuditOperation);
+const adhAuditEventResultOptions = getOptionsFromEnum(AdhAuditEventResult);
 
 export const auditEventsColumns: TableColumnSchema[] = [
   {
@@ -95,6 +96,15 @@ export const auditEventsColumns: TableColumnSchema[] = [
   {
     name: 'result',
     label: 'Result',
+    filterRenderer: () => {
+      return (
+        <TableMultiSelectFilter<AdhAuditEventsFilter, AdhAuditEventResult>
+          filterName="results"
+          options={adhAuditEventResultOptions}
+        />
+      );
+    },
+    filterName: 'results',
     schema: {
       cellRenderer: (auditEvent: AdhAuditEvent) => <AuditEventResult auditEvent={auditEvent} />,
     },

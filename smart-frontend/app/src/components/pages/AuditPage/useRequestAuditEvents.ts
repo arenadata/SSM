@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { useDebounce, useDispatch, useRequestTimer, useStore } from '@hooks';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { cleanupAuditEvents, getAuditEvents, refreshAuditEvents } from '@store/adh/auditEvents/auditEventsSlice';
 import { cleanupAuditEventsTable } from '@store/adh/auditEvents/auditEventsTableSlice';
 import { defaultDebounceDelay } from '@constants';
@@ -37,21 +37,13 @@ export const useRequestAuditEvents = () => {
     [dispatch],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debounceGetData = useCallback(
-    useDebounce(() => {
-      dispatch(getAuditEvents());
-    }, defaultDebounceDelay),
-    [],
-  );
+  const debounceGetData = useDebounce(() => {
+    dispatch(getAuditEvents());
+  }, defaultDebounceDelay);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debounceRefreshData = useCallback(
-    useDebounce(() => {
-      dispatch(refreshAuditEvents());
-    }, defaultDebounceDelay),
-    [],
-  );
+  const debounceRefreshData = useDebounce(() => {
+    dispatch(refreshAuditEvents());
+  }, defaultDebounceDelay);
 
   useRequestTimer(debounceGetData, debounceRefreshData, requestFrequency, true, [
     filter,
