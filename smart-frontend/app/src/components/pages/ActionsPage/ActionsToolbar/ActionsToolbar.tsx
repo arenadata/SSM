@@ -20,23 +20,34 @@ import ActionsResetFilter from '../ActionsResetFilter/ActionsResetFilter';
 import Pagination from '@uikit/Pagination/Pagination';
 import { useDispatch, useStore } from '@hooks';
 import type { PaginationParams } from '@models/table';
-import { setActionsPaginationParams } from '@store/adh/actions/actionsTableSlice';
+import { setActionsPaginationParams, setRequestFrequency } from '@store/adh/actions/actionsTableSlice';
 import s from './ActionsToolbar.module.scss';
 import { FlexGroup } from '@uikit';
+import FrequencySelect from '@uikit/Table/FrequencySelect/FrequencySelect';
 
 const ActionsToolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const totalCount = useStore(({ adh }) => adh.actions.totalCount);
+  const actions = useStore(({ adh }) => adh.actions.actions);
   const paginationParams = useStore(({ adh }) => adh.actionsTable.paginationParams);
+  const requestFrequency = useStore(({ adh }) => adh.actionsTable.requestFrequency);
 
   const handlePaginationChange = (params: PaginationParams) => {
     dispatch(setActionsPaginationParams(params));
   };
 
+  const handleFrequencyChange = (frequency: number) => {
+    dispatch(setRequestFrequency(frequency));
+  };
+
   return (
     <FlexGroup gap="20px" className={s.actionsToolbar}>
       <ActionsResetFilter />
-      <Pagination totalItems={totalCount} pageData={paginationParams} onChangeData={handlePaginationChange} />
+      <Pagination
+        isNextBtn={actions.length === paginationParams.perPage}
+        pageData={paginationParams}
+        onChangeData={handlePaginationChange}
+        frequencyComponent={<FrequencySelect value={requestFrequency} onChange={handleFrequencyChange} />}
+      />
     </FlexGroup>
   );
 };

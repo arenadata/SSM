@@ -20,23 +20,34 @@ import AuditEventsResetFilter from '../AuditEventsResetFilter/AuditEventsResetFi
 import Pagination from '@uikit/Pagination/Pagination';
 import { useDispatch, useStore } from '@hooks';
 import type { PaginationParams } from '@models/table';
-import { setAuditEventsPaginationParams } from '@store/adh/auditEvents/auditEventsTableSlice';
+import { setAuditEventsPaginationParams, setRequestFrequency } from '@store/adh/auditEvents/auditEventsTableSlice';
 import s from './AuditEventsToolbar.module.scss';
 import { FlexGroup } from '@uikit';
+import FrequencySelect from '@uikit/Table/FrequencySelect/FrequencySelect';
 
 const AuditEventsToolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const totalCount = useStore(({ adh }) => adh.auditEvents.totalCount);
+  const auditEvents = useStore(({ adh }) => adh.auditEvents.auditEvents);
   const paginationParams = useStore(({ adh }) => adh.auditEventsTable.paginationParams);
+  const requestFrequency = useStore(({ adh }) => adh.auditEventsTable.requestFrequency);
 
   const handlePaginationChange = (params: PaginationParams) => {
     dispatch(setAuditEventsPaginationParams(params));
   };
 
+  const handleFrequencyChange = (frequency: number) => {
+    dispatch(setRequestFrequency(frequency));
+  };
+
   return (
     <FlexGroup gap="20px" className={s.auditEventsToolbar}>
       <AuditEventsResetFilter />
-      <Pagination totalItems={totalCount} pageData={paginationParams} onChangeData={handlePaginationChange} />
+      <Pagination
+        isNextBtn={auditEvents.length === paginationParams.perPage}
+        pageData={paginationParams}
+        onChangeData={handlePaginationChange}
+        frequencyComponent={<FrequencySelect value={requestFrequency} onChange={handleFrequencyChange} />}
+      />
     </FlexGroup>
   );
 };

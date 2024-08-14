@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -39,10 +40,7 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
   public void test() throws Exception {
     waitTillSSMExitSafeMode();
 
-    SmartAdmin admin = null;
-
-    try {
-      admin = new SmartAdmin(smartContext.getConf());
+    try (SmartAdmin admin = new SmartAdmin(smartContext.getConf())) {
 
       //test listRulesInfo and submitRule
       List<RuleInfo> ruleInfos = admin.listRulesInfo();
@@ -77,14 +75,10 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
       admin.disableRule(ruleId, true);
       assertEquals(RuleState.DISABLED, admin.getRuleInfo(ruleId).getState());
 
-      //test deleteRule
-      admin.deleteRule(ruleId, true);
-      assertEquals(RuleState.DELETED, admin.getRuleInfo(ruleId).getState());
-
       //test cmdletInfo
       long id = admin.submitCmdlet("cache -file /foo*");
       CmdletInfo cmdletInfo = admin.getCmdletInfo(id);
-      assertTrue("cache -file /foo*".equals(cmdletInfo.getParameters()));
+      assertEquals("cache -file /foo*", cmdletInfo.getParameters());
 
       //test actioninfo
       List<Long> aidlist = cmdletInfo.getActionIds();
@@ -96,7 +90,7 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
       admin.listActionInfoOfLastActions(2);
 
       List<ActionDescriptor> actions = admin.listActionsSupported();
-      assertTrue(actions.size() > 0);
+      assertFalse(actions.isEmpty());
 
       //test client close
       admin.close();
@@ -104,12 +98,6 @@ public class TestSmartAdmin extends MiniSmartClusterHarness {
         admin.getRuleInfo(ruleId);
         Assert.fail("Should fail because admin has closed.");
       } catch (IOException e) {
-      }
-
-      admin = null;
-    } finally {
-      if (admin != null) {
-        admin.close();
       }
     }
   }

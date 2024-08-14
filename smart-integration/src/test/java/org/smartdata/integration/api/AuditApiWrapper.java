@@ -15,13 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.rest;
+package org.smartdata.integration.api;
 
-public class CovUtil {
-  public static Long getLong(Object o) {
-    if (o instanceof Integer) {
-      return new Long((Integer) o);
-    }
-    return (Long) o;
+import io.restassured.response.Response;
+import org.eclipse.jetty.http.HttpStatus;
+import org.smartdata.client.generated.api.AuditApi;
+import org.smartdata.client.generated.invoker.ApiClient;
+import org.smartdata.client.generated.model.AuditEventsDto;
+
+public class AuditApiWrapper {
+
+  private final AuditApi apiClient;
+
+  public AuditApiWrapper() {
+    this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).audit();
+  }
+
+  public AuditEventsDto getAuditEvents() {
+    return apiClient.getAuditEvents()
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .executeAs(Response::andReturn);
   }
 }

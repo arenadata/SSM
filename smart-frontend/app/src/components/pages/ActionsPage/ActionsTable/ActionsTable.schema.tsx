@@ -18,8 +18,8 @@
 import type { TableColumnSchema } from '@uikit/Table/Table.types';
 import { SchemaColumnType } from '@uikit/Table/Table.types';
 import { TableDateRangePickerFilter, TableMultiSelectFilter, TableSearchFilter } from '@uikit/Table/TableFilter';
-import type { AdhAction, AdhActionsFilter } from '@models/adh';
 import { AdhActionSource, AdhActionState } from '@models/adh';
+import type { AdhActionsFilter, AdhAction } from '@models/adh';
 import { getOptionsFromEnum } from '@uikit/Select/Select.utils';
 import ActionActionsCell from './ActionActionsCell/ActionActionsCell';
 import ActionStatusCell from './ActionStatusCell/ActionStatusCell';
@@ -27,7 +27,16 @@ import ActionSourceCell from './ActionSourceCell/ActionSourceCell';
 import ActionsHostsFilter from '@pages/ActionsPage/ActionsTable/ActionsHostsFilter/ActionsHostsFilter';
 
 const actionStatesOptions = getOptionsFromEnum(AdhActionState);
-const actionSourcesOptions = getOptionsFromEnum(AdhActionSource);
+const actionSourcesOptions = [
+  {
+    label: 'Rule action',
+    value: AdhActionSource.Rule,
+  },
+  {
+    label: 'User action',
+    value: AdhActionSource.User,
+  },
+];
 
 export const actionsColumns: TableColumnSchema[] = [
   {
@@ -100,12 +109,7 @@ export const actionsColumns: TableColumnSchema[] = [
     isSortable: true,
     width: '150px',
     filterRenderer: () => {
-      return (
-        <TableMultiSelectFilter<AdhActionsFilter, AdhActionSource>
-          filterName="sources"
-          options={actionSourcesOptions}
-        />
-      );
+      return <TableMultiSelectFilter<AdhActionsFilter, string> filterName="sources" options={actionSourcesOptions} />;
     },
     filterName: 'sources',
     schema: {

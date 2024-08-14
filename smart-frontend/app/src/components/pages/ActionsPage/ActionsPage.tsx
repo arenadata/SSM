@@ -29,7 +29,7 @@ const ActionsPage: React.FC = () => {
   return (
     <div>
       <FlexGroup gap="20px">
-        <Title variant="h1">Actions page</Title>
+        <Title variant="h1">Actions</Title>
         <ActionCreateBtn />
       </FlexGroup>
       <ActionsToolbar />

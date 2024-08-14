@@ -17,49 +17,135 @@
  */
 package org.smartdata.integration;
 
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import org.hamcrest.Matchers;
+import org.eclipse.jetty.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.integration.rest.RestApiBase;
+import org.smartdata.client.generated.model.RuleDto;
+import org.smartdata.client.generated.model.RuleStateDto;
+import org.smartdata.client.generated.model.RulesDto;
+import org.smartdata.client.generated.model.RulesInfoDto;
+import org.smartdata.integration.api.RulesApiWrapper;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import java.time.Duration;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestRuleRestApi extends IntegrationTestBase {
 
+  private RulesApiWrapper apiClient;
+
+  @Before
+  public void createApi() {
+    apiClient = new RulesApiWrapper();
+  }
+
   @Test
-  public void test() throws Exception {
-    String rule = "file : every 1s | path matches \"/home/test\" and age > 2m | archive";
-    //Response res = RestAssured.post(RULEROOT + "/add/" + rule);
-    Response res = RestAssured.with().body("ruleText=" + rule).post(RestApiBase.RULEROOT + "/add/");
-    res.then().body("status", equalTo("CREATED"));
-    long ruleId = res.jsonPath().getLong("body");
+  public void testSubmitGetRule() {
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    Thread.sleep(1000);
-    RestAssured.get(RestApiBase.RULEROOT + "/list").then().body("status", equalTo("OK"))
-        .body("body.size", is(1)).root("body").body("ruleText", contains(rule))
-        .body("numChecked", contains(0));
+    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto fetchedRule = apiClient.getRule(rule.getId());
 
-    RestAssured.post(RestApiBase.RULEROOT + "/" + ruleId + "/start").then()
-        .body("status", equalTo("OK"));
-    Thread.sleep(2000);
-    RestAssured.get(RestApiBase.RULEROOT + "/" + ruleId + "/info").then()
-        .body("body.numChecked", Matchers.greaterThan(0));
+    assertEquals(rule.getId(), fetchedRule.getId());
+    assertEquals(RuleStateDto.DISABLED, fetchedRule.getState());
+    assertEquals(ruleText, fetchedRule.getTextRepresentation());
+    assertEquals(0, fetchedRule.getActivationCount().longValue());
+    assertEquals(0, fetchedRule.getCmdletsGenerated().longValue());
+    assertNull(fetchedRule.getLastActivationTime());
+  }
 
-    RestAssured.post(RestApiBase.RULEROOT + "/" + ruleId + "/stop").then()
-        .body("status", equalTo("OK"));
+  @Test
+  public void testSubmitGetRules() {
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    RestAssured.get(RestApiBase.RULEROOT + "/" + ruleId + "/info").then()
-        .body("body.state", equalTo("DISABLED"))
-        .body("body.numCmdsGen", is(0));
+    RuleDto rule = apiClient.submitRule(ruleText);
+    RulesDto fetchedRules = apiClient.getRules();
 
-    RestAssured.get(RestApiBase.RULEROOT + "/" + ruleId + "/cmdlets").then()
-        .body("status", equalTo("OK"))
-        .body("body.size", is(0));
+    assertEquals(1, fetchedRules.getTotal().longValue());
+    assertEquals(1, fetchedRules.getItems().size());
 
-    RestAssured.post(RestApiBase.RULEROOT + "/" + ruleId + "/delete").then()
-        .body("status", equalTo("OK"));
+    RuleDto fetchedRule = fetchedRules.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
+    assertEquals(RuleStateDto.DISABLED, rule.getState());
+    assertEquals(ruleText, rule.getTextRepresentation());
+  }
+
+  @Test
+  public void testStartStopRule() {
+    createFile("/tmp/text1.txt");
+    createFile("/tmp/text2.txt");
+
+    String ruleText = "file: every 100ms | path matches \"/tmp/*.txt\" | read";
+
+    RuleDto rule = apiClient.submitRule(ruleText);
+    apiClient.startRule(rule.getId());
+    apiClient.waitTillRuleTriggered(rule.getId(),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(2));
+
+    rule = apiClient.getRule(rule.getId());
+    assertEquals(RuleStateDto.ACTIVE, rule.getState());
+    assertTrue(rule.getActivationCount() >= 1);
+
+    apiClient.stopRule(rule.getId());
+    rule = apiClient.getRule(rule.getId());
+    assertEquals(RuleStateDto.DISABLED, rule.getState());
+  }
+
+  @Test
+  public void testDeleteRule() {
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
+
+    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto fetchedRule = apiClient.getRule(rule.getId());
+
+    apiClient.deleteRule(fetchedRule.getId());
+
+    apiClient.rawClient()
+        .getRule()
+        .idPath(fetchedRule.getId())
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetRulesInfo() {
+    apiClient.submitRule(
+        "file: path matches \"/tmp/test1\" | read");
+    RuleDto rule =
+        apiClient.submitRule(
+            "file: every 100ms | path matches \"/tmp/test2\" | read");
+
+    RulesInfoDto rulesInfo = apiClient.getRulesInfo();
+
+    assertEquals(2, rulesInfo.getTotalRules().longValue());
+    assertEquals(0, rulesInfo.getActiveRules().longValue());
+
+    apiClient.startRule(rule.getId());
+    apiClient.waitTillRuleTriggered(
+        rule.getId(), Duration.ofMillis(100), Duration.ofSeconds(1));
+
+    rulesInfo = apiClient.getRulesInfo();
+
+    assertEquals(2, rulesInfo.getTotalRules().longValue());
+    assertEquals(1, rulesInfo.getActiveRules().longValue());
+
+    apiClient.stopRule(rule.getId());
+    rulesInfo = apiClient.getRulesInfo();
+
+    assertEquals(2, rulesInfo.getTotalRules().longValue());
+    assertEquals(0, rulesInfo.getActiveRules().longValue());
+  }
+
+  @Test
+  public void testReturnNotFoundOnUnknownId() {
+    apiClient.rawClient()
+        .getRule()
+        .idPath(777)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
   }
 }

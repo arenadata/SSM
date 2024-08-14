@@ -61,8 +61,7 @@ public class SmartConfKeys {
     public static final String SMART_SERVER_RPC_ADDRESS_DEFAULT = "0.0.0.0:7042";
     public static final String SMART_SERVER_RPC_HANDLER_COUNT_KEY = "smart.server.rpc.handler.count";
     public static final int SMART_SERVER_RPC_HANDLER_COUNT_DEFAULT = 80;
-    public static final String SMART_SERVER_HTTP_ADDRESS_KEY = "smart.server.http.address";
-    public static final String SMART_SERVER_HTTP_ADDRESS_DEFAULT = "0.0.0.0:7045";
+
     public static final String SMART_REST_SERVER_PORT_KEY = "smart.rest.server.port";
     public static final int SMART_REST_SERVER_PORT_KEY_DEFAULT = 8081;
     public static final String SMART_SECURITY_ENABLE = "smart.security.enable";

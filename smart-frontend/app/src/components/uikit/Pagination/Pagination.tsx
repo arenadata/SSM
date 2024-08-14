@@ -106,12 +106,6 @@ const Pagination = ({
 
   return (
     <div className={paginationWrapperClasses} data-test={dataTest}>
-      {frequencyComponent && (
-        <>
-          <span className={s.pagination__selectLabel}>Frequency</span>
-          {frequencyComponent}
-        </>
-      )}
       <div className={s.pagination__buttonWrapper} data-test="pagination-button-container">
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
         {totalPages === 0 && (
@@ -149,6 +143,12 @@ const Pagination = ({
             options={perPageItems}
             dataTest="pagination-per-page-popover"
           />
+        </>
+      )}
+      {frequencyComponent && (
+        <>
+          <span className={s.pagination__selectLabel}>Frequency</span>
+          {frequencyComponent}
         </>
       )}
     </div>
