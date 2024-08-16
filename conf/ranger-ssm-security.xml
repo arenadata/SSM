@@ -20,7 +20,7 @@
 
     <property>
         <name>ranger.plugin.ssm.service.name</name>
-        <value>dev_tag</value>
+        <value>ssm</value>
         <description>
             Name of the Ranger service containing policies for this ssm instance
         </description>
