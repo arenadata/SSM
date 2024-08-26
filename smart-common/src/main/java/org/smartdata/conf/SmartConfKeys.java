@@ -48,7 +48,7 @@ public class SmartConfKeys {
 
     // SSM
     public static final String SMART_SERVER_VERSION_KEY = "smart.storage.manager.version";
-    public static final String SMART_SERVER_VERSION_CURRENT = "2.0.0-SNAPSHOT";
+    public static final String SMART_SERVER_VERSION_CURRENT = "2.0.0_alpha";
     public static final String SMART_SERVER_RPC_ADDRESS_KEY = "smart.server.rpc.address";
     public static final String SMART_SERVER_RPC_ADDRESS_DEFAULT = "0.0.0.0:7042";
     public static final String SMART_SERVER_RPC_HANDLER_COUNT_KEY = "smart.server.rpc.handler.count";
