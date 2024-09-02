@@ -294,7 +294,7 @@ public class InotifyEventFetcher {
             break;
           }
         }
-      } catch (InterruptedException | IOException | MetaStoreException e) {
+      } catch (InterruptedException | IOException  e) {
         LOG.error("Inotify dequeue error", e);
       }
     }

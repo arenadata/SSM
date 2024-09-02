@@ -134,12 +134,8 @@ public class SmallFileScheduler extends ActionSchedulerService {
     executorService.scheduleAtFixedRate(
         new ScheduleTask(), 100, 50,
         TimeUnit.MILLISECONDS);
-    try {
-      List<String> containerFileList = metaStore.getAllContainerFiles();
-      this.containerFileCache.addAll(containerFileList);
-    } catch (MetaStoreException e) {
-      throw new IOException(e);
-    }
+    List<String> containerFileList = metaStore.getAllContainerFiles();
+    this.containerFileCache.addAll(containerFileList);
   }
 
   @Override
@@ -281,7 +277,8 @@ public class SmallFileScheduler extends ActionSchedulerService {
    * Get container file info according to action arguments and meta store.
    */
   private SmartFilePermission getContainerFilePermission(ActionInfo actionInfo,
-      String containerFilePath) throws MetaStoreException, IllegalArgumentException {
+                                                         String containerFilePath)
+      throws MetaStoreException, IllegalArgumentException {
     // Get container file permission from the argument of this action
     String containerFilePermissionArg = actionInfo.getArgs().get(
         SmallFileCompactAction.CONTAINER_FILE_PERMISSION);
@@ -397,7 +394,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
    * and reset action arguments.
    */
   private ScheduleResult getUncompactScheduleResult(ActionInfo actionInfo,
-      LaunchAction action) {
+                                                    LaunchAction action) {
     // Check if container file path is valid
     String containerFilePath = getContainerFile(actionInfo);
     if (containerFilePath == null || containerFilePath.isEmpty()) {
@@ -453,7 +450,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
 
   @Override
   public ScheduleResult onSchedule(CmdletInfo cmdletInfo, ActionInfo actionInfo,
-      LaunchCmdlet cmdlet, LaunchAction action) {
+                                   LaunchCmdlet cmdlet, LaunchAction action) {
     if (COMPACT_ACTION_NAME.equals(actionInfo.getActionName())) {
       return getCompactScheduleResult(actionInfo);
     } else if (UNCOMPACT_ACTION_NAME.equals(actionInfo.getActionName())) {
@@ -507,7 +504,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
   }
 
   public boolean isExpectedFileState(FileState.FileType fileType,
-      String actionName) {
+                                     String actionName) {
     if (actionName.equals(COMPACT_ACTION_NAME)) {
       return fileType == FileState.FileType.COMPACT;
     }
@@ -651,7 +648,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
       }
     } catch (Exception e) {
       LOG.warn("Failed to take over file access count for all tables, " +
-          "which may make the measurement for data temperature inaccurate!",
+              "which may make the measurement for data temperature inaccurate!",
           e.getMessage());
     }
   }

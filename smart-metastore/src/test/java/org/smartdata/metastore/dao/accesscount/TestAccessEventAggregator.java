@@ -65,7 +65,7 @@ public class TestAccessEventAggregator extends TestDaoBase {
   }
 
   @Test
-  public void testAggregateEvents() {
+  public void testAggregateEvents() throws Exception {
     long currentTimeMs = System.currentTimeMillis();
     aggregator.aggregate(Collections.singletonList(new FileAccessEvent("", currentTimeMs)));
     aggregator.aggregate(Collections.singletonList

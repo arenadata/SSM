@@ -34,7 +34,6 @@ import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcherHelper;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,7 +83,7 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testSubmitCmdletWithError() {
+  public void testSubmitCmdletWithError() throws Exception {
     String cmdlet = "wrong syntax cmdlet";
     try {
       cmdletManager.submitCmdlet(cmdlet);
@@ -115,7 +114,7 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testStopCmdletWithError() {
+  public void testStopCmdletWithError() throws Exception {
     long nonExistingCmdletId = 777L;
     try {
       cmdletManager.disableCmdlet(nonExistingCmdletId);
@@ -146,7 +145,7 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testDeleteCmdletWithError() {
+  public void testDeleteCmdletWithError() throws Exception {
     long nonExistingCmdletId = 777L;
     try {
       cmdletManager.deleteCmdlet(nonExistingCmdletId);
@@ -174,7 +173,7 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
   }
 
   private void assertEventUsername(
-      SmartPrincipal expectedPrincipal, String file) throws IOException {
+      SmartPrincipal expectedPrincipal, String file) throws Exception {
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet("read -file" + file);
 
     List<UserActivityEvent> cmdletEvents = findCmdletEvents(cmdletInfo.getId());
@@ -184,7 +183,7 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
         cmdletEvents.get(0).getUsername());
   }
 
-  private List<UserActivityEvent> findCmdletEvents(long cmdletId) {
+  private List<UserActivityEvent> findCmdletEvents(long cmdletId) throws Exception {
     AuditSearchRequest searchRequest = AuditSearchRequest.builder()
         .objectIds(Collections.singletonList(cmdletId))
         .objectTypes(Collections.singletonList(CMDLET))

@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.metastore.dao.CmdletDao;
-import org.smartdata.metastore.dao.Searchable;
-import org.smartdata.metastore.model.SearchResult;
-import org.smartdata.metastore.queries.PageRequest;
+import org.smartdata.metastore.dao.SearchableService;
 import org.smartdata.metastore.queries.sort.CmdletSortField;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletDescriptor;
@@ -50,19 +47,20 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
+
 public class CmdletInfoHandler
-    implements Searchable<CmdletSearchRequest, CmdletInfo, CmdletSortField> {
+    extends SearchableService<CmdletSearchRequest, CmdletInfo, CmdletSortField> {
   private static final Logger LOG = LoggerFactory.getLogger(CmdletInfoHandler.class);
 
   private final MetaStore metaStore;
-  private final CmdletDao cmdletDao;
   private final ActionInfoHandler actionInfoHandler;
   private final InMemoryRegistry inMemoryRegistry;
   private AtomicLong maxCmdletId;
 
   public CmdletInfoHandler(CmdletManagerContext context, ActionInfoHandler actionInfoHandler) {
+    super(context.getMetaStore().cmdletDao(), "cmdlets");
     this.metaStore = context.getMetaStore();
-    this.cmdletDao = metaStore.cmdletDao();
     this.inMemoryRegistry = context.getInMemoryRegistry();
     this.actionInfoHandler = actionInfoHandler;
   }
@@ -73,8 +71,8 @@ public class CmdletInfoHandler
       maxCmdletId = new AtomicLong(metaStore.getMaxCmdletId());
       LOG.info("Initialized.");
     } catch (MetaStoreException e) {
-      LOG.error("DB Connection error! Failed to get Max CmdletId!", e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "DB Connection error! Failed to get Max CmdletId!", e);
     }
   }
 
@@ -112,8 +110,8 @@ public class CmdletInfoHandler
           ? metaStore.getCmdletById(cid)
           : cmdletInfo;
     } catch (MetaStoreException e) {
-      LOG.error("CmdletId -> [ {} ], get CmdletInfo from DB error", cid, e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "CmdletId -> [ " + cid + " ], get CmdletInfo from DB error", e);
     }
   }
 
@@ -147,19 +145,6 @@ public class CmdletInfoHandler
     return inMemoryRegistry.getUnfinishedCmdlet(cmdletId);
   }
 
-  public List<CmdletInfo> listCmdletsInfo(
-      long ruleId, CmdletState cmdletState) throws IOException {
-    CmdletSearchRequest searchRequest = CmdletSearchRequest.builder()
-        .ruleId(ruleId)
-        .state(cmdletState)
-        .build();
-
-    return searchWithCache(
-        searchRequest,
-        cmdletInfo -> cmdletInfo.getRuleId() == ruleId
-            && cmdletInfo.getState().equals(cmdletState));
-  }
-
   public List<CmdletInfo> listCmdletsInfo(long ruleId) throws IOException {
     CmdletSearchRequest searchRequest = CmdletSearchRequest.builder()
         .ruleId(ruleId)
@@ -189,8 +174,8 @@ public class CmdletInfoHandler
       metaStore.deleteCmdletActions(cmdletId);
       return cmdletDeleted;
     } catch (MetaStoreException e) {
-      LOG.error("CmdletId -> [ {} ], delete from DB error", cmdletId, e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "CmdletId -> [ " + cmdletId + " ], delete from DB error", e);
     }
   }
 
@@ -237,17 +222,6 @@ public class CmdletInfoHandler
     return inMemoryRegistry.updateCmdlet(cmdletId, cmdlet -> updateCmdletStatus(cmdlet, status));
   }
 
-  @Override
-  public SearchResult<CmdletInfo> search(
-      CmdletSearchRequest searchRequest, PageRequest<CmdletSortField> pageRequest) {
-    return cmdletDao.search(searchRequest, pageRequest);
-  }
-
-  @Override
-  public List<CmdletInfo> search(CmdletSearchRequest searchRequest) {
-    return cmdletDao.search(searchRequest);
-  }
-
   // todo after zeppelin removal check if we really need this
   // strongly consistent version of search
   private List<CmdletInfo> searchWithCache(
@@ -262,7 +236,7 @@ public class CmdletInfoHandler
               Function.identity()
           ));
     } catch (Exception exception) {
-      throw new IOException("Error loading cmdlets from db", exception);
+      throw new MetaStoreException("Error loading cmdlets from db", exception);
     }
 
     for (CmdletInfo info : inMemoryRegistry.getUnfinishedCmdlets().values()) {

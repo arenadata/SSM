@@ -18,32 +18,15 @@
 package org.smartdata.server.engine;
 
 import org.smartdata.metastore.dao.CacheFileDao;
-import org.smartdata.metastore.dao.Searchable;
-import org.smartdata.metastore.model.SearchResult;
-import org.smartdata.metastore.queries.PageRequest;
+import org.smartdata.metastore.dao.SearchableService;
 import org.smartdata.metastore.queries.sort.CachedFilesSortField;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.request.CachedFileSearchRequest;
 
-import java.util.List;
-
-public class CachedFilesManager implements
-    Searchable<CachedFileSearchRequest, CachedFileStatus, CachedFilesSortField> {
-
-  private final CacheFileDao cacheFileDao;
+public class CachedFilesManager extends
+    SearchableService<CachedFileSearchRequest, CachedFileStatus, CachedFilesSortField> {
 
   public CachedFilesManager(CacheFileDao cacheFileDao) {
-    this.cacheFileDao = cacheFileDao;
-  }
-
-  @Override
-  public SearchResult<CachedFileStatus> search(
-      CachedFileSearchRequest searchRequest, PageRequest<CachedFilesSortField> pageRequest) {
-    return cacheFileDao.search(searchRequest, pageRequest);
-  }
-
-  @Override
-  public List<CachedFileStatus> search(CachedFileSearchRequest searchRequest) {
-    return cacheFileDao.search(searchRequest);
+    super(cacheFileDao, "cached files");
   }
 }

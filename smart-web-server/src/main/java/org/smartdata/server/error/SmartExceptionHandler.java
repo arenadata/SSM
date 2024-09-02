@@ -80,7 +80,10 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler(value = ConstraintViolationException.class)
+  @ExceptionHandler(value = {
+      ConstraintViolationException.class,
+      IllegalArgumentException.class
+  })
   protected ResponseEntity<Object> handleValidationExceptions(
       Exception exception, WebRequest request) {
     return handleExceptionInternal(

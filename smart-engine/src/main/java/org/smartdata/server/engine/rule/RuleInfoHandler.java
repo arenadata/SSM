@@ -15,24 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.engine.audit;
+package org.smartdata.server.engine.rule;
 
+import org.smartdata.metastore.dao.RuleDao;
 import org.smartdata.metastore.dao.SearchableService;
-import org.smartdata.metastore.dao.UserActivityDao;
-import org.smartdata.metastore.queries.sort.AuditSortField;
-import org.smartdata.model.audit.UserActivityEvent;
-import org.smartdata.model.request.AuditSearchRequest;
+import org.smartdata.metastore.queries.sort.RuleSortField;
+import org.smartdata.model.RuleInfo;
+import org.smartdata.model.request.RuleSearchRequest;
 
-public class AuditService extends
-    SearchableService<AuditSearchRequest, UserActivityEvent, AuditSortField> {
-  private final UserActivityDao userActivityDao;
-
-  public AuditService(UserActivityDao userActivityDao) {
-    super(userActivityDao, "audit events");
-    this.userActivityDao = userActivityDao;
-  }
-
-  public void logEvent(UserActivityEvent event) {
-    userActivityDao.insert(event);
+public class RuleInfoHandler extends
+    SearchableService<RuleSearchRequest, RuleInfo, RuleSortField> {
+  public RuleInfoHandler(RuleDao ruleDao) {
+    super(ruleDao, "rules");
   }
 }

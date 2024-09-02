@@ -27,10 +27,7 @@ import org.smartdata.exception.SsmParseException;
 import org.smartdata.hdfs.action.move.AbstractMoveFileAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.metastore.dao.ActionDao;
-import org.smartdata.metastore.dao.Searchable;
-import org.smartdata.metastore.model.SearchResult;
-import org.smartdata.metastore.queries.PageRequest;
+import org.smartdata.metastore.dao.SearchableService;
 import org.smartdata.metastore.queries.sort.ActionSortField;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletDescriptor;
@@ -50,19 +47,20 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
+
 public class ActionInfoHandler
-    implements Searchable<ActionSearchRequest, ActionInfo, ActionSortField> {
+    extends SearchableService<ActionSearchRequest, ActionInfo, ActionSortField> {
   private static final Logger LOG = LoggerFactory.getLogger(ActionInfoHandler.class);
 
   private final MetaStore metaStore;
-  private final ActionDao actionDao;
   private AtomicLong maxActionId;
 
   private final InMemoryRegistry inMemoryRegistry;
 
   public ActionInfoHandler(CmdletManagerContext context) {
+    super(context.getMetaStore().actionDao(), "actions");
     this.metaStore = context.getMetaStore();
-    this.actionDao = metaStore.actionDao();
     this.inMemoryRegistry = context.getInMemoryRegistry();
   }
 
@@ -73,8 +71,8 @@ public class ActionInfoHandler
 
       LOG.info("Initialized.");
     } catch (MetaStoreException e) {
-      LOG.error("DB Connection error! Failed to get Max CmdletId/ActionId!", e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "DB Connection error! Failed to get Max ActionId!", e);
     } catch (Exception t) {
       throw new IOException(t);
     }
@@ -105,8 +103,8 @@ public class ActionInfoHandler
           ? metaStore.getActionById(actionId)
           : actionInfo;
     } catch (MetaStoreException e) {
-      LOG.error("ActionId -> [ {} ], get ActionInfo from DB error", actionId, e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "ActionId -> [ " + actionId + " ], get ActionInfo from DB error", e);
     }
   }
 
@@ -127,8 +125,8 @@ public class ActionInfoHandler
       actionInfos.putAll(inMemoryRegistry.getUnfinishedActions());
       return new ArrayList<>(actionInfos.values());
     } catch (MetaStoreException e) {
-      LOG.error("Get Finished Actions from DB error", e);
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "Get Finished Actions from DB error", e);
     }
   }
 
@@ -136,8 +134,8 @@ public class ActionInfoHandler
     try {
       return metaStore.getActions(aids);
     } catch (MetaStoreException e) {
-      LOG.error("Get Actions by aid list [{}] from DB error", aids.toString());
-      throw new IOException(e);
+      throw logAndBuildMetastoreException(
+          LOG, "Get Actions by aid list from DB error: " + aids.toString(), e);
     }
   }
 
@@ -155,18 +153,6 @@ public class ActionInfoHandler
         .mapToObj(actionIdx ->
             createInitialActionInfo(cmdletDescriptor, cmdletInfo, actionIdx))
         .collect(Collectors.toList());
-  }
-
-  @Override
-  public SearchResult<ActionInfo> search(
-      ActionSearchRequest searchRequest,
-      PageRequest<ActionSortField> pageRequest) {
-    return actionDao.search(searchRequest, pageRequest);
-  }
-
-  @Override
-  public List<ActionInfo> search(ActionSearchRequest searchRequest) {
-    return actionDao.search(searchRequest);
   }
 
   private void updateActionStatusInternal(ActionInfo actionInfo, ActionStatus status) {

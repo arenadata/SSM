@@ -98,6 +98,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
 import static org.smartdata.model.action.ScheduleResult.isSuccessful;
 import static org.smartdata.model.audit.UserActivityObject.CMDLET;
@@ -230,10 +231,8 @@ public class CmdletManager extends AbstractService
       loadCmdletsFromDb();
       LOG.info("Initialized.");
     } catch (MetaStoreException e) {
-      LOG.error("DB Connection error! Failed to get Max CmdletId/ActionId!", e);
-      throw new IOException(e);
-    } catch (IOException e) {
-      throw e;
+      throw logAndBuildMetastoreException(
+          LOG, "DB Connection error! Failed to get Max CmdletId!", e);
     } catch (Exception t) {
       throw new IOException(t);
     }
@@ -368,7 +367,7 @@ public class CmdletManager extends AbstractService
     LOG.debug("Received Cmdlet -> [ {} ]", cmdlet);
     try {
       if (StringUtils.isBlank(cmdlet)) {
-        throw new IOException("Cannot submit an empty action!");
+        throw new IllegalArgumentException("Cannot submit an empty action!");
       }
       CmdletDescriptor cmdletDescriptor = buildCmdletDescriptor(cmdlet);
       return submitCmdlet(cmdletDescriptor);

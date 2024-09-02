@@ -84,7 +84,7 @@ public class TestFileAccessManager extends
   }
 
   @Test
-  public void testSaveAccessCounts() throws MetaStoreException {
+  public void testSaveAccessCounts() throws Exception {
     long currentTimeMillis = System.currentTimeMillis();
     insertFileAccessCounts(currentTimeMillis);
 

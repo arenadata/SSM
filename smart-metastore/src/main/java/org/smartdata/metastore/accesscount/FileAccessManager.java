@@ -21,25 +21,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.dao.CacheFileDao;
 import org.smartdata.metastore.dao.FileAccessDao;
-import org.smartdata.metastore.dao.Searchable;
+import org.smartdata.metastore.dao.SearchableService;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
-import org.smartdata.metastore.model.SearchResult;
-import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
 import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.model.FileAccessInfo;
 import org.smartdata.model.request.FileAccessInfoSearchRequest;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class FileAccessManager implements
-    Searchable<FileAccessInfoSearchRequest, FileAccessInfo, FileAccessInfoSortField> {
+public class FileAccessManager extends
+    SearchableService<FileAccessInfoSearchRequest, FileAccessInfo, FileAccessInfoSortField> {
 
   private final TransactionRunner transactionRunner;
   private final FileAccessDao fileAccessDao;
@@ -49,20 +46,10 @@ public class FileAccessManager implements
       TransactionRunner transactionRunner,
       FileAccessDao fileAccessDao,
       CacheFileDao cacheFileDao) {
+    super(fileAccessDao, "file accesses");
     this.fileAccessDao = fileAccessDao;
     this.cacheFileDao = cacheFileDao;
     this.transactionRunner = transactionRunner;
-  }
-
-  @Override
-  public SearchResult<FileAccessInfo> search(FileAccessInfoSearchRequest searchRequest,
-                                             PageRequest<FileAccessInfoSortField> pageRequest) {
-    return fileAccessDao.search(searchRequest, pageRequest);
-  }
-
-  @Override
-  public List<FileAccessInfo> search(FileAccessInfoSearchRequest searchRequest) {
-    return fileAccessDao.search(searchRequest);
   }
 
   public void save(Collection<AggregatedAccessCounts> accessCounts) {

@@ -68,7 +68,7 @@ public class ActionsControllerDelegate implements ActionsApiDelegate {
       List<String> hosts,
       List<ActionStateDto> states,
       List<ActionSourceDto> sources,
-      CompletionTimeIntervalDto completionTime) {
+      CompletionTimeIntervalDto completionTime) throws Exception {
 
     PageRequest<ActionSortField> pageRequest =
         pageRequestMapper.toPageRequest(pageRequestDto, actionSort);

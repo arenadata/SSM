@@ -1,0 +1,17 @@
+- name: Check if jars are already copied for this host
+  set_fact:
+    jars_copied: "{{ hostvars[inventory_hostname].jars_copied | default(false) }}"
+
+- name: "Stop {{ ssm_service_name }}"
+  become: yes
+  ansible.builtin.systemd_service:
+    name: "{{ ssm_service_name }}.service"
+    state: stopped
+
+- include_tasks: copy_jars_tasks.yaml
+
+- name: "Start {{ ssm_service_name }}"
+  become: yes
+  ansible.builtin.systemd_service:
+    name: "{{ ssm_service_name }}.service"
+    state: started

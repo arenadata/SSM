@@ -80,6 +80,12 @@ public class MetaStoreUtils {
       "whitelist"
   );
 
+  public static MetaStoreException logAndBuildMetastoreException(
+      Logger logger, String exceptionMessage, Exception cause) {
+    logger.error(exceptionMessage);
+    return new MetaStoreException(exceptionMessage, cause);
+  }
+
   public static MetaStore getDBAdapter(
       SmartConf conf) throws MetaStoreException {
     DaoProviderFactory daoProviderFactory = new DaoProviderFactory();

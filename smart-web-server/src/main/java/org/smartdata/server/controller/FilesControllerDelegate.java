@@ -54,7 +54,7 @@ public class FilesControllerDelegate implements FilesApiDelegate {
                                        List<@Valid CachedFileSortDto> sort,
                                        String pathLike,
                                        LastAccessedTimeIntervalDto lastAccessedTime,
-                                       CachedTimeIntervalDto cachedTime) {
+                                       CachedTimeIntervalDto cachedTime) throws Exception {
     return cachedFilesControllerDelegate.getCachedFiles(
         pageRequestDto, sort, pathLike, lastAccessedTime, cachedTime);
   }
@@ -63,7 +63,8 @@ public class FilesControllerDelegate implements FilesApiDelegate {
   public FileAccessCountsDto getAccessCounts(PageRequestDto pageRequestDto,
                                              List<@Valid HotFileSortDto> sort,
                                              String pathLike,
-                                             LastAccessedTimeIntervalDto lastAccessedTime) {
+                                             LastAccessedTimeIntervalDto lastAccessedTime)
+      throws Exception {
     PageRequest<FileAccessInfoSortField> pageRequest =
         pageRequestMapper.toPageRequest(pageRequestDto, sort);
 

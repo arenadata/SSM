@@ -34,7 +34,6 @@ import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -87,7 +86,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testSubmitRuleWithError() {
+  public void testSubmitRuleWithError() throws Exception {
     String rule = "wrong syntax rule";
     try {
       ruleManager.submitRule(rule, RuleState.DISABLED);
@@ -103,7 +102,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testStartRuleWithError() {
+  public void testStartRuleWithError() throws Exception {
     try {
       // unknown id
       ruleManager.activateRule(777L);
@@ -134,7 +133,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testStopRuleWithError() {
+  public void testStopRuleWithError() throws Exception {
     try {
       // unknown id
       ruleManager.disableRule(777L, false);
@@ -165,7 +164,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
   }
 
   @Test
-  public void testDeleteRuleWithError() {
+  public void testDeleteRuleWithError() throws Exception {
     try {
       // unknown id
       ruleManager.deleteRule(777L, false);
@@ -192,7 +191,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
     assertEventUsername(AnonymousDefaultPrincipalProvider.anonymousPrincipal());
   }
 
-  private void assertEventUsername(SmartPrincipal expectedPrincipal) throws IOException {
+  private void assertEventUsername(SmartPrincipal expectedPrincipal) throws Exception {
     String rule = "file: every 1s \n | accessCount(5s) > 3 | cache";
     long id = ruleManager.submitRule(rule, RuleState.DISABLED);
     RuleInfo ruleInfo = ruleManager.getRuleInfo(id);
@@ -204,7 +203,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
         cmdletEvents.get(0).getUsername());
   }
 
-  private List<UserActivityEvent> findRuleEvents(long ruleId) {
+  private List<UserActivityEvent> findRuleEvents(long ruleId) throws Exception {
     AuditSearchRequest searchRequest = AuditSearchRequest.builder()
         .objectIds(Collections.singletonList(ruleId))
         .objectTypes(Collections.singletonList(RULE))

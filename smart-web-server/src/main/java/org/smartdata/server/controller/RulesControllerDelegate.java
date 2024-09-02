@@ -74,7 +74,7 @@ public class RulesControllerDelegate implements RulesApiDelegate {
       String textRepresentationLike,
       SubmissionTimeIntervalDto submissionTime,
       List<RuleStateDto> ruleStates,
-      LastActivationTimeIntervalDto lastActivationTime) {
+      LastActivationTimeIntervalDto lastActivationTime) throws Exception {
 
     PageRequest<RuleSortField> pageRequest =
         pageRequestMapper.toPageRequest(pageRequestDto, sort);

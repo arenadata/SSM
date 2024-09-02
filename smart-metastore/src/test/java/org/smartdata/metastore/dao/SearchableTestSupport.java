@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao;
 
+import org.junit.Assert;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.SortField;
@@ -86,8 +87,13 @@ public class SearchableTestSupport<
       PageRequest<ColumnT> pageRequest,
       long expectedTotal,
       List<IdT> expectedIds) {
-    SearchResult<EntityT> searchResult =
-        searchable.search(searchRequest, pageRequest);
+    SearchResult<EntityT> searchResult = null;
+
+    try {
+      searchResult = searchable.search(searchRequest, pageRequest);
+    } catch (Exception e) {
+      Assert.fail(e.getMessage());
+    }
 
     List<EntityT> items = searchResult.getItems();
     assertEquals(expectedTotal, searchResult.getTotal());

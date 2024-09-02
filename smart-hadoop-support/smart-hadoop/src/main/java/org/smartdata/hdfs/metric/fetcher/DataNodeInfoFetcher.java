@@ -130,7 +130,7 @@ public class DataNodeInfoFetcher {
         updateStorages(storagesNow);
         storages = storagesNow;
         isFinished = true;
-      } catch (IOException | MetaStoreException e) {
+      } catch (IOException e) {
         LOG.error("Process datanode report error", e);
       }
     }
