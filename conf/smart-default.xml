@@ -115,12 +115,6 @@
   </property>
 
   <property>
-    <name>smart.server.http.address</name>
-    <value>0.0.0.0:7045</value>
-    <description>REST server of SSM</description>
-  </property>
-
-  <property>
     <name>smart.agent.port</name>
     <value>7048</value>
     <description>SmartAgent port</description>
@@ -286,14 +280,6 @@
     <description>
       If the finished actions ratio equals or exceeds this value, status report will
       be triggered.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.top.hot.files.num</name>
-    <value>200</value>
-    <description>
-      The number of top hot files displayed on web UI.
     </description>
   </property>
 
@@ -540,11 +526,11 @@
 
   <property>
     <name>smart.file.access.count.aggregator.failover</name>
-    <value>SUBMIT_FAILED_EVENTS_WITH_RETRY</value>
+    <value>SAVE_FAILED_WITH_RETRY</value>
     <description>
       Failover strategy for file access events aggregator. Possible values:
         FAIL - throw exception, no failover.
-        SUBMIT_FAILED_EVENTS_WITH_RETRY - save all file access events that caused exception
+      SAVE_FAILED_WITH_RETRY - save all file access events that caused exception
           for later submission with max attempts less or equals than smart.access.count.aggregator.failover.retry.count
     </description>
   </property>

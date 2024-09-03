@@ -38,12 +38,6 @@
   </property>
 
   <property>
-    <name>smart.server.http.address</name>
-    <value>0.0.0.0:7045</value>
-    <description>REST server of SSM</description>
-  </property>
-
-  <property>
     <name>smart.agent.address</name>
     <value>127.0.0.1:7048</value>
     <description>SmartAgent address</description>

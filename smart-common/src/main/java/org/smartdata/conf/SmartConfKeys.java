@@ -47,8 +47,6 @@ public class SmartConfKeys {
     public static final int SMART_NAMESPACE_FETCHER_CONSUMERS_NUM_DEFAULT = 3;
 
     // SSM
-    public static final String SMART_SERVER_VERSION_KEY = "smart.storage.manager.version";
-    public static final String SMART_SERVER_VERSION_CURRENT = "2.0.0_alpha";
     public static final String SMART_SERVER_RPC_ADDRESS_KEY = "smart.server.rpc.address";
     public static final String SMART_SERVER_RPC_ADDRESS_DEFAULT = "0.0.0.0:7042";
     public static final String SMART_SERVER_RPC_HANDLER_COUNT_KEY = "smart.server.rpc.handler.count";
@@ -232,8 +230,6 @@ public class SmartConfKeys {
     public static final String SMART_STORAGE_INFO_UPDATE_INTERVAL_KEY =
             "smart.storage.info.update.interval";
     public static final int SMART_STORAGE_INFO_UPDATE_INTERVAL_DEFAULT = 60;
-    public static final String SMART_TOP_HOT_FILES_NUM_KEY = "smart.top.hot.files.num";
-    public static final int SMART_TOP_HOT_FILES_NUM_DEFAULT = 200;
 
     //Status report
     public static final String SMART_STATUS_REPORT_PERIOD_KEY = "smart.status.report.period";
