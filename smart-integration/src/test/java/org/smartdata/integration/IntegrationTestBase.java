@@ -29,7 +29,9 @@ import org.smartdata.integration.cluster.SmartMiniCluster;
 import org.smartdata.server.SmartServer;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -42,14 +44,13 @@ public class IntegrationTestBase {
   @Before
   public void setup() throws Exception {
     // Set up an HDFS cluster
-    conf = new SmartConf();
     cluster = new SmartMiniCluster();
     cluster.setUp();
 
     conf = cluster.getConf();
     conf.setLong(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY, 100);
 
-    smartServer = SmartServer.launchWith(conf);
+    smartServer = SmartServer.launchWith(withSsmServerOptions(conf));
     waitTillSSMExitSafeMode();
   }
 
@@ -98,6 +99,10 @@ public class IntegrationTestBase {
     }
   }
 
+  protected SmartConf withSsmServerOptions(SmartConf conf) {
+    return conf;
+  }
+
   private void waitTillSSMExitSafeMode() {
     retryUntil(
         () -> smartServer.getSSMServiceState(),
@@ -105,5 +110,12 @@ public class IntegrationTestBase {
         Duration.ofMillis(500),
         Duration.ofSeconds(5)
     );
+  }
+
+  protected static String resourceAbsolutePath(String relativePath) {
+    return Optional.ofNullable(
+            IntegrationTestBase.class.getClassLoader().getResource(relativePath))
+        .map(URL::getPath)
+        .orElseThrow(() -> new RuntimeException("Resource not found"));
   }
 }

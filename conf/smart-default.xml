@@ -536,4 +536,12 @@
       of 'day' or 'd', 'hour' or 'h', 'min' or 'm', 'sec' or 's'.
     </description>
   </property>
+
+  <property>
+    <name>smart.rest.server.ssl.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSL support for the SSM REST server.
+    </description>
+  </property>
 </configuration>

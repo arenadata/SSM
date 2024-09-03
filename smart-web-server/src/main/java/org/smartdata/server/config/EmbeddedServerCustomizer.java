@@ -20,11 +20,20 @@ package org.smartdata.server.config;
 import lombok.RequiredArgsConstructor;
 import org.smartdata.conf.SmartConf;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
+import org.springframework.boot.web.server.Ssl;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 import static org.smartdata.conf.SmartConfKeys.SMART_REST_SERVER_PORT_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_REST_SERVER_PORT_KEY_DEFAULT;
+import static org.smartdata.server.config.ConfigKeys.SSL_ENABLED;
+import static org.smartdata.server.config.ConfigKeys.SSL_ENABLED_DEFAULT;
+import static org.smartdata.server.config.ConfigKeys.SSL_KEYSTORE_PASSWORD;
+import static org.smartdata.server.config.ConfigKeys.SSL_KEYSTORE_PATH;
+import static org.smartdata.server.config.ConfigKeys.SSL_KEY_ALIAS;
+import static org.smartdata.server.config.ConfigKeys.SSL_KEY_PASSWORD;
 
 @Component
 @RequiredArgsConstructor
@@ -38,5 +47,20 @@ public class EmbeddedServerCustomizer
     int serverPort = conf.getInt(SMART_REST_SERVER_PORT_KEY,
         SMART_REST_SERVER_PORT_KEY_DEFAULT);
     factory.setPort(serverPort);
+    getSslConfig().ifPresent(factory::setSsl);
+  }
+
+  private Optional<Ssl> getSslConfig() {
+    if (!conf.getBoolean(SSL_ENABLED, SSL_ENABLED_DEFAULT)) {
+      return Optional.empty();
+    }
+
+    Ssl sslConfig = new Ssl();
+    sslConfig.setEnabled(true);
+    sslConfig.setKeyStore(conf.getNonEmpty(SSL_KEYSTORE_PATH));
+    sslConfig.setKeyStorePassword(conf.getNonEmpty(SSL_KEYSTORE_PASSWORD));
+    sslConfig.setKeyAlias(conf.get(SSL_KEY_ALIAS));
+    sslConfig.setKeyPassword(conf.get(SSL_KEY_PASSWORD));
+    return Optional.of(sslConfig);
   }
 }
