@@ -38,12 +38,6 @@
   </property>
 
   <property>
-    <name>smart.server.http.address</name>
-    <value>ssm-server:8081</value>
-    <description>REST server of SSM</description>
-  </property>
-
-  <property>
     <name>smart.agent.address</name>
     <value>hadoop-datanode:7048</value>
     <description>SmartAgent address</description>
