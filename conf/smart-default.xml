@@ -508,15 +508,6 @@
   </property>
 
   <property>
-    <name>smart.rest.server.auth.predefined.users</name>
-    <value>false</value>
-    <description>
-      Comma-separated list of predefined user credentials in the form of 'user:password',
-      to be used in SSM REST server basic authentication.
-    </description>
-  </property>
-
-  <property>
     <name>smart.file.access.count.aggregator.failover.retry.count</name>
     <value>60</value>
     <description>
