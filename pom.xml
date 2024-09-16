@@ -54,6 +54,7 @@
     <module>smart-dist</module>
     <module>smart-integration</module>
     <module>smart-web-server</module>
+    <module>smart-ranger-plugin</module>
     <module>smart-hadoop-support</module>
   </modules>
 
@@ -109,6 +110,8 @@
     <cache2k.version>2.6.1.Final</cache2k.version>
     <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
     <smart.hadoop.client.artifact>smart-hadoop-client-3</smart.hadoop.client.artifact>
+    <ranger.version>2.4.0</ranger.version>
+    <ranger.jna.version>5.8.0</ranger.jna.version>
     <maven-replacer-plugin.version>1.5.3</maven-replacer-plugin.version>
     <hadoop-thirdparty-shaded.prefix>org.apache.hadoop.thirdparty</hadoop-thirdparty-shaded.prefix>
     <hadoop-thirdparty-shaded.protobuf.prefix>${hadoop-thirdparty-shaded.prefix}.protobuf</hadoop-thirdparty-shaded.protobuf.prefix>

@@ -54,4 +54,29 @@
     <value>5</value>
     <description>Max number of rules that can be executed in parallel</description>
   </property>
+
+  <property>
+    <name>smart.rest.server.security.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSM REST server security.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.predefined.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSM REST server basic authentication with users,
+      predefined in the 'smart.rest.server.auth.predefined.users' option.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ranger.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable Apache Ranger authorization for SSM REST server.
+    </description>
+  </property>
 </configuration>
