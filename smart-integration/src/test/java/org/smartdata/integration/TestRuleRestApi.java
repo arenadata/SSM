@@ -21,11 +21,13 @@ import io.restassured.response.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.smartdata.client.generated.model.ErrorResponseDto;
 import org.smartdata.client.generated.model.RuleDto;
 import org.smartdata.client.generated.model.RuleStateDto;
 import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.RulesInfoDto;
 import org.smartdata.integration.api.RulesApiWrapper;
+import org.smartdata.server.error.SsmErrorCode;
 
 import java.time.Duration;
 
@@ -138,6 +140,28 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(2, rulesInfo.getTotalRules().longValue());
     assertEquals(0, rulesInfo.getActiveRules().longValue());
+  }
+
+  @Test
+  public void testThrowStateTransitionError() {
+    createFile("/tmp/text1.txt");
+
+    RuleDto rule = apiClient.waitTillRuleTriggered(
+        "file: at now | path matches \"/tmp/*.txt\" | read",
+        Duration.ofMillis(100),
+        Duration.ofSeconds(2));
+
+    ErrorResponseDto errorDto = apiClient.rawClient()
+        .startRule()
+        .idPath(rule.getId())
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertEquals(SsmErrorCode.STATE_TRANSITION_ERROR.getCode(), errorDto.getCode());
+    assertEquals(
+        "Rule state transition is not supported: FINISHED -> ACTIVE",
+        errorDto.getMessage());
   }
 
   @Test

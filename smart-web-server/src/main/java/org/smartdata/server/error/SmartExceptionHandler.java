@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.SsmParseException;
+import org.smartdata.exception.StateTransitionException;
 import org.smartdata.metastore.MetaStoreException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -52,7 +53,7 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
       DataAccessException.class
   })
   protected ResponseEntity<Object> handleDbExceptions(
-      RuntimeException exception, WebRequest request) {
+      Exception exception, WebRequest request) {
     return handleExceptionInternal(
         exception,
         request,
@@ -62,7 +63,7 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(value = IOException.class)
   protected ResponseEntity<Object> handleSsmExceptions(
-      RuntimeException exception, WebRequest request) {
+      Exception exception, WebRequest request) {
     return handleExceptionInternal(
         exception,
         request,
@@ -77,6 +78,16 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
         exception,
         request,
         SsmErrorCode.PARSE_ERROR,
+        HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(StateTransitionException.class)
+  protected ResponseEntity<Object> handleStateTransitionException(
+      Exception exception, WebRequest request) {
+    return handleExceptionInternal(
+        exception,
+        request,
+        SsmErrorCode.STATE_TRANSITION_ERROR,
         HttpStatus.BAD_REQUEST);
   }
 
