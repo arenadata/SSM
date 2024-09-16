@@ -17,18 +17,19 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.protocol.DirectoryListing;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 @ActionSignature(
@@ -37,82 +38,84 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + " $src "
 )
 public class CheckSumAction extends HdfsAction {
-  private static final Logger LOG = LoggerFactory.getLogger(CheckSumAction.class);
   private String fileName;
-  private SmartConf conf;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
+    withDefaultFs();
     fileName = args.get(FILE_PATH);
-    this.conf = getContext().getConf();
   }
 
   @Override
   protected void execute() throws Exception {
-    // Use pre-set SmartDFSClient.
-    // this.setDfsClient(HadoopUtil.getDFSClient(
-    //    HadoopUtil.getNameNodeUri(conf), conf));
     if (fileName == null) {
       throw new IllegalArgumentException("Please specify file path!");
     }
 
     if (fileName.charAt(fileName.length() - 1) == '*') {
-      DirectoryListing listing = dfsClient.listPaths(fileName.substring(0,
-          fileName.length() - 1), HdfsFileStatus.EMPTY_NAME);
-      HdfsFileStatus[] fileList = listing.getPartialListing();
-      for (HdfsFileStatus fileStatus : fileList) {
-        String file1 = fileStatus.getFullPath(new Path(
-            fileName.substring(0, fileName.length() - 1))).toString();
-        HdfsFileStatus fileStatus1 = dfsClient.getFileInfo(file1);
-        long length = fileStatus1.getLen();
-        MD5MD5CRC32FileChecksum md5 = dfsClient.getFileChecksum(file1, length);
-
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        DataOutputStream dataStream = new DataOutputStream(byteStream);
-        md5.write(dataStream);
-        byte[] bytes = byteStream.toByteArray();
-        appendLog(
-            String.format("%s\t%s\t%s",
-                file1,
-                md5.getAlgorithmName(),
-                byteArray2HexString(bytes)
-            ));
-      }
+      String directoryPath = fileName.substring(0, fileName.length() - 1);
+      directoryContentChecksum(directoryPath);
       return;
     }
 
     HdfsFileStatus fileStatus = dfsClient.getFileInfo(fileName);
-    if (fileStatus != null) {
-      if (fileStatus.isDir()) {
-        appendResult("This is a directory which has no checksum result!");
-        appendLog("This is a directory which has no checksum result!");
-        return;
-      }
+
+    if (fileStatus == null) {
+      throw new ActionException("Provided file doesn't exist: " + fileName);
     }
 
-    long length = fileStatus.getLen();
-    MD5MD5CRC32FileChecksum md5 = dfsClient.getFileChecksum(fileName, length);
+    if (fileStatus.isDir()) {
+      appendResult("This is a directory which has no checksum result!");
+      appendLog("This is a directory which has no checksum result!");
+      return;
+    }
+
+    checksum(fileName, fileStatus.getLen());
+  }
+
+  private void directoryContentChecksum(String directory) throws Exception {
+    Path directoryPath = new Path(directory);
+    FileSystem fileSystem = directoryPath.getFileSystem(getContext().getConf());
+
+    RemoteIterator<FileStatus> statusIter;
+    try {
+      statusIter = fileSystem.listStatusIterator(directoryPath);
+    } catch (FileNotFoundException e) {
+      throw new ActionException("Provided directory doesn't exist: " + directory);
+    }
+
+    while (statusIter.hasNext()) {
+      try {
+        FileStatus status = statusIter.next();
+        checksum(status.getPath().toUri().getPath(), status.getLen());
+      } catch (FileNotFoundException e) {
+        // skip file if it was deleted between listing and checksum requests
+      }
+    }
+  }
+
+  private void checksum(String path, long fileSize) throws IOException {
+    MD5MD5CRC32FileChecksum md5 = dfsClient.getFileChecksum(path, fileSize);
+
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream dataStream = new DataOutputStream(byteStream);
     md5.write(dataStream);
-
     byte[] bytes = byteStream.toByteArray();
-
     appendLog(
         String.format("%s\t%s\t%s",
-            fileName,
+            path,
             md5.getAlgorithmName(),
             byteArray2HexString(bytes)
         ));
   }
 
-  public static String byteArray2HexString(byte[] bytes) {
-    if (bytes == null || bytes.length <= 0) {
+  private static String byteArray2HexString(byte[] bytes) {
+    if (bytes == null || bytes.length == 0) {
       return null;
     }
     char[] chars = new char[bytes.length * 2];
-    final char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
+    final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
         '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     for (int i = 0, j = 0; i < bytes.length; i++) {
       chars[j++] = hexDigits[bytes[i] >> 4 & 0x0f];
