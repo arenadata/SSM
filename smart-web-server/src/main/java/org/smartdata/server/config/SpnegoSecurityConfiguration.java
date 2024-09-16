@@ -35,8 +35,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import java.util.Optional;
 
-import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_KERBEROS_PRINCIPAL_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_KEYTAB_FILE_KEY;
+import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_KERBEROS_PRINCIPAL;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_KEYTAB_FILE_KEY;
 import static org.smartdata.server.config.ConfigKeys.SPNEGO_AUTH_ENABLED;
 import static org.smartdata.server.config.ConfigKeys.WEB_SECURITY_ENABLED;
@@ -64,7 +64,7 @@ public class SpnegoSecurityConfiguration {
 
   @Bean
   public SunJaasKerberosTicketValidator kerberosTicketValidator(SmartConf smartConf) {
-    String principal = smartConf.getNonEmpty(SMART_SERVER_KERBEROS_PRINCIPAL_KEY);
+    String principal = smartConf.getNonEmpty(SMART_REST_SERVER_KERBEROS_PRINCIPAL);
     String keytabPath = getKeytabPath(smartConf);
 
     SunJaasKerberosTicketValidator ticketValidator = new SunJaasKerberosTicketValidator();

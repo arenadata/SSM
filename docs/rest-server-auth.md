@@ -38,11 +38,11 @@ and authenticates user if the Service Ticket verification is successful.
 
 ### Options
 
-| Name                                  | Default | Description                                                                                         |
-|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------|
-| smart.rest.server.auth.spnego.enabled | false   | Whether to enable SSM REST server Kerberos SPNEGO authentication method support                     |
-| smart.server.kerberos.principal       | -       | Kerberos service principal name for SSM                                                             |
-| smart.rest.server.auth.spnego.keytab  | -       | SSM principal keytab. If it's empty the value of the `smart.server.keytab.file` option will be used |
+| Name                                    | Default | Description                                                                                         |
+|-----------------------------------------|---------|-----------------------------------------------------------------------------------------------------|
+| smart.rest.server.auth.spnego.enabled   | false   | Whether to enable SSM REST server Kerberos SPNEGO authentication method support                     |
+| smart.rest.server.auth.spnego.principal | -       | Kerberos service principal name for SSM REST server                                                 |
+| smart.rest.server.auth.spnego.keytab    | -       | SSM principal keytab. If it's empty the value of the `smart.server.keytab.file` option will be used |
 
 ## LDAP authentication provider
 
