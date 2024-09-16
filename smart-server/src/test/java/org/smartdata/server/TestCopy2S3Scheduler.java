@@ -22,7 +22,6 @@ import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.RuleState;
@@ -37,7 +36,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
   public void testDir() throws Exception {
     waitTillSSMExitSafeMode();
     MetaStore metaStore = ssm.getMetaStore();
-    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
+
     DistributedFileSystem dfs = cluster.getFileSystem();
     final String srcPath = "/src/";
     dfs.mkdirs(new Path(srcPath));
@@ -47,7 +46,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
       DFSTestUtil.createFile(dfs, new Path(srcPath + i),
           1024, (short) 1, 1);
     }
-    long ruleId = admin.submitRule(
+    long ruleId = ssm.getRuleManager().submitRule(
         "file: path matches \"/src/*\"| copy2s3 -dest s3a://xxxctest/dest/",
         RuleState.ACTIVE);
     List<ActionInfo> actions;
@@ -61,7 +60,6 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
   public void testZeroLength() throws Exception {
     waitTillSSMExitSafeMode();
     MetaStore metaStore = ssm.getMetaStore();
-    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
     DistributedFileSystem dfs = cluster.getFileSystem();
     final String srcPath = "/src/";
     dfs.mkdirs(new Path(srcPath));
@@ -71,7 +69,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
       DFSTestUtil.createFile(dfs, new Path(srcPath + i),
           0, (short) 1, 1);
     }
-    long ruleId = admin.submitRule(
+    long ruleId = ssm.getRuleManager().submitRule(
         "file: path matches \"/src/*\"| copy2s3 -dest s3a://xxxctest/dest/",
         RuleState.ACTIVE);
     Thread.sleep(2500);
@@ -83,7 +81,6 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
   public void testOnS3() throws Exception {
     waitTillSSMExitSafeMode();
     MetaStore metaStore = ssm.getMetaStore();
-    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
     DistributedFileSystem dfs = cluster.getFileSystem();
     final String srcPath = "/src/";
     dfs.mkdirs(new Path(srcPath));
@@ -107,7 +104,7 @@ public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
     for (String p : sps) {
       metaStore.insertUpdateFileState(new S3FileState(p));
     }
-    long ruleId = admin.submitRule(
+    long ruleId = ssm.getRuleManager().submitRule(
         "file: path matches \"/src/*\"| copy2s3 -dest s3a://xxxctest/dest/",
         RuleState.ACTIVE);
     Thread.sleep(2500);

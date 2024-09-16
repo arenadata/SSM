@@ -47,7 +47,7 @@ public class CachedFilesControllerDelegate {
                                        List<@Valid CachedFileSortDto> sort,
                                        String pathLike,
                                        LastAccessedTimeIntervalDto lastAccessedTime,
-                                       CachedTimeIntervalDto cachedTime) {
+                                       CachedTimeIntervalDto cachedTime) throws Exception {
     PageRequest<CachedFilesSortField> pageRequest =
         pageRequestMapper.toPageRequest(pageRequestDto, sort);
     CachedFileSearchRequest searchRequest = cachedFileMapper.toSearchRequest(

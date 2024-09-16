@@ -22,10 +22,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveInfo;
-import org.apache.hadoop.hdfs.protocol.CachePoolEntry;
-import org.apache.hadoop.hdfs.protocol.CachePoolInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.smartdata.action.ActionType;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.hdfs.scheduler.CacheScheduler;
@@ -46,12 +43,10 @@ public class CacheFileAction extends HdfsAction {
   public static final String REPLICA = "-replica";
   private String fileName;
   private LinkedBlockingQueue<String> actionEvents;
-  private ActionType actionType;
   private short replication = 0;
 
   public CacheFileAction() {
     super();
-    this.actionType = ActionType.CacheFile;
     this.actionEvents = new LinkedBlockingQueue<>();
   }
 

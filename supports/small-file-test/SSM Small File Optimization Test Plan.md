@@ -14,7 +14,7 @@ II. Software Configuration
  * Cluster:
  * Data Disks: 
  * Block Size:            
- * Version: 3.2.X / ADH 3.2.4_arenadata2_b1 or higher           
+ * Version: 3.3.X / ADH 3.3.6_arenadata1 or higher           
 
 2. SSM Configuration                
  * Server Node             

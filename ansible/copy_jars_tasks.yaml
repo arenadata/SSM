@@ -1,0 +1,35 @@
+- name: Check if jars are already copied for this host
+  set_fact:
+    jars_copied: "{{ hostvars[inventory_hostname].jars_copied | default(false) }}"
+
+- block:
+
+  - name: Remove old SSM jars
+    become: yes
+    ansible.builtin.file:
+      path: /usr/lib/ssm/lib/
+      state: absent
+
+  - name: Recreate /usr/lib/ssm/lib/ dir
+    become: yes
+    file:
+      path: "/usr/lib/ssm/lib/"
+      state: directory
+      recurse: yes
+      mode: u=rwx,g=rx,o=rx
+
+  - name: Copy and unarchive SSM distribution
+    become: yes
+    unarchive:
+      src: "../smart-dist/target/smart-data-{{ ssm_version }}.tar.gz"
+      dest: "/usr/lib/ssm/lib/"
+      include:
+        - "smart-data-{{ ssm_version }}/lib"
+      extra_opts:
+       - --strip-components=2
+
+  - name: Mark jars as already copied for this host
+    set_fact:
+      jars_copied: true
+
+  when: not jars_copied

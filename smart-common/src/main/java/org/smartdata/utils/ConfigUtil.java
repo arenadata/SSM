@@ -42,6 +42,11 @@ public class ConfigUtil {
     return remoteConfig;
   }
 
+  public static InetSocketAddress getSsmMasterRpcAddress(
+      Configuration configuration) throws IOException {
+    return getSsmRpcAddresses(configuration).get(0);
+  }
+
   public static List<InetSocketAddress> getSsmRpcAddresses(
       Configuration configuration) throws IOException {
     Collection<String> rawRpcAddresses = configuration

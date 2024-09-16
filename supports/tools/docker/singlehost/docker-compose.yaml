@@ -1,0 +1,49 @@
+version: "3.8"
+services:
+  hadoop:
+    image: cloud-hub.adsw.io/library/ssm-hadoop:${HADOOP_VERSION:-3.3.6}
+    restart: unless-stopped
+    container_name: hadoop
+    environment:
+      - CLUSTER_NAME=ssm-hadoop
+    env_file:
+      - hadoop.env
+    ports:
+      - "50070:50070"
+      - "10000:10000"
+      - "10002:10002"
+      - "8088:8088"
+      - "8042:8042"
+      - "9864:9864"
+      - "8081:8081"
+    healthcheck:
+      test: bash /healthcheck_hadoop.sh
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - ssm-metastore-db
+
+  ssm-metastore-db:
+    image: "docker.io/library/postgres:14.0"
+    restart: unless-stopped
+    container_name: ssm-metastore-db
+    hostname: ssm-metastore-db
+    environment:
+      POSTGRES_DB: 'metastore'
+      POSTGRES_USER: 'ssm'
+      POSTGRES_PASSWORD: 'ssm'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: psql -d metastore -U ssm -Atc 'SELECT 1;'
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+networks:
+  default:
+    name: ssm-automation
+
+volumes:
+  share-lib:

@@ -3,8 +3,8 @@
 ## Requirements:
 
 * Unix/Unix-like OS
-* JDK 1.8 for Apache Hadoop 2.7.3/3.2.4 or JDK 1.8 for ADH 3.2.4_arenadata2 
-* ADH 3.2.4_arenadata2 ([Software requirements](https://docs.arenadata.io/en/ADH/current/planning/software.html)) or Apache Hadoop 2.7.3/3.2.4
+* JDK 1.8 for Apache Hadoop 3.3.6 or JDK 1.8 for ADH 3.3.6_arenadata1
+* ADH 3.3.6_arenadata1 ([Software requirements](https://docs.arenadata.io/en/ADH/current/planning/software.html)) or Apache Hadoop 3.3.6
 * Postgresql 14+ or [ADPG](https://docs.arenadata.io/en/landing-adpg/index.html) 14+
 * Maven 3.1.1+ (merely for build use)
 
@@ -17,18 +17,13 @@ Download SSM branch from Github https://github.com/arenadata/SSM/
 
 ##  **Build SSM**
 
-###   For ADH 3.2.4_arenadata2 +
+###   For ADH 3.3.6_arenadata1 +
   
   	Included in the bundle
 
-###   For Hadoop 3.2.*
-
-	mvn clean package -Pdist,web,hadoop-3.2 -DskipTests
-
-
 ###   For Hadoop 3.3.*
 
-	mvn clean package -Pdist,web,hadoop-3.3 -DskipTests
+	mvn clean package -Pdist,web-ui,hadoop-3.3 -DskipTests
 
 A tar distribution package will be generated under 'smart-dist/target'. Unzip the tar distribution package to ${SMART_HOME} directory, and SSM configuration files are under '${SMART_HOME}/conf'.
 For more detailed information, please refer to BUILDING.txt file.
@@ -267,8 +262,8 @@ Enter ${SMART_HOME} directory for running SSM. You can type `./bin/ssm version` 
 
 # Hadoop Configuration
 ----------------------------------------------------------------------------------
-Please follow the below configuration guide to integrate SSM with ADH, Apache Hadoop 2.7.3 or Apache Hadoop 3.1.0.
-Integration with [ADH 3.2.4_arenadata2 ](https://docs.arenadata.io/en/landing-adh/index.html)+ is not required, SSM is included in the delivery.
+Please follow the below configuration guide to integrate SSM with ADH or Apache Hadoop 3.3.6.
+Integration with [ADH 3.3.6_arenadata1](https://docs.arenadata.io/en/landing-adh/index.html)+ is not required, SSM is included in the delivery.
 
 **Warning: This step may lead to `Hadoop not working issue` if it's not configured correctly. So, during testing, we do not recommend changing any configurations in Hadoop.** Actually, SSM can work with an existing Hadoop cluster without any configuration change in Hadoop. Although in that case SSM cannot collect access count or data temperature from Hadoop, you can still use SSM action to change access count or data temperature. For example, you can use `read -file XXX` to change access count or data temperature of file `XXX`.
 

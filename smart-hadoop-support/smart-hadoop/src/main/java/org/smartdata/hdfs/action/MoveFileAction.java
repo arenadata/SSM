@@ -18,14 +18,9 @@
 package org.smartdata.hdfs.action;
 
 import com.google.gson.Gson;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.action.ActionType;
 import org.smartdata.action.Utils;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.move.AbstractMoveFileAction;
 import org.smartdata.hdfs.action.move.MoverExecutor;
 import org.smartdata.hdfs.action.move.MoverStatus;
@@ -38,16 +33,13 @@ import java.util.Map;
  * An action to set and enforce storage policy for a file.
  */
 public class MoveFileAction extends AbstractMoveFileAction {
-  private static final Logger LOG = LoggerFactory.getLogger(MoveFileAction.class);
   private MoverStatus status;
   private String storagePolicy;
   private String fileName;
   private FileMovePlan movePlan;
-  private SmartConf conf;
 
   public MoveFileAction() {
     super();
-    this.actionType = ActionType.MoveFile;
     this.status = new MoverStatus();
   }
 
@@ -59,7 +51,6 @@ public class MoveFileAction extends AbstractMoveFileAction {
   public void init(Map<String, String> args) {
     super.init(args);
     this.fileName = args.get(FILE_PATH);
-    this.conf = getContext().getConf();
     this.storagePolicy = getStoragePolicy() != null ?
         getStoragePolicy() : args.get(STORAGE_POLICY);
     if (args.containsKey(MOVE_PLAN)) {
@@ -74,8 +65,6 @@ public class MoveFileAction extends AbstractMoveFileAction {
 
   @Override
   protected void execute() throws Exception {
-    this.setDfsClient(HadoopUtil.getDFSClient(
-            HadoopUtil.getNameNodeUri(conf), conf));
     if (StringUtils.isBlank(fileName)) {
       throw new IllegalArgumentException("File parameter is missing!");
     }
@@ -114,8 +103,9 @@ public class MoveFileAction extends AbstractMoveFileAction {
   private int move() throws Exception {
     int maxMoves = movePlan.getPropertyValueInt(FileMovePlan.MAX_CONCURRENT_MOVES, 10);
     int maxRetries = movePlan.getPropertyValueInt(FileMovePlan.MAX_NUM_RETRIES, 10);
-    MoverExecutor executor = new MoverExecutor(status, getContext().getConf(), maxRetries, maxMoves);
-    return executor.executeMove(movePlan, getResultOutputStream(), getLogPrintStream());
+    MoverExecutor executor =
+        new MoverExecutor(status, getContext().getConf(), maxRetries, maxMoves);
+    return executor.executeMove(movePlan, getResultPrintStream(), getLogPrintStream());
   }
 
   private boolean recheckModification() {
@@ -145,5 +135,10 @@ public class MoveFileAction extends AbstractMoveFileAction {
 
   public String getStoragePolicy() {
     return storagePolicy;
+  }
+
+  @Override
+  public DfsClientType dfsClientType() {
+    return DfsClientType.DEFAULT_HDFS;
   }
 }

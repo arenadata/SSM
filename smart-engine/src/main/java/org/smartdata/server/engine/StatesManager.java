@@ -25,6 +25,7 @@ import org.smartdata.conf.Reconfigurable;
 import org.smartdata.conf.ReconfigurableRegistry;
 import org.smartdata.conf.ReconfigureException;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.hdfs.HdfsStatesUpdateService;
 import org.smartdata.metastore.accesscount.DbAccessEventAggregator;
 import org.smartdata.metastore.accesscount.FileAccessManager;
 import org.smartdata.metastore.accesscount.failover.AccessCountFailoverFactory;
@@ -208,8 +209,8 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   private synchronized void initStatesUpdaterService() {
     try {
       try {
-        statesUpdaterService = AbstractServiceFactory
-            .createStatesUpdaterService(serverContext, serverContext.getMetaStore());
+        statesUpdaterService = new HdfsStatesUpdateService(serverContext,
+            serverContext.getMetaStore());
         statesUpdaterService.init();
       } catch (IOException e) {
         statesUpdaterService = null;

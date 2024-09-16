@@ -1,0 +1,94 @@
+version: "3.8"
+services:
+
+  hadoop-namenode:
+    image: cloud-hub.adsw.io/library/hadoop-namenode:${HADOOP_VERSION:-3.3.6}
+    hostname: hadoop-namenode
+    container_name: hadoop-namenode
+    restart: unless-stopped
+    volumes:
+        - hadoop-namenode:/hadoop/dfs/name
+    ports:
+      - "9870:9870"
+      - "8020:8020"
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: bash /healthcheck-hadoop-namenode.sh
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - ssm-metastore-db
+
+  hadoop-datanode:
+    image: cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION:-3.3.6}
+    hostname: hadoop-datanode
+    container_name: hadoop-datanode
+    restart: unless-stopped
+    volumes:
+      - ssm-shared:/etc/ssm/shared
+      - hadoop-datanode-data:/hadoop/dfs/data
+      - hadoop-datanode-ram-data:/hadoop/dfs/ram-data
+      - hadoop-datanode-ssd-data:/hadoop/dfs/ssd-data
+      - hadoop-datanode-archive-data:/hadoop/dfs/archive-data
+    ports:
+      - "9864:9864"
+      - "7048:7048"
+      - "7051:7051"
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: curl http://hadoop-datanode:9864 || exit 1
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - ssm-server
+
+  ssm-server:
+    image: cloud-hub.adsw.io/library/ssm-server:2.0.0-SNAPSHOT
+    hostname: ssm-server
+    restart: unless-stopped
+    container_name: ssm-server
+    volumes:
+      - ssm-shared:/tmp/shared
+    ports:
+      - "7042:7042"
+      - "8081:8081"
+    healthcheck:
+      test: curl http://ssm-server:8081 || exit 1
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - ssm-metastore-db
+
+  ssm-metastore-db:
+    image: "docker.io/library/postgres:14.0"
+    restart: unless-stopped
+    container_name: ssm-metastore-db
+    hostname: ssm-metastore-db
+    environment:
+      POSTGRES_DB: 'metastore'
+      POSTGRES_USER: 'ssm'
+      POSTGRES_PASSWORD: 'ssm'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: psql -d metastore -U ssm -Atc 'SELECT 1;'
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+networks:
+  default:
+    name: ssm-automation
+
+volumes:
+  ssm-shared:
+  hadoop-namenode:
+  hadoop-datanode-data:
+  hadoop-datanode-ram-data:
+  hadoop-datanode-ssd-data:
+  hadoop-datanode-archive-data:

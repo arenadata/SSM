@@ -24,7 +24,8 @@ import org.smartdata.metastore.queries.sort.SortField;
 import java.util.List;
 
 public interface Searchable<RequestT, EntityT, ColumnT extends SortField> {
-  SearchResult<EntityT> search(RequestT searchRequest, PageRequest<ColumnT> pageRequest);
+  SearchResult<EntityT> search(
+      RequestT searchRequest, PageRequest<ColumnT> pageRequest) throws Exception;
 
-  List<EntityT> search(RequestT searchRequest);
+  List<EntityT> search(RequestT searchRequest) throws Exception;
 }

@@ -88,7 +88,7 @@ public class TestMetaStore extends TestDaoBase {
           sleep(5);
           metaStore.updateActions(actionInfoList.toArray(new ActionInfo[0]));
           metaStore.actionDao().search(ActionSearchRequest.noFilters());
-        } catch (MetaStoreException | InterruptedException e) {
+        } catch (Exception e) {
           System.out.println(e.getMessage());
           Assert.fail();
         }
@@ -136,7 +136,7 @@ public class TestMetaStore extends TestDaoBase {
           actionInfoList.get(0).setFinishTime(System.currentTimeMillis());
           metaStore.updateActions(actionInfoList.toArray(new ActionInfo[0]));
           metaStore.actionDao().search(ActionSearchRequest.noFilters());
-        } catch (MetaStoreException e) {
+        } catch (Exception e) {
           System.out.println(e.getMessage());
           Assert.fail();
         }

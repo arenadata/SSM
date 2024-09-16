@@ -17,7 +17,7 @@
  */
 package org.smartdata.server.error;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
@@ -25,9 +25,11 @@ import org.smartdata.exception.SsmParseException;
 import org.smartdata.metastore.MetaStoreException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -44,8 +46,21 @@ import java.util.stream.Collectors;
 public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(SmartExceptionHandler.class);
 
-  // TODO refactor error handling and status codes after api refactoring
-  @ExceptionHandler(value = {IOException.class, MetaStoreException.class})
+  @ExceptionHandler(value = {
+      MetaStoreException.class,
+      MetaDataAccessException.class,
+      DataAccessException.class
+  })
+  protected ResponseEntity<Object> handleDbExceptions(
+      RuntimeException exception, WebRequest request) {
+    return handleExceptionInternal(
+        exception,
+        request,
+        SsmErrorCode.DB_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(value = IOException.class)
   protected ResponseEntity<Object> handleSsmExceptions(
       RuntimeException exception, WebRequest request) {
     return handleExceptionInternal(
@@ -55,8 +70,20 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @ExceptionHandler(value = SsmParseException.class)
+  protected ResponseEntity<Object> handleParseExceptions(
+      SsmParseException exception, WebRequest request) {
+    return handleExceptionInternal(
+        exception,
+        request,
+        SsmErrorCode.PARSE_ERROR,
+        HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(value = {
-      ConstraintViolationException.class, SsmParseException.class})
+      ConstraintViolationException.class,
+      IllegalArgumentException.class
+  })
   protected ResponseEntity<Object> handleValidationExceptions(
       Exception exception, WebRequest request) {
     return handleExceptionInternal(
@@ -109,7 +136,7 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
             request,
             HttpStatus.BAD_REQUEST,
             new ErrorDto<>(
-                    SsmErrorCode.VALIDATION_ERROR.toString(),
+                    SsmErrorCode.VALIDATION_ERROR.getCode(),
                     errorMessage,
                     ExceptionUtils.getStackTrace(exception))
             );
@@ -118,7 +145,7 @@ public class SmartExceptionHandler extends ResponseEntityExceptionHandler {
   private ResponseEntity<Object> handleExceptionInternal(
       Exception exception, WebRequest request, SsmErrorCode errorCode, HttpStatus status) {
     ErrorDto<String> errorBody = new ErrorDto<>(
-        errorCode.toString(),
+        errorCode.getCode(),
         exception.getMessage(),
         ExceptionUtils.getStackTrace(exception));
 

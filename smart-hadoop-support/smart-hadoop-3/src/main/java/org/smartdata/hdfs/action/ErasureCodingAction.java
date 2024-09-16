@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.utils.StringUtil;
 
 import java.io.IOException;
@@ -84,9 +82,6 @@ public class ErasureCodingAction extends ErasureCodingBase {
     final String CONVERT_RESULT =
         "The file is converted successfully with the given or default EC policy.";
 
-    // Make sure DFSClient is used instead of SmartDFSClient.
-    this.setDfsClient(HadoopUtil.getDFSClient(
-        HadoopUtil.getNameNodeUri(conf), conf));
     // keep attribute consistent
     HdfsFileStatus fileStatus = dfsClient.getFileInfo(srcPath);
     if (fileStatus == null) {
@@ -173,5 +168,10 @@ public class ErasureCodingAction extends ErasureCodingBase {
   @Override
   public float getProgress() {
     return progress;
+  }
+
+  @Override
+  public DfsClientType dfsClientType() {
+    return DfsClientType.DEFAULT_HDFS;
   }
 }

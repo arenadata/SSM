@@ -25,7 +25,6 @@ public class ServerContext extends SmartContext {
 
   private final MetaStore metaStore;
 
-  private ServiceMode serviceMode;
 
   public ServerContext(MetaStore metaStore) {
     this.metaStore = metaStore;
@@ -38,13 +37,5 @@ public class ServerContext extends SmartContext {
 
   public MetaStore getMetaStore() {
     return metaStore;
-  }
-
-  public ServiceMode getServiceMode() {
-    return serviceMode;
-  }
-
-  public void setServiceMode(ServiceMode serviceMode) {
-    this.serviceMode = serviceMode;
   }
 }

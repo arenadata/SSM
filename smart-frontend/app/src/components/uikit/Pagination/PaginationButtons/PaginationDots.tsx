@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import s from './PaginationButtons.module.scss';
-import cn from 'classnames';
+import Button from '@uikit/Button/Button';
 
 interface PaginationDotsProps {
   children: string;
@@ -25,9 +25,9 @@ interface PaginationDotsProps {
 
 const PaginationDots = ({ children, dotsHandler }: PaginationDotsProps) => {
   return (
-    <button className={cn(s.paginationButton, s.paginationButton_dots)} onClick={dotsHandler}>
+    <Button variant="tertiary" className={s.paginationButton} onClick={dotsHandler}>
       {children}
-    </button>
+    </Button>
   );
 };
 

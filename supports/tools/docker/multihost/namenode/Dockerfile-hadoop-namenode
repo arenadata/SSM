@@ -1,0 +1,15 @@
+FROM cloud-hub.adsw.io/library/hadoop-base:${HADOOP_VERSION:-3.3.6}
+
+# Configure namenode
+ENV HDFS_PARENT_DATA_DIR=/hadoop/dfs
+ENV HDFS_CONF_dfs_namenode_name_dir=file://$HDFS_PARENT_DATA_DIR/name
+RUN mkdir -p /hadoop/dfs/name
+
+ADD ./supports/tools/docker/multihost/common.sh /common.sh
+ADD ./supports/tools/docker/multihost/namenode/healthcheck-hadoop-namenode.sh /healthcheck-hadoop-namenode.sh
+ADD ./supports/tools/docker/multihost/namenode/hadoop-namenode-entrypoint.sh /hadoop-namenode-entrypoint.sh
+RUN chmod a+x /healthcheck-hadoop-namenode.sh
+RUN chmod a+x /common.sh
+RUN chmod a+x /hadoop-namenode-entrypoint.sh
+
+ENTRYPOINT ["/hadoop-namenode-entrypoint.sh"]

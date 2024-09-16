@@ -17,7 +17,7 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.ClusterInfoDao;
 import org.smartdata.model.ClusterInfo;

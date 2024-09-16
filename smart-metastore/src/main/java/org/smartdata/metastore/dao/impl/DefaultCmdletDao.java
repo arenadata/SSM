@@ -18,7 +18,7 @@
 package org.smartdata.metastore.dao.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.smartdata.metastore.SearchableAbstractDao;
 import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.queries.MetastoreQuery;

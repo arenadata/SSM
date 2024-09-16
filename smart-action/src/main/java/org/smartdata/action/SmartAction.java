@@ -18,8 +18,10 @@
 package org.smartdata.action;
 
 import com.google.common.annotations.VisibleForTesting;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
@@ -34,23 +36,34 @@ import java.util.Map;
  * should be able to run in a cmdlet line or web console. User defined actions
  * are also meant to extend this.
  */
+@Getter
 public abstract class SmartAction {
   private static final Logger LOG = LoggerFactory.getLogger(SmartAction.class);
-  private long cmdletId;
-  private boolean lastAction;
-  private long actionId;
-  private Map<String, String> actionArgs;
-  private SmartContext context;
+
   private final ByteArrayOutputStream resultOutputStream;
   private final PrintStream resultPrintStream;
   private final ByteArrayOutputStream logOutputStream;
   private final PrintStream logPrintStream;
-  private volatile boolean successful;
-  protected String name;
+
+  @Setter
+  private long cmdletId;
+  @Setter
+  private boolean lastAction;
+  @Setter
+  private long actionId;
+  @Setter
+  private SmartContext context;
+  @Setter
+  private String name;
+  @Setter
+  private Throwable throwable;
+
+  private Map<String, String> arguments;
   private long startTime;
   private long finishTime;
-  private Throwable throwable;
-  private boolean finished;
+
+  private volatile boolean successful;
+  private volatile boolean finished;
 
   public SmartAction() {
     this.successful = false;
@@ -61,66 +74,13 @@ public abstract class SmartAction {
     this.logPrintStream = new PrintStream(logOutputStream, false);
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public long getCmdletId() {
-    return cmdletId;
-  }
-
-  public void setCmdletId(long cmdletId) {
-    this.cmdletId = cmdletId;
-  }
-
-  public boolean isLastAction() {
-    return lastAction;
-  }
-
-  public void setLastAction(boolean lastAction) {
-    this.lastAction = lastAction;
-  }
-
-  public SmartContext getContext() {
-    return context;
-  }
-
-  public void setContext(SmartContext context) {
-    this.context = context;
-  }
-
   /**
    * Used to initialize the action.
    *
    * @param args Action specific
    */
   public void init(Map<String, String> args) {
-    this.actionArgs = args;
-  }
-
-  /**
-   * Get action arguments.
-   *
-   * @return
-   */
-  public Map<String, String> getArguments() {
-    return actionArgs;
-  }
-
-  public void setArguments(Map<String, String> args) {
-    actionArgs = args;
-  }
-
-  public long getActionId() {
-    return actionId;
-  }
-
-  public void setActionId(long actionId) {
-    this.actionId = actionId;
+    this.arguments = args;
   }
 
   protected abstract void execute() throws Exception;
@@ -133,7 +93,7 @@ public abstract class SmartAction {
     } catch (Throwable t) {
       LOG.error("SmartAction execute error ", t);
       setThrowable(t);
-      appendLog(ExceptionUtils.getFullStackTrace(t));
+      appendLog(ExceptionUtils.getStackTrace(t));
     } finally {
       setFinishTime();
       finished = true;
@@ -143,10 +103,6 @@ public abstract class SmartAction {
 
   private void setStartTime() {
     this.startTime = System.currentTimeMillis();
-  }
-
-  private void setThrowable(Throwable t) {
-    this.throwable = t;
   }
 
   private void setFinishTime() {
@@ -161,14 +117,6 @@ public abstract class SmartAction {
   // The log will be shown in action's submission section and summary page.
   protected void appendLog(String log) {
     logPrintStream.println(log);
-  }
-
-  public PrintStream getResultOutputStream() {
-    return resultPrintStream;
-  }
-
-  public PrintStream getLogPrintStream() {
-    return logPrintStream;
   }
 
   public float getProgress() {
@@ -195,14 +143,6 @@ public abstract class SmartAction {
   private void stop() {
     logPrintStream.close();
     resultPrintStream.close();
-  }
-
-  public boolean isSuccessful() {
-    return successful;
-  }
-
-  public boolean isFinished() {
-    return finished;
   }
 
   @VisibleForTesting

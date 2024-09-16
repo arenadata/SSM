@@ -18,7 +18,7 @@
 import React from 'react';
 import { Dialog } from '@uikit';
 import { useDispatch, useStore } from '@hooks';
-import { closeCreateRuleDialog, deleteRuleWithUpdate } from '@store/adh/rules/rulesActionsSlice';
+import { closeDeleteRuleDialog, deleteRuleWithUpdate } from '@store/adh/rules/rulesActionsSlice';
 
 const RuleDeleteDialog: React.FC = () => {
   const dispatch = useDispatch();
@@ -26,7 +26,7 @@ const RuleDeleteDialog: React.FC = () => {
   const isOpen = !!rule;
 
   const closeDialog = () => {
-    dispatch(closeCreateRuleDialog());
+    dispatch(closeDeleteRuleDialog());
   };
   const handleDelete = () => {
     if (rule) {

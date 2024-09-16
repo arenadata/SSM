@@ -19,8 +19,6 @@ package org.smartdata.hdfs.action;
 
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 
 import java.util.Map;
 
@@ -35,25 +33,26 @@ import java.util.Map;
 public class CheckErasureCodingPolicy extends HdfsAction {
   public static final String RESULT_OF_NULL_EC_POLICY =
       "The EC policy is replication.";
-  private SmartConf conf;
   private String srcPath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.conf = getContext().getConf();
     this.srcPath = args.get(HdfsAction.FILE_PATH);
   }
 
   @Override
   public void execute() throws Exception {
-    this.setDfsClient(HadoopUtil.getDFSClient(
-        HadoopUtil.getNameNodeUri(conf), conf));
     ErasureCodingPolicy srcEcPolicy = dfsClient.getErasureCodingPolicy(srcPath);
     if (srcEcPolicy == null) {
       appendLog(RESULT_OF_NULL_EC_POLICY);
     } else {
       appendLog(srcEcPolicy.toString());
     }
+  }
+
+  @Override
+  public DfsClientType dfsClientType() {
+    return DfsClientType.DEFAULT_HDFS;
   }
 }

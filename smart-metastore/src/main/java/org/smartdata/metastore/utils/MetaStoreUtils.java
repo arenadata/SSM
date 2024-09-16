@@ -18,7 +18,7 @@
 package org.smartdata.metastore.utils;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
@@ -79,6 +79,12 @@ public class MetaStoreUtils {
       "user_info",
       "whitelist"
   );
+
+  public static MetaStoreException logAndBuildMetastoreException(
+      Logger logger, String exceptionMessage, Exception cause) {
+    logger.error(exceptionMessage);
+    return new MetaStoreException(exceptionMessage, cause);
+  }
 
   public static MetaStore getDBAdapter(
       SmartConf conf) throws MetaStoreException {

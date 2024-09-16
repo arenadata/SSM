@@ -56,11 +56,11 @@ public class ErrorResponseDto {
   }
 
   /**
-   * Error code
+   * Error code. Can be in the form of `ssm_XX` or `db_XX`
    * @return code
   */
   @NotNull 
-  @Schema(name = "code", description = "Error code", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(name = "code", description = "Error code. Can be in the form of `ssm_XX` or `db_XX`", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("code")
   public String getCode() {
     return code;

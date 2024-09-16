@@ -60,7 +60,7 @@ public class TestUserActivityDao
   }
 
   @Test
-  public void testEmptyFiltersSearch() {
+  public void testEmptyFiltersSearch() throws Exception {
     List<UserActivityEvent> events =
         userActivityDao.search(AuditSearchRequest.empty());
 
@@ -68,7 +68,7 @@ public class TestUserActivityDao
   }
 
   @Test
-  public void testFetchAllColumns() {
+  public void testFetchAllColumns() throws Exception {
     AuditSearchRequest searchRequest = AuditSearchRequest.builder()
         .objectIds(Collections.singletonList(1L))
         .build();
@@ -90,7 +90,7 @@ public class TestUserActivityDao
   }
 
   @Test
-  public void testEmptyFiltersSearchWithPagination() {
+  public void testEmptyFiltersSearchWithPagination() throws Exception {
     PageRequest<AuditSortField> pageRequest = PageRequest.<AuditSortField>builder()
         .offset(0L)
         .limit(2)

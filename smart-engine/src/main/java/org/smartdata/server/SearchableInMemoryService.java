@@ -18,7 +18,7 @@
 package org.smartdata.server;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.mutable.MutableLong;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.smartdata.metastore.dao.Searchable;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;

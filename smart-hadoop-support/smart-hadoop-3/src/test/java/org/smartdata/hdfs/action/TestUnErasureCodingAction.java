@@ -46,6 +46,7 @@ public class TestUnErasureCodingAction extends TestErasureCodingMiniCluster {
     Map<String, String> args = new HashMap<>();
     args.put(HdfsAction.FILE_PATH, srcPath);
     args.put(ErasureCodingBase.EC_TMP, ecTmpPath);
+    unEcAction.setDfsClient(dfsClient);
     unEcAction.init(args);
     unEcAction.run();
     assertTrue(unEcAction.getExpectedAfterRun());
@@ -75,6 +76,7 @@ public class TestUnErasureCodingAction extends TestErasureCodingMiniCluster {
     unEcAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(HdfsAction.FILE_PATH, testDir);
+    unEcAction.setDfsClient(dfsClient);
     unEcAction.init(args);
     unEcAction.run();
     assertNull(dfs.getErasureCodingPolicy(new Path(testDir)));

@@ -19,6 +19,7 @@ import React, { useMemo } from 'react';
 import cn from 'classnames';
 import s from './PaginationButtons.module.scss';
 import Icon from '@uikit/Icon/Icon';
+import Button from '@uikit/Button/Button';
 
 export type PaginationBtnArrowVariant = 'arrowSingle' | 'arrowDouble';
 export type PaginationBtnVariant = 'next' | 'prev';
@@ -44,17 +45,17 @@ const PaginationStepButton = ({
 }: PaginationButtonProps) => {
   const btnClasses = useMemo(
     () =>
-      cn(s.paginationButton, {
+      cn({
         [s[`paginationButtonArrowSingle_${variant}`]]: arrowVariant === 'arrowSingle',
-        [s.paginationButtonArrowDouble]: arrowVariant === 'arrowDouble',
+        [s[`paginationButtonArrowDouble_${variant}`]]: arrowVariant === 'arrowDouble',
       }),
     [variant, arrowVariant],
   );
 
   return (
-    <button onClick={onClick} className={btnClasses} disabled={disabled} data-test={dataTest}>
+    <Button variant="tertiary" onClick={onClick} className={btnClasses} disabled={disabled} data-test={dataTest}>
       <Icon size={getArrowSize(arrowVariant)} name={getArrowIconName(arrowVariant)} />
-    </button>
+    </Button>
   );
 };
 

@@ -27,10 +27,10 @@ import { AdhActionsApi } from '@api';
 
 const createAction = createAsyncThunk('adh/actionsActions/createAction', async (text: string, thunkAPI) => {
   thunkAPI.dispatch(setIsActionInProgress(true));
-  thunkAPI.dispatch(closeCreateActionDialog());
   try {
     await AdhActionsApi.createAction(text);
     thunkAPI.dispatch(showSuccess({ message: 'New action was performed successfully' }));
+    thunkAPI.dispatch(closeCreateActionDialog());
   } catch (error) {
     thunkAPI.dispatch(showError({ message: getErrorMessage(error as RequestError) }));
     return thunkAPI.rejectWithValue(error);
@@ -41,11 +41,11 @@ const createAction = createAsyncThunk('adh/actionsActions/createAction', async (
 
 const repeatAction = createAsyncThunk('adh/actionsActions/repeatAction', async (text: string, thunkAPI) => {
   thunkAPI.dispatch(setIsActionInProgress(true));
-  thunkAPI.dispatch(closeUpdateActionDialog());
   try {
     // in really, repeat action is recreate new action
     await AdhActionsApi.createAction(text);
     thunkAPI.dispatch(showSuccess({ message: 'Action was repeated successfully' }));
+    thunkAPI.dispatch(closeUpdateActionDialog());
   } catch (error) {
     thunkAPI.dispatch(showError({ message: getErrorMessage(error as RequestError) }));
     return thunkAPI.rejectWithValue(error);

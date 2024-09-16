@@ -19,7 +19,6 @@ package org.smartdata.server.engine.rule;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.model.RuleState;
 import org.smartdata.server.MiniSmartClusterHarness;
 
@@ -32,24 +31,23 @@ public class TestSubmitRule extends MiniSmartClusterHarness {
     waitTillSSMExitSafeMode();
 
     String rule = "file: every 1s \n | length > 10 | cache";
-    SmartAdmin client = new SmartAdmin(smartContext.getConf());
 
-    long ruleId = client.submitRule(rule, RuleState.ACTIVE);
+    long ruleId = ssm.getRuleManager().submitRule(rule, RuleState.ACTIVE);
 
     for (int i = 0; i < 10; i++) {
-      long id = client.submitRule(rule, RuleState.ACTIVE);
+      long id = ssm.getRuleManager().submitRule(rule, RuleState.ACTIVE);
       Assert.assertTrue(ruleId + i + 1 == id);
     }
 
     String badRule = "something else";
     try {
-      client.submitRule(badRule, RuleState.ACTIVE);
+      ssm.getRuleManager().submitRule(badRule, RuleState.ACTIVE);
       Assert.fail("Should have an exception here");
     } catch (IOException e) {
     }
 
     try {
-      client.checkRule(badRule);
+      ssm.getRuleManager().checkRule(badRule);
       Assert.fail("Should have an exception here");
     } catch (IOException e) {
     }

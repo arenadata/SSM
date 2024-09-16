@@ -17,7 +17,7 @@
  */
 package org.smartdata.server;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.metastore.dao.SearchableTestSupport;

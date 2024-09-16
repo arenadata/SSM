@@ -17,36 +17,22 @@
  */
 package org.smartdata.server.engine.audit;
 
-import org.smartdata.metastore.dao.Searchable;
+import org.smartdata.metastore.dao.SearchableService;
 import org.smartdata.metastore.dao.UserActivityDao;
-import org.smartdata.metastore.model.SearchResult;
-import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.AuditSortField;
 import org.smartdata.model.audit.UserActivityEvent;
 import org.smartdata.model.request.AuditSearchRequest;
 
-import java.util.List;
-
-public class AuditService implements
-    Searchable<AuditSearchRequest, UserActivityEvent, AuditSortField> {
+public class AuditService extends
+    SearchableService<AuditSearchRequest, UserActivityEvent, AuditSortField> {
   private final UserActivityDao userActivityDao;
 
   public AuditService(UserActivityDao userActivityDao) {
+    super(userActivityDao, "audit events");
     this.userActivityDao = userActivityDao;
   }
 
   public void logEvent(UserActivityEvent event) {
     userActivityDao.insert(event);
-  }
-
-  @Override
-  public SearchResult<UserActivityEvent> search(
-      AuditSearchRequest searchRequest, PageRequest<AuditSortField> pageRequest) {
-    return userActivityDao.search(searchRequest, pageRequest);
-  }
-
-  @Override
-  public List<UserActivityEvent> search(AuditSearchRequest searchRequest) {
-    return userActivityDao.search(searchRequest);
   }
 }

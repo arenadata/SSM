@@ -20,7 +20,6 @@ package org.smartdata;
 import org.apache.hadoop.security.authorize.PolicyProvider;
 import org.apache.hadoop.security.authorize.Service;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.protocol.SmartAdminProtocol;
 import org.smartdata.protocol.SmartClientProtocol;
 
 /**
@@ -31,8 +30,6 @@ public class SmartPolicyProvider extends PolicyProvider {
     new Service[] {
     new Service(SmartConfKeys.SMART_SECURITY_CLIENT_PROTOCOL_ACL,
         SmartClientProtocol.class),
-    new Service(SmartConfKeys.SMART_SECURITY_ADMIN_PROTOCOL_ACL,
-        SmartAdminProtocol.class)
   };
 
   @Override

@@ -1,0 +1,37 @@
+FROM openjdk:8
+
+ARG SSM_APP_VERSION
+ENV USER=root
+ENV SSM_HOME=/opt/ssm
+
+# Install SSH server
+RUN apt-get update \
+    && apt-get install -y netcat \
+    && apt-get install -y openssh-server \
+    && apt-get install -y nano \
+    && mkdir -p /root/.ssh \
+    && chmod 0700 /root/.ssh \
+    && ssh-keygen -t rsa -C "root@ssm-server" -N "" -f /root/.ssh/id_rsa \
+    && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+
+RUN mkdir /opt/ssm
+RUN mkdir /opt/ssm/bin
+RUN mkdir /opt/ssm/lib
+RUN mkdir /opt/ssm/conf
+
+# Copy ssm jars to $HADOOP_HOME/share/hadoop/common/lib
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/smart-*.jar $HADOOP_HOME/share/hadoop/common/lib/
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
+COPY ./supports/tools/docker/multihost/conf/* $SSM_HOME/conf/
+
+ADD ./supports/tools/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
+ADD ./supports/tools/docker/multihost/common.sh /common.sh
+RUN chmod a+x /ssm-server-entrypoint.sh
+RUN chmod a+x /common.sh
+
+RUN chmod a+x $SSM_HOME/bin/install.sh
+RUN chmod a+x $SSM_HOME/bin/start-ssm.sh
+RUN chmod a+x $SSM_HOME/bin/start-agent.sh
+
+ENTRYPOINT ["/ssm-server-entrypoint.sh"]

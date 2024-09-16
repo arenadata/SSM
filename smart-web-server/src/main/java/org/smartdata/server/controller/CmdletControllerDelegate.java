@@ -72,7 +72,7 @@ public class CmdletControllerDelegate implements CmdletsApiDelegate {
       SubmissionTimeIntervalDto submissionTime,
       List<Long> ruleIds,
       List<CmdletStateDto> states,
-      StateChangeTimeIntervalDto stateChangedTime) {
+      StateChangeTimeIntervalDto stateChangedTime) throws Exception {
 
     CmdletSearchRequest searchRequest = cmdletInfoMapper.toSearchRequest(
         textRepresentationLike, submissionTime, ruleIds, states, stateChangedTime);

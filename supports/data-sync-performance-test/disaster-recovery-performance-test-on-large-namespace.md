@@ -30,7 +30,7 @@ Note that some of our test cases may reach peak write IOPS in standby HDFS namen
 
 **Software requirement:**
 
-1. Hadoop (Hadoop-3.2.X/ADH 3.2.4_arenadata2_b1 or higher)
+1. Hadoop (Hadoop-3.3.6/ADH 3.3.6_arenadata1 or higher)
 2. Postgresql (12.X or higher/ADPG 14 or higher)
 3. SSM (1.6 or higher)
 

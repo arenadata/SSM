@@ -18,7 +18,7 @@
 import React from 'react';
 import { Dialog } from '@uikit';
 import { useDispatch, useStore } from '@hooks';
-import { closeStopRuleDialog, stopRule } from '@store/adh/rules/rulesActionsSlice';
+import { closeStopRuleDialog, stopRuleWithUpdate } from '@store/adh/rules/rulesActionsSlice';
 
 const RuleStopDialog: React.FC = () => {
   const dispatch = useDispatch();
@@ -30,7 +30,7 @@ const RuleStopDialog: React.FC = () => {
   };
   const handleDelete = () => {
     if (rule) {
-      dispatch(stopRule(rule.id));
+      dispatch(stopRuleWithUpdate(rule.id));
     }
   };
 

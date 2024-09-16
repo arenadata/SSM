@@ -18,6 +18,7 @@
 import React from 'react';
 import cn from 'classnames';
 import s from './PaginationButtons.module.scss';
+import Button from '@uikit/Button/Button';
 
 interface PaginationNumButtonProps extends React.PropsWithChildren {
   onClick: () => void;
@@ -26,7 +27,7 @@ interface PaginationNumButtonProps extends React.PropsWithChildren {
 
 const PaginationNumButton = ({ onClick, children, selected = false }: PaginationNumButtonProps) => {
   const btnClasses = cn(s.paginationButton, {
-    [s.paginationButton_selected]: selected,
+    'is-active': selected,
   });
 
   const handleClick = () => {
@@ -34,9 +35,9 @@ const PaginationNumButton = ({ onClick, children, selected = false }: Pagination
   };
 
   return (
-    <button onClick={handleClick} className={btnClasses}>
+    <Button variant="tertiary" onClick={handleClick} className={btnClasses}>
       {children}
-    </button>
+    </Button>
   );
 };
 

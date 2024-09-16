@@ -1,0 +1,59 @@
+FROM openjdk:8
+
+ARG HADOOP_VERSION
+ARG SSM_APP_VERSION
+ENV HADOOP_VERSION=$HADOOP_VERSION
+ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
+ENV HADOOP_CONF_DIR=/etc/hadoop
+ENV MULTIHOMED_NETWORK=1
+ENV USER=root
+ENV PATH $HADOOP_HOME/bin/:$PATH
+ENV HDFS_PARENT_DATA_DIR=/hadoop/dfs
+ENV SSM_HOME=/opt/ssm
+ENV HADOOP_URL https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      net-tools curl wget netcat procps gnupg libsnappy-dev && rm -rf /var/lib/apt/lists/*
+
+# Install SSH server
+RUN apt-get update \
+    && apt-get install -y openssh-server \
+    && apt-get install -y nano \
+    && mkdir -p /root/.ssh \
+    && chmod 0700 /root/.ssh
+
+# Download Hadoop
+RUN set -x \
+    && curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz \
+    && tar -xvf /tmp/hadoop.tar.gz -C /opt/ \
+    && rm /tmp/hadoop.tar.gz*
+
+# Configure HDFS
+RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
+RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
+RUN mkdir /hadoop-data
+
+RUN mkdir /opt/ssm
+RUN mkdir /opt/ssm/bin
+RUN mkdir /opt/ssm/lib
+RUN mkdir /opt/ssm/conf
+
+# Copy custom hadoop config files to $HADOOP_CONF_DIR
+COPY ./supports/tools/docker/multihost/conf/* $HADOOP_CONF_DIR/
+
+# Copy ssm jars to $HADOOP_HOME/share/hadoop/common/lib
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/smart-*.jar $HADOOP_HOME/share/hadoop/common/lib/
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
+COPY ./supports/tools/docker/multihost/conf/* $SSM_HOME/conf/
+
+RUN chmod a+x $SSM_HOME/bin/install.sh
+RUN chmod a+x $SSM_HOME/bin/start-ssm.sh
+RUN chmod a+x $SSM_HOME/bin/start-agent.sh
+
+ADD ./supports/tools/docker/multihost/common.sh /common.sh
+ADD ./supports/tools/docker/multihost/hadoop-base-entrypoint.sh /hadoop-base-entrypoint.sh
+RUN chmod a+x /common.sh
+RUN chmod a+x /hadoop-base-entrypoint.sh
+
+ENTRYPOINT ["/hadoop-base-entrypoint.sh"]

@@ -23,7 +23,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.server.MiniSmartClusterHarness;
@@ -67,11 +66,10 @@ public class TestSmallFileRule extends MiniSmartClusterHarness {
 
     String rule = "file: path matches \"/test/small_files/file*\" and length < 20KB"
         + " | compact -containerFile \"/test/small_files/container_file_1\"";
-    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
-    admin.submitRule(rule, RuleState.ACTIVE);
+    ssm.getRuleManager().submitRule(rule, RuleState.ACTIVE);
 
     Thread.sleep(6000);
-    List<RuleInfo> ruleInfoList = admin.listRulesInfo();
+    List<RuleInfo> ruleInfoList = ssm.getRuleManager().listRulesInfo();
     for (RuleInfo info : ruleInfoList) {
       System.out.println(info);
     }

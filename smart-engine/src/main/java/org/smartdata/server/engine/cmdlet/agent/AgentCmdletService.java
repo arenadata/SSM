@@ -39,7 +39,7 @@ public class AgentCmdletService extends AgentService {
     SmartAgentContext context = (SmartAgentContext) getContext();
     SmartConf conf = context.getConf();
     this.executor = new CmdletExecutor(conf);
-    this.factory = new CmdletFactory(context, context.getStatusReporter());
+    this.factory = new CmdletFactory(context);
   }
 
   @Override
@@ -49,6 +49,7 @@ public class AgentCmdletService extends AgentService {
   @Override
   public void stop() throws IOException {
     executor.shutdown();
+    factory.close();
   }
 
 

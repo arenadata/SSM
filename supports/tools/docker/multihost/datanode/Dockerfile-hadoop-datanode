@@ -1,0 +1,15 @@
+FROM cloud-hub.adsw.io/library/hadoop-base:${HADOOP_VERSION:-3.3.6}
+
+# Configure datanode
+ENV HDFS_PARENT_DATA_DIR=/hadoop/dfs
+ENV HDFS_CONF_dfs_datanode_data_dir=file://$HDFS_PARENT_DATA_DIR/data
+
+RUN mkdir -p $HDFS_PARENT_DATA_DIR/data
+RUN mkdir -p $HDFS_PARENT_DATA_DIR/ssd-data
+RUN mkdir -p $HDFS_PARENT_DATA_DIR/ram-data
+RUN mkdir -p $HDFS_PARENT_DATA_DIR/archive-data
+
+ADD ./supports/tools/docker/multihost/datanode/hadoop-datanode-entrypoint.sh /hadoop-datanode-entrypoint.sh
+RUN chmod a+x /hadoop-datanode-entrypoint.sh
+
+ENTRYPOINT ["/hadoop-datanode-entrypoint.sh"]

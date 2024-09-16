@@ -1,7 +1,54 @@
+# Run Hadoop cluster with SSM in docker containers
+
+There are two cluster types:
+* singlehost
+* multihost
+
+And one currently supported HDFS version:
+
+* 3.3.*
+
+## Singlehost configuration
+
+* Hadoop + SSM in one container
+* SSM metastore as postgres container
+
+Command to build docker images in singlehost cluster mode (from project root dir)
+
+```shell
+./build-images.sh --cluster=singlehost --hadoop=3.3
+```
+
+Command to start docker containers 
+
+```shell
+cd ./supports/tools/docker
+./start-demo.sh --cluster=singlehost --hadoop=3.3
+```
+
+## Multihost configuration
+
+* Hadoop datanode container
+* Hadoop namenode, node manager, resource manager in container
+* SSM Server container
+* SSM metastore as postgres container
+
+Command to build docker images in multihost cluster mode (from project root dir)
+
+```shell
+./build-images.sh --cluster=multihost --hadoop=3.3
+```
+
+Command to start docker containers
+
+```shell
+cd ./supports/tools/docker
+./start-demo.sh --cluster=multihost --hadoop=3.3
+```
+
 # Run/Test SSM with Docker
 
 Docker can greately reduce boring time for installing and maintaining software on servers and developer machines. This document presents this basic workflow of Run/test ssm with docker. [Docker Quick Start](https://docs.docker.com/get-started/)
-
 
 ## Necessary Components
 

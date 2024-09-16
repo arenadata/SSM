@@ -1,0 +1,71 @@
+- name: Gather facts
+  remote_user: ansible
+  hosts: all
+
+- name: Update SSM Agents
+  hosts: ssm_agents
+  gather_facts: no
+  remote_user: ansible
+  tasks:
+    - include_tasks: restart_service_tasks.yaml
+      vars:
+        ssm_service_name: smart-storage-manager-agent
+
+- name: Update SSM Servers
+  hosts: ssm_servers
+  gather_facts: no
+  remote_user: ansible
+  tasks:
+    - include_tasks: restart_service_tasks.yaml
+      vars:
+        ssm_service_name: smart-storage-manager-server
+
+    # restore postgresql driver jar symlink created by adcm
+    # to be able to correctly run adcm actions from web ui
+    - name: Create PostgreSQL driver symbolic link
+      become: yes
+      ansible.builtin.file:
+        src: /usr/share/java/jdbc-postgresql.jar
+        dest: /usr/lib/ssm/lib/postgresql-jdbc.jar
+        state: link
+
+- name: Update HDFS clients
+  hosts: hdfs_clients
+  gather_facts: no
+  remote_user: ansible
+  tasks:
+    - include_tasks: copy_jars_tasks.yaml
+
+    - name: List old SSM jar symlinks to remove
+      become: yes
+      find:
+        paths: /usr/lib/hadoop/lib
+        patterns: "smart-*.jar"
+        file_type: link
+      register: ssm_jar_links_to_delete
+
+    - name: Remove old SSM jar symlinks
+      become: yes
+      file:
+        path: "{{ item.path }}"
+        state: absent
+        follow: no
+      with_items: "{{ ssm_jar_links_to_delete.files }}"
+
+    - name: List new SSM jars to symlink
+      become: yes
+      find:
+        paths: /usr/lib/ssm/lib/
+        patterns: "smart-*.jar"
+      register: ssm_jars_to_link
+
+    - name: Symlink new SSM jars
+      become: yes
+      file:
+        src: "{{ item.path }}"
+        dest: "/usr/lib/hadoop/lib/{{ item.path.split('/') | last }}"
+        owner: hdfs
+        group: hadoop
+        state: link
+        follow: no
+      with_items: "{{ ssm_jars_to_link.files }}"

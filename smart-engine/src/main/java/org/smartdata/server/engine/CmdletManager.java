@@ -20,8 +20,9 @@ package org.smartdata.server.engine;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
@@ -33,6 +34,13 @@ import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.exception.SsmParseException;
 import org.smartdata.hdfs.scheduler.ActionSchedulerService;
+import org.smartdata.hdfs.scheduler.CacheScheduler;
+import org.smartdata.hdfs.scheduler.CompressionScheduler;
+import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
+import org.smartdata.hdfs.scheduler.CopyScheduler;
+import org.smartdata.hdfs.scheduler.ErasureCodingScheduler;
+import org.smartdata.hdfs.scheduler.MoverScheduler;
+import org.smartdata.hdfs.scheduler.SmallFileScheduler;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -74,6 +82,7 @@ import org.smartdata.server.engine.cmdlet.TaskTracker;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -89,6 +98,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
 import static org.smartdata.model.action.ScheduleResult.isSuccessful;
 import static org.smartdata.model.audit.UserActivityObject.CMDLET;
@@ -105,6 +115,7 @@ import static org.smartdata.model.audit.UserActivityOperation.STOP;
  * <p>The map idToCmdlets stores all the recent CmdletInfos, including pending and running Cmdlets.
  * After the Cmdlet is finished or cancelled or failed, it's status will be flush to DB.
  */
+@Slf4j
 public class CmdletManager extends AbstractService
     implements ActionStatusUpdateListener, ClusterNodeMetricsProvider, Auditable {
   private static final Logger LOG = LoggerFactory.getLogger(CmdletManager.class);
@@ -147,8 +158,17 @@ public class CmdletManager extends AbstractService
     this.scheduledCmdlets = new LinkedBlockingQueue<>();
     this.idToLaunchCmdlets = new ConcurrentHashMap<>();
     this.schedulers = ArrayListMultimap.create();
-    this.schedulerServices = new ArrayList<>();
-
+    //because we have to ignore exceptions while creating services,
+    //the better way to init them is reflection
+    this.schedulerServices = AbstractServiceFactory.createSchedulerServices(Arrays.asList(
+        MoverScheduler.class,
+        CopyScheduler.class,
+        Copy2S3Scheduler.class,
+        SmallFileScheduler.class,
+        CompressionScheduler.class,
+        ErasureCodingScheduler.class,
+        CacheScheduler.class
+    ), context, metaStore);
     this.tracker = new TaskTracker();
     this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlets,
         idToLaunchCmdlets, runningCmdlets, schedulers);
@@ -201,10 +221,6 @@ public class CmdletManager extends AbstractService
       cmdletPurgeTask.init();
       cmdletInfoHandler.init();
       actionInfoHandler.init();
-
-      schedulerServices = AbstractServiceFactory.createActionSchedulerServices(
-          (ServerContext) getContext(), metaStore, false);
-
       for (ActionSchedulerService actionSchedulerService : schedulerServices) {
         actionSchedulerService.init();
         List<String> actions = actionSchedulerService.getSupportedActions();
@@ -215,10 +231,8 @@ public class CmdletManager extends AbstractService
       loadCmdletsFromDb();
       LOG.info("Initialized.");
     } catch (MetaStoreException e) {
-      LOG.error("DB Connection error! Failed to get Max CmdletId/ActionId!", e);
-      throw new IOException(e);
-    } catch (IOException e) {
-      throw e;
+      throw logAndBuildMetastoreException(
+          LOG, "DB Connection error! Failed to get Max CmdletId!", e);
     } catch (Exception t) {
       throw new IOException(t);
     }
@@ -353,7 +367,7 @@ public class CmdletManager extends AbstractService
     LOG.debug("Received Cmdlet -> [ {} ]", cmdlet);
     try {
       if (StringUtils.isBlank(cmdlet)) {
-        throw new IOException("Cannot submit an empty action!");
+        throw new IllegalArgumentException("Cannot submit an empty action!");
       }
       CmdletDescriptor cmdletDescriptor = buildCmdletDescriptor(cmdlet);
       return submitCmdlet(cmdletDescriptor);

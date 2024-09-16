@@ -123,7 +123,7 @@ public class RuleInfoRepo {
           ret = metaStore.updateRuleInfo(ruleInfo.getId(),
               rs, lastCheckTime, ruleInfo.getNumChecked(), (int) ruleInfo.getNumCmdsGen());
         } catch (MetaStoreException e) {
-          throw new IOException(ruleInfo.toString(), e);
+          throw new MetaStoreException(ruleInfo.toString(), e);
         }
       }
       return ret;
@@ -229,7 +229,7 @@ public class RuleInfoRepo {
           break;
       }
     } catch (MetaStoreException e) {
-      throw new IOException(ruleInfo.toString(), e);
+      throw new MetaStoreException(ruleInfo.toString(), e);
     }
     throw new IOException("This rule state transition is not supported: "
         + oldState.name() + " -> " + newState.name());  // TODO: unsupported

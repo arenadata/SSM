@@ -17,6 +17,5 @@
  */
 package org.smartdata.protocol.protobuffer;
 
-public interface ServerProtocolsProtoBuffer extends ClientProtocolProtoBuffer,
-    AdminProtocolProtoBuffer {
+public interface ServerProtocolsProtoBuffer extends ClientProtocolProtoBuffer {
 }

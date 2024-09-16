@@ -49,7 +49,7 @@ public class TestCmdletDao
   }
 
   @Test
-  public void testInsertGetCmdlet() {
+  public void testInsertGetCmdlet() throws Exception {
     CmdletInfo cmdlet1 = new CmdletInfo(0, 1,
         CmdletState.EXECUTING, "test", 123123333L, 232444444L);
     CmdletInfo cmdlet2 = new CmdletInfo(1, 78,
@@ -78,7 +78,7 @@ public class TestCmdletDao
   }
 
   @Test
-  public void testDeleteACmdlet() {
+  public void testDeleteACmdlet() throws Exception {
     CmdletInfo cmdlet1 = new CmdletInfo(0, 1,
         CmdletState.EXECUTING, "test", 123123333L, 232444444L);
     CmdletInfo cmdlet2 = new CmdletInfo(1, 78,

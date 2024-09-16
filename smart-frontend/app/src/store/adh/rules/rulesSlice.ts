@@ -25,7 +25,7 @@ import { AdhRulesApi } from '@api';
 import { executeWithMinDelay } from '@utils/requestUtils';
 import { defaultSpinnerDelay } from '@constants';
 // eslint-disable-next-line import/no-cycle
-import { startRule, stopRule } from './rulesActionsSlice';
+import { startRuleWithUpdate, stopRuleWithUpdate } from './rulesActionsSlice';
 import type { AdhRule } from '@models/adh';
 import { AdhRuleState } from '@models/adh';
 
@@ -79,8 +79,15 @@ const refreshRules = createAsyncThunk('adh/rules/refreshRules', async (_, thunkA
 
 const getRulesMetaInfo = createAsyncThunk('adh/rules/getRulesMetaInfo', async (_, thunkAPI) => {
   try {
-    const allCollection = await AdhRulesApi.getRules({});
-    const activeCollection = await AdhRulesApi.getRules({ ruleStates: [AdhRuleState.Active] });
+    const [
+      //
+      allCollection,
+      activeCollection,
+    ] = await Promise.all([
+      //
+      AdhRulesApi.getRules({}),
+      AdhRulesApi.getRules({ ruleStates: [AdhRuleState.Active] }),
+    ]);
 
     return {
       allCollection,
@@ -124,14 +131,14 @@ const rulesSlice = createSlice({
       state.rules = [];
       state.totalCount = 0;
     });
-    builder.addCase(startRule.fulfilled, (state, action) => {
+    builder.addCase(startRuleWithUpdate.fulfilled, (state, action) => {
       const ruleId = action.meta.arg;
       const currentRule = state.rules.find((rule) => rule.id === ruleId);
       if (currentRule) {
         currentRule.state = AdhRuleState.Active;
       }
     });
-    builder.addCase(stopRule.fulfilled, (state, action) => {
+    builder.addCase(stopRuleWithUpdate.fulfilled, (state, action) => {
       const ruleId = action.meta.arg;
       const currentRule = state.rules.find((rule) => rule.id === ruleId);
       if (currentRule) {

@@ -20,7 +20,6 @@ package org.smartdata.hdfs.action;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.smartdata.action.ActionType;
 import org.smartdata.action.SmartAction;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.CmdletDescriptor;
@@ -30,7 +29,6 @@ import org.smartdata.model.CmdletDescriptor;
  */
 public abstract class HdfsAction extends SmartAction {
   public static final String FILE_PATH = CmdletDescriptor.HDFS_FILE_PATH;
-  protected ActionType actionType;
   // SmartDFSClient
   protected DFSClient dfsClient = null;
 
@@ -42,5 +40,14 @@ public abstract class HdfsAction extends SmartAction {
     Configuration conf = getContext().getConf();
     String nameNodeURL = conf.get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY);
     conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
+  }
+
+  public DfsClientType dfsClientType() {
+    return DfsClientType.SMART;
+  }
+
+  public enum DfsClientType {
+    SMART,
+    DEFAULT_HDFS
   }
 }

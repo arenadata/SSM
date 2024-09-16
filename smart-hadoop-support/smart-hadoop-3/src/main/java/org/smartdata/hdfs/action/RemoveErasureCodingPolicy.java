@@ -18,8 +18,6 @@
 package org.smartdata.hdfs.action;
 
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 
 import java.util.Map;
 
@@ -33,21 +31,22 @@ import java.util.Map;
 )
 public class RemoveErasureCodingPolicy extends HdfsAction {
   public static final String EC_POLICY_NAME = "-policy";
-  private SmartConf conf;
   private String policyName;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.conf = getContext().getConf();
     this.policyName = args.get(EC_POLICY_NAME);
   }
 
   @Override
   public void execute() throws Exception {
-    this.setDfsClient(HadoopUtil.getDFSClient(
-        HadoopUtil.getNameNodeUri(conf), conf));
     dfsClient.removeErasureCodingPolicy(policyName);
     appendLog(String.format("The EC policy named %s is removed!", policyName));
+  }
+
+  @Override
+  public DfsClientType dfsClientType() {
+    return DfsClientType.DEFAULT_HDFS;
   }
 }

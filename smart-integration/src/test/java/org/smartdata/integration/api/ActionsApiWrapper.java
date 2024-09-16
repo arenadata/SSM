@@ -36,7 +36,11 @@ public class ActionsApiWrapper {
   private final ActionsApi apiClient;
 
   public ActionsApiWrapper() {
-    this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).actions();
+    this(ApiClient.Config.apiConfig());
+  }
+
+  public ActionsApiWrapper(ApiClient.Config config) {
+    this.apiClient = ApiClient.api(config).actions();
   }
 
   public ActionDto getAction(long actionId) {

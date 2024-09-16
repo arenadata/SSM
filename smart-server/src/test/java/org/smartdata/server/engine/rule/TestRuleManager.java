@@ -37,7 +37,6 @@ import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
-import org.smartdata.server.engine.ServiceMode;
 import org.smartdata.server.engine.audit.AuditService;
 
 import java.util.Collections;
@@ -56,7 +55,6 @@ public class TestRuleManager extends TestDaoBase {
   public void init() throws Exception {
     SmartConf smartConf = new SmartConf();
     ServerContext serverContext = new ServerContext(smartConf, metaStore);
-    serverContext.setServiceMode(ServiceMode.HDFS);
     SmartPrincipalManager principalManager = new ThreadScopeSmartPrincipalManager(
         new AnonymousDefaultPrincipalProvider());
     ruleManager = new RuleManager(serverContext, null,

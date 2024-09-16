@@ -57,7 +57,7 @@ public class TestCmdletExecutor {
     SmartAction action = new EchoAction();
     Map<String, String> args = new HashMap<>();
     args.put(EchoAction.PRINT_MESSAGE, "message success");
-    action.setArguments(args);
+    action.init(args);
     action.setActionId(101);
     Cmdlet cmdlet = new Cmdlet(Arrays.asList(action));
 

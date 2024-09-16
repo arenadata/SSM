@@ -19,4 +19,4 @@ SRC_NODE=
 # The hosts require dropping cache, e.g., HOSTS="host1 host2"
 HOSTS=
 
-MAPREDUCE_JOBCLIENT_TESTS_JAR=/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-3.2.4-tests.jar
+MAPREDUCE_JOBCLIENT_TESTS_JAR=/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-3.3.6-tests.jar

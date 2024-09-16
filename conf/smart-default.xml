@@ -115,12 +115,6 @@
   </property>
 
   <property>
-    <name>smart.server.http.address</name>
-    <value>0.0.0.0:7045</value>
-    <description>REST server of SSM</description>
-  </property>
-
-  <property>
     <name>smart.agent.port</name>
     <value>7048</value>
     <description>SmartAgent port</description>
@@ -286,14 +280,6 @@
     <description>
       If the finished actions ratio equals or exceeds this value, status report will
       be triggered.
-    </description>
-  </property>
-
-  <property>
-    <name>smart.top.hot.files.num</name>
-    <value>200</value>
-    <description>
-      The number of top hot files displayed on web UI.
     </description>
   </property>
 
@@ -522,15 +508,6 @@
   </property>
 
   <property>
-    <name>smart.rest.server.auth.predefined.users</name>
-    <value>false</value>
-    <description>
-      Comma-separated list of predefined user credentials in the form of 'user:password',
-      to be used in SSM REST server basic authentication.
-    </description>
-  </property>
-
-  <property>
     <name>smart.file.access.count.aggregator.failover.retry.count</name>
     <value>60</value>
     <description>
@@ -540,11 +517,11 @@
 
   <property>
     <name>smart.file.access.count.aggregator.failover</name>
-    <value>SUBMIT_FAILED_EVENTS_WITH_RETRY</value>
+    <value>SAVE_FAILED_WITH_RETRY</value>
     <description>
       Failover strategy for file access events aggregator. Possible values:
         FAIL - throw exception, no failover.
-        SUBMIT_FAILED_EVENTS_WITH_RETRY - save all file access events that caused exception
+      SAVE_FAILED_WITH_RETRY - save all file access events that caused exception
           for later submission with max attempts less or equals than smart.access.count.aggregator.failover.retry.count
     </description>
   </property>
@@ -554,6 +531,25 @@
     <value>false</value>
     <description>
       Whether to enable Apache Ranger authorization for SSM REST server.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.action.client.cache.ttl</name>
+    <value>10m</value>
+    <description>
+      The minimum amount of time after the last access to the DFS client cache entry
+      that must pass in order for the entry to be evicted.
+      Should be in the format '[Amount][TimeUnit]', where TimeUnit is one
+      of 'day' or 'd', 'hour' or 'h', 'min' or 'm', 'sec' or 's'.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.ssl.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSL support for the SSM REST server.
     </description>
   </property>
 </configuration>

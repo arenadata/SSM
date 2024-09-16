@@ -22,5 +22,5 @@ import org.smartdata.conf.SmartConfKeys;
 
 @KerberosInfo(
   serverPrincipal = SmartConfKeys.SMART_SERVER_KERBEROS_PRINCIPAL_KEY)
-public interface SmartServerProtocols extends SmartClientProtocol, SmartAdminProtocol {
+public interface SmartServerProtocols extends SmartClientProtocol {
 }

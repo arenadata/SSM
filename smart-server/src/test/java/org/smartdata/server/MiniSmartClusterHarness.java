@@ -21,7 +21,6 @@ import org.apache.hadoop.hdfs.DFSUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.smartdata.SmartServiceState;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.MiniClusterWithStoragesHarness;
@@ -54,12 +53,11 @@ public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
   }
 
   public void waitTillSSMExitSafeMode() throws Exception {
-    try (SmartAdmin client = new SmartAdmin(smartContext.getConf())) {
       long start = System.currentTimeMillis();
       int retry = 5;
       while (true) {
         try {
-          SmartServiceState state = client.getServiceState();
+          SmartServiceState state = ssm.getSSMServiceState();
           if (state == SmartServiceState.ACTIVE) {
             break;
           }
@@ -73,7 +71,6 @@ public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
           retry--;
         }
       }
-    }
   }
 
   @After

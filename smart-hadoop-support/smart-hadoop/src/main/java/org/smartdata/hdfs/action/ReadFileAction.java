@@ -45,7 +45,7 @@ public class ReadFileAction extends HdfsAction {
     super.init(args);
     this.filePath = args.get(FILE_PATH);
     if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
     }
   }
 
@@ -61,10 +61,10 @@ public class ReadFileAction extends HdfsAction {
       throw new ActionException("ReadFile Action fails, file " +
           filePath + " doesn't exist!");
     }
-    DFSInputStream dfsInputStream = dfsClient.open(filePath);
+
     byte[] buffer = new byte[bufferSize];
-    // read from HDFS
-    while (dfsInputStream.read(buffer, 0, bufferSize) != -1) {}
-    dfsInputStream.close();
+    try (DFSInputStream inputStream = dfsClient.open(filePath)) {
+      while (inputStream.read(buffer, 0, bufferSize) != -1) {}
+    }
   }
 }

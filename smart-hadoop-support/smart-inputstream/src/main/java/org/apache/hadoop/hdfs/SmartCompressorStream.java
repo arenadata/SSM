@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.hdfs;
 
-import org.apache.commons.lang.mutable.MutableFloat;
+import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.hadoop.io.compress.Compressor;
 import org.apache.hadoop.io.compress.bzip2.Bzip2Compressor;
 import org.apache.hadoop.io.compress.lz4.Lz4Compressor;

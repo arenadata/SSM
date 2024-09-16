@@ -1120,7 +1120,7 @@ components:
         body: "{}"
       properties:
         code:
-          description: Error code
+          description: Error code. Can be in the form of `ssm_XX` or `db_XX`
           type: string
         message:
           description: Detailed error message

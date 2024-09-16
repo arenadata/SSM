@@ -19,10 +19,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useStore } from '@hooks';
 import { closeCreateRuleDialog, createRuleWithUpdate } from '@store/adh/rules/rulesActionsSlice';
 import { FooterDialog, MultilineInput } from '@uikit';
+import { SpinnerPanel } from '@uikit/Spinner/Spinner';
 
 const RuleCreateDialog: React.FC = () => {
   const dispatch = useDispatch();
   const isOpen = useStore(({ adh }) => adh.rulesActions.createDialog.isOpen);
+  const isActionInProgress = useStore(({ adh }) => adh.rulesActions.isActionInProgress);
 
   const [ruleText, setRuleText] = useState('');
 
@@ -53,7 +55,8 @@ const RuleCreateDialog: React.FC = () => {
       actionButtonLabel="Create"
       onAction={handleCreate}
     >
-      <MultilineInput value={ruleText} onChange={handleChange} />
+      <MultilineInput value={ruleText} onChange={handleChange} disabled={isActionInProgress} />
+      {isActionInProgress && <SpinnerPanel />}
     </FooterDialog>
   );
 };

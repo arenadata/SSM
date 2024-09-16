@@ -21,6 +21,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.topic.ITopic;
 import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
@@ -44,27 +45,26 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 // Todo: recover and reconnect when master is offline
+@Slf4j
 public class HazelcastWorker implements StatusReporter {
   private static final Logger LOG = LoggerFactory.getLogger(HazelcastWorker.class);
-  private final HazelcastInstance instance;
-  private ScheduledExecutorService executorService;
-  private ITopic<Serializable> masterMessages;
-  private ITopic<StatusMessage> statusTopic;
-  private CmdletExecutor cmdletExecutor;
-  private CmdletFactory factory;
-  private SmartConf smartConf;
+  private final ScheduledExecutorService executorService;
+  private final ITopic<StatusMessage> statusTopic;
+  private final CmdletExecutor cmdletExecutor;
+  private final CmdletFactory factory;
+  private final SmartConf smartConf;
 
   public HazelcastWorker(SmartContext smartContext) {
     this.smartConf = smartContext.getConf();
-    this.factory = new CmdletFactory(smartContext, this);
+    this.factory = new CmdletFactory(smartContext);
     this.cmdletExecutor = new CmdletExecutor(smartContext.getConf());
     this.executorService = Executors.newSingleThreadScheduledExecutor();
-    this.instance = HazelcastInstanceProvider.getInstance();
+    HazelcastInstance instance = HazelcastInstanceProvider.getInstance();
     this.statusTopic = instance.getTopic(HazelcastExecutorService.STATUS_TOPIC);
     String instanceId = String.valueOf(instance.getCluster().getLocalMember().getUuid());
-    this.masterMessages =
+    ITopic<Serializable> masterMessages =
         instance.getTopic(HazelcastExecutorService.WORKER_TOPIC_PREFIX + instanceId);
-    this.masterMessages.addMessageListener(new MasterMessageListener());
+    masterMessages.addMessageListener(new MasterMessageListener());
   }
 
   public void start() {
@@ -78,6 +78,7 @@ public class HazelcastWorker implements StatusReporter {
   public void stop() {
     executorService.shutdown();
     cmdletExecutor.shutdown();
+    factory.close();
   }
 
   @Override

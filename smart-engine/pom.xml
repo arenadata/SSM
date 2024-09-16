@@ -76,12 +76,6 @@
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
-            <artifactId>smart-admin</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.smartdata</groupId>
             <artifactId>smart-action</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
@@ -194,23 +188,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>alluxio</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.smartdata</groupId>
-                    <artifactId>smart-alluxio</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.smartdata</groupId>
-                    <artifactId>smart-alluxio-client</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
     <build>
         <plugins>
             <plugin>

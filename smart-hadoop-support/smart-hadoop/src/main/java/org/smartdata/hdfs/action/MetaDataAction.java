@@ -18,8 +18,8 @@
 package org.smartdata.hdfs.action;
 
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.model.FileInfoDiff;
 

@@ -35,7 +35,11 @@ const MainLeftSideBar: React.FC = () => {
       </LeftBarMenu>
 
       <LeftBarMenu className={s.mainLeftSideBar__systemMenu}>
-        <LeftBarMenuItem icon="documentation" label="Documentation" to="/documentation" />
+        <LeftBarMenuItem
+          icon="documentation"
+          label="Documentation"
+          to="https://docs.arenadata.io/en/ADH/current/concept/ssm/ssm-architecture.html"
+        />
         <LeftBarUserItem />
         <LeftBarLogoutItem />
       </LeftBarMenu>

@@ -19,7 +19,6 @@ package org.smartdata.server.engine.rule;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RulePlugin;
@@ -41,13 +40,13 @@ public class TestRulePlugin extends MiniSmartClusterHarness {
       int adding = plugin.getAdding();
       int added = plugin.getAdded();
 
-      SmartAdmin admin = new SmartAdmin(smartContext.getConf());
-      admin.submitRule("file : path matches \"/home/*\" | cache", RuleState.ACTIVE);
+      ssm.getRuleManager().submitRule("file : path matches \"/home/*\" | cache", RuleState.ACTIVE);
       Assert.assertTrue(adding + 1 == plugin.getAdding());
       Assert.assertTrue(added + 1 == plugin.getAdded());
 
       try {
-        admin.submitRule("file : path matches \"/user/*\" | cache", RuleState.DISABLED);
+        ssm.getRuleManager()
+            .submitRule("file : path matches \"/user/*\" | cache", RuleState.DISABLED);
         Assert.fail("Should not success.");
       } catch (Exception e) {
         Assert.assertTrue(e.getMessage().contains("MUST ACTIVE"));

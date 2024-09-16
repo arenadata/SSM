@@ -84,7 +84,7 @@ public class TestActionDao
   }
 
   @Test
-  public void testGetNewDeleteAction() {
+  public void testGetNewDeleteAction() throws Exception {
     Map<String, String> args = new HashMap<>();
     ActionInfo actionInfo = new ActionInfo(1, 1,
         "cache", args, "Test",

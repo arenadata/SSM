@@ -45,8 +45,10 @@ const LeftBarMenuItem: React.FC<LeftBarMenuItemProps> = ({ icon, label, to, onCl
   );
 
   if (to) {
+    const target = typeof to === 'string' && to.startsWith('http') ? '_blank' : undefined;
+
     return (
-      <NavLink to={to} className={s.leftBarMenuItem}>
+      <NavLink to={to} className={s.leftBarMenuItem} target={target}>
         {itemContent}
       </NavLink>
     );

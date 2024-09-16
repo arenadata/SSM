@@ -19,7 +19,7 @@ package org.smartdata.client;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.ipc.ProtobufRpcEngine;
+import org.apache.hadoop.ipc.ProtobufRpcEngine2;
 import org.apache.hadoop.ipc.RPC;
 import org.smartdata.client.activeserver.ActiveServerAddressCache;
 import org.smartdata.client.fileaccess.FileAccessReportStrategy;
@@ -93,7 +93,7 @@ public class SmartClient implements Closeable, SmartClientProtocol {
     }
 
     RPC.setProtocolEngine(
-        conf, ClientProtocolProtoBuffer.class, ProtobufRpcEngine.class);
+        conf, ClientProtocolProtoBuffer.class, ProtobufRpcEngine2.class);
 
     Iterable<InetSocketAddress> orderedAddresses = activeServerAddressCache.get()
         .map(activeServerAddress ->

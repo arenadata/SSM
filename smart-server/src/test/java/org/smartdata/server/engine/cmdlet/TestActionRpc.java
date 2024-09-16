@@ -19,7 +19,6 @@ package org.smartdata.server.engine.cmdlet;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.admin.SmartAdmin;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.server.MiniSmartClusterHarness;
@@ -30,25 +29,19 @@ public class TestActionRpc extends MiniSmartClusterHarness {
   public void testActionProgress() throws Exception {
     waitTillSSMExitSafeMode();
 
-    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
-    long cmdId = admin.submitCmdlet("sleep -ms 6000");
-    try {
-      CmdletInfo cinfo = admin.getCmdletInfo(cmdId);
-      long actId = cinfo.getActionIds().get(0);
-
-      ActionInfo actionInfo;
-      while (true) {
-        actionInfo = admin.getActionInfo(actId);
-        if (actionInfo.isFinished()) {
-          Assert.fail("No intermediate progress observed.");
-        }
-        if (actionInfo.getProgress() > 0 && actionInfo.getProgress() < 1.0) {
-          return;
-        }
-        Thread.sleep(500);
+    long cmdId = ssm.getCmdletManager().submitCmdlet("sleep -ms 6000").getId();
+    CmdletInfo cinfo = ssm.getCmdletManager().getCmdletInfoHandler().getCmdletInfoOrThrow(cmdId);
+    long actId = cinfo.getActionIds().get(0);
+    ActionInfo actionInfo;
+    while (true) {
+      actionInfo = ssm.getCmdletManager().getActionInfoHandler().getActionInfo(actId);
+      if (actionInfo.isFinished()) {
+        Assert.fail("No intermediate progress observed.");
       }
-    } finally {
-      admin.close();
+      if (actionInfo.getProgress() > 0 && actionInfo.getProgress() < 1.0) {
+        return;
+      }
+      Thread.sleep(500);
     }
   }
 }

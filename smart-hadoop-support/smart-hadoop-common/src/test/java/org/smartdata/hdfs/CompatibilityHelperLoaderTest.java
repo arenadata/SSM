@@ -41,16 +41,16 @@ public class CompatibilityHelperLoaderTest {
         () -> CompatibilityHelperLoader.createCompatibilityHelper("2.10.1"));
 
     assertTrue(exception.getMessage().contains(
-        "Hadoop versions below 3.2.X are not supported"));
+        "Hadoop versions below 3.3.X are not supported"));
   }
 
   @Test
   public void throwOnUnsupportedMinorVersion() {
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class,
-        () -> CompatibilityHelperLoader.createCompatibilityHelper("3.1.12"));
+        () -> CompatibilityHelperLoader.createCompatibilityHelper("3.2.12"));
 
     assertTrue(exception.getMessage().contains(
-        "Hadoop versions below 3.2.X are not supported"));
+        "Hadoop versions below 3.3.X are not supported"));
   }
 }

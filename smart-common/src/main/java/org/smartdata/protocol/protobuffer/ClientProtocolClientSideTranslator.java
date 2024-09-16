@@ -17,7 +17,6 @@
  */
 package org.smartdata.protocol.protobuffer;
 
-import com.google.protobuf.ServiceException;
 import org.apache.hadoop.ipc.RPC;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.model.FileState;
@@ -27,6 +26,8 @@ import org.smartdata.protocol.ClientServerProto.ReportFileAccessEventRequestProt
 import org.smartdata.protocol.SmartClientProtocol;
 
 import java.io.IOException;
+
+import static org.smartdata.protocol.protobuffer.ProtoBufferHelper.ipc;
 
 public class ClientProtocolClientSideTranslator implements
     java.io.Closeable, SmartClientProtocol {
@@ -45,17 +46,8 @@ public class ClientProtocolClientSideTranslator implements
 
   @Override
   public void reportFileAccessEvent(FileAccessEvent event) throws IOException {
-    ReportFileAccessEventRequestProto req =
-        ReportFileAccessEventRequestProto.newBuilder()
-            .setFilePath(event.getPath())
-            .setFileId(0)
-            .setAccessedBy(event.getAccessedBy())
-            .build();
-    try {
-      rpcProxy.reportFileAccessEvent(null, req);
-    } catch (ServiceException e) {
-      throw ProtoBufferHelper.getRemoteException(e);
-    }
+    ReportFileAccessEventRequestProto req = ProtoBufferHelper.convert(event);
+    ipc(() -> rpcProxy.reportFileAccessEvent(null, req));
   }
 
   @Override
@@ -63,11 +55,7 @@ public class ClientProtocolClientSideTranslator implements
     GetFileStateRequestProto req = GetFileStateRequestProto.newBuilder()
         .setFilePath(filePath)
         .build();
-    try {
-      GetFileStateResponseProto response = rpcProxy.getFileState(null, req);
-      return ProtoBufferHelper.convert(response.getFileState());
-    } catch (ServiceException e) {
-      throw ProtoBufferHelper.getRemoteException(e);
-    }
+    GetFileStateResponseProto response = ipc(() -> rpcProxy.getFileState(null, req));
+    return ProtoBufferHelper.convert(response.getFileState());
   }
 }

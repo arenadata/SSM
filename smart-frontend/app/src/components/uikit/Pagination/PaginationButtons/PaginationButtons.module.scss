@@ -1,84 +1,20 @@
-:global {
-  body.theme-dark {
-    --pagination-btn-border-color: var(--color-dark1);
-    --pagination-btn-bg-color: var(--color-ADHnew);
-    --pagination-btn-text-color: var(--color-grayUsual);
-
-    --pagination-btn-bg-color-hover: var(--color-plate-20);
-    --pagination-btn-text-color-hover: var(--color-offWhite);
-
-    --pagination-btn-borger-color-selected: var(--color-greenSaturated);
-    --pagination-btn-bg-color-selected: var(--color-newDark);
-    --pagination-btn-text-color-selected: var(--color-offWhite);
-
-    --pagination-dots-color: var(--color-xgray-lighter);
-  }
-
-  body.theme-light {
-    --pagination-btn-border-color: var(--color-lightStrokeDark);
-    --pagination-btn-bg-color: var(--color-colourful25);
-    --pagination-btn-text-color: var(--color-ADCM);
-
-    --pagination-btn-bg-color-hover: var(--color-lightStrokeLighter);
-    --pagination-btn-text-color-hover: var(--color-dark1);
-
-    --pagination-btn-borger-color-selected: var(--color-greenLogo);
-    --pagination-btn-bg-color-selected: var(--color-lightStrokeLighter);
-    --pagination-btn-text-color-selected: var(--color-dark1);
-
-    --pagination-dots-color: var(--color-xgray-light);
-  }
+.paginationButtonArrowSingle_prev,
+.paginationButtonArrowSingle_next,
+.paginationButtonArrowDouble_next,
+.paginationButtonArrowDouble_prev {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .paginationButton {
-  width: 2.286em;
-  height: 2.286em;
-  cursor: pointer;
-  background: none;
-  border: 2px solid var(--pagination-btn-border-color);
-  border-radius: 16px;
-  font-size: 14px;
-  font-family: inherit;
-  font-weight: 500;
-  box-sizing: border-box;
-  color: var(--pagination-btn-text-color);
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: 20px;
+  padding: 0 5px;
+  // set in Button.module.scss, in min size - is circle with width = height.
+  min-width: var(--button-minHeight);
 
-  &:disabled {
-    background: var(--icon-button-background-disabled);
-    color: var(--icon-button-color-disabled);
-    cursor: not-allowed;
+  &:global(.is-active) {
+    cursor: default;
   }
-
-  &:active:not(&:disabled),
-  &_selected {
-    border: 2px solid var(--pagination-btn-borger-color-selected) !important;
-    background: var(--pagination-btn-bg-color-selected);
-    color: var(--pagination-btn-text-color-selected);
-    border-color: transparent;
-  }
-
-  &:not(&_selected, &:disabled):hover {
-    background: var(--pagination-btn-bg-color-hover);
-    color: var(--pagination-btn-text-color-hover);
-  }
-
-  &_dots {
-    color: var(--pagination-dots-color);
-    padding-bottom: 2px;
-  }
-}
-
-.paginationButtonArrowSingle_prev,
-.paginationButtonArrowSingle_next,
-.paginationButtonArrowDouble {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .paginationButtonArrowSingle_prev > svg {
@@ -87,4 +23,8 @@
 
 .paginationButtonArrowSingle_next > svg {
   transform: rotate(-90deg);
+}
+
+.paginationButtonArrowDouble_prev > svg {
+  transform: rotate(180deg);
 }

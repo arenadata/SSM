@@ -110,17 +110,16 @@
             <version>${log4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.smartdata</groupId>
-            <artifactId>smart-admin</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop</artifactId>

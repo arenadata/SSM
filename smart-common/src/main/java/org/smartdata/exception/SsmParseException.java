@@ -20,9 +20,6 @@ package org.smartdata.exception;
 import java.io.IOException;
 
 public class SsmParseException extends IOException {
-  public SsmParseException() {
-    super();
-  }
 
   public SsmParseException(String message) {
     super(message);
@@ -30,9 +27,5 @@ public class SsmParseException extends IOException {
 
   public SsmParseException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public SsmParseException(Exception cause) {
-    super(cause);
   }
 }

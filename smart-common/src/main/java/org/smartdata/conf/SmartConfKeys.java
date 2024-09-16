@@ -29,8 +29,6 @@ public class SmartConfKeys {
     public static final String SMART_HADOOP_CONF_DIR_KEY = "smart.hadoop.conf.path";
     public static final String SMART_CONF_DIR_DEFAULT = "conf";
 
-    public static final String SMART_SERVICE_MODE_KEY = "smart.service.mode";
-    public static final String SMART_SERVICE_MODE_DEFAULT = "HDFS";
     public static final String SMART_NAMESPACE_FETCHER_BATCH_KEY = "smart.namespace.fetcher.batch";
     public static final int SMART_NAMESPACE_FETCHER_BATCH_DEFAULT = 500;
 
@@ -48,15 +46,7 @@ public class SmartConfKeys {
             "smart.namespace.fetcher.consumers.num";
     public static final int SMART_NAMESPACE_FETCHER_CONSUMERS_NUM_DEFAULT = 3;
 
-    // Configure keys for Alluxio
-    public static final String SMART_ALLUXIO_MASTER_HOSTNAME_KEY = "smart.alluxio.master.hostname";
-    public static final String SMART_ALLUXIO_CONF_DIR_KEY = "smart.alluxio.conf.dir";
-    public static final String SMART_ALLUXIO_MASTER_JOURNAL_DIR_KEY =
-            "smart.alluxio.master.journal.dir";
-
     // SSM
-    public static final String SMART_SERVER_VERSION_KEY = "smart.storage.manager.version";
-    public static final String SMART_SERVER_VERSION_CURRENT = "2.0.0-SNAPSHOT";
     public static final String SMART_SERVER_RPC_ADDRESS_KEY = "smart.server.rpc.address";
     public static final String SMART_SERVER_RPC_ADDRESS_DEFAULT = "0.0.0.0:7042";
     public static final String SMART_SERVER_RPC_HANDLER_COUNT_KEY = "smart.server.rpc.handler.count";
@@ -73,8 +63,6 @@ public class SmartConfKeys {
             "smart.agent.kerberos.principal";
     public static final String SMART_SECURITY_CLIENT_PROTOCOL_ACL =
             "smart.security.client.protocol.acl";
-    public static final String SMART_SECURITY_ADMIN_PROTOCOL_ACL =
-            "smart.security.admin.protocol.acl";
     public static final String SMART_METASTORE_DB_URL_KEY = "smart.metastore.db.url";
     // Password which get from hadoop credentialProvider used for metastore connect
     public static final String SMART_METASTORE_PASSWORD = "smart.metastore.password";
@@ -242,8 +230,6 @@ public class SmartConfKeys {
     public static final String SMART_STORAGE_INFO_UPDATE_INTERVAL_KEY =
             "smart.storage.info.update.interval";
     public static final int SMART_STORAGE_INFO_UPDATE_INTERVAL_DEFAULT = 60;
-    public static final String SMART_TOP_HOT_FILES_NUM_KEY = "smart.top.hot.files.num";
-    public static final int SMART_TOP_HOT_FILES_NUM_DEFAULT = 200;
 
     //Status report
     public static final String SMART_STATUS_REPORT_PERIOD_KEY = "smart.status.report.period";
@@ -273,4 +259,8 @@ public class SmartConfKeys {
             "smart.client.active.server.cache.path";
     public static final String SMART_CLIENT_ACTIVE_SERVER_CACHE_PATH_DEFAULT =
             "/tmp/active_smart_server";
+
+    public static final String SMART_ACTION_CLIENT_CACHE_TTL_KEY =
+        "smart.action.client.cache.ttl";
+    public static final String SMART_ACTION_CLIENT_CACHE_TTL_DEFAULT = "10m";
 }

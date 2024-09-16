@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,6 +41,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestFilesRestApi extends IntegrationTestBase {
+
+  private static final long INOTIFY_FETCHER_POLL_PERIOD_MS = 100;
 
   private FilesApiWrapper apiClient;
   private ActionsApiWrapper actionsApiWrapper;
@@ -74,7 +77,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         apiClient::getAccessCounts,
         actualAccessCounts -> accessCountsEquals(actualAccessCounts, expectedAccessCounts),
         Duration.ofMillis(100),
-        Duration.ofSeconds(30)
+        Duration.ofMinutes(1)
     );
   }
 
@@ -106,6 +109,22 @@ public class TestFilesRestApi extends IntegrationTestBase {
         Duration.ofMillis(100),
         Duration.ofSeconds(30)
     );
+  }
+
+  @Override
+  protected void createFile(String path) {
+    super.createFile(path);
+    // we need to wait until SSM fetches INotify file create event
+    // to put these file in metastore before we access them
+    waitUntilInotifyEventPulled();
+  }
+
+  private void waitUntilInotifyEventPulled() {
+    try {
+      Thread.sleep(5 * INOTIFY_FETCHER_POLL_PERIOD_MS);
+    } catch (InterruptedException e) {
+      Assert.fail("Error waiting for inotify event to be pulled");
+    }
   }
 
   private void cacheFile(String file) {

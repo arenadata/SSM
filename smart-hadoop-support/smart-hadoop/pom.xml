@@ -65,6 +65,27 @@
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
+            <artifactId>${smart.hadoop.client.artifact}</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cache2k</groupId>
+            <artifactId>cache2k-api</artifactId>
+            <version>${cache2k.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cache2k</groupId>
+            <artifactId>cache2k-core</artifactId>
+            <version>${cache2k.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.artifact}</artifactId>
             <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>

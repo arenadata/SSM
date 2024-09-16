@@ -152,17 +152,6 @@ Example:
  Code:200
  Content-Type:application/json
 ```
-### Get information about a alluxio cluster
-* Submit a HTTP GET request.
-```
- http://<host>:<port>/smart/api/v1/cluster/alluxio/{clusterName}
-```
-Example:
-```
- GET http://<host>:<port>/smart/api/v1/cluster/alluxio/{clusterName}
- Code:200
- Content-Type:application/json
-```
 ### Get Get information about an hdfs cluster
 * Submit a HTTP GET request.
 ```

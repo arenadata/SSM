@@ -17,7 +17,7 @@
  */
 package org.smartdata.model;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.smartdata.SmartConstants;
 import org.smartdata.conf.SmartConfKeys;

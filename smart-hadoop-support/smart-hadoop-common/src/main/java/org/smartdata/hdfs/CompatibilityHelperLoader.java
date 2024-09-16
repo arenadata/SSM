@@ -17,9 +17,8 @@
  */
 package org.smartdata.hdfs;
 
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ClassLoaderUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class CompatibilityHelperLoader {
       LoggerFactory.getLogger(CompatibilityHelperLoader.class);
 
   private static final String HADOOP_3_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper3";
-  public static final String DEFAULT_HDFS_VERSION = "3.2.4";
+  public static final String DEFAULT_HDFS_VERSION = "3.3.6";
   public static final String UNKNOWN_VERSION = "Unknown";
 
   private static class CompatibilityHelperHolder {
@@ -55,8 +54,8 @@ public class CompatibilityHelperLoader {
     int majorVersion = Integer.parseInt(parts[0]);
     int minorVersion = Integer.parseInt(parts[1]);
 
-    if (majorVersion < 3 || minorVersion < 2) {
-      throw new IllegalArgumentException("Hadoop versions below 3.2.X are not supported");
+    if (majorVersion < 3 || minorVersion < 3) {
+      throw new IllegalArgumentException("Hadoop versions below 3.3.X are not supported");
     }
 
     return create(HADOOP_3_HELPER_CLASS);

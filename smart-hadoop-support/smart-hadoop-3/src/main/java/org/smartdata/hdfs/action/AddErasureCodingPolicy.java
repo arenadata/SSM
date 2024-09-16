@@ -22,8 +22,6 @@ import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.utils.StringUtil;
 
 import java.util.Map;
@@ -46,7 +44,6 @@ public class AddErasureCodingPolicy extends HdfsAction {
   public static final String DATA_UNITS_NUM = "-dataNum";
   public static final String PARITY_UNITS_NUM = "-parityNum";
   public static final String CELL_SIZE = "-cellSize";
-  private SmartConf conf;
   private String policyName;
   private String codecName;
   private int numDataUnits;
@@ -56,7 +53,6 @@ public class AddErasureCodingPolicy extends HdfsAction {
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.conf = getContext().getConf();
     if (args.get(POLICY_NAME) != null && !args.get(POLICY_NAME).isEmpty()) {
       this.policyName = args.get(POLICY_NAME);
       String[] policySchema = policyName.split("-");
@@ -85,8 +81,6 @@ public class AddErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    this.setDfsClient(HadoopUtil.getDFSClient(
-        HadoopUtil.getNameNodeUri(conf), conf));
     if (codecName == null || numDataUnits <= 0 || numParityUnits <= 0 ||
         cellSize <= 0 || cellSize % 1024 != 0) {
       throw new ActionException("Illegal EC policy Schema! " +
@@ -105,5 +99,10 @@ public class AddErasureCodingPolicy extends HdfsAction {
       appendLog(String.format("Failed to add the given EC policy!"));
       throw new ActionException(addEcResponse.getErrorMsg());
     }
+  }
+
+  @Override
+  public DfsClientType dfsClientType() {
+    return DfsClientType.DEFAULT_HDFS;
   }
 }

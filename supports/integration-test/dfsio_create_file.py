@@ -26,7 +26,7 @@ def create_file_DFSIO(num):
     Then, move these data to HDFS_TEST_DIR.
     """
     dfsio_cmd = "hadoop jar " + \
-        "/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-3.2.4-tests.jar TestDFSIO " + \
+        "/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient-3.3.6-tests.jar TestDFSIO " + \
         "-write -nrFiles 10000 -fileSize 0KB"
     for i in range(num):
         subprocess.call(dfsio_cmd, shell=True)

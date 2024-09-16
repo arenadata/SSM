@@ -36,7 +36,7 @@ const ActionActionsCell: React.FC<ActionActionsCellProps> = ({ action }) => {
   return (
     <TableCell align="center" data-qa="actions">
       <FlexGroup gap="4px">
-        <IconButton icon="refresh" title="Delete action" onClick={handleReset} data-qa="action-refresh" />
+        <IconButton icon="refresh" title="Repeat action" onClick={handleReset} data-qa="action-refresh" />
       </FlexGroup>
     </TableCell>
   );

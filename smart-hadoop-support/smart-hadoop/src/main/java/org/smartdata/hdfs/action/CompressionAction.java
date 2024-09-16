@@ -18,8 +18,8 @@
 package org.smartdata.hdfs.action;
 
 import com.google.gson.Gson;
-import org.apache.commons.lang.SerializationUtils;
-import org.apache.commons.lang.mutable.MutableFloat;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.XAttrSetFlag;

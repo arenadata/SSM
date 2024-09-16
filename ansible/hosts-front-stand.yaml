@@ -1,0 +1,22 @@
+ssm_servers:
+  hosts:
+    ssm_host_1:
+      ansible_host: 10.92.38.118
+
+ssm_agents:
+  hosts:
+    ssm_host_1:
+      ansible_host: 10.92.38.118
+    ssm_host_2:
+      ansible_host: 10.92.38.237
+    ssm_host_3:
+      ansible_host: 10.92.38.201
+
+hdfs_clients:
+  hosts:
+    ssm_host_1:
+      ansible_host: 10.92.38.118
+    ssm_host_2:
+      ansible_host: 10.92.38.237
+    ssm_host_3:
+      ansible_host: 10.92.38.201

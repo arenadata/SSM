@@ -39,12 +39,6 @@
   </property>
 
   <property>
-    <name>smart.server.http.address</name>
-    <value>0.0.0.0:7045</value>
-    <description>HTTP server of SSM</description>
-  </property>
-
-  <property>
     <name>smart.dfs.namenode.rpcserver</name>
     <value></value>
     <description>get namenode.rpcserver by ssm</description>

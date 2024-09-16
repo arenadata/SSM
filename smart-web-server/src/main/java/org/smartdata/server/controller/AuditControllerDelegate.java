@@ -56,7 +56,7 @@ public class AuditControllerDelegate implements AuditApiDelegate {
       List<AuditObjectTypeDto> objectTypes,
       List<Long> objectIds,
       List<AuditOperationDto> operations,
-      List<AuditEventResultDto> results) {
+      List<AuditEventResultDto> results) throws Exception {
 
     AuditSearchRequest searchRequest = auditEventMapper.toSearchRequest(
         usernameLike, eventTime, objectTypes, objectIds, operations, results);

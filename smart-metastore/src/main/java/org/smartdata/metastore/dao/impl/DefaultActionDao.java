@@ -19,7 +19,7 @@ package org.smartdata.metastore.dao.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.smartdata.metastore.SearchableAbstractDao;
 import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.queries.MetastoreQuery;

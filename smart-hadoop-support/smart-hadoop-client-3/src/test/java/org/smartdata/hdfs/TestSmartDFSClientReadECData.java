@@ -88,6 +88,7 @@ public class TestSmartDFSClientReadECData extends TestErasureCodingMiniCluster {
     args.put(HdfsAction.FILE_PATH, srcPath);
     args.put(ErasureCodingBase.EC_TMP, ecTmpPath);
     args.put(ErasureCodingAction.EC_POLICY_NAME, ecPolicy.getName());
+    ecAction.setDfsClient(dfsClient);
     ecAction.init(args);
     ecAction.run();
 

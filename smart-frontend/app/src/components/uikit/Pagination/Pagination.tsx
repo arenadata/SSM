@@ -109,7 +109,12 @@ const Pagination = ({
       <div className={s.pagination__buttonWrapper} data-test="pagination-button-container">
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
         {totalPages === 0 && (
-          <PaginationStepButton arrowVariant={'arrowDouble'} onClick={() => setPageNumber(0)} disabled={!hasPrev} />
+          <PaginationStepButton
+            arrowVariant={'arrowDouble'}
+            variant={'prev'}
+            onClick={() => setPageNumber(0)}
+            disabled={!hasPrev}
+          />
         )}
         <PaginationStepButton
           arrowVariant={'arrowSingle'}
@@ -124,13 +129,15 @@ const Pagination = ({
           disabled={!hasNext}
           dataTest="pagination-next-page"
         />
-        <PaginationStepButton
-          arrowVariant={'arrowDouble'}
-          onClick={() => setPageNumber(totalItems)}
-          variant={'next'}
-          disabled={!hasNext}
-          dataTest="pagination-last-page"
-        />
+        {totalItems !== 0 && (
+          <PaginationStepButton
+            arrowVariant={'arrowDouble'}
+            onClick={() => setPageNumber(totalItems)}
+            variant={'next'}
+            disabled={!hasNext}
+            dataTest="pagination-last-page"
+          />
+        )}
       </div>
 
       {!hidePerPage && (

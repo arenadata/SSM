@@ -52,6 +52,7 @@ import org.smartdata.server.engine.rule.ErasureCodingPlugin;
 import org.smartdata.server.engine.rule.ExecutorScheduler;
 import org.smartdata.server.engine.rule.FileCopy2S3Plugin;
 import org.smartdata.server.engine.rule.RuleExecutor;
+import org.smartdata.server.engine.rule.RuleInfoHandler;
 import org.smartdata.server.engine.rule.RuleInfoRepo;
 import org.smartdata.server.engine.rule.SmallFilePlugin;
 import org.smartdata.server.engine.rule.copy.FileCopyDrPlugin;
@@ -90,6 +91,7 @@ public class RuleManager
   private final AuditService auditService;
   private final SmartPrincipalManager smartPrincipalManager;
   private final RuleDao ruleDao;
+  private final RuleInfoHandler ruleInfoHandler;
 
   private boolean isClosed = false;
 
@@ -120,6 +122,7 @@ public class RuleManager
     this.smartPrincipalManager = smartPrincipalManager;
     this.metaStore = context.getMetaStore();
     this.ruleDao = metaStore.ruleDao();
+    this.ruleInfoHandler = new RuleInfoHandler(ruleDao);
     this.pathChecker = new PathChecker(context.getConf());
 
     FileCopyScheduleStrategy copyScheduleStrategy = FileCopyScheduleStrategy.of(
@@ -127,13 +130,11 @@ public class RuleManager
             SMART_SYNC_SCHEDULE_STRATEGY_KEY,
             SMART_SYNC_SCHEDULE_STRATEGY_DEFAULT));
 
-    if (serverContext.getServiceMode() == ServiceMode.HDFS) {
-      RuleExecutorPluginManager.addPlugin(new FileCopyDrPlugin(
-          context.getMetaStore(), copyScheduleStrategy));
-      RuleExecutorPluginManager.addPlugin(new FileCopy2S3Plugin());
-      RuleExecutorPluginManager.addPlugin(new SmallFilePlugin(context, cmdletManager));
-      RuleExecutorPluginManager.addPlugin(new ErasureCodingPlugin(context));
-    }
+    RuleExecutorPluginManager.addPlugin(new FileCopyDrPlugin(
+        context.getMetaStore(), copyScheduleStrategy));
+    RuleExecutorPluginManager.addPlugin(new FileCopy2S3Plugin());
+    RuleExecutorPluginManager.addPlugin(new SmallFilePlugin(context, cmdletManager));
+    RuleExecutorPluginManager.addPlugin(new ErasureCodingPlugin(context));
   }
 
   public RuleInfo submitRule(String rule) throws IOException {
@@ -151,7 +152,7 @@ public class RuleManager
     if (initState != RuleState.ACTIVE
         && initState != RuleState.DISABLED
         && initState != RuleState.NEW) {
-      throw new IOException(
+      throw new IllegalArgumentException(
           "Invalid initState = "
               + initState
               + ", it MUST be one of ["
@@ -176,11 +177,7 @@ public class RuleManager
 
     RulePluginManager.onAddingNewRule(ruleInfo, tr);
 
-    try {
-      metaStore.insertNewRule(ruleInfo);
-    } catch (MetaStoreException e) {
-      throw new IOException("RuleText = " + rule, e);
-    }
+    metaStore.insertNewRule(ruleInfo);
 
     RuleInfoRepo infoRepo = new RuleInfoRepo(ruleInfo, metaStore, serverContext.getConf());
     mapRules.put(ruleInfo.getId(), infoRepo);
@@ -379,12 +376,13 @@ public class RuleManager
 
   @Override
   public SearchResult<RuleInfo> search(
-      RuleSearchRequest searchRequest, PageRequest<RuleSortField> pageRequest) {
-    return ruleDao.search(searchRequest, pageRequest);
+      RuleSearchRequest searchRequest,
+      PageRequest<RuleSortField> pageRequest) throws Exception {
+    return ruleInfoHandler.search(searchRequest, pageRequest);
   }
 
   @Override
-  public List<RuleInfo> search(RuleSearchRequest searchRequest) {
-    return ruleDao.search(searchRequest);
+  public List<RuleInfo> search(RuleSearchRequest searchRequest) throws Exception {
+    return ruleInfoHandler.search(searchRequest);
   }
 }

@@ -17,7 +17,16 @@
  */
 package org.smartdata.server.error;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Getter
 public enum SsmErrorCode {
-  VALIDATION_ERROR,
-  SSM_INTERNAL_ERROR
+  SSM_INTERNAL_ERROR("ssm_00"),
+  VALIDATION_ERROR("ssm_01"),
+  PARSE_ERROR("ssm_02"),
+  DB_ERROR("db_01");
+
+  private final String code;
 }

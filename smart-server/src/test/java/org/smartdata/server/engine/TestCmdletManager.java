@@ -182,7 +182,6 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     Assert.assertNotNull(dispatcher);
     when(dispatcher.canDispatchMore()).thenReturn(true);
     ServerContext serverContext = new ServerContext(new SmartConf(), metaStore);
-    serverContext.setServiceMode(ServiceMode.HDFS);
     CmdletManager cmdletManager = new CmdletManager(
         serverContext, auditService, principalManager);
     cmdletManager.init();

@@ -17,7 +17,9 @@
  */
 package org.smartdata.metaservice;
 
-public class MetaServiceException extends Exception {
+import java.io.IOException;
+
+public class MetaServiceException extends IOException {
 
   public MetaServiceException(String errorMsg) {
     super(errorMsg);

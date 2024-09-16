@@ -17,169 +17,80 @@
  */
 package org.smartdata.protocol.protobuffer;
 
-import com.google.protobuf.ServiceException;
-import org.smartdata.cmdlet.parser.CmdletParser;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.thirdparty.protobuf.ServiceException;
 import org.smartdata.metrics.FileAccessEvent;
-import org.smartdata.model.ActionDescriptor;
-import org.smartdata.model.ActionInfo;
-import org.smartdata.model.CmdletDescriptor;
-import org.smartdata.model.CmdletInfo;
-import org.smartdata.model.CmdletState;
 import org.smartdata.model.CompactFileState;
 import org.smartdata.model.CompressionFileState;
 import org.smartdata.model.FileContainerInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.NormalFileState;
-import org.smartdata.model.RuleInfo;
-import org.smartdata.model.RuleState;
-import org.smartdata.protocol.AdminServerProto.ActionDescriptorProto;
-import org.smartdata.protocol.AdminServerProto.ActionInfoProto;
-import org.smartdata.protocol.AdminServerProto.CmdletInfoProto;
-import org.smartdata.protocol.AdminServerProto.RuleInfoProto;
 import org.smartdata.protocol.ClientServerProto.CompactFileStateProto;
 import org.smartdata.protocol.ClientServerProto.CompressionFileStateProto;
 import org.smartdata.protocol.ClientServerProto.FileStateProto;
 import org.smartdata.protocol.ClientServerProto.ReportFileAccessEventRequestProto;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Arrays;
-import java.util.List;
 
 public class ProtoBufferHelper {
-  private ProtoBufferHelper() {
+
+  @FunctionalInterface
+  public interface IpcCall<T> {
+    T call() throws ServiceException;
   }
 
+  /**
+   * Copied from HDFS 3.3.7+ sources.
+   *
+   * <p>Evaluate a protobuf call, converting any ServiceException to an IOException.
+   * @param call invocation to make
+   * @return the result of the call
+   * @param <T> type of the result
+   * @throws IOException any translated protobuf exception
+   */
+  public static <T> T ipc(IpcCall<T> call) throws IOException {
+    try {
+      return call.call();
+    } catch (ServiceException e) {
+      throw getRemoteException(e);
+    }
+  }
+
+  /**
+   * Copied from HDFS 3.3.7+ sources.
+   *
+   * <p>Return the IOException thrown by the remote server wrapped in
+   * ServiceException as cause.
+   * The signature of this method changes with updates to the hadoop-thirdparty
+   * shaded protobuf library.
+   * @param se ServiceException that wraps IO exception thrown by the server
+   * @return Exception wrapped in ServiceException or
+   * a new IOException that wraps the unexpected ServiceException.
+   */
+  @InterfaceAudience.Private
+  @InterfaceStability.Unstable
   public static IOException getRemoteException(ServiceException se) {
     Throwable e = se.getCause();
     if (e == null) {
       return new IOException(se);
     }
-    return e instanceof IOException ? (IOException) e : new IOException(se);
-  }
-
-  public static int convert(RuleState state) {
-    return state.getValue();
-  }
-
-  public static RuleState convert(int state) {
-    return RuleState.fromValue(state);
-  }
-
-  public static RuleInfoProto convert(RuleInfo info) {
-    return RuleInfoProto.newBuilder().setId(info.getId())
-        .setSubmitTime(info.getSubmitTime())
-        .setLastCheckTime(info.getLastCheckTime())
-        .setRuleText(info.getRuleText())
-        .setNumChecked(info.getNumChecked())
-        .setNumCmdsGen(info.getNumCmdsGen())
-        .setRulestateProto(convert(info.getState())).build();
-  }
-
-  public static RuleInfo convert(RuleInfoProto proto) {
-    return RuleInfo.builder()
-        .setId(proto.getId())
-        .setSubmitTime(proto.getSubmitTime())
-        .setLastCheckTime(proto.getLastCheckTime())
-        .setRuleText(proto.getRuleText())
-        .setNumChecked(proto.getNumChecked())
-        .setNumCmdsGen(proto.getNumCmdsGen())
-        .setState(convert(proto.getRulestateProto())).build();
-  }
-
-  public static CmdletInfo convert(CmdletInfoProto proto) {
-    // TODO replace actionType with aids
-    List<Long> actionIds = proto.getAidsList();
-    return CmdletInfo.builder()
-        .setId(proto.getCid())
-        .setRuleId(proto.getRid())
-        .setState(CmdletState.fromValue(proto.getState()))
-        .setParameters(proto.getParameters())
-        .setGenerateTime(proto.getGenerateTime())
-        .setStateChangedTime(proto.getStateChangedTime())
-        .setActionIds(actionIds)
-        .build();
-  }
-
-  public static CmdletInfoProto convert(CmdletInfo info) {
-    // TODO replace actionType with aids
-    return CmdletInfoProto.newBuilder()
-        .setCid(info.getId())
-        .setRid(info.getRuleId())
-        .setState(info.getState().getValue())
-        .setParameters(info.getParameters())
-        .setGenerateTime(info.getGenerateTime())
-        .setStateChangedTime(info.getStateChangedTime())
-        .addAllAids(info.getActionIds())
-        .build();
+    return e instanceof IOException
+        ? (IOException) e
+        : new IOException(se);
   }
 
   public static ReportFileAccessEventRequestProto convert(FileAccessEvent event) {
     return ReportFileAccessEventRequestProto.newBuilder()
         .setFilePath(event.getPath())
+        .setFileId(0)
         .setAccessedBy(event.getAccessedBy())
-        .setFileId(event.getFileId())
         .build();
   }
-
-  public static ActionInfoProto convert(ActionInfo actionInfo) {
-    return ActionInfoProto.newBuilder()
-        .setActionName(actionInfo.getActionName())
-        .setResult(actionInfo.getResult())
-        .setLog(actionInfo.getLog())
-        .setSuccessful(actionInfo.isSuccessful())
-        .setCreateTime(actionInfo.getCreateTime())
-        .setFinished(actionInfo.isFinished())
-        .setFinishTime(actionInfo.getFinishTime())
-        .setProgress(actionInfo.getProgress())
-        .setActionId(actionInfo.getActionId())
-        .setCmdletId(actionInfo.getCmdletId())
-        .addAllArgs(CmdletDescriptor.toArgList(actionInfo.getArgs()))
-        .build();
-  }
-
-  public static ActionInfo convert(ActionInfoProto infoProto) {
-    ActionInfo.Builder builder = ActionInfo.builder()
-        .setActionName(infoProto.getActionName())
-        .setResult(infoProto.getResult())
-        .setLog(infoProto.getLog())
-        .setSuccessful(infoProto.getSuccessful())
-        .setCreateTime(infoProto.getCreateTime())
-        .setFinished(infoProto.getFinished())
-        .setFinishTime(infoProto.getFinishTime())
-        .setProgress(infoProto.getProgress())
-        .setActionId(infoProto.getActionId())
-        .setCmdletId(infoProto.getCmdletId());
-    List<String> list = infoProto.getArgsList();
-    try {
-      builder.setArgs(CmdletParser.toArgMap(list));
-    } catch (ParseException e) {
-      return null;
-    }
-    return builder.build();
-  }
-
 
   public static FileAccessEvent convert(final ReportFileAccessEventRequestProto event) {
     return new FileAccessEvent(event.getFilePath(), 0, event.getAccessedBy());
-  }
-
-  public static ActionDescriptor convert(ActionDescriptorProto proto) {
-    return ActionDescriptor.newBuilder()
-        .setActionName(proto.getActionName())
-        .setComment(proto.getComment())
-        .setDisplayName(proto.getDisplayName())
-        .setUsage(proto.getUsage())
-        .build();
-  }
-
-  public static ActionDescriptorProto convert(ActionDescriptor ac) {
-    return ActionDescriptorProto.newBuilder()
-        .setActionName(ac.getActionName())
-        .setComment(ac.getComment())
-        .setDisplayName(ac.getDisplayName())
-        .setUsage(ac.getUsage())
-        .build();
   }
 
   private static FileContainerInfo convert(CompactFileStateProto proto) {
@@ -234,7 +145,8 @@ public class ProtoBufferHelper {
   }
 
   public static CompressionFileState convert(String path,
-      FileState.FileStage stage, CompressionFileStateProto proto) {
+                                             FileState.FileStage stage,
+                                             CompressionFileStateProto proto) {
     return CompressionFileState.newBuilder()
         .setFileName(path)
         .setFileStage(stage)

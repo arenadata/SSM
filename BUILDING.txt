@@ -36,9 +36,9 @@ Maven build goals:
  Build options:
 
   * Use -Pnative to compile/bundle native code
+  * Use -Pweb-ui to compile/bundle frontend app
   * Use -Psrc to create a project source TAR.GZ
   * Use -Dtar to create a TAR with the distribution (using -Pdist)
 
  For each build goal you should define the version of Hadoop by providing one of the following profiles:
-  * -Phadoop-3.2
   * -Phadoop-3.3

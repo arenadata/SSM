@@ -19,10 +19,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useStore } from '@hooks';
 import { closeCreateActionDialog, createActionWithUpdate } from '@store/adh/actions/actionsActionsSlice';
 import { FooterDialog, MultilineInput } from '@uikit';
+import { SpinnerPanel } from '@uikit/Spinner/Spinner';
 
 const ActionCreateDialog: React.FC = () => {
   const dispatch = useDispatch();
   const isOpen = useStore(({ adh }) => adh.actionsActions.createDialog.isOpen);
+  const isActionInProgress = useStore(({ adh }) => adh.actionsActions.isActionInProgress);
 
   const [actionText, setActionText] = useState('');
 
@@ -53,7 +55,8 @@ const ActionCreateDialog: React.FC = () => {
       actionButtonLabel="Run"
       onAction={handleRun}
     >
-      <MultilineInput value={actionText} onChange={handleChange} />
+      <MultilineInput value={actionText} onChange={handleChange} disabled={isActionInProgress} />
+      {isActionInProgress && <SpinnerPanel />}
     </FooterDialog>
   );
 };
