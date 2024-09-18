@@ -32,4 +32,18 @@ public class ConfigKeys {
 
   public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
       "smart.rest.server.auth.spnego.keytab";
+
+  public static final String SMART_REST_SERVER_KERBEROS_PRINCIPAL =
+      "smart.rest.server.auth.spnego.principal";
+
+  public static final String SSL_ENABLED = "smart.rest.server.ssl.enabled";
+  public static final boolean SSL_ENABLED_DEFAULT = false;
+
+  public static final String SSL_KEYSTORE_PATH = "smart.rest.server.ssl.keystore";
+
+  public static final String SSL_KEYSTORE_PASSWORD = "smart.rest.server.ssl.keystore.password";
+
+  public static final String SSL_KEY_PASSWORD = "smart.rest.server.ssl.key.password";
+
+  public static final String SSL_KEY_ALIAS = "smart.rest.server.ssl.key.alias";
 }

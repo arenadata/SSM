@@ -15,19 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.error;
+package org.smartdata.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.smartdata.model.RuleState;
 
-@RequiredArgsConstructor
-@Getter
-public enum SsmErrorCode {
-  SSM_INTERNAL_ERROR("ssm_00"),
-  VALIDATION_ERROR("ssm_01"),
-  PARSE_ERROR("ssm_02"),
-  STATE_TRANSITION_ERROR("ssm_03"),
-  DB_ERROR("db_01");
+import java.io.IOException;
 
-  private final String code;
+public class StateTransitionException extends IOException {
+
+  public StateTransitionException(String message) {
+    super(message);
+  }
+
+  public static StateTransitionException forRule(RuleState oldState, RuleState newState) {
+    return new StateTransitionException(
+        "Rule state transition is not supported: " + oldState.name() + " -> " + newState.name());
+  }
 }

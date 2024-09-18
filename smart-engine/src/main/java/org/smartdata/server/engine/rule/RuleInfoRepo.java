@@ -18,6 +18,7 @@
 package org.smartdata.server.engine.rule;
 
 import org.smartdata.conf.SmartConf;
+import org.smartdata.exception.StateTransitionException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.dao.RuleDao;
@@ -170,16 +171,16 @@ public class RuleInfoRepo {
     }
   }
 
-  private boolean changeRuleState(RuleState newState)
+  private void changeRuleState(RuleState newState)
       throws IOException {
-    return changeRuleState(newState, true);
+    changeRuleState(newState, true);
   }
 
-  private boolean changeRuleState(RuleState newState,
-      boolean updateDb) throws IOException {
+  private void changeRuleState(RuleState newState,
+                               boolean updateDb) throws IOException {
     RuleState oldState = ruleInfo.getState();
     if (newState == null || oldState == newState) {
-      return false;
+      return;
     }
 
     try {
@@ -190,14 +191,14 @@ public class RuleInfoRepo {
             if (updateDb && metaStore != null) {
               metaStore.updateRuleState(ruleInfo.getId(), newState);
             }
-            return true;
+            return;
           }
           break;
 
         case DISABLED:
           if (oldState == RuleState.NEW) {
             // no need to save the new state to db
-            return true;
+            return;
           }
 
           if (oldState == RuleState.ACTIVE) {
@@ -206,7 +207,7 @@ public class RuleInfoRepo {
             if (updateDb && metaStore != null) {
               metaStore.updateRuleState(ruleInfo.getId(), newState);
             }
-            return true;
+            return;
           }
           break;
 
@@ -216,7 +217,7 @@ public class RuleInfoRepo {
           if (updateDb && metaStore != null) {
             metaStore.updateRuleState(ruleInfo.getId(), newState);
           }
-          return true;
+          return;
 
         case FINISHED:
           if (oldState == RuleState.ACTIVE) {
@@ -224,15 +225,14 @@ public class RuleInfoRepo {
             if (updateDb && metaStore != null) {
               metaStore.updateRuleState(ruleInfo.getId(), newState);
             }
-            return true;
+            return;
           }
           break;
       }
     } catch (MetaStoreException e) {
       throw new MetaStoreException(ruleInfo.toString(), e);
     }
-    throw new IOException("This rule state transition is not supported: "
-        + oldState.name() + " -> " + newState.name());  // TODO: unsupported
+    throw StateTransitionException.forRule(oldState, newState);
   }
 
   private void lockWrite() {
