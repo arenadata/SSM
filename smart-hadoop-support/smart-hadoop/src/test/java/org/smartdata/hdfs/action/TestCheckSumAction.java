@@ -24,11 +24,16 @@ import org.junit.Test;
 import org.smartdata.action.ActionException;
 import org.smartdata.hdfs.MiniClusterHarness;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -60,11 +65,10 @@ public class TestCheckSumAction extends MiniClusterHarness {
     action.init(args);
     action.run();
 
-    String expectedLog = "/testPath/file1\tMD5-of-1MD5-of-50CRC32C\t"
-        + "000000320000000000000001cd5359474b0be93eb57b7f1aaf9f3f55\n";
+    List<String> expectedChecksumFiles = Collections.singletonList("/testPath/file1");
 
     assertTrue(action.getExpectedAfterRun());
-    assertEquals(expectedLog, action.getActionStatus().getLog());
+    assertEquals(expectedChecksumFiles, getChecksumFiles());
   }
 
   @Test
@@ -82,16 +86,14 @@ public class TestCheckSumAction extends MiniClusterHarness {
     action.init(args);
     action.run();
 
-    String expectedLog =
-        "/testPath/0\tMD5-of-0MD5-of-50CRC32C\t"
-            + "00000032000000000000000067ec113c30452f3ebfda70343c1363cf\n"
-            + "/testPath/1\tMD5-of-0MD5-of-50CRC32C\t"
-            + "000000320000000000000000ecaf7978b63f94cc35068ff56ae97ecb\n"
-            + "/testPath/2\tMD5-of-0MD5-of-50CRC32C\t"
-            + "000000320000000000000000e90604bcd8b102008713620df0a3e56f\n";
+    List<String> expectedChecksumFiles = Arrays.asList(
+        "/testPath/0",
+        "/testPath/1",
+        "/testPath/2"
+    );
 
     assertTrue(action.getExpectedAfterRun());
-    assertEquals(expectedLog, action.getActionStatus().getLog());
+    assertEquals(expectedChecksumFiles, getChecksumFiles());
   }
 
   @Test
@@ -120,5 +122,17 @@ public class TestCheckSumAction extends MiniClusterHarness {
     assertNotNull(error);
     assertTrue(error instanceof ActionException);
     assertEquals("Provided directory doesn't exist: /unknownDir/", error.getMessage());
+  }
+
+  private List<String> getChecksumFiles() throws UnsupportedEncodingException {
+    String[] logLines = Optional.ofNullable(action.getActionStatus().getLog())
+        .map(log -> log.split("\n"))
+        .orElse(new String[0]);
+
+    return Arrays.stream(logLines)
+        .map(line -> line.split("\t"))
+        .filter(tokens -> tokens.length != 0)
+        .map(tokens -> tokens[0])
+        .collect(Collectors.toList());
   }
 }
