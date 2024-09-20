@@ -86,7 +86,11 @@ public class CmdletDescriptor {
   }
 
   public void setRuleId(long ruleId) {
-    actionCommonArgs.put(RULE_ID, "" + ruleId);
+    actionCommonArgs.put(RULE_ID, String.valueOf(ruleId));
+  }
+
+  public boolean isRuleCmdlet() {
+    return actionCommonArgs.containsKey(RULE_ID);
   }
 
   public List<String> getActionNames() {

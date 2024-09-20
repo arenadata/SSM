@@ -29,13 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * the finish of that Cmdlet. CmdletDescriptor defines a task and it is wrapped
  * by Cmdlet or CmdletInfo to
  */
-public class TaskTracker {
+public class RuleCmdletTracker {
   // Contains CmdletDescriptor being tackled.
   private final Set<CmdletDescriptor> cmdletDescriptors;
   // The ID of a submitted cmdlet to the corresponding CmdletDescriptor.
   private final Map<Long, CmdletDescriptor> idToDescriptor;
 
-  public TaskTracker() {
+  public RuleCmdletTracker() {
     this.cmdletDescriptors = ConcurrentHashMap.newKeySet();
     this.idToDescriptor = new ConcurrentHashMap<>();
   }
