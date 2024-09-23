@@ -45,9 +45,12 @@ import org.smartdata.server.engine.audit.AuditService;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcher;
 import org.smartdata.server.engine.cmdlet.CmdletInfoHandler;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -84,7 +87,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     CmdletInfo cmdletInfo = CmdletInfo.builder().setId(0).build();
     List<ActionInfo> actionInfos = actionInfoHandler
         .createActionInfos(cmdletDescriptor, cmdletInfo);
-    Assert.assertEquals(cmdletDescriptor.getActionSize(), actionInfos.size());
+    assertEquals(cmdletDescriptor.getActionSize(), actionInfos.size());
   }
 
   @Test
@@ -124,7 +127,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     List<ActionInfo> result = ssm.getMetaStore()
         .actionDao()
         .search(ActionSearchRequest.noFilters());
-    Assert.assertEquals(3, result.size());
+    assertEquals(3, result.size());
   }
 
   @Test
@@ -160,7 +163,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
             232444994L);
     metaStore.upsertCmdlets(Collections.singletonList(cmdletInfo));
 
-    Assert.assertEquals(1, cmdletInfoHandler.listCmdletsInfo(1).size());
+    assertEquals(1, cmdletInfoHandler.listCmdletsInfo(1).size());
     Assert.assertNotNull(cmdletInfoHandler.getCmdletInfo(0));
     cmdletManager.deleteCmdlet(0);
     Assert.assertTrue(cmdletInfoHandler.listCmdletsInfo(1).isEmpty());
@@ -206,10 +209,10 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
         new CmdletStatusUpdate(cmdletId, System.currentTimeMillis(), CmdletState.EXECUTING));
     CmdletInfo info = cmdletManager.getCmdletInfoHandler().getCmdletInfo(cmdletId);
     Assert.assertNotNull(info);
-    Assert.assertEquals(info.getParameters(), "echo");
-    Assert.assertEquals(info.getActionIds().size(), 1);
-    Assert.assertEquals((long) info.getActionIds().get(0), actionId);
-    Assert.assertEquals(info.getState(), CmdletState.EXECUTING);
+    assertEquals(info.getParameters(), "echo");
+    assertEquals(info.getActionIds().size(), 1);
+    assertEquals((long) info.getActionIds().get(0), actionId);
+    assertEquals(info.getState(), CmdletState.EXECUTING);
 
     long finishTime = System.currentTimeMillis();
     actionStatus = new ActionStatus(cmdletId, true, actionId, null, startTime,
@@ -218,13 +221,13 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     cmdletManager.updateStatus(statusReport);
     Assert.assertTrue(actionInfo.isFinished());
     Assert.assertTrue(actionInfo.isSuccessful());
-    Assert.assertEquals(actionInfo.getCreateTime(), startTime);
-    Assert.assertEquals(actionInfo.getFinishTime(), finishTime);
-    Assert.assertEquals(cmdletInfo.getState(), CmdletState.DONE);
+    assertEquals(actionInfo.getCreateTime(), startTime);
+    assertEquals(actionInfo.getFinishTime(), finishTime);
+    assertEquals(cmdletInfo.getState(), CmdletState.DONE);
 
     cmdletManager.updateStatus(
         new CmdletStatusUpdate(cmdletId, System.currentTimeMillis(), CmdletState.DONE));
-    Assert.assertEquals(info.getState(), CmdletState.DONE);
+    assertEquals(info.getState(), CmdletState.DONE);
     Thread.sleep(500);
     verify(metaStore, times(2)).upsertCmdlets(anyListOf(CmdletInfo.class));
     verify(metaStore, times(2)).upsertActions(anyListOf(ActionInfo.class));
@@ -271,7 +274,26 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     }
   }
 
-  public void flushToDB(MetaStore metaStore,
+  @Test
+  public void testSubmitEqualUserCmdlets() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    // use long-running cmdlets to guarantee that we run them simultaneously
+    IntStream.range(0, 5).forEach(ignore -> safeSubmit("sleep -ms 10000"));
+
+    List<ActionInfo> actionInfos = actionInfoHandler.listNewCreatedActions(10);
+    assertEquals(5, actionInfos.size());
+  }
+
+  private void safeSubmit(String cmdlet) {
+    try {
+      cmdletManager.submitCmdlet(cmdlet);
+    } catch (IOException e) {
+      Assert.fail("Error submitting cmdlet: " + e.getMessage());
+    }
+  }
+
+  private void flushToDB(MetaStore metaStore,
                         List<ActionInfo> actionInfos, CmdletInfo cmdletInfo) throws Exception {
     for (ActionInfo actionInfo : actionInfos) {
       cmdletInfo.addAction(actionInfo.getActionId());

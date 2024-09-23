@@ -77,7 +77,7 @@ import org.smartdata.server.engine.cmdlet.CmdletManagerContext;
 import org.smartdata.server.engine.cmdlet.DeleteTerminatedCmdletsTask;
 import org.smartdata.server.engine.cmdlet.DetectTimeoutActionsTask;
 import org.smartdata.server.engine.cmdlet.InMemoryRegistry;
-import org.smartdata.server.engine.cmdlet.TaskTracker;
+import org.smartdata.server.engine.cmdlet.RuleCmdletTracker;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -130,7 +130,7 @@ public class CmdletManager extends AbstractService
   private final List<Long> runningCmdlets;
   // Track a CmdletDescriptor from the submission to
   // the finish.
-  private final TaskTracker tracker;
+  private final RuleCmdletTracker ruleCmdletTracker;
   private final DeleteTerminatedCmdletsTask cmdletPurgeTask;
   private final DetectTimeoutActionsTask detectTimeoutActionsTask;
   private final InMemoryRegistry inMemoryRegistry;
@@ -169,7 +169,7 @@ public class CmdletManager extends AbstractService
         ErasureCodingScheduler.class,
         CacheScheduler.class
     ), context, metaStore);
-    this.tracker = new TaskTracker();
+    this.ruleCmdletTracker = new RuleCmdletTracker();
     this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlets,
         idToLaunchCmdlets, runningCmdlets, schedulers);
     this.pathChecker = new PathChecker(context.getConf());
@@ -180,7 +180,7 @@ public class CmdletManager extends AbstractService
     this.smartPrincipalManager = smartPrincipalManager;
 
     this.cmdletPurgeTask = new DeleteTerminatedCmdletsTask(getContext().getConf(), metaStore);
-    this.inMemoryRegistry = new InMemoryRegistry(context, tracker, executorService);
+    this.inMemoryRegistry = new InMemoryRegistry(context, ruleCmdletTracker, executorService);
 
     CmdletManagerContext cmdletManagerContext = new CmdletManagerContext(
         getContext().getConf(), metaStore, inMemoryRegistry, schedulers);
@@ -276,8 +276,11 @@ public class CmdletManager extends AbstractService
       Consumer<List<ActionInfo>> actionInfosHandler) throws IOException {
     CmdletDescriptor cmdletDescriptor =
         buildCmdletDescriptor(cmdletInfo.getParameters());
-    cmdletDescriptor.setRuleId(cmdletInfo.getRuleId());
-    tracker.track(cmdletInfo.getId(), cmdletDescriptor);
+
+    if (cmdletInfo.getRuleId() != 0) {
+      cmdletDescriptor.setRuleId(cmdletInfo.getRuleId());
+      ruleCmdletTracker.track(cmdletInfo.getId(), cmdletDescriptor);
+    }
 
     LOG.debug("Reload cmdlet: {}", cmdletInfo);
     List<ActionInfo> actionInfos = actionInfoHandler.getActions(cmdletInfo.getActionIds());
@@ -397,7 +400,7 @@ public class CmdletManager extends AbstractService
   public long submitCmdlet(CmdletDescriptor cmdletDescriptor) throws IOException {
     // To avoid repeatedly submitting task. If tracker contains one CmdletDescriptor
     // with the same rule id and cmdlet string, return -1.
-    if (tracker.contains(cmdletDescriptor)) {
+    if (ruleCmdletTracker.contains(cmdletDescriptor)) {
       LOG.warn("Refuse to repeatedly submit cmdlet '{}'", cmdletDescriptor);
       return -1;
     }
@@ -415,9 +418,9 @@ public class CmdletManager extends AbstractService
     checkActionsOnSubmit(cmdletInfo, actionInfos);
     // Insert cmdletinfo and actionInfos to metastore and cache.
     syncCmdAction(cmdletInfo, actionInfos);
-    // Track in the submission portal. For cmdlets recovered from DB
-    // (see #recover), they will be not be tracked.
-    tracker.track(cmdletInfo.getId(), cmdletDescriptor);
+    if (cmdletDescriptor.isRuleCmdlet()) {
+      ruleCmdletTracker.track(cmdletInfo.getId(), cmdletDescriptor);
+    }
     return cmdletInfo.getId();
   }
 

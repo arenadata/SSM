@@ -19,6 +19,7 @@ package org.smartdata.server.config;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.security.SecurityUtil;
 import org.smartdata.conf.SmartConf;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ import org.springframework.security.kerberos.web.authentication.SpnegoAuthentica
 import org.springframework.security.kerberos.web.authentication.SpnegoEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_KEYTAB_FILE_KEY;
@@ -63,8 +65,11 @@ public class SpnegoSecurityConfiguration {
   }
 
   @Bean
-  public SunJaasKerberosTicketValidator kerberosTicketValidator(SmartConf smartConf) {
-    String principal = smartConf.getNonEmpty(SMART_REST_SERVER_KERBEROS_PRINCIPAL);
+  public SunJaasKerberosTicketValidator kerberosTicketValidator(
+      SmartConf smartConf) throws IOException {
+    // replace _HOST with actual hostname
+    String principal = SecurityUtil.getServerPrincipal(
+        smartConf.getNonEmpty(SMART_REST_SERVER_KERBEROS_PRINCIPAL), "");
     String keytabPath = getKeytabPath(smartConf);
 
     SunJaasKerberosTicketValidator ticketValidator = new SunJaasKerberosTicketValidator();

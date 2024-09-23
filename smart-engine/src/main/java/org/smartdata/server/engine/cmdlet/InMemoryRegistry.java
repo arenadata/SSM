@@ -49,7 +49,7 @@ public class InMemoryRegistry implements SmartService {
   private final List<Long> cmdletsToDelete;
   private final MetaStore metaStore;
 
-  private final TaskTracker tracker;
+  private final RuleCmdletTracker ruleCmdletTracker;
 
   private final int cmdletCacheSyncBatchSize;
 
@@ -57,9 +57,9 @@ public class InMemoryRegistry implements SmartService {
 
   public InMemoryRegistry(
       ServerContext context,
-      TaskTracker tracker,
+      RuleCmdletTracker ruleCmdletTracker,
       ScheduledExecutorService executorService) {
-    this.tracker = tracker;
+    this.ruleCmdletTracker = ruleCmdletTracker;
     this.executorService = executorService;
     this.unfinishedCmdlets = new ConcurrentHashMap<>();
     this.actions = new ConcurrentHashMap<>();
@@ -193,7 +193,7 @@ public class InMemoryRegistry implements SmartService {
   private void removeFinishedCmdlets(List<CmdletInfo> cmdletFinished) {
     for (CmdletInfo cmdletInfo : cmdletFinished) {
       unfinishedCmdlets.remove(cmdletInfo.getId());
-      tracker.stopTracking(cmdletInfo.getId());
+      ruleCmdletTracker.stopTracking(cmdletInfo.getId());
 
       cmdletInfo.getActionIds().forEach(actions::remove);
     }
