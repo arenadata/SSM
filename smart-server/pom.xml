@@ -47,12 +47,7 @@
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
-            <artifactId>smart-metrics</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.smartdata</groupId>
-            <artifactId>smart-web-server</artifactId>
+            <artifactId>smart-master-web-server</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>

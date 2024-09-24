@@ -20,10 +20,10 @@ package org.smartdata.integration.auth;
 import org.junit.runners.Parameterized.Parameters;
 import org.smartdata.conf.SmartConf;
 
+import static org.smartdata.http.config.ConfigKeys.PREDEFINED_BASIC_AUTH_ENABLED;
+import static org.smartdata.http.config.ConfigKeys.PREDEFINED_USERS;
+import static org.smartdata.http.config.ConfigKeys.PREDEFINED_USERS_PASSWORD_ENCODER;
 import static org.smartdata.integration.auth.TestWebServerAuth.TestParams.ExpectedResult.FAIL;
-import static org.smartdata.server.config.ConfigKeys.PREDEFINED_BASIC_AUTH_ENABLED;
-import static org.smartdata.server.config.ConfigKeys.PREDEFINED_USERS;
-import static org.smartdata.server.config.ConfigKeys.PREDEFINED_USERS_PASSWORD_ENCODER;
 
 public class TestWebServerPredefinedUsersAuth extends TestWebServerAuth {
 

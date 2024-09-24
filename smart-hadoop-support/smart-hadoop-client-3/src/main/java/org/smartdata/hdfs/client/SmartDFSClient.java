@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartConstants;
 import org.smartdata.client.SmartClient;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.model.CompactFileState;
 import org.smartdata.model.CompressionFileState;

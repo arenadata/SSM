@@ -22,28 +22,28 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runners.Parameterized.Parameters;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.server.config.PasswordEncoderFactory.EncoderType;
-import org.smartdata.server.config.ldap.search.LdapSearchScope;
+import org.smartdata.http.config.PasswordEncoderFactory.EncoderType;
+import org.smartdata.http.config.ldap.search.LdapSearchScope;
 
+import static org.smartdata.http.config.ConfigKeys.LDAP_AUTH_ENABLED;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_AUTH_TYPE;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_PASSWORD;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_USER_DN;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_CUSTOM_SEARCH;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_MEMBER_ATTR;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_NAME_ATTR;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_OBJECT_DEFAULT;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_PASSWORD_ENCODER;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_ADDITIONAL_FILTER;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_BASE;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_URL;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_GROUPS;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_MEMBER_ATTR;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_SEARCH_BASE;
+import static org.smartdata.http.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_SEARCH_SCOPE;
 import static org.smartdata.integration.auth.TestWebServerAuth.TestParams.ExpectedResult.FAIL;
 import static org.smartdata.integration.auth.TestWebServerLdapAuth.AuthType.BIND;
 import static org.smartdata.integration.auth.TestWebServerLdapAuth.AuthType.PASSWORD_COMPARE;
-import static org.smartdata.server.config.ConfigKeys.LDAP_AUTH_ENABLED;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_AUTH_TYPE;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_PASSWORD;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_USER_DN;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_CUSTOM_SEARCH;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_MEMBER_ATTR;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_NAME_ATTR;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_OBJECT_DEFAULT;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_PASSWORD_ENCODER;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_ADDITIONAL_FILTER;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_BASE;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_URL;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_GROUPS;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_MEMBER_ATTR;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_SEARCH_BASE;
-import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_USER_SEARCH_SCOPE;
 
 
 public class TestWebServerLdapAuth extends TestWebServerAuth {

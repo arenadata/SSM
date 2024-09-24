@@ -20,7 +20,6 @@ package org.smartdata.server.engine.cmdlet;
 import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartdata.SmartContext;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.CmdletState;
@@ -35,6 +34,7 @@ import org.smartdata.server.cluster.ClusterNodeMetricsProvider;
 import org.smartdata.server.cluster.NodeCmdletMetrics;
 import org.smartdata.server.engine.ActiveServerInfo;
 import org.smartdata.server.engine.CmdletManager;
+import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.message.NodeMessage;
 
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
 
   private final SmartConf conf;
 
-  public CmdletDispatcher(SmartContext smartContext, CmdletManager cmdletManager,
+  public CmdletDispatcher(ServerContext smartContext, CmdletManager cmdletManager,
       Queue<Long> scheduledCmdlets, Map<Long, LaunchCmdlet> idToLaunchCmdlet,
       List<Long> runningCmdlets, ListMultimap<String, ActionScheduler> schedulers) {
     this.conf = smartContext.getConf();
@@ -135,7 +135,8 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     for (int i = 0; i < numDisp; i++) {
       dispatchTasks[i] = new DispatchTask(this, i);
     }
-    this.schExecService = Executors.newScheduledThreadPool(numDisp + 1);
+    this.schExecService = smartContext.getMetricsFactory().wrap(
+        Executors.newScheduledThreadPool(numDisp + 1), "cmdletDispatcherExecutor");
     this.outputDispMetricsInterval = conf.getInt(
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_METRICS_INTERVAL_KEY,
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_METRICS_INTERVAL_DEFAULT);

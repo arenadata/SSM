@@ -35,7 +35,7 @@ import org.smartdata.metastore.partition.cleanup.FileAccessPartitionRetentionPol
 import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventSource;
-import org.smartdata.metrics.impl.MetricsFactory;
+import org.smartdata.metrics.impl.FileAccessMetricsFactory;
 import org.smartdata.model.PathChecker;
 import org.smartdata.server.engine.data.AccessEventFetcher;
 
@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static org.smartdata.conf.SmartConfKeys.ACCESS_EVENT_SOURCE_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.ACCESS_EVENT_SOURCE_KEY;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 /**
@@ -86,7 +88,10 @@ public class StatesManager extends AbstractService implements Reconfigurable {
         transactionRunner,
         serverContext.getMetaStore().accessCountEventDao(),
         serverContext.getMetaStore().cacheFileDao());
-    this.fileAccessEventSource = MetricsFactory.createAccessEventSource(serverContext.getConf());
+
+    String accessEventSource = serverContext.getConf().get(
+        ACCESS_EVENT_SOURCE_KEY, ACCESS_EVENT_SOURCE_DEFAULT);
+    this.fileAccessEventSource = FileAccessMetricsFactory.createAccessEventSource(accessEventSource);
     AccessCountFailoverFactory accessCountFailoverFactory =
         new AccessCountFailoverFactory(serverContext.getConf());
     DbAccessEventAggregator accessEventAggregator = new DbAccessEventAggregator(
@@ -97,7 +102,8 @@ public class StatesManager extends AbstractService implements Reconfigurable {
         serverContext.getConf(),
         accessEventAggregator,
         executorService,
-        fileAccessEventSource.getCollector());
+        fileAccessEventSource.getCollector(),
+        serverContext.getMetricsFactory());
     this.pathChecker = new PathChecker(serverContext.getConf());
     this.cachedFilesManager =
         new CachedFilesManager(serverContext.getMetaStore().cacheFileDao());
@@ -181,7 +187,7 @@ public class StatesManager extends AbstractService implements Reconfigurable {
       LOG.debug("Path {} is not in the whitelist. Report file access event failed.", path);
       return;
     }
-    event.setTimeStamp(System.currentTimeMillis());
+    event.setTimestamp(System.currentTimeMillis());
     this.fileAccessEventSource.insertEventFromSmartClient(event);
   }
 

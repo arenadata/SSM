@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.smartdata</groupId>
+        <artifactId>smart-web-server</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>smart-master-web-server</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-web-server-base</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip-build-web-ui}</skip>
+                            <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${ui.assets.directory}</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>**/*.woff2</include>
+                                        <include>**/*.ttf</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${ui.assets.directory}</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/*.woff2</exclude>
+                                        <exclude>**/*.ttf</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>web-server-codegen</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.openapitools</groupId>
+                        <artifactId>openapi-generator-maven-plugin</artifactId>
+                        <version>${openapi.generator.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate-merged-api-spec</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <inputSpec>${project.basedir}/src/main/resources/api/ssm-api.yaml</inputSpec>
+                                    <generatorName>openapi-yaml</generatorName>
+                                    <configOptions>
+                                        <outputFile>${merged.api.spec.name}</outputFile>
+                                    </configOptions>
+                                    <output>${merged.api.spec.directory}</output>
+                                    <supportingFilesToGenerate>${merged.api.spec.name}</supportingFilesToGenerate>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-ssm-web-server</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <inputSpec>${merged.api.spec.directory}/${merged.api.spec.name}</inputSpec>
+                                    <generatorName>spring</generatorName>
+                                    <configOptions>
+                                        <useResponseEntity>false</useResponseEntity>
+                                        <openApiNullable>false</openApiNullable>
+                                        <useTags>true</useTags>
+                                        <unhandledException>true</unhandledException>
+                                        <delegatePattern>true</delegatePattern>
+                                        <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                                        <configPackage>${openapi.codegen.package.base}.config</configPackage>
+                                    </configOptions>
+                                    <output>${openapi.codegen.output.dir}</output>
+                                    <modelPackage>${openapi.codegen.package.base}.model</modelPackage>
+                                    <apiPackage>${openapi.codegen.package.base}.api</apiPackage>
+                                    <modelNameSuffix>Dto</modelNameSuffix>
+                                    <generateApiTests>false</generateApiTests>
+                                    <generateModelTests>false</generateModelTests>
+                                    <enablePostProcessFile>true</enablePostProcessFile>
+                                    <skipOperationExample>true</skipOperationExample>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!--
+            This profile should be enabled if there is access to java 11+ during the module build
+            to use the latest version of OpenAPI generator plugin with various bugfixes to generate
+            the web server code (version 7.3.0 produces java 8 compatible code,
+            so after codegen this module can be rebuilt using java 8 as usual)
+            -->
+            <id>java11</id>
+            <properties>
+                <openapi.generator.version>7.3.0</openapi.generator.version>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

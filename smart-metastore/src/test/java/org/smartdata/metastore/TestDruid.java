@@ -20,6 +20,7 @@ package org.smartdata.metastore;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.dao.DaoProvider;
 import org.smartdata.metastore.dao.postgres.PostgresDaoProvider;
 import org.smartdata.metastore.db.DBHandlersFactory;
@@ -47,7 +48,7 @@ public class TestDruid {
     p.loadFromXML(in);
     p.setProperty(PROP_URL, "jdbc:tc:postgresql:12.19:///ssm_postgres");
     p.setProperty(PROP_DRIVERCLASSNAME, ContainerDatabaseDriver.class.getName());
-    DruidPool druidPool = new DruidPool(p);
+    DruidPool druidPool = new DruidPool(new SmartConf(), p);
     DBHandlersFactory dbHandlersFactory = new DBHandlersFactory();
     DbSchemaManager dbSchemaManager = dbHandlersFactory
         .createDbManager(druidPool, new Configuration());

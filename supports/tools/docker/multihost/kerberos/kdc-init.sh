@@ -26,6 +26,7 @@ echo "==== Creating SSM, HDFS and YARN principals =========="
 kadmin.local -q "add_principal -randkey namenode/hadoop-namenode.demo@DEMO"
 kadmin.local -q "add_principal -randkey datanode/hadoop-datanode.demo@DEMO"
 kadmin.local -q "add_principal -randkey HTTP/ssm-server.demo@DEMO"
+kadmin.local -q "add_principal -randkey HTTP/hadoop-datanode.demo@DEMO"
 kadmin.local -q "add_principal -randkey ssm/ssm-server.demo@DEMO"
 kadmin.local -q "add_principal -randkey agent/hadoop-datanode.demo@DEMO"
 kadmin.local -q "add_principal -randkey agent/ssm-server.demo@DEMO"
@@ -42,6 +43,7 @@ echo "==== Export keytabs for SSM, HDFS and YARN =========="
 kadmin.local -q "xst -kt /tmp/secrets/namenode.keytab namenode/hadoop-namenode.demo@DEMO" && chown appuser:appuser /tmp/secrets/namenode.keytab
 kadmin.local -q "xst -kt /tmp/secrets/datanode.keytab datanode/hadoop-datanode.demo@DEMO" && chown appuser:appuser /tmp/secrets/datanode.keytab
 kadmin.local -q "xst -kt /tmp/secrets/http.keytab HTTP/ssm-server.demo@DEMO" && chown appuser:appuser /tmp/secrets/http.keytab
+kadmin.local -q "xst -kt /tmp/secrets/http.keytab HTTP/hadoop-datanode.demo@DEMO" && chown appuser:appuser /tmp/secrets/http.keytab
 kadmin.local -q "xst -kt /tmp/secrets/ssm.keytab ssm/ssm-server.demo@DEMO" && chown appuser:appuser /tmp/secrets/ssm.keytab
 kadmin.local -q "xst -kt /tmp/secrets/agent.keytab agent/hadoop-datanode.demo@DEMO" && chown appuser:appuser /tmp/secrets/agent.keytab
 kadmin.local -q "xst -kt /tmp/secrets/agent.keytab agent/ssm-server.demo@DEMO" && chown appuser:appuser /tmp/secrets/agent.keytab

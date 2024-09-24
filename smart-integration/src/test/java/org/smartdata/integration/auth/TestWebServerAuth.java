@@ -41,7 +41,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.smartdata.client.generated.invoker.ApiClient.BASE_URI;
 import static org.smartdata.client.generated.invoker.JacksonObjectMapper.jackson;
-import static org.smartdata.server.config.ConfigKeys.WEB_SECURITY_ENABLED;
+import static org.smartdata.http.config.ConfigKeys.WEB_SECURITY_ENABLED;
 
 @RunWith(Parameterized.class)
 public abstract class TestWebServerAuth extends IntegrationTestBase {

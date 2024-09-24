@@ -17,6 +17,7 @@
  */
 package org.smartdata.server;
 
+import io.micrometer.core.instrument.Tags;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
@@ -30,7 +31,9 @@ import org.smartdata.SmartServiceState;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.HadoopUtil;
+import org.smartdata.http.SmartHttpServer;
 import org.smartdata.metastore.MetaStore;
+import org.smartdata.metrics.MetricsFactory;
 import org.smartdata.server.cluster.ClusterNodesManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.RuleManager;
@@ -54,13 +57,14 @@ import static org.smartdata.metastore.utils.MetaStoreUtils.getDBAdapter;
  */
 public class SmartServer {
   public static final Logger LOG = LoggerFactory.getLogger(SmartServer.class);
+  public static final Tags SMART_SERVER_BASE_TAGS = Tags.of("service", "smart-server");
 
   private final SmartConf conf;
   private SmartEngine engine;
   private ServerContext context;
   private volatile boolean enabled;
   private SmartRpcServer rpcServer;
-  private SmartRestServer restServer;
+  private SmartHttpServer restServer;
 
   static {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -76,10 +80,15 @@ public class SmartServer {
     LOG.info("Start Init Smart Server");
 
     HadoopUtil.setSmartConfByHadoop(conf);
-    context = new ServerContext(conf, metaStore);
+
+    MetricsFactory metricsFactory = MetricsFactory.from(conf, SMART_SERVER_BASE_TAGS);
+    metaStore.dbPool().bindMetrics(metricsFactory);
+
+    context = new ServerContext(conf, metaStore, metricsFactory);
     engine = new SmartEngine(context);
+    // TODO add RPC metrics
     rpcServer = new SmartRpcServer(this, conf);
-    restServer = new SmartRestServer(conf, engine);
+    restServer = new SmartMasterRestServer(conf, engine);
 
     LOG.info("Finish Init Smart Server");
   }
@@ -122,7 +131,7 @@ public class SmartServer {
       } else if (StartupOption.REGULAR.getName().equalsIgnoreCase(arg)) {
         startOpt = StartupOption.REGULAR;
       } else if (arg.equals("-h") || arg.equals("-help")) {
-        if (parseHelpArgument(new String[] {arg}, USAGE, System.out)) {
+        if (parseHelpArgument(new String[]{arg}, USAGE, System.out)) {
           return null;
         }
       } else {
