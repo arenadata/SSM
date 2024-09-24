@@ -40,6 +40,7 @@ public class SmartEngine extends AbstractService {
   public static final Logger LOG = LoggerFactory.getLogger(SmartEngine.class);
 
   private final SmartConf conf;
+  @Getter
   private final ServerContext serverContext;
   @Getter
   private StatesManager statesManager;
@@ -114,8 +115,7 @@ public class SmartEngine extends AbstractService {
         service.stop();
       }
     } catch (IOException e) {
-      LOG.error("Error while stopping "
-          + service.getClass().getCanonicalName(), e);
+      LOG.error("Error while stopping {}", service.getClass().getCanonicalName(), e);
     }
   }
 

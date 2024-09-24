@@ -19,6 +19,8 @@ package org.smartdata.metastore;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import org.smartdata.conf.SmartConf;
+import org.smartdata.metrics.MetricsFactory;
 
 import javax.sql.DataSource;
 
@@ -28,11 +30,13 @@ import java.util.Properties;
 
 public class DruidPool implements DBPool {
   private final DruidDataSource ds;
+  private final DruidPoolMetricsBinder metricsBinder;
 
-  public DruidPool(Properties properties) throws MetaStoreException {
+  public DruidPool(SmartConf conf, Properties properties) throws MetaStoreException {
     try {
       ds =
           (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+      metricsBinder = DruidPoolMetricsBinder.build(conf, ds);
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -48,6 +52,11 @@ public class DruidPool implements DBPool {
 
   public void closeConnection(Connection conn) throws SQLException {
     conn.close();
+  }
+
+  @Override
+  public void bindMetrics(MetricsFactory metricFactory) {
+    metricsBinder.bindTo(metricFactory.getMeterRegistry());
   }
 
   public void close() {

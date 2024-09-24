@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'ssm-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['ssm-server.demo:8081']
+    basic_auth:
+      username: 'john'
+      password: '1234'
+  - job_name: 'ssm-agent'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'hadoop-datanode.demo:8081' ]
+    basic_auth:
+      username: 'john'
+      password: '1234'

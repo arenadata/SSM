@@ -40,11 +40,11 @@ import static io.restassured.config.ObjectMapperConfig.objectMapperConfig;
 import static io.restassured.config.RestAssuredConfig.config;
 import static org.junit.Assert.assertEquals;
 import static org.smartdata.client.generated.invoker.JacksonObjectMapper.jackson;
-import static org.smartdata.server.config.ConfigKeys.SSL_ENABLED;
-import static org.smartdata.server.config.ConfigKeys.SSL_KEYSTORE_PASSWORD;
-import static org.smartdata.server.config.ConfigKeys.SSL_KEYSTORE_PATH;
-import static org.smartdata.server.config.ConfigKeys.SSL_KEY_ALIAS;
-import static org.smartdata.server.config.ConfigKeys.SSL_KEY_PASSWORD;
+import static org.smartdata.http.config.ConfigKeys.SSL_ENABLED;
+import static org.smartdata.http.config.ConfigKeys.SSL_KEYSTORE_PASSWORD;
+import static org.smartdata.http.config.ConfigKeys.SSL_KEYSTORE_PATH;
+import static org.smartdata.http.config.ConfigKeys.SSL_KEY_ALIAS;
+import static org.smartdata.http.config.ConfigKeys.SSL_KEY_PASSWORD;
 
 @RunWith(Parameterized.class)
 public class TestSsl extends IntegrationTestBase {

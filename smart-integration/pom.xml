@@ -253,7 +253,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/../smart-web-server/src/main/resources/api/ssm-api.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/../smart-web-server/smart-master-web-server/src/main/resources/api/ssm-api.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>

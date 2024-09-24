@@ -17,25 +17,25 @@
  */
 package org.smartdata.server.engine;
 
+import lombok.Getter;
 import org.smartdata.SmartContext;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
+import org.smartdata.metrics.MetricsFactory;
 
+@Getter
 public class ServerContext extends SmartContext {
 
   private final MetaStore metaStore;
-
-
-  public ServerContext(MetaStore metaStore) {
-    this.metaStore = metaStore;
-  }
+  private final MetricsFactory metricsFactory;
 
   public ServerContext(SmartConf conf, MetaStore metaStore) {
-    super(conf);
-    this.metaStore = metaStore;
+    this(conf, metaStore, MetricsFactory.noOp());
   }
 
-  public MetaStore getMetaStore() {
-    return metaStore;
+  public ServerContext(SmartConf conf, MetaStore metaStore, MetricsFactory metricsFactory) {
+    super(conf);
+    this.metaStore = metaStore;
+    this.metricsFactory = metricsFactory;
   }
 }

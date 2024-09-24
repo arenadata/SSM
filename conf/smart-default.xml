@@ -458,6 +458,12 @@
   </property>
 
   <property>
+    <name>smart.agent.http.server.port</name>
+    <value>8081</value>
+    <description>SSM Agent HTTP server port</description>
+  </property>
+
+  <property>
     <name>smart.client.report.tasks.timeout.ms</name>
     <value>2000</value>
     <description>
@@ -542,6 +548,46 @@
     <value>false</value>
     <description>
       Whether to enable SSL support for the SSM REST server.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable metrics collection and export.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.jmx.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable JMX metrics exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.jmx.domain</name>
+    <value>metrics</value>
+    <description>
+      Default domain for JMX exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.prometheus.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable Prometheus metrics exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.db.queries.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable SQL queries statistics export.
     </description>
   </property>
 </configuration>

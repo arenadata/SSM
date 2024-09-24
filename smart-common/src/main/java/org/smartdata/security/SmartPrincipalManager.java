@@ -23,4 +23,8 @@ public interface SmartPrincipalManager {
   void setCurrentPrincipal(SmartPrincipal principal);
 
   void unsetCurrentPrincipal();
+
+  static SmartPrincipalManager noOp() {
+    return new NoOpSmartPrincipalManager();
+  }
 }

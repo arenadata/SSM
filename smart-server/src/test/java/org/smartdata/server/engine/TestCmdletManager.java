@@ -294,7 +294,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
   }
 
   private void flushToDB(MetaStore metaStore,
-                        List<ActionInfo> actionInfos, CmdletInfo cmdletInfo) throws Exception {
+                         List<ActionInfo> actionInfos, CmdletInfo cmdletInfo) throws Exception {
     for (ActionInfo actionInfo : actionInfos) {
       cmdletInfo.addAction(actionInfo.getActionId());
     }

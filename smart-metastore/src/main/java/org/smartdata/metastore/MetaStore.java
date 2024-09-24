@@ -77,8 +77,6 @@ import org.smartdata.model.SystemInfo;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -202,8 +200,8 @@ public class MetaStore implements CopyMetaService,
     return defaultTransactionRunner.getTransactionManager();
   }
 
-  public DataSource getDataSource() {
-    return dbPool.getDataSource();
+  public DBPool dbPool() {
+    return dbPool;
   }
 
   public Long queryForLong(String sql) throws MetaStoreException {

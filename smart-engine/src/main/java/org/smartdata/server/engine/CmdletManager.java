@@ -141,7 +141,7 @@ public class CmdletManager extends AbstractService
   private final AuditService auditService;
   private final SmartPrincipalManager smartPrincipalManager;
   private final PathChecker pathChecker;
-  private List<ActionSchedulerService> schedulerServices;
+  private final List<ActionSchedulerService> schedulerServices;
   private CmdletDispatcher dispatcher;
 
   public CmdletManager(
@@ -151,7 +151,8 @@ public class CmdletManager extends AbstractService
     super(context);
 
     this.metaStore = context.getMetaStore();
-    this.executorService = Executors.newScheduledThreadPool(4);
+    this.executorService = context.getMetricsFactory().wrap(
+        Executors.newScheduledThreadPool(4), "cmdletSchedulerExecutor");
     this.runningCmdlets = new ArrayList<>();
     this.pendingCmdlets = new LinkedList<>();
     this.schedulingCmdlets = new LinkedList<>();
@@ -170,8 +171,8 @@ public class CmdletManager extends AbstractService
         CacheScheduler.class
     ), context, metaStore);
     this.ruleCmdletTracker = new RuleCmdletTracker();
-    this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlets,
-        idToLaunchCmdlets, runningCmdlets, schedulers);
+    this.dispatcher = new CmdletDispatcher(context, this,
+        scheduledCmdlets, idToLaunchCmdlets, runningCmdlets, schedulers);
     this.pathChecker = new PathChecker(context.getConf());
     this.maxNumPendingCmdlets = context.getConf()
         .getInt(SmartConfKeys.SMART_CMDLET_MAX_NUM_PENDING_KEY,
@@ -183,7 +184,7 @@ public class CmdletManager extends AbstractService
     this.inMemoryRegistry = new InMemoryRegistry(context, ruleCmdletTracker, executorService);
 
     CmdletManagerContext cmdletManagerContext = new CmdletManagerContext(
-        getContext().getConf(), metaStore, inMemoryRegistry, schedulers);
+        context.getConf(), metaStore, context.getMetricsFactory(), inMemoryRegistry, schedulers);
     this.detectTimeoutActionsTask =
         new DetectTimeoutActionsTask(cmdletManagerContext, this, idToLaunchCmdlets.keySet());
     this.actionInfoHandler = new ActionInfoHandler(cmdletManagerContext);
@@ -695,7 +696,7 @@ public class CmdletManager extends AbstractService
 
   public void updateStatus(StatusMessage status) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Got status update: " + status);
+      LOG.debug("Got status update: {}", status);
     }
     try {
       if (status instanceof CmdletStatusUpdate) {
@@ -705,7 +706,7 @@ public class CmdletManager extends AbstractService
         onStatusReport((StatusReport) status);
       }
     } catch (IOException e) {
-      LOG.error(String.format("Update status %s failed with %s", status, e));
+      LOG.error("Update status {} failed with {}", status, e);
     } catch (ActionException e) {
       LOG.error("Action Status error", e);
     }
