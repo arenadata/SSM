@@ -43,6 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.smartdata.utils.ConfigUtil.getSsmRpcAddresses;
@@ -57,7 +58,7 @@ public class SmartClient implements Closeable, SmartClientProtocol {
   private final PathChecker pathChecker;
   private final FileAccessReportStrategy fileAccessReportStrategy;
   private final ActiveServerAddressCache activeServerAddressCache;
-  private volatile boolean running = true;
+  private final AtomicBoolean running;
 
   public SmartClient(Configuration conf) throws IOException {
     this(conf, getSsmRpcAddresses(conf));
@@ -84,6 +85,7 @@ public class SmartClient implements Closeable, SmartClientProtocol {
     this.smartServerHandles = new SmartServerHandles(
         initializeServerHandles(ssmRpcAddresses));
     this.fileAccessReportStrategy = FileAccessReportStrategy.from(conf, smartServerHandles);
+    this.running = new AtomicBoolean(true);
   }
 
   private List<SmartServerHandle> initializeServerHandles(
@@ -172,8 +174,7 @@ public class SmartClient implements Closeable, SmartClientProtocol {
 
   @Override
   public void close() throws IOException {
-    if (running) {
-      running = false;
+    if (running.compareAndSet(true, false)) {
       for (SmartServerHandle server : smartServerHandles.handles()) {
         RPC.stopProxy(server.getProtocol());
       }
@@ -194,7 +195,7 @@ public class SmartClient implements Closeable, SmartClientProtocol {
   }
 
   private void checkOpen() throws IOException {
-    if (!running) {
+    if (!running.get()) {
       throw new IOException("SmartClient closed");
     }
   }
