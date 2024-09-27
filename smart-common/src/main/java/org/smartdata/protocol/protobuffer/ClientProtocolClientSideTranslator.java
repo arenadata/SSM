@@ -25,13 +25,15 @@ import org.smartdata.protocol.ClientServerProto.GetFileStateResponseProto;
 import org.smartdata.protocol.ClientServerProto.ReportFileAccessEventRequestProto;
 import org.smartdata.protocol.SmartClientProtocol;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import static org.smartdata.protocol.protobuffer.ProtoBufferHelper.ipc;
 
 public class ClientProtocolClientSideTranslator implements
-    java.io.Closeable, SmartClientProtocol {
-  private ClientProtocolProtoBuffer rpcProxy;
+    Closeable, SmartClientProtocol {
+
+  private final ClientProtocolProtoBuffer rpcProxy;
 
   public ClientProtocolClientSideTranslator(
       ClientProtocolProtoBuffer proxy) {
@@ -41,7 +43,6 @@ public class ClientProtocolClientSideTranslator implements
   @Override
   public void close() throws IOException {
     RPC.stopProxy(rpcProxy);
-    rpcProxy = null;
   }
 
   @Override
