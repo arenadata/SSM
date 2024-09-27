@@ -89,6 +89,6 @@
     </property>
     <property>
         <name>smart.rest.server.auth.spnego.principal</name>
-        <value>HTTP/ssm-server.demo@DEMO</value>
+        <value>HTTP/_HOST@DEMO</value>
     </property>
 </configuration>

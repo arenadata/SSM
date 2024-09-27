@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized.AfterParam;
 import org.junit.runners.Parameterized.BeforeParam;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.dao.DaoProvider;
 import org.smartdata.metastore.dao.DaoProviderFactory;
 import org.smartdata.metastore.db.DBHandlersFactory;
@@ -77,7 +78,7 @@ public abstract class TestDaoBase {
 
     DBHandlersFactory dbHandlersFactory = new DBHandlersFactory();
 
-    druidPool = new DruidPool(druidProps);
+    druidPool = new DruidPool(new SmartConf(), druidProps);
     dbSchemaManager = dbHandlersFactory
         .createDbManager(druidPool, new Configuration());
     PlatformTransactionManager transactionManager =

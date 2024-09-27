@@ -112,7 +112,7 @@ public class MetaStoreUtils {
       properties = loadDefaultDruidConfig(conf, cpConfigFile);
     }
 
-    DruidPool druidPool = new DruidPool(properties);
+    DruidPool druidPool = new DruidPool(conf, properties);
     DBType dbType = getDbType(druidPool);
 
     PlatformTransactionManager transactionManager =
