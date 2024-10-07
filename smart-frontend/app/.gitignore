@@ -27,3 +27,6 @@ dist-ssr
 *.sw?
 
 *storybook.log
+
+# auto generate files
+src/models/adh
