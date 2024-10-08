@@ -86,8 +86,7 @@ public class SmartServer {
 
     context = new ServerContext(conf, metaStore, metricsFactory);
     engine = new SmartEngine(context);
-    // TODO add RPC metrics
-    rpcServer = new SmartRpcServer(this, conf);
+    rpcServer = new SmartRpcServer(this, conf, metricsFactory);
     restServer = new SmartMasterRestServer(conf, engine);
 
     LOG.info("Finish Init Smart Server");

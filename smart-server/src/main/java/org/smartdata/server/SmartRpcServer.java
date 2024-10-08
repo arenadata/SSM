@@ -23,11 +23,14 @@ import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.ipc.ProtobufRpcEngine2;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RetriableException;
+import org.apache.hadoop.metrics2.MetricsSystem;
+import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.thirdparty.protobuf.BlockingService;
 import org.smartdata.SmartPolicyProvider;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metrics.FileAccessEvent;
+import org.smartdata.metrics.MetricsFactory;
 import org.smartdata.model.FileState;
 import org.smartdata.protocol.ClientServerProto;
 import org.smartdata.protocol.SmartServerProtocols;
@@ -42,13 +45,18 @@ import java.net.InetSocketAddress;
  * TODO: Implement statistics for SSM rpc server
  */
 public class SmartRpcServer implements SmartServerProtocols {
+  private static final String METRICS_PREFIX = "ssm";
+  private static final String RPC_METRICS_EXPORTER = "rpcServerMetricsExporter";
+  private static final String RPC_METHODS_METRICS_EXPORTER = "rpcServerMethodMetricsExporter";
+
   protected SmartServer ssm;
   protected Configuration conf;
   protected final InetSocketAddress clientRpcAddress;
   protected int serviceHandlerCount;
   protected final RPC.Server clientRpcServer;
 
-  public SmartRpcServer(SmartServer ssm, Configuration conf) throws IOException {
+  public SmartRpcServer(SmartServer ssm,
+      Configuration conf, MetricsFactory metricsFactory) throws IOException {
     this.ssm = ssm;
     this.conf = conf;
     InetSocketAddress rpcAddr = getRpcServerAddress();
@@ -87,13 +95,28 @@ public class SmartRpcServer implements SmartServerProtocols {
     if (serviceAuthEnabled) {
       clientRpcServer.refreshServiceAcl(conf, new SmartPolicyProvider());
     }
+
+    initializeMetrics(metricsFactory);
+  }
+
+  private void initializeMetrics(MetricsFactory metricsFactory) {
+    MetricsSystem metricsSystem = DefaultMetricsSystem.initialize(METRICS_PREFIX);
+
+    SmartRpcServerMetricsBinder rpcMetricsSink = new SmartRpcServerMetricsBinder();
+    rpcMetricsSink.bindTo(metricsFactory.getMeterRegistry());
+    metricsSystem.register(RPC_METRICS_EXPORTER, "", rpcMetricsSink);
+
+    SmartRpcServerMethodMetricsBinder detailedRpcMetricsSink =
+        new SmartRpcServerMethodMetricsBinder();
+    detailedRpcMetricsSink.bindTo(metricsFactory.getMeterRegistry());
+    metricsSystem.register(RPC_METHODS_METRICS_EXPORTER, "", detailedRpcMetricsSink);
   }
 
   private InetSocketAddress getRpcServerAddress() {
     String[] strings = conf.get(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
         SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT).split(":");
-    return new InetSocketAddress(strings[strings.length - 2]
-        , Integer.parseInt(strings[strings.length - 1]));
+    return new InetSocketAddress(strings[strings.length - 2],
+        Integer.parseInt(strings[strings.length - 1]));
   }
 
   /**
