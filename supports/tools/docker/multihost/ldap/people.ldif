@@ -1,0 +1,61 @@
+dn: ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=people,dc=ssm,dc=test
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: cn=july,ou=people,dc=ssm,dc=test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: july
+sn: july
+givenName: july
+description: kitty_cat pwd
+unicodePwd::IgBrAGkAdAB0AHkAXwBjAGEAdAAiAA==
+userAccountControl: 512
+sAMAccountName: july
+
+dn: cn=ben,ou=people,dc=ssm,dc=test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: ben
+sn: ben
+givenName: ben
+description: bens_password pwd
+unicodePwd::IgBiAGUAbgBzAF8AcABhAHMAcwB3AG8AcgBkACIA
+userAccountControl: 512
+sAMAccountName: ben
+
+dn: cn=bob,ou=people,dc=ssm,dc=test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: bob
+sn: bob
+givenName: bob
+description: b0bs_p4ssw0rd pwd
+unicodePwd::IgBiADAAYgBzAF8AcAA0AHMAcwB3ADAAcgBkACIA
+userAccountControl: 512
+sAMAccountName: bob
+
+dn: cn=developers,ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: groupOfNames
+cn: developers
+member: cn=july,ou=people,dc=ssm,dc=test
+member: cn=ben,ou=people,dc=ssm,dc=test
+
+dn: cn=managers,ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: groupOfNames
+cn: managers
+member: cn=bob,ou=people,dc=ssm,dc=test

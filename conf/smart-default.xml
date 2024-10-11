@@ -544,4 +544,116 @@
       Whether to enable SSL support for the SSM REST server.
     </description>
   </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSM REST server basic LDAP authentication method support.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for user search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for group search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.attributes.name</name>
+    <value>uid</value>
+    <description>
+      The name attribute of user LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.object-classes</name>
+    <value>person</value>
+    <description>
+      Comma-separated list of LDAP user entry objectClasses.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.search.scope</name>
+    <value>ONE_LEVEL</value>
+    <description>
+      The scope of LDAP user search. Possible values:
+        OBJECT - Search the named object
+        ONE_LEVEL - Search one level of the named context
+        SUBTREE - Search the entire subtree rooted at the named object
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.search.scope</name>
+    <value>ONE_LEVEL</value>
+    <description>
+      The scope of LDAP group search. Possible values:
+        OBJECT - Search the named object
+        ONE_LEVEL - Search one level of the named context
+        SUBTREE - Search the entire subtree rooted at the named object
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.attributes.password</name>
+    <value>userPassword</value>
+    <description>
+      The password attribute of user LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.object-class</name>
+    <value>groupOfNames</value>
+    <description>
+      LDAP group entry objectClass.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.attributes.name</name>
+    <value>cn</value>
+    <description>
+      The name attribute of group LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.auth.type</name>
+    <value>BIND</value>
+    <description>
+      LDAP authentication type. Possible values:
+        BIND: search user by specified filters and authenticate with found user's DN and provided password
+        PASSWORD_COMPARE: search user by specified filters and use LDAP password compare operation
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.failures.logging.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable unsuccessful REST server auth attempts.
+    </description>
+  </property>
 </configuration>

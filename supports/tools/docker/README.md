@@ -50,11 +50,13 @@ cd ./supports/tools/docker
 
 Use one of the following credentials to log in to the Web UI
 
-| Login          | Password  | Type     |
-|----------------|-----------|----------|
-| john           | 1234      | static   |
-| krb_user1@DEMO | krb_pass1 | kerberos |
-| krb_user2@DEMO | krb_pass2 | kerberos |
+| Login          | Password      | Type     |
+|----------------|---------------|----------|
+| john           | 1234          | static   |
+| krb_user1@DEMO | krb_pass1     | kerberos |
+| krb_user2@DEMO | krb_pass2     | kerberos |
+| july           | kitty_cat     | ldap     |
+| ben            | bens_password | ldap     |
 
 ### Testing SPNEGO auth
 

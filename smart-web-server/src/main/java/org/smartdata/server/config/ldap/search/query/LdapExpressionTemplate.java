@@ -15,33 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.api;
+package org.smartdata.server.config.ldap.search.query;
 
-import io.restassured.response.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.smartdata.client.generated.api.AuditApi;
-import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.AuditEventsDto;
+public interface LdapExpressionTemplate {
+  LdapExpressionTemplate EMPTY_EXPRESSION = () -> "";
 
-public class AuditApiWrapper {
+  String build();
 
-  private final AuditApi apiClient;
-
-  public AuditApiWrapper() {
-    this(ApiClient.Config.apiConfig());
+  default boolean isEmpty() {
+    return this == EMPTY_EXPRESSION;
   }
 
-  public AuditApiWrapper(ApiClient.Config config) {
-    this.apiClient = ApiClient.api(config).audit();
+  static LdapExpressionTemplate custom(String expression) {
+    return () -> expression;
   }
 
-  public AuditEventsDto getAuditEvents() {
-    return apiClient.getAuditEvents()
-        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
-        .executeAs(Response::andReturn);
-  }
-
-  public AuditApi rawClient() {
-    return apiClient;
+  static LdapExpressionTemplate empty() {
+    return EMPTY_EXPRESSION;
   }
 }

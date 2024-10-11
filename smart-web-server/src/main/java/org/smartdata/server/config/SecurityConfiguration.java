@@ -18,6 +18,7 @@
 package org.smartdata.server.config;
 
 import org.smartdata.security.SmartPrincipalManager;
+import org.smartdata.server.error.AuthenticationFailureListener;
 import org.smartdata.server.security.SmartPrincipalInitializerFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,10 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import java.util.List;
+import java.util.Set;
+
+import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_AUTH_ERRORS_LOGGING_ENABLED;
+import static org.smartdata.server.config.ConfigKeys.WEB_SECURITY_ENABLED;
 
 @Configuration
 public class SecurityConfiguration {
@@ -38,7 +43,7 @@ public class SecurityConfiguration {
   private static final String API_ENDPOINTS_PATTERN = "/api/**";
 
   @Bean
-  @ConditionalOnProperty(name = ConfigKeys.WEB_SECURITY_ENABLED, havingValue = "true")
+  @ConditionalOnProperty(name = WEB_SECURITY_ENABLED, havingValue = "true")
   public AuthenticationManager authenticationManager(
       List<AuthenticationProvider> authenticationProviders) {
     if (authenticationProviders.isEmpty()) {
@@ -49,11 +54,20 @@ public class SecurityConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty(name = ConfigKeys.WEB_SECURITY_ENABLED, havingValue = "true")
+  @ConditionalOnProperty(
+      name = {WEB_SECURITY_ENABLED, SMART_REST_SERVER_AUTH_ERRORS_LOGGING_ENABLED},
+      havingValue = "true"
+  )
+  public AuthenticationFailureListener authenticationFailureListener() {
+    return new AuthenticationFailureListener();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = WEB_SECURITY_ENABLED, havingValue = "true")
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
       SmartPrincipalManager principalManager,
-      List<SsmAuthHttpConfigurer> authHttpConfigurers) throws Exception {
+      Set<SsmAuthHttpConfigurer> authHttpConfigurers) throws Exception {
     baseHttpSecurity(http)
         .authorizeRequests()
         .antMatchers(API_ENDPOINTS_PATTERN).authenticated()
@@ -72,7 +86,7 @@ public class SecurityConfiguration {
 
   @Bean
   @ConditionalOnProperty(
-      name = ConfigKeys.WEB_SECURITY_ENABLED,
+      name = WEB_SECURITY_ENABLED,
       havingValue = "false",
       matchIfMissing = true)
   public SecurityFilterChain disabledSecurityFilterChain(HttpSecurity http) throws Exception {

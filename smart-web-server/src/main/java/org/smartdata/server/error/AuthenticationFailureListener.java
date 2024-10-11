@@ -15,33 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.api;
+package org.smartdata.server.error;
 
-import io.restassured.response.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.smartdata.client.generated.api.AuditApi;
-import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.AuditEventsDto;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 
-public class AuditApiWrapper {
+@Slf4j
+public class AuthenticationFailureListener implements
+    ApplicationListener<AbstractAuthenticationFailureEvent> {
 
-  private final AuditApi apiClient;
-
-  public AuditApiWrapper() {
-    this(ApiClient.Config.apiConfig());
-  }
-
-  public AuditApiWrapper(ApiClient.Config config) {
-    this.apiClient = ApiClient.api(config).audit();
-  }
-
-  public AuditEventsDto getAuditEvents() {
-    return apiClient.getAuditEvents()
-        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
-        .executeAs(Response::andReturn);
-  }
-
-  public AuditApi rawClient() {
-    return apiClient;
+  @Override
+  public void onApplicationEvent(AbstractAuthenticationFailureEvent event) {
+    log.error("Failed login attempt for {}",
+        event.getAuthentication().getName(), event.getException());
   }
 }

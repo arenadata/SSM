@@ -91,4 +91,56 @@
         <name>smart.rest.server.auth.spnego.principal</name>
         <value>HTTP/ssm-server.demo@DEMO</value>
     </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.url</name>
+        <value>ldap://samba:389</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.search.base</name>
+        <value>dc=ssm,dc=test</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.user.search.base</name>
+        <value>ou=people,dc=ssm,dc=test</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.group.search.base</name>
+        <value>ou=groups,dc=ssm,dc=test</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.user.attributes.name</name>
+        <value>sAMAccountName</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.user.search.scope</name>
+        <value>SUBTREE</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.group.search.scope</name>
+        <value>SUBTREE</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.auth.type</name>
+        <value>BIND</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.bind.user</name>
+        <value>cn=Administrator,CN=Users,DC=ssm,DC=test</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.bind.password</name>
+        <value>LZ2ibGAn2H0D0UW3</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.user.attributes.membership</name>
+        <value>memberOf</value>
+    </property>
+    <property>
+        <name>smart.rest.server.auth.ldap.user.search.groups</name>
+        <value>developers</value>
+    </property>
 </configuration>

@@ -15,33 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.api;
+package org.smartdata.server.config.ldap.search.group;
 
-import io.restassured.response.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.smartdata.client.generated.api.AuditApi;
-import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.AuditEventsDto;
+import org.smartdata.server.config.ldap.search.query.LdapExpressionTemplate;
 
-public class AuditApiWrapper {
+import javax.naming.Name;
 
-  private final AuditApi apiClient;
+import java.util.List;
 
-  public AuditApiWrapper() {
-    this(ApiClient.Config.apiConfig());
-  }
+public interface SsmLdapGroupSearch {
+  List<Name> getGroupDnsFromConfig();
 
-  public AuditApiWrapper(ApiClient.Config config) {
-    this.apiClient = ApiClient.api(config).audit();
-  }
-
-  public AuditEventsDto getAuditEvents() {
-    return apiClient.getAuditEvents()
-        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
-        .executeAs(Response::andReturn);
-  }
-
-  public AuditApi rawClient() {
-    return apiClient;
-  }
+  List<Name> getGroupDns(LdapExpressionTemplate filter, Object... args);
 }

@@ -80,6 +80,8 @@ case $CLUSTER_TYPE in
 
     docker build -f ./supports/tools/docker/multihost/kerberos/Dockerfile-kdc -t cloud-hub.adsw.io/library/ssm-kdc-server:${HADOOP_VERSION} .
 
+    docker build -f ./supports/tools/docker/multihost/ldap/Dockerfile-samba -t hub.adsw.io/qa-samba/samba:demo .
+
     docker build -f ./supports/tools/docker/multihost/datanode/Dockerfile-hadoop-datanode -t cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION} .
 
     docker build -f ./supports/tools/docker/multihost/namenode/Dockerfile-hadoop-namenode -t cloud-hub.adsw.io/library/hadoop-namenode:${HADOOP_VERSION} .

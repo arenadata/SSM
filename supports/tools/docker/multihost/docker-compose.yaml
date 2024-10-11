@@ -110,6 +110,20 @@ services:
     networks:
       - demo
 
+  samba:
+    image: hub.adsw.io/qa-samba/samba:demo
+    hostname: samba
+    container_name: samba
+    privileged: true
+    ports:
+      - "389:389"
+    environment:
+      SMB_ADMIN_PASSWORD: "LZ2ibGAn2H0D0UW3"
+    volumes:
+      - ./ldap:/opt/ad-scripts
+    networks:
+      - demo
+
 networks:
   demo:
     name: demo

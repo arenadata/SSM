@@ -1,0 +1,63 @@
+dn: dc=ssm,dc=test
+objectclass: top
+objectclass: domain
+objectclass: extensibleObject
+dc: ssm
+
+dn: ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=people,dc=ssm,dc=test
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: cn=developers,ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: groupOfNames
+ou: groups
+cn: developers
+member: uid=ben,ou=people,dc=ssm,dc=test
+
+dn: cn=managers,ou=groups,dc=ssm,dc=test
+objectclass: top
+objectclass: groupOfNames
+ou: groups
+cn: managers
+member: uid=bob,ou=people,dc=ssm,dc=test
+
+dn: uid=ben,ou=people,dc=ssm,dc=test
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Ben Alex
+sn: Alex
+uid: ben
+additionalAttr: another_val
+userPassword: bens_password
+memberOf: cn=developers,ou=groups,dc=ssm,dc=test
+
+dn: uid=july,ou=people,dc=ssm,dc=test
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: July Adams
+sn: July
+uid: july
+additionalAttr: test
+userPassword: kitty_cat
+memberOf: cn=developers,ou=groups,dc=ssm,dc=test
+
+dn: uid=bob,ou=people,dc=ssm,dc=test
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Bob Hamilton
+sn: Hamilton
+uid: bob
+userPassword: b0bs_p4ssw0rd

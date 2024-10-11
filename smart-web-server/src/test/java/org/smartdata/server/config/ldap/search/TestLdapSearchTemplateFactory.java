@@ -15,33 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.api;
+package org.smartdata.server.config.ldap.search;
 
-import io.restassured.response.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.smartdata.client.generated.api.AuditApi;
-import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.AuditEventsDto;
+import org.smartdata.conf.SmartConf;
 
-public class AuditApiWrapper {
+import static org.junit.Assert.assertEquals;
 
-  private final AuditApi apiClient;
+public abstract class TestLdapSearchTemplateFactory {
 
-  public AuditApiWrapper() {
-    this(ApiClient.Config.apiConfig());
-  }
+  protected abstract LdapSearchTemplateFactory create(SmartConf conf);
 
-  public AuditApiWrapper(ApiClient.Config config) {
-    this.apiClient = ApiClient.api(config).audit();
-  }
+  public void checkGeneratedSearchTemplate(SmartConf conf, String expectedTemplate) {
+    LdapSearchTemplateFactory templateFactory = create(conf);
+    String actualTemplate = templateFactory.buildSearchTemplate().build();
 
-  public AuditEventsDto getAuditEvents() {
-    return apiClient.getAuditEvents()
-        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
-        .executeAs(Response::andReturn);
-  }
-
-  public AuditApi rawClient() {
-    return apiClient;
+    assertEquals(expectedTemplate, actualTemplate);
   }
 }

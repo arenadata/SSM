@@ -96,14 +96,14 @@ and `smart.rest.server.auth.ldap.user.search.groups`
 
 Supported options:
 
-| Name                                                   | Default      | Description                                                                                    |
-|--------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------|
-| smart.rest.server.auth.ldap.user.attributes.name       | uid          | The name attribute of user LDAP object                                                         |
-| smart.rest.server.auth.ldap.user.object-classes        | person       | Comma-separated list of LDAP user entry objectClasses                                          |
-| smart.rest.server.auth.ldap.user.attributes.membership | memberOf     | The group membership attribute of user LDAP object                                             |
-| smart.rest.server.auth.ldap.group.object-class         | groupOfNames | LDAP group entry objectClass                                                                   |
-| smart.rest.server.auth.ldap.group.attributes.name      | cn           | The name attribute of group LDAP object                                                        |
-| smart.rest.server.auth.ldap.user.search.groups         | -            | Comma-separated list of groups the user should belong to in order to successfully authenticate |
+| Name                                                   | Default                                                               | Description                                                                                    |
+|--------------------------------------------------------|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| smart.rest.server.auth.ldap.user.attributes.name       | uid                                                                   | The name attribute of user LDAP object                                                         |
+| smart.rest.server.auth.ldap.user.object-classes        | person                                                                | Comma-separated list of LDAP user entry objectClasses                                          |
+| smart.rest.server.auth.ldap.user.attributes.membership | memberOf (you should provide this value explicitly in smart-site.xml) | The group membership attribute of user LDAP object                                             |
+| smart.rest.server.auth.ldap.group.object-class         | groupOfNames                                                          | LDAP group entry objectClass                                                                   |
+| smart.rest.server.auth.ldap.group.attributes.name      | cn                                                                    | The name attribute of group LDAP object                                                        |
+| smart.rest.server.auth.ldap.user.search.groups         | -                                                                     | Comma-separated list of groups the user should belong to in order to successfully authenticate |
 
 ### Group member attribute strategy
 
@@ -120,14 +120,14 @@ and `smart.rest.server.auth.ldap.user.search.groups`
 
 Supported options:
 
-| Name                                                | Default      | Description                                                                                    |
-|-----------------------------------------------------|--------------|------------------------------------------------------------------------------------------------|
-| smart.rest.server.auth.ldap.user.attributes.name    | uid          | The name attribute of user LDAP object                                                         |
-| smart.rest.server.auth.ldap.user.object-classes     | person       | Comma-separated list of LDAP user entry objectClasses                                          |
-| smart.rest.server.auth.ldap.group.object-class      | groupOfNames | LDAP group entry objectClass                                                                   |
-| smart.rest.server.auth.ldap.group.attributes.name   | cn           | The name attribute of group LDAP object                                                        |
-| smart.rest.server.auth.ldap.group.attributes.member | member       | The member attribute of group LDAP object                                                      |
-| smart.rest.server.auth.ldap.user.search.groups      | -            | Comma-separated list of groups the user should belong to in order to successfully authenticate |
+| Name                                                | Default                                                             | Description                                                                                    |
+|-----------------------------------------------------|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| smart.rest.server.auth.ldap.user.attributes.name    | uid                                                                 | The name attribute of user LDAP object                                                         |
+| smart.rest.server.auth.ldap.user.object-classes     | person                                                              | Comma-separated list of LDAP user entry objectClasses                                          |
+| smart.rest.server.auth.ldap.group.object-class      | groupOfNames                                                        | LDAP group entry objectClass                                                                   |
+| smart.rest.server.auth.ldap.group.attributes.name   | cn                                                                  | The name attribute of group LDAP object                                                        |
+| smart.rest.server.auth.ldap.group.attributes.member | member (you should provide this value explicitly in smart-site.xml) | The member attribute of group LDAP object                                                      |
+| smart.rest.server.auth.ldap.user.search.groups      | -                                                                   | Comma-separated list of groups the user should belong to in order to successfully authenticate |
 
 ### User name attribute strategy
 

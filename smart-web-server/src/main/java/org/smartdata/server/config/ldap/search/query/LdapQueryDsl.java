@@ -15,33 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.integration.api;
+package org.smartdata.server.config.ldap.search.query;
 
-import io.restassured.response.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.smartdata.client.generated.api.AuditApi;
-import org.smartdata.client.generated.invoker.ApiClient;
-import org.smartdata.client.generated.model.AuditEventsDto;
+import java.util.List;
 
-public class AuditApiWrapper {
-
-  private final AuditApi apiClient;
-
-  public AuditApiWrapper() {
-    this(ApiClient.Config.apiConfig());
+public class LdapQueryDsl {
+  public static LdapExpressionTemplate and(LdapExpressionTemplate... expressions) {
+    return new LdapOperator("&", expressions);
   }
 
-  public AuditApiWrapper(ApiClient.Config config) {
-    this.apiClient = ApiClient.api(config).audit();
+  public static LdapExpressionTemplate and(List<LdapExpressionTemplate> expressions) {
+    return new LdapOperator("&", expressions);
   }
 
-  public AuditEventsDto getAuditEvents() {
-    return apiClient.getAuditEvents()
-        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
-        .executeAs(Response::andReturn);
+  public static LdapExpressionTemplate or(LdapExpressionTemplate... expressions) {
+    return new LdapOperator("|", expressions);
   }
 
-  public AuditApi rawClient() {
-    return apiClient;
+  public static LdapExpressionTemplate not(LdapExpressionTemplate expression) {
+    return new LdapOperator("!", expression);
+  }
+
+  public static LdapExpressionTemplate eq(String attribute, Object value) {
+    return new LdapFilter("=", attribute, value);
   }
 }

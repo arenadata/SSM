@@ -1,0 +1,4 @@
+FROM hub.adsw.io/library/adcc-test-ubuntu-base:latest-x64
+RUN mkdir -p /opt/ad-scripts
+WORKDIR /opt/ad-scripts
+CMD chmod +x *.sh && ./samba-ad-setup.sh && ./samba-ad-run.sh
