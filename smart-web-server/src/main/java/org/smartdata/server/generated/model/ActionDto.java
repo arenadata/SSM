@@ -51,6 +51,8 @@ public class ActionDto {
 
   private String log;
 
+  private String result;
+
   public ActionDto() {
     super();
   }
@@ -247,6 +249,26 @@ public class ActionDto {
     this.log = log;
   }
 
+  public ActionDto result(String result) {
+    this.result = result;
+    return this;
+  }
+
+  /**
+   * Action result
+   * @return result
+  */
+  
+  @Schema(name = "result", description = "Action result", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("result")
+  public String getResult() {
+    return result;
+  }
+
+  public void setResult(String result) {
+    this.result = result;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -264,12 +286,13 @@ public class ActionDto {
         Objects.equals(this.completionTime, action.completionTime) &&
         Objects.equals(this.state, action.state) &&
         Objects.equals(this.source, action.source) &&
-        Objects.equals(this.log, action.log);
+        Objects.equals(this.log, action.log) &&
+        Objects.equals(this.result, action.result);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, cmdletId, textRepresentation, execHost, submissionTime, completionTime, state, source, log);
+    return Objects.hash(id, cmdletId, textRepresentation, execHost, submissionTime, completionTime, state, source, log, result);
   }
 
   @Override
@@ -285,6 +308,7 @@ public class ActionDto {
     sb.append("    state: ").append(toIndentedString(state)).append("\n");
     sb.append("    source: ").append(toIndentedString(source)).append("\n");
     sb.append("    log: ").append(toIndentedString(log)).append("\n");
+    sb.append("    result: ").append(toIndentedString(result)).append("\n");
     sb.append("}");
     return sb.toString();
   }

@@ -24,17 +24,18 @@ import org.smartdata.protocol.message.StatusReport;
 import org.smartdata.protocol.message.StatusReporter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class StatusReportTask implements Runnable {
-  private StatusReporter statusReporter;
-  private CmdletExecutor cmdletExecutor;
+  private final StatusReporter statusReporter;
+  private final CmdletExecutor cmdletExecutor;
+  private final int interval;
+  private final double ratio;
+  private final Map<Long, ActionStatus> idToActionStatus;
   private long lastReportTime;
-  private int interval;
-  public double ratio;
-  private Map<Long, ActionStatus> idToActionStatus;
 
   public StatusReportTask(
       StatusReporter statusReporter, CmdletExecutor cmdletExecutor, SmartConf conf) {
@@ -51,29 +52,26 @@ public class StatusReportTask implements Runnable {
     this.idToActionStatus = new HashMap<>();
   }
 
-  @Override
   public void run() {
-    StatusReport statusReport = cmdletExecutor.getStatusReport();
-    if (statusReport != null) {
-      List<ActionStatus> actionStatuses = statusReport.getActionStatuses();
-      for (ActionStatus actionStatus : actionStatuses) {
-        idToActionStatus.put(actionStatus.getActionId(), actionStatus);
-      }
-      if (!idToActionStatus.values().isEmpty()) {
-        int finishedNum = 0;
-        for (ActionStatus actionStatus : idToActionStatus.values()) {
-          if (actionStatus.isFinished()) {
-            finishedNum++;
-          }
-        }
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastReportTime >= interval
-            || (double) finishedNum / idToActionStatus.size() >= ratio) {
-          statusReporter.report(new StatusReport(new ArrayList(idToActionStatus.values())));
-          idToActionStatus.clear();
-          lastReportTime = currentTime;
-        }
-      }
+    Optional.ofNullable(cmdletExecutor.getStatusReport())
+        .map(StatusReport::getActionStatuses)
+        .orElseGet(Collections::emptyList)
+        .forEach(status -> idToActionStatus.put(status.getActionId(), status));
+
+    if (idToActionStatus.isEmpty()) {
+      return;
+    }
+    long finishedNum = idToActionStatus.values()
+        .stream()
+        .filter(ActionStatus::isFinished)
+        .count();
+
+    long currentTime = System.currentTimeMillis();
+    if (currentTime - lastReportTime >= interval
+        || (double) finishedNum / idToActionStatus.size() >= ratio) {
+      statusReporter.report(new StatusReport(new ArrayList<>(idToActionStatus.values())));
+      idToActionStatus.clear();
+      lastReportTime = currentTime;
     }
   }
 }

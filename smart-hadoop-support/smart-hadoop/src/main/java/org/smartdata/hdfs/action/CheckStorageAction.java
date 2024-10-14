@@ -17,7 +17,7 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfoWithStorage;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
@@ -31,9 +31,9 @@ import java.util.Map;
  * Check and return file blocks storage location.
  */
 @ActionSignature(
-  actionId = "checkstorage",
-  displayName = "checkstorage",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "checkstorage",
+    displayName = "checkstorage",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class CheckStorageAction extends HdfsAction {
   private String fileName;
@@ -46,7 +46,7 @@ public class CheckStorageAction extends HdfsAction {
 
   @Override
   protected void execute() throws Exception {
-    if (fileName == null) {
+    if (StringUtils.isBlank(fileName)) {
       throw new IllegalArgumentException("File parameter is missing! ");
     }
     HdfsFileStatus fileStatus = dfsClient.getFileInfo(fileName);
@@ -55,17 +55,15 @@ public class CheckStorageAction extends HdfsAction {
     }
     if (fileStatus.isDir()) {
       appendResult("This is a directory which has no storage result!");
-      // Append to log for the convenience of UI implementation
-      appendLog("This is a directory which has no storage result!");
       return;
     }
+
     long length = fileStatus.getLen();
     List<LocatedBlock> locatedBlocks =
         dfsClient.getLocatedBlocks(fileName, 0, length).getLocatedBlocks();
 
-    if (locatedBlocks.size() == 0) {
+    if (locatedBlocks.isEmpty()) {
       appendResult("File '" + fileName + "' has no blocks.");
-      appendLog("File '" + fileName + "' has no blocks.");
       return;
     }
 
@@ -73,19 +71,15 @@ public class CheckStorageAction extends HdfsAction {
       StringBuilder blockInfo = new StringBuilder();
       blockInfo.append("File offset = ").append(locatedBlock.getStartOffset()).append(", ");
       blockInfo.append("Block locations = {");
-      for (DatanodeInfo datanodeInfo : locatedBlock.getLocations()) {
-        blockInfo.append(datanodeInfo.getName());
-        if (datanodeInfo instanceof DatanodeInfoWithStorage) {
-          blockInfo
-              .append("[")
-              .append(((DatanodeInfoWithStorage) datanodeInfo).getStorageType())
-              .append("]");
-        }
-        blockInfo.append(" ");
+      for (DatanodeInfoWithStorage datanodeInfo : locatedBlock.getLocations()) {
+        blockInfo.append(datanodeInfo.getName())
+            .append("[")
+            .append(datanodeInfo.getStorageType())
+            .append("]")
+            .append(" ");
       }
       blockInfo.append("}");
       appendResult(blockInfo.toString());
-      appendLog(blockInfo.toString());
     }
   }
 }

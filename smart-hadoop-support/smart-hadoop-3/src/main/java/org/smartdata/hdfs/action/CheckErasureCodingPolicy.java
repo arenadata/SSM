@@ -17,10 +17,12 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * An action to check the EC policy for a file or dir.
@@ -43,12 +45,15 @@ public class CheckErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    ErasureCodingPolicy srcEcPolicy = dfsClient.getErasureCodingPolicy(srcPath);
-    if (srcEcPolicy == null) {
-      appendLog(RESULT_OF_NULL_EC_POLICY);
-    } else {
-      appendLog(srcEcPolicy.toString());
+    if (StringUtils.isBlank(srcPath)) {
+      throw new IllegalArgumentException("File parameter is missing! ");
     }
+
+    String result = Optional.ofNullable(dfsClient.getErasureCodingPolicy(srcPath))
+        .map(ErasureCodingPolicy::toString)
+        .orElse(RESULT_OF_NULL_EC_POLICY);
+
+    appendResult(result);
   }
 
   @Override

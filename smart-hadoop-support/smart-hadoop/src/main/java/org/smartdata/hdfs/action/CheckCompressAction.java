@@ -17,8 +17,7 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.model.CompressionFileState;
@@ -37,8 +36,6 @@ import java.util.Map;
         + " $file "
 )
 public class CheckCompressAction extends HdfsAction {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(CheckCompressAction.class);
   private String srcPath;
 
   @Override
@@ -49,26 +46,28 @@ public class CheckCompressAction extends HdfsAction {
 
   @Override
   protected void execute() throws Exception {
-    if (srcPath == null) {
+    if (StringUtils.isBlank(srcPath)) {
       throw new IOException("File path is not given!");
     }
     // Consider directory case.
     if (dfsClient.getFileInfo(srcPath).isDir()) {
-      appendLog("The given path is a directory, " +
+      appendResult("The given path is a directory, " +
           "not applicable to checking compression status.");
       return;
     }
     FileState fileState = HadoopUtil.getFileState(dfsClient, srcPath);
     if (fileState instanceof CompressionFileState) {
       appendLog("The given file has already been compressed by SSM.");
-      appendLog("The compression codec is " +
-          ((CompressionFileState) fileState).getCompressionImpl());
-      appendLog("The original file length is " +
-          ((CompressionFileState) fileState).getOriginalLength());
-      appendLog("The current file length is " +
-          ((CompressionFileState) fileState).getCompressedLength());
+
+      CompressionFileState compressionFileState = (CompressionFileState) fileState;
+      appendResult("The compression codec is " +
+          compressionFileState.getCompressionImpl());
+      appendResult("The original file length is " +
+          compressionFileState.getOriginalLength());
+      appendResult("The current file length is " +
+          compressionFileState.getCompressedLength());
       return;
     }
-    appendLog("The given file is not compressed.");
+    appendResult("The given file is not compressed.");
   }
 }

@@ -25,7 +25,6 @@ import org.smartdata.action.ActionException;
 import org.smartdata.hdfs.MiniClusterHarness;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,7 +96,7 @@ public class TestCheckSumAction extends MiniClusterHarness {
   }
 
   @Test
-  public void testThrowIfFileNotFound() throws IOException {
+  public void testThrowIfFileNotFound() {
     final String file = "/unknownFile";
     Map<String, String> args = new HashMap<>();
     args.put(CheckSumAction.FILE_PATH, file);
@@ -111,7 +110,7 @@ public class TestCheckSumAction extends MiniClusterHarness {
   }
 
   @Test
-  public void testThrowIfDirectoryNotFound() throws IOException {
+  public void testThrowIfDirectoryNotFound() {
     final String file = "/unknownDir/*";
     Map<String, String> args = new HashMap<>();
     args.put(CheckSumAction.FILE_PATH, file);
@@ -124,8 +123,8 @@ public class TestCheckSumAction extends MiniClusterHarness {
     assertEquals("Provided directory doesn't exist: /unknownDir/", error.getMessage());
   }
 
-  private List<String> getChecksumFiles() throws UnsupportedEncodingException {
-    String[] logLines = Optional.ofNullable(action.getActionStatus().getLog())
+  private List<String> getChecksumFiles() {
+    String[] logLines = Optional.ofNullable(action.getActionStatus().getResult())
         .map(log -> log.split("\n"))
         .orElse(new String[0]);
 

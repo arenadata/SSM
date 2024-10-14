@@ -40,7 +40,7 @@ public class ListErasureCodingPolicy extends HdfsAction {
   @Override
   public void execute() throws Exception {
     for (ErasureCodingPolicyInfo policyInfo : dfsClient.getErasureCodingPolicies()) {
-      appendLog("{" + policyInfo.toString() + "}");
+      appendResult("{" + policyInfo.toString() + "}");
     }
   }
 

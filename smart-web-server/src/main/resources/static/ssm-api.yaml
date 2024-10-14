@@ -1349,8 +1349,12 @@ components:
           log:
             description: Action log
             type: string
+          result:
+            description: Action result
+            type: string
         type: object
       example:
+        result: result
         completionTime: 5
         log: log
         textRepresentation: textRepresentation

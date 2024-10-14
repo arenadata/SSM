@@ -28,7 +28,7 @@ import org.smartdata.SmartContext;
 import org.smartdata.protocol.message.ActionStatus;
 
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -126,14 +126,14 @@ public abstract class SmartAction {
     return 0.0F;
   }
 
-  public ActionStatus getActionStatus() throws UnsupportedEncodingException {
+  public ActionStatus getActionStatus() {
     return new ActionStatus(
         cmdletId,
         lastAction,
         actionId,
         getProgress(),
-        resultOutputStream.toString("UTF-8"),
-        logOutputStream.toString("UTF-8"),
+        resultOutputStream.toString(StandardCharsets.UTF_8),
+        logOutputStream.toString(StandardCharsets.UTF_8),
         startTime,
         finishTime,
         throwable,
@@ -146,7 +146,7 @@ public abstract class SmartAction {
   }
 
   @VisibleForTesting
-  public boolean getExpectedAfterRun() throws UnsupportedEncodingException {
+  public boolean getExpectedAfterRun() {
     ActionStatus actionStatus = getActionStatus();
     return actionStatus.isFinished() && actionStatus.getThrowable() == null;
   }

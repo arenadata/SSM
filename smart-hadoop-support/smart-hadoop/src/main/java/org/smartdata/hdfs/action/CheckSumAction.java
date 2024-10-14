@@ -17,6 +17,7 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
@@ -49,7 +50,7 @@ public class CheckSumAction extends HdfsAction {
 
   @Override
   protected void execute() throws Exception {
-    if (fileName == null) {
+    if (StringUtils.isBlank(fileName)) {
       throw new IllegalArgumentException("Please specify file path!");
     }
 
@@ -67,7 +68,6 @@ public class CheckSumAction extends HdfsAction {
 
     if (fileStatus.isDir()) {
       appendResult("This is a directory which has no checksum result!");
-      appendLog("This is a directory which has no checksum result!");
       return;
     }
 
@@ -102,7 +102,7 @@ public class CheckSumAction extends HdfsAction {
     DataOutputStream dataStream = new DataOutputStream(byteStream);
     md5.write(dataStream);
     byte[] bytes = byteStream.toByteArray();
-    appendLog(
+    appendResult(
         String.format("%s\t%s\t%s",
             path,
             md5.getAlgorithmName(),

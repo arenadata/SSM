@@ -17,102 +17,213 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSTestUtil;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.smartdata.hdfs.MiniClusterHarness;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test for ListFileAction.
  */
+@RunWith(Parameterized.class)
 public class TestListFileAction extends MiniClusterHarness {
-  @Test
-  public void testRemoteFileList() throws Exception {
-    final String srcPath = "/testList";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String dir = "/childDir";
-    final String dirFile1 = "childDirFile1";
-    dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(srcPath + dir));
-    //write to DISK
-    FSDataOutputStream out1 = dfs.create(new Path(dfs.getUri() + srcPath + "/" + file1));
-    out1.writeChars("test");
-    out1.close();
-    out1 = dfs.create(new Path(dfs.getUri() + srcPath + "/" + file2));
-    out1.writeChars("test");
-    out1.close();
-    out1 = dfs.create(new Path(dfs.getUri() + srcPath + dir + "/" + dirFile1));
-    out1.writeChars("test");
-    out1.close();
 
-    Assert.assertTrue(dfsClient.exists(srcPath + "/" + file1));
-    Assert.assertTrue(dfsClient.exists(srcPath + "/" + file2));
-    Assert.assertTrue(dfsClient.exists(srcPath + dir + "/" + dirFile1));
+  private ListFileAction listFileAction;
+  private TimeZone timeZoneToRestore;
 
-    ListFileAction listFileAction = new ListFileAction();
-    listFileAction.setDfsClient(dfsClient);
-    listFileAction.setContext(smartContext);
-    Map<String , String> args = new HashMap<>();
-    args.put(ListFileAction.FILE_PATH , dfs.getUri() + srcPath);
-    listFileAction.init(args);
-    listFileAction.run();
-    Assert.assertTrue(listFileAction.getExpectedAfterRun());
+  @Parameter
+  public boolean useFullRootPath;
+
+  @Parameters(name = "useFullRootPath = {0}")
+  public static Object[] parameters() {
+    return new Object[]{true, false};
+  }
+
+  @Before
+  public void buildAction() {
+    timeZoneToRestore = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
     listFileAction = new ListFileAction();
     listFileAction.setDfsClient(dfsClient);
     listFileAction.setContext(smartContext);
-    args = new HashMap<>();
-    args.put(ListFileAction.FILE_PATH , dfs.getUri() + srcPath + "/" + file1);
-    listFileAction.init(args);
-    listFileAction.run();
-    Assert.assertTrue(listFileAction.getExpectedAfterRun());
+  }
+
+  /*
+   * test/
+   * --- file1
+   * --- dir1/
+   *     --- file1
+   *     --- subdir/
+   *         --- file11
+   *         --- file12
+   *     --- emptydir/
+   * --- dir2/
+   *     --- file21
+   *     --- file22
+   */
+  @Before
+  public void createDirectoryForListing() {
+    List<String> paths = new ArrayList<>();
+
+    Stream.of(
+            "/test",
+            "/test/dir1",
+            "/test/dir2",
+            "/test/dir1/subdir",
+            "/test/dir1/emptydir"
+        )
+        .peek(paths::add)
+        .forEach(this::createDirectory);
+
+    Stream.of(
+            "/test/file1",
+            "/test/file2",
+            "/test/dir1/file1",
+            "/test/dir1/subdir/file11",
+            "/test/dir1/subdir/file12",
+            "/test/dir2/file21",
+            "/test/dir2/file22"
+        )
+        .peek(paths::add)
+        .forEach(this::createFile);
+
+    paths.forEach(this::setFileAttributes);
+  }
+
+  @After
+  public void restoreTimezone() {
+    TimeZone.setDefault(timeZoneToRestore);
   }
 
   @Test
-  public void testLocalFileList() throws Exception {
-    final String srcPath = "/testList";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String dir = "/childDir";
-    final String dirFile1 = "childDirFile1";
-    dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(srcPath + dir));
-    //write to DISK
-    FSDataOutputStream out1 = dfs.create(new Path(dfs.getUri() + srcPath + "/" + file1));
-    out1.writeChars("test");
-    out1.close();
-    out1 = dfs.create(new Path(srcPath + "/" + file2));
-    out1.writeChars("test");
-    out1.close();
-    out1 = dfs.create(new Path(srcPath + dir + "/" + dirFile1));
-    out1.writeChars("test");
-    out1.close();
+  public void testListFiles() {
+    String result = runAction("/test");
 
-    Assert.assertTrue(dfsClient.exists(srcPath + "/" + file1));
-    Assert.assertTrue(dfsClient.exists(srcPath + "/" + file2));
-    Assert.assertTrue(dfsClient.exists(srcPath + dir + "/" + dirFile1));
+    String expectedListing = "drwxr-xr-x     0 test	test	            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1\n"
+        + "drwxr-xr-x     0 test\ttest\t            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir2\n"
+        + "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/file1\n"
+        + "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/file2\n";
 
-    ListFileAction listFileAction = new ListFileAction();
-    listFileAction.setDfsClient(dfsClient);
-    listFileAction.setContext(smartContext);
-    Map<String , String> args = new HashMap<>();
-    args.put(ListFileAction.FILE_PATH , srcPath);
+    assertTrue(listFileAction.getExpectedAfterRun());
+    assertEquals(expectedListing, result);
+  }
+
+  @Test
+  public void testListFilesRecursively() {
+    String result = runAction("/test/dir1", ListFileAction.RECURSIVELY);
+
+    String expectedListing = "drwxr-xr-x     0 test	test	            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/emptydir\n"
+        + "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/file1\n"
+        + "drwxr-xr-x     0 test\ttest\t            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir\n"
+        + "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir/file11\n"
+        + "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir/file12\n";
+
+    assertTrue(listFileAction.getExpectedAfterRun());
+    assertEquals(expectedListing, result);
+  }
+
+  @Test
+  public void testListFilesWithPrettySizes() {
+    String result = runAction("/test/dir1",
+        ListFileAction.RECURSIVELY, ListFileAction.PRETTY_SIZES);
+
+    String expectedListing = "drwxr-xr-x     0 test	test	            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/emptydir\n"
+        + "-rw-r--r--     3 test\ttest\t          2 K 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/file1\n"
+        + "drwxr-xr-x     0 test\ttest\t            0 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir\n"
+        + "-rw-r--r--     3 test\ttest\t          2 K 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir/file11\n"
+        + "-rw-r--r--     3 test\ttest\t          2 K 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/dir1/subdir/file12\n";
+
+    assertTrue(listFileAction.getExpectedAfterRun());
+    assertEquals(expectedListing, result);
+  }
+
+  @Test
+  public void testListSimpleFile() {
+    String result = runAction("/test/file1", ListFileAction.RECURSIVELY);
+
+    String expectedListing = "-rw-r--r--     3 test\ttest\t         2048 1970-01-01 00:00 "
+        + cluster.getURI() + "/test/file1\n";
+
+    assertTrue(listFileAction.getExpectedAfterRun());
+    assertEquals(expectedListing, result);
+  }
+
+  private String runAction(String root, String... arguments) {
+    Map<String, String> args = new HashMap<>();
+    args.put(
+        ListFileAction.FILE_PATH,
+        useFullRootPath
+            ? cluster.getURI() + "/" + root
+            : root);
+
+    for (String arg : arguments) {
+      args.put(arg, "");
+    }
+
     listFileAction.init(args);
     listFileAction.run();
-    Assert.assertTrue(listFileAction.getExpectedAfterRun());
 
-    listFileAction = new ListFileAction();
-    listFileAction.setDfsClient(dfsClient);
-    listFileAction.setContext(smartContext);
-    args = new HashMap<>();
-    args.put(ListFileAction.FILE_PATH , srcPath + "/" + file1);
-    listFileAction.init(args);
-    listFileAction.run();
-    Assert.assertTrue(listFileAction.getExpectedAfterRun());
+    return listFileAction.getActionStatus().getResult();
+  }
+
+  private void createDirectory(String directory) {
+    try {
+      Path path = new Path(directory);
+      dfs.mkdirs(path);
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  private void createFile(String file) {
+    try {
+      Path path = new Path(file);
+      DFSTestUtil.writeFile(dfs, path, new byte[2048]);
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  private void setFileAttributes(String file) {
+    try {
+      Path path = new Path(file);
+      dfs.setOwner(path, "test", "test");
+      dfs.setTimes(path, 0, 0);
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
   }
 }

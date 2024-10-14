@@ -7,6 +7,9 @@ allOf:
       log:
         type: string
         description: Action log
+      result:
+        type: string
+        description: Action result
 required:
   - id
   - cmdletId

@@ -17,11 +17,10 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
@@ -43,8 +42,6 @@ import java.util.Map;
 )
 
 public class DeleteFileAction extends HdfsAction {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(DeleteFileAction.class);
   private String filePath;
 
   @Override
@@ -55,7 +52,7 @@ public class DeleteFileAction extends HdfsAction {
 
   @Override
   protected void execute() throws Exception {
-    if (filePath == null) {
+    if (StringUtils.isBlank(filePath)) {
       throw new IllegalArgumentException("File parameter is missing.");
     }
     appendLog(
@@ -65,7 +62,7 @@ public class DeleteFileAction extends HdfsAction {
     deleteFile(filePath);
   }
 
-  private boolean deleteFile(
+  private void deleteFile(
       String filePath) throws IOException, ActionException {
     if (filePath.startsWith("hdfs")) {
       //delete in remote cluster
@@ -78,7 +75,6 @@ public class DeleteFileAction extends HdfsAction {
             "DeleteFile Action fails, file doesn't exist!");
       }
       fs.delete(new Path(filePath), true);
-      return true;
     } else {
       //delete in local cluster
       if (!dfsClient.exists(filePath)) {
@@ -86,7 +82,7 @@ public class DeleteFileAction extends HdfsAction {
             "DeleteFile Action fails, file doesn't exist!");
       }
       appendLog(String.format("Delete %s", filePath));
-      return dfsClient.delete(filePath, true);
+      dfsClient.delete(filePath, true);
     }
   }
 }

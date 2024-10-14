@@ -20,7 +20,6 @@ package org.smartdata.hdfs.scheduler;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.apache.hadoop.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
@@ -29,7 +28,7 @@ import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.CompatibilityHelper;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.hdfs.HadoopUtil;
-import org.smartdata.hdfs.action.*;
+import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -120,10 +119,6 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
   @Override
   public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo)
       throws IOException {
-    if (!isECSupported()) {
-      throw new IOException(actionInfo.getActionName() +
-          " is not supported on " + VersionInfo.getVersion());
-    }
     if (actionInfo.getActionName().equals(LIST_EC_ACTION_ID)) {
       return true;
     }
@@ -145,11 +140,6 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
       }
     }
     return true;
-  }
-
-  public static boolean isECSupported() {
-    String[] parts = VersionInfo.getVersion().split("\\.");
-    return Integer.parseInt(parts[0]) == 3;
   }
 
   @Override

@@ -26,9 +26,11 @@ import org.smartdata.action.annotation.ActionSignature;
 )
 public class SleepAction extends SmartAction {
   public static final String TIME_IN_MS = "-ms";
+
   private boolean started = false;
-  private long toSleep;
   private long startTm;
+
+  private volatile long toSleep;
 
   @Override
   protected void execute() throws Exception {
@@ -36,7 +38,7 @@ public class SleepAction extends SmartAction {
       throw new IllegalArgumentException("Time to sleep not specified (through option '"
           + TIME_IN_MS + "').");
     }
-    toSleep = Long.valueOf(getArguments().get(TIME_IN_MS));
+    toSleep = Long.parseLong(getArguments().get(TIME_IN_MS));
     if (toSleep == 0) {
       return;
     }
