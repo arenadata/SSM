@@ -76,7 +76,7 @@ public class ConfigUtilsTest {
 
   private UserDetails buildUser(String user, String password) {
     return User.withUsername(user)
-        .password("{noop}" + password)
+        .password(password)
         .roles()
         .build();
   }

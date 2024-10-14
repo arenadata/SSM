@@ -18,13 +18,14 @@
 package org.smartdata.server.config;
 
 import org.smartdata.conf.SmartConf;
+import org.smartdata.server.config.PasswordEncoderFactory.EncoderType;
 import org.smartdata.server.config.ldap.search.LdapUserSearchFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
@@ -41,6 +42,8 @@ import static org.smartdata.server.config.ConfigKeys.LDAP_AUTH_ENABLED;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_AUTH_TYPE;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_PASSWORD;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_BIND_USER_DN;
+import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_PASSWORD_ENCODER;
+import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_PASSWORD_ENCODER_DEFAULT;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_BASE;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_BASE_DEFAULT;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_URL;
@@ -113,8 +116,7 @@ public class LdapAuthSecurityConfiguration {
     PasswordComparisonAuthenticator authenticator = new PasswordComparisonAuthenticator(contextSource);
 
     authenticator.setPasswordAttributeName(passwordAttribute);
-    // todo support password encoding for LDAP and predefined users auth provider
-    authenticator.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+    authenticator.setPasswordEncoder(ldapPasswordEncoder(conf));
     authenticator.setUserSearch(ldapUserSearch);
     return authenticator;
   }
@@ -122,5 +124,13 @@ public class LdapAuthSecurityConfiguration {
   @Bean
   public AuthenticationProvider ldapAuthenticationProvider(LdapAuthenticator authenticator) {
     return new LdapAuthenticationProvider(authenticator);
+  }
+
+  private PasswordEncoder ldapPasswordEncoder(SmartConf smartConf) {
+    String defaultEncoder = smartConf.get(
+        SMART_REST_SERVER_LDAP_PASSWORD_ENCODER,
+        SMART_REST_SERVER_LDAP_PASSWORD_ENCODER_DEFAULT);
+
+    return PasswordEncoderFactory.build(EncoderType.fromId(defaultEncoder));
   }
 }

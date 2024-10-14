@@ -22,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runners.Parameterized.Parameters;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.server.config.PasswordEncoderFactory.EncoderType;
 import org.smartdata.server.config.ldap.search.LdapSearchScope;
 
 import static org.smartdata.integration.auth.TestWebServerAuth.TestParams.ExpectedResult.FAIL;
@@ -35,6 +36,7 @@ import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_CUST
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_MEMBER_ATTR;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_NAME_ATTR;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_GROUP_OBJECT_DEFAULT;
+import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_PASSWORD_ENCODER;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_ADDITIONAL_FILTER;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_SEARCH_BASE;
 import static org.smartdata.server.config.ConfigKeys.SMART_REST_SERVER_LDAP_URL;
@@ -104,6 +106,12 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
             searchWithAdditionalSearch(BIND)),
         new TestParams("ben", "bens_password",
             searchWithAdditionalSearch(BIND), FAIL),
+        new TestParams("hashed_bob", "b0bs_p4ssw0rd",
+            passwordCompareWithPasswordEncoding(EncoderType.NOOP)),
+        new TestParams("hashed_july", "kitty_cat",
+            passwordCompareWithPasswordEncoding(EncoderType.NOOP), FAIL),
+        new TestParams("hashed_july", "kitty_cat",
+            passwordCompareWithPasswordEncoding(EncoderType.PBKDF2)),
         new TestParams("july", "kitty_cat",
             searchByCustomSearchSeveralUsers(BIND), FAIL),
         new TestParams("july", "kitty_cat",
@@ -117,6 +125,16 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.setEnum(SMART_REST_SERVER_LDAP_USER_SEARCH_SCOPE, LdapSearchScope.SUBTREE);
 
     conf.set(TEST_PARAM_NAME_OPTION, "searchByName");
+    return conf;
+  }
+
+  private static SmartConf passwordCompareWithPasswordEncoding(EncoderType defaultEncoder) {
+    SmartConf conf = baseConf();
+    conf.set(SMART_REST_SERVER_LDAP_AUTH_TYPE, PASSWORD_COMPARE.toString());
+    conf.setEnum(SMART_REST_SERVER_LDAP_USER_SEARCH_SCOPE, LdapSearchScope.SUBTREE);
+    conf.set(SMART_REST_SERVER_LDAP_PASSWORD_ENCODER, defaultEncoder.getId());
+
+    conf.set(TEST_PARAM_NAME_OPTION, "passwordCompareWithPasswordEncoding");
     return conf;
   }
 

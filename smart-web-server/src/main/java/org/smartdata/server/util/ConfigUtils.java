@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 public class ConfigUtils {
   private static final String USERNAME_PASSWORD_DELIMITER = ":";
-  private static final String NO_OP_ENCODER_PREFIX = "{noop}";
 
   public static List<UserDetails> parsePredefinedUsers(SmartConf smartConf) {
     return smartConf.getStringCollection(ConfigKeys.PREDEFINED_USERS)
@@ -45,7 +44,7 @@ public class ConfigUtils {
     }
 
     return User.withUsername(userParts[0])
-        .password(NO_OP_ENCODER_PREFIX + userParts[1])
+        .password(userParts[1])
         .authorities(Collections.emptyList())
         .build();
   }

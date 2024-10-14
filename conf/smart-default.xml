@@ -650,6 +650,26 @@
   </property>
 
   <property>
+    <name>smart.rest.server.auth.predefined.password.encoder</name>
+    <value>noop</value>
+    <description>
+      Default encoder for predefined users passwords in case if password doesn't have {%encoderId%} prefix.
+      Possible values:
+      noop (for plaintext passwords), bcrypt, ldap, md4, md5, pbkdf2, scrypt, sha-1, sha-256.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.password.encoder</name>
+    <value>noop</value>
+    <description>
+      Default encoder for LDAP users passwords in case if password doesn't have {%encoderId%} prefix.
+      Possible values:
+      noop (for plaintext passwords), bcrypt, ldap, md4, md5, pbkdf2, scrypt, sha-1, sha-256.
+    </description>
+  </property>
+
+  <property>
     <name>smart.rest.server.auth.failures.logging.enabled</name>
     <value>true</value>
     <description>

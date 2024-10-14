@@ -35,6 +35,12 @@ public class ConfigKeys {
 
   public static final String PREDEFINED_USERS = "smart.rest.server.auth.predefined.users";
 
+  public static final String  PREDEFINED_USERS_PASSWORD_ENCODER =
+      "smart.rest.server.auth.predefined.password.encoder";
+
+  public static final String PREDEFINED_USERS_PASSWORD_ENCODER_DEFAULT =
+      "noop";
+
   public static final String SMART_REST_SERVER_KEYTAB_FILE_KEY =
       "smart.rest.server.auth.spnego.keytab";
 
@@ -143,4 +149,11 @@ public class ConfigKeys {
 
   public static final String SMART_REST_SERVER_AUTH_ERRORS_LOGGING_ENABLED =
       "smart.rest.server.auth.failures.logging.enabled";
+
+  public static final String SMART_REST_SERVER_LDAP_PASSWORD_ENCODER =
+      "smart.rest.server.auth.ldap.password.encoder";
+
+  public static final String SMART_REST_SERVER_LDAP_PASSWORD_ENCODER_DEFAULT =
+      "noop";
+
 }
