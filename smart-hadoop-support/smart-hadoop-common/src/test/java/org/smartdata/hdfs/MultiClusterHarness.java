@@ -65,6 +65,7 @@ public abstract class MultiClusterHarness extends MiniClusterHarness {
     if (testType == INTRA_CLUSTER) {
       anotherDfs = dfs;
       anotherDfsClient = dfsClient;
+      anotherCluster = cluster;
       return;
     }
     Configuration clusterConfig = new Configuration(smartContext.getConf());

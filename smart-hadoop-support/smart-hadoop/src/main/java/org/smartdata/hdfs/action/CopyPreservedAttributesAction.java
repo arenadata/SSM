@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+1 * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,22 @@
 package org.smartdata.hdfs.action;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.smartdata.model.FileInfoDiff;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.smartdata.model.FileInfoDiff;
 
 
 /**
@@ -105,6 +108,14 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
       return fs.getFileStatus(new Path(fileName));
     }
     return (FileStatus) dfsClient.getFileInfo(fileName);
+  }
+
+  protected Optional<FileStatus> getFileStatusSafely(String fileName) throws IOException {
+    try {
+      return Optional.ofNullable(getFileStatus(fileName));
+    } catch (FileNotFoundException fileNotFoundException) {
+      return Optional.empty();
+    }
   }
 
   public enum PreserveAttribute {

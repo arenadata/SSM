@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,15 +17,20 @@
  */
 package org.smartdata.utils;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
+
+import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
 
 public class PathUtil {
   private static final String DIR_SEP = "/";
   private static final String HDFS_SCHEME = "hdfs";
-  private static final String[] GLOBS = new String[] {
+  private static final String[] GLOBS = new String[]{
       "*", "?"
   };
 
@@ -69,9 +74,14 @@ public class PathUtil {
   // todo replace 'stringPath.startsWith("hdfs")' calls with this method
   public static boolean isAbsoluteRemotePath(Path path) {
     return Optional.ofNullable(path)
-            .map(Path::toUri)
-            .filter(PathUtil::isAbsoluteRemotePath)
-            .isPresent();
+        .map(Path::toUri)
+        .filter(PathUtil::isAbsoluteRemotePath)
+        .isPresent();
+  }
+
+  public static FileSystem getRemoteFileSystem(
+      Path path, Configuration conf) throws IOException {
+    return path.getFileSystem(toRemoteClusterConfig(conf));
   }
 
   public static boolean isAbsoluteRemotePath(URI uri) {
