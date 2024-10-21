@@ -19,22 +19,25 @@ package org.smartdata.hdfs.action;
 
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CreateFlag;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.hdfs.CompatibilityHelper;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
+import org.smartdata.utils.PathUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_DEFAULT;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_KEY;
@@ -150,7 +153,7 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   }
 
   private void copyWithOffset(String src, String dest, int bufferSize,
-      long offset, long length) throws IOException {
+                              long offset, long length) throws IOException {
     appendLog(
         String.format("Copy with offset %s and length %s", offset, length));
 
@@ -184,42 +187,77 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   }
 
   private OutputStream getDestOutPutStream(String dest, long offset) throws IOException {
+    Path destPath = new Path(dest);
+
     if (dest.startsWith("s3")) {
       // Copy to s3
-      FileSystem fs = FileSystem.get(URI.create(dest), getContext().getConf());
-      return fs.create(new Path(dest), true);
+      FileSystem fs = FileSystem.get(destPath.toUri(), getContext().getConf());
+      return fs.create(destPath, true);
     }
 
-    if (dest.startsWith("hdfs")) {
-      // Copy between different clusters
-      // Copy to remote HDFS
-      // Get OutPutStream from URL
-      Configuration remoteClusterConfig = toRemoteClusterConfig(getContext().getConf());
-      FileSystem fs = FileSystem.get(URI.create(dest),  remoteClusterConfig);
-      Path destHdfsPath = new Path(dest);
+    if (PathUtil.isAbsoluteRemotePath(destPath)) {
+      return getRemoteClusterOutputStream(destPath, offset);
+    }
+    return getLocalClusterOutputStream(dest, offset);
+  }
 
-      if (fs.exists(destHdfsPath) && offset != 0) {
-        appendLog("Append to existing file " + dest);
-        return fs.append(destHdfsPath);
+  private OutputStream getLocalClusterOutputStream(String dest, long offset) throws IOException {
+    Optional<FileStatus> destFileStatus = getFileStatusSafely(destPath).map(this::validateDestFile);
+    if (destFileStatus.isPresent() && offset != 0) {
+
+      if (destFileStatus.get().getLen() != offset) {
+        appendLog("Truncating existing local file " + dest + " to the new length " + offset);
+        dfsClient.truncate(dest, offset);
       }
 
-      short replication = getReplication(fs.getDefaultReplication(destHdfsPath));
-      return fs.create(
-          destHdfsPath,
-          true,
-          remoteClusterConfig.getInt(
-              IO_FILE_BUFFER_SIZE_KEY, IO_FILE_BUFFER_SIZE_DEFAULT),
-          replication,
-          fs.getDefaultBlockSize(destHdfsPath));
+      appendLog("Appending to existing local file " + dest);
+      return dfsClient.append(dest, bufferSize, EnumSet.of(CreateFlag.APPEND), null, null);
     }
 
-    CompatibilityHelper compatibilityHelper = CompatibilityHelperLoader.getHelper();
-    if (preserveAttributes.contains(REPLICATION_NUMBER)) {
-      return compatibilityHelper
-          .getDFSClientAppend(dfsClient, dest, bufferSize, offset, srcFileStatus.getReplication());
+    appendLog("Creating new local file " + dest);
+    return dfsClient.create(dest, true,
+        getReplication(dfsClient.getConf().getDefaultReplication()),
+        dfsClient.getConf().getDefaultBlockSize());
+  }
+
+  private FileStatus validateDestFile(FileStatus destFileStatus) {
+    if (destFileStatus.getLen() < offset) {
+      throw new IllegalStateException("Destination file " + destFileStatus.getPath()
+          + " is shorter than it should be - expected min length: "
+          + offset + ", actual length: " + destFileStatus.getLen());
     }
 
-    return compatibilityHelper.getDFSClientAppend(dfsClient, dest, bufferSize, offset);
+    return destFileStatus;
+  }
+
+  private OutputStream getRemoteClusterOutputStream(
+      Path destHdfsPath, long offset) throws IOException {
+    // Copy between different clusters
+    // Copy to remote HDFS
+    // Get OutPutStream from URL
+    Configuration remoteClusterConfig = toRemoteClusterConfig(getContext().getConf());
+    FileSystem fs = PathUtil.getRemoteFileSystem(destHdfsPath, getContext().getConf());
+
+    Optional<FileStatus> destFileStatus = getFileStatusSafely(destPath).map(this::validateDestFile);
+    if (destFileStatus.isPresent() && offset != 0) {
+
+      if (destFileStatus.get().getLen() != offset) {
+        appendLog("Truncating existing file " + destHdfsPath + " to the new length " + offset);
+        fs.truncate(destHdfsPath, offset);
+      }
+
+      appendLog("Appending to existing file " + destHdfsPath);
+      return fs.append(destHdfsPath);
+    }
+
+    short replication = getReplication(fs.getDefaultReplication(destHdfsPath));
+    return fs.create(
+        destHdfsPath,
+        true,
+        remoteClusterConfig.getInt(
+            IO_FILE_BUFFER_SIZE_KEY, IO_FILE_BUFFER_SIZE_DEFAULT),
+        replication,
+        fs.getDefaultBlockSize(destHdfsPath));
   }
 
   public static void validatePreserveArg(String option) {

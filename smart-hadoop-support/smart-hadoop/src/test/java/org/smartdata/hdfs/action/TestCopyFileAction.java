@@ -18,21 +18,25 @@
 package org.smartdata.hdfs.action;
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import lombok.Setter;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.hdfs.DFSInputStream;
 import org.apache.hadoop.hdfs.DFSTestUtil;
+import org.apache.hadoop.hdfs.DFSUtilClient;
+import org.apache.hadoop.hdfs.FailingDfsInputStream;
 import org.junit.Assert;
 import org.junit.Test;
+import org.smartdata.hdfs.MultiClusterHarness;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.smartdata.hdfs.MultiClusterHarness;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.MODIFICATION_TIME;
 import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.OWNER;
@@ -46,31 +50,39 @@ public class TestCopyFileAction extends MultiClusterHarness {
   private static final String FILE_TO_COPY_CONTENT = "testContent 112";
 
   private void copyFile(Path src, Path dest, long length,
-      long offset) throws Exception {
-    copyFile(src, dest, length, offset, Collections.emptySet());
+                        long offset) throws Exception {
+    copyFile(src, dest, length, offset, action -> {});
   }
 
-  private void copyFile(Path src, Path dest, long length,
-      long offset, Set<CopyPreservedAttributesAction.PreserveAttribute> preserveAttributes) throws Exception {
+  private void copyFile(Path src, Path dest, long length, long offset,
+                        Consumer<CopyFileAction> actionConfigurer,
+                        CopyPreservedAttributesAction.PreserveAttribute... preserveAttributes
+  ) throws Exception {
     CopyFileAction copyFileAction = new CopyFileAction();
     copyFileAction.setDfsClient(dfsClient);
     copyFileAction.setContext(smartContext);
+
     Map<String, String> args = new HashMap<>();
     args.put(CopyFileAction.FILE_PATH, src.toUri().getPath());
     args.put(CopyFileAction.DEST_PATH, dest.toString());
-    args.put(CopyFileAction.LENGTH, "" + length);
-    args.put(CopyFileAction.OFFSET_INDEX, "" + offset);
+    args.put(CopyFileAction.LENGTH, String.valueOf(length));
+    args.put(CopyFileAction.OFFSET_INDEX, String.valueOf(offset));
 
-    if (!preserveAttributes.isEmpty()) {
-      String attributesOption = preserveAttributes.stream()
+    if (preserveAttributes.length != 0) {
+      String attributesOption = Sets.newHashSet(preserveAttributes)
+          .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
       args.put(CopyFileAction.PRESERVE, attributesOption);
     }
+    actionConfigurer.accept(copyFileAction);
 
     copyFileAction.init(args);
     copyFileAction.run();
-    Assert.assertTrue(copyFileAction.getExpectedAfterRun());
+
+    if (!copyFileAction.getExpectedAfterRun()) {
+      throw new RuntimeException("Action failed", copyFileAction.getThrowable());
+    }
   }
 
   @Test
@@ -93,13 +105,15 @@ public class TestCopyFileAction extends MultiClusterHarness {
     byte[] srcFileContent = {0, 1, 2, 3, 4, 5, 6, 7};
     DFSTestUtil.writeFile(dfs, srcPath, srcFileContent);
 
+    byte[] destFileContent = {0, 1, 2, 3};
+    DFSTestUtil.writeFile(anotherDfs, destPath, destFileContent);
+
     copyFile(srcPath, destPath, 4, 4);
 
     Assert.assertTrue(anotherDfs.exists(destPath));
 
     byte[] actualDestContent = DFSTestUtil.readFileAsBytes(anotherDfs, destPath);
-    byte[] expectedDestContent = Arrays.copyOfRange(srcFileContent, 4, srcFileContent.length);
-    Assert.assertArrayEquals(expectedDestContent, actualDestContent);
+    Assert.assertArrayEquals(srcFileContent, actualDestContent);
   }
 
   @Test
@@ -122,7 +136,7 @@ public class TestCopyFileAction extends MultiClusterHarness {
     Path destPath = anotherClusterPath("/dest", srcPath.getName());
 
     copyFileWithAttributes(srcPath, destPath,
-        Sets.newHashSet(CopyPreservedAttributesAction.PreserveAttribute.values()));
+        CopyPreservedAttributesAction.PreserveAttribute.values());
 
     FileStatus destFileStatus = anotherDfs.getFileStatus(destPath);
     Assert.assertEquals(new FsPermission("777"), destFileStatus.getPermission());
@@ -138,7 +152,7 @@ public class TestCopyFileAction extends MultiClusterHarness {
     Path destPath = anotherClusterPath("/dest", srcPath.getName());
 
     copyFileWithAttributes(srcPath, destPath,
-        Sets.newHashSet(OWNER, MODIFICATION_TIME, REPLICATION_NUMBER));
+        OWNER, MODIFICATION_TIME, REPLICATION_NUMBER);
 
     FileStatus destFileStatus = anotherDfs.getFileStatus(destPath);
     Assert.assertEquals("newUser", destFileStatus.getOwner());
@@ -146,6 +160,46 @@ public class TestCopyFileAction extends MultiClusterHarness {
     Assert.assertEquals(2, destFileStatus.getReplication());
     Assert.assertNotEquals(new FsPermission("777"), destFileStatus.getPermission());
     Assert.assertNotEquals("newGroup", destFileStatus.getGroup());
+  }
+
+  @Test
+  public void testRetryUnsuccessfulAppend() throws Exception {
+    Path srcPath = new Path("/testCopy/testRetryAppend");
+    Path destPath = anotherClusterPath("/backup", srcPath.getName());
+
+    DFSTestUtil.createFile(dfs, srcPath, 100, (short) 3, 0xFEED);
+    DFSTestUtil.createFile(anotherDfs, destPath, 50, (short) 3, 0xFEED);
+
+    try (FailingDfsClient failingDfsClient =
+             new FailingDfsClient(cluster.getConfiguration(0), true)) {
+      try {
+        copyFile(srcPath, destPath, 50, 50, action -> action.setDfsClient(failingDfsClient));
+      } catch (Exception e) {
+        // it should fail at first time after writing 1 byte
+      }
+
+      failingDfsClient.setShouldFail(false);
+
+      copyFile(srcPath, destPath, 50, 50, action -> action.setDfsClient(failingDfsClient));
+
+      Assert.assertTrue(anotherDfs.exists(destPath));
+      Assert.assertEquals(100, anotherDfs.getFileStatus(destPath).getLen());
+    }
+  }
+
+  @Setter
+  private static class FailingDfsClient extends DFSClient {
+    private boolean shouldFail;
+
+    private FailingDfsClient(Configuration config, boolean shouldFail) throws IOException {
+      super(DFSUtilClient.getNNAddress(config), config);
+      this.shouldFail = shouldFail;
+    }
+
+    @Override
+    public DFSInputStream open(String src) throws IOException {
+      return new FailingDfsInputStream(super.open(src), shouldFail, 1);
+    }
   }
 
   private Path createFileWithAttributes(String path) throws IOException {
@@ -163,8 +217,9 @@ public class TestCopyFileAction extends MultiClusterHarness {
   }
 
   private void copyFileWithAttributes(Path srcFilePath, Path destPath,
-      Set<CopyPreservedAttributesAction.PreserveAttribute> preserveAttributes) throws Exception {
-    copyFile(srcFilePath, destPath, 0, 0, preserveAttributes);
+                                      CopyPreservedAttributesAction.PreserveAttribute... preserveAttributes)
+      throws Exception {
+    copyFile(srcFilePath, destPath, 0, 0, action -> {}, preserveAttributes);
     assertFileContent(destPath, FILE_TO_COPY_CONTENT);
   }
 
