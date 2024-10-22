@@ -72,7 +72,7 @@ public class CachingDfsClientProvider implements DfsClientProvider {
   private static class SmartDfsClientCache extends BaseDfsClientCache<SmartDFSClient> {
 
     private SmartDfsClientCache(Duration keyTtl) {
-      super(keyTtl, SmartDFSClient.class);
+      super(keyTtl);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class CachingDfsClientProvider implements DfsClientProvider {
 
   private static class HdfsClientCache extends BaseDfsClientCache<DFSClient> {
     private HdfsClientCache(Duration keyTtl) {
-      super(keyTtl, DFSClient.class);
+      super(keyTtl);
     }
 
     @Override

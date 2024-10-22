@@ -17,32 +17,37 @@
  */
 package org.smartdata.hdfs.client;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.Scheduler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.CacheEntry;
-import org.cache2k.event.CacheEntryEvictedListener;
 import org.smartdata.hdfs.HadoopUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 
 @Slf4j
 public abstract class BaseDfsClientCache<T extends DFSClient> implements DfsClientCache<T> {
 
   private final Cache<CacheKey, T> clientCache;
+  private final ScheduledExecutorService evictionHandlerExecutor;
 
-  public BaseDfsClientCache(Duration keyTtl, Class<T> valueClazz) {
-    this.clientCache = Cache2kBuilder.of(CacheKey.class, valueClazz)
-        .idleScanTime(keyTtl)
-        .addListener((CacheEntryEvictedListener<CacheKey, T>) this::onEntryEvicted)
-        .disableMonitoring(true)
-        .disableStatistics(true)
+  public BaseDfsClientCache(Duration keyTtl) {
+    this.evictionHandlerExecutor = Executors.newSingleThreadScheduledExecutor();
+    this.clientCache = Caffeine.newBuilder()
+        .expireAfterAccess(keyTtl)
+        .removalListener(this::onEntryRemoved)
+        .scheduler(Scheduler.forScheduledExecutorService(evictionHandlerExecutor))
         .build();
   }
 
@@ -50,27 +55,28 @@ public abstract class BaseDfsClientCache<T extends DFSClient> implements DfsClie
   public T get(Configuration config, InetSocketAddress ssmMasterAddress)
       throws IOException {
     CacheKey cacheKey = new CacheKey(ssmMasterAddress, HadoopUtil.getNameNodeUri(config));
-    return clientCache.computeIfAbsent(cacheKey,
-        key -> createDfsClient(config, key));
+    return clientCache.get(cacheKey, key -> createDfsClient(config, key));
   }
 
   @Override
   public void close() throws IOException {
-    for (T dfsClient : clientCache.asMap().values()) {
-      try {
-        dfsClient.close();
-      } catch (IOException exception) {
-        log.error("Error closing cached dfsClient", exception);
-      }
-    }
-    clientCache.close();
+    clientCache.invalidateAll();
+    clientCache.cleanUp();
+    evictionHandlerExecutor.shutdown();
   }
 
   protected abstract T createDfsClient(Configuration config, CacheKey cacheKey);
 
-  private void onEntryEvicted(
-      Cache<CacheKey, T> cache, CacheEntry<CacheKey, T> entry) throws IOException {
-    entry.getValue().close();
+  private void onEntryRemoved(CacheKey key, T value, RemovalCause removalCause) {
+    Optional.ofNullable(value).ifPresent(this::closeClient);
+  }
+
+  private void closeClient(T dfsClient) {
+    try {
+      dfsClient.close();
+    } catch (IOException exception) {
+      log.error("Error closing cached dfsClient after expiration", exception);
+    }
   }
 
   @Data
