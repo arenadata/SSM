@@ -286,7 +286,7 @@ public class SmartConfKeys {
         "smart.action.client.cache.ttl";
     public static final String SMART_ACTION_CLIENT_CACHE_TTL_DEFAULT = "10m";
 
-    public static final String ACCESS_EVENT_SOURCE_KEY = "smart.data.file.event.source";
+  public static final String ACCESS_EVENT_SOURCE_KEY = "smart.data.file.event.source";
     public static final String ACCESS_EVENT_SOURCE_DEFAULT =
         SmartServerAccessEventSource.class.getName();
 

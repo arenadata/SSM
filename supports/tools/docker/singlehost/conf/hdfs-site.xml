@@ -46,4 +46,8 @@
     <name>dfs.blocksize</name>
     <value>1048576</value>
   </property>
+  <property>
+    <name>dfs.client.block.write.replace-datanode-on-failure.policy</name>
+    <value>NEVER</value>
+  </property>
 </configuration>

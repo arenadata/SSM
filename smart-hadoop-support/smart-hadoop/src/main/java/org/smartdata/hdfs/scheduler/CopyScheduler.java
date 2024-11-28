@@ -255,8 +255,7 @@ public class CopyScheduler extends ActionSchedulerService {
         if (preserveAttributes != null) {
           action.getArgs().put(CopyFileAction.PRESERVE, preserveAttributes);
         }
-        action.getArgs().put(CopyFileAction.FORCE, "");
-        if (rateLimiter != null) {
+          if (rateLimiter != null) {
           String strLen = getLength(fileDiff);
           if (strLen != null) {
             int appendLen = (int) (Long.parseLong(strLen) >> 20);

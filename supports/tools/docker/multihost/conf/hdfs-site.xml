@@ -66,6 +66,10 @@
     <name>dfs.block.access.token.enable</name>
     <value>true</value>
   </property>
+  <property>
+    <name>dfs.client.block.write.replace-datanode-on-failure.policy</name>
+    <value>NEVER</value>
+  </property>
 
   <!-- Set privileged ports -->
   <property>

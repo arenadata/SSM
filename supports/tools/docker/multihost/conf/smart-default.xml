@@ -684,4 +684,5 @@
       Whether to enable SQL queries statistics export.
     </description>
   </property>
+
 </configuration>
