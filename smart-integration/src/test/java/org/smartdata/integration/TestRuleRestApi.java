@@ -28,7 +28,6 @@ import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.RulesInfoDto;
 import org.smartdata.http.error.SsmErrorCode;
 import org.smartdata.integration.api.RulesApiWrapper;
-import org.smartdata.server.error.SsmErrorCode;
 
 import java.time.Duration;
 
