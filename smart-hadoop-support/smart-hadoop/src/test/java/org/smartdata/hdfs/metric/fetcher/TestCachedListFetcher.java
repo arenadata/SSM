@@ -73,9 +73,11 @@ public class TestCachedListFetcher extends TestDaoBase {
     dfsClient = dfs.getClient();
     smartContext = new SmartContext(conf);
     cachedListFetcher = new CachedListFetcher(conf, dfsClient, metaStore);
+    conf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
+        "hdfs://" + cluster.getNameNode().getNameNodeAddressHostPortString());
   }
 
-  static void initConf(Configuration conf) {
+  private void initConf(Configuration conf) {
     conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, DEFAULT_BLOCK_SIZE);
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, DEFAULT_BLOCK_SIZE);
     conf.setLong(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY, 1L);
@@ -130,7 +132,7 @@ public class TestCachedListFetcher extends TestDaoBase {
 
       fileInfos.add(createFileStatus(pathPrefix + fids[i]));
       cacheAction.setContext(smartContext);
-      cacheAction.setDfsClient(dfsClient);
+      cacheAction.setLocalFileSystem(dfs);
       Map<String, String> args = new HashMap();
       args.put(CacheFileAction.FILE_PATH, path);
       cacheAction.init(args);
@@ -138,7 +140,7 @@ public class TestCachedListFetcher extends TestDaoBase {
       // System.out.println(cacheAction.isCached(path));
     }
     metaStore.insertFiles(fileInfos
-        .toArray(new FileInfo[fileInfos.size()]));
+        .toArray(new FileInfo[fileInfos.size()]), false);
     List<FileInfo> ret = metaStore.getFile();
     Assert.assertTrue(ret.size() == fids.length);
     cachedListFetcher.start();
@@ -151,7 +153,7 @@ public class TestCachedListFetcher extends TestDaoBase {
       String path = pathPrefix + fids[i];
       fileInfos.add(createFileStatus("fileTest/cache/" + fids[i]));
       uncacheFileAction.setContext(smartContext);
-      uncacheFileAction.setDfsClient(dfsClient);
+      uncacheFileAction.setLocalFileSystem(dfs);
       Map<String, String> args = new HashMap();
       args.put(UncacheFileAction.FILE_PATH, path);
       uncacheFileAction.init(args);

@@ -70,7 +70,7 @@ public class TestMoveFileAction extends MiniClusterWithStoragesHarness {
 
     //move to SSD
     AllSsdFileAction moveFileAction1 = new AllSsdFileAction();
-    moveFileAction1.setDfsClient(dfsClient);
+    moveFileAction1.setLocalFileSystem(dfs);
     moveFileAction1.setContext(smartContext);
     Map<String, String> args1 = new HashMap();
     args1.put(MoveFileAction.FILE_PATH, dir);
@@ -78,7 +78,7 @@ public class TestMoveFileAction extends MiniClusterWithStoragesHarness {
     args1.put(MoveFileAction.MOVE_PLAN, plan1.toString());
 
     AllSsdFileAction moveFileAction2 = new AllSsdFileAction();
-    moveFileAction2.setDfsClient(dfsClient);
+    moveFileAction2.setLocalFileSystem(dfs);
     moveFileAction2.setContext(smartContext);
     Map<String, String> args2 = new HashMap();
     args2.put(MoveFileAction.FILE_PATH, dir);
@@ -108,7 +108,7 @@ public class TestMoveFileAction extends MiniClusterWithStoragesHarness {
 
     //move to SSD
     MoveFileAction moveFileAction = new MoveFileAction();
-    moveFileAction.setDfsClient(dfsClient);
+    moveFileAction.setLocalFileSystem(dfs);
     moveFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap();
     args.put(MoveFileAction.FILE_PATH, dir);
@@ -129,7 +129,7 @@ public class TestMoveFileAction extends MiniClusterWithStoragesHarness {
 
     // schedule move to ALL_SSD
     MoveFileAction moveFileAction = new MoveFileAction();
-    moveFileAction.setDfsClient(dfsClient);
+    moveFileAction.setLocalFileSystem(dfs);
     moveFileAction.setContext(smartContext);
 
     Map<String, String> args = new HashMap();
@@ -168,7 +168,7 @@ public class TestMoveFileAction extends MiniClusterWithStoragesHarness {
   private void moveFile(String file) throws Exception {
     // schedule move to SSD
     ArchiveFileAction action = new ArchiveFileAction();
-    action.setDfsClient(dfsClient);
+    action.setLocalFileSystem(dfs);
     action.setContext(smartContext);
     Map<String, String> args = new HashMap();
     args.put(ArchiveFileAction.FILE_PATH, file);

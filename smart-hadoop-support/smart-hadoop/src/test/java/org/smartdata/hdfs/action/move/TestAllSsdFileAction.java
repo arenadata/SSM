@@ -63,7 +63,7 @@
 //
 //    // schedule move to SSD
 //    AllSsdFileAction action = new AllSsdFileAction();
-//    action.setDfsClient(dfsClient);
+//    action.setLocalFileSystem(dfs);
 //    action.setContext(smartContext);
 //    action.setStatusReporter(new MockActionStatusReporter());
 //    Map<String, String> args = new HashMap();

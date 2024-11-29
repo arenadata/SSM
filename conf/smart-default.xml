@@ -426,17 +426,6 @@
   </property>
 
   <property>
-    <name>smart.sync.schedule.strategy</name>
-    <value>UNORDERED</value>
-    <description>
-      Strategy of copying files during 'sync' rule. Possible values:
-        FIFO - the files created/modified first will be scheduled for transfer first
-        LIFO - the files created/modified last will be scheduled for transfer first
-        UNORDERED - no guarantees of the file scheduling order
-    </description>
-  </property>
-
-  <property>
     <name>smart.sync.file.equality.strategy</name>
     <value>CHECKSUM</value>
     <description>
@@ -455,6 +444,12 @@
     <name>smart.rest.server.port</name>
     <value>8081</value>
     <description>SSM Rest Server port</description>
+  </property>
+
+  <property>
+    <name>smart.agent.http.server.port</name>
+    <value>8081</value>
+    <description>SSM Agent HTTP server port</description>
   </property>
 
   <property>
@@ -542,6 +537,226 @@
     <value>false</value>
     <description>
       Whether to enable SSL support for the SSM REST server.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to enable SSM REST server basic LDAP authentication method support.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for user search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.search.base</name>
+    <value></value>
+    <description>
+      Base LDAP distinguished name for group search.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.attributes.name</name>
+    <value>uid</value>
+    <description>
+      The name attribute of user LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.object-classes</name>
+    <value>person</value>
+    <description>
+      Comma-separated list of LDAP user entry objectClasses.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.search.scope</name>
+    <value>ONE_LEVEL</value>
+    <description>
+      The scope of LDAP user search. Possible values:
+        OBJECT - Search the named object
+        ONE_LEVEL - Search one level of the named context
+        SUBTREE - Search the entire subtree rooted at the named object
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.search.scope</name>
+    <value>ONE_LEVEL</value>
+    <description>
+      The scope of LDAP group search. Possible values:
+        OBJECT - Search the named object
+        ONE_LEVEL - Search one level of the named context
+        SUBTREE - Search the entire subtree rooted at the named object
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.user.attributes.password</name>
+    <value>userPassword</value>
+    <description>
+      The password attribute of user LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.object-class</name>
+    <value>groupOfNames</value>
+    <description>
+      LDAP group entry objectClass.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.group.attributes.name</name>
+    <value>cn</value>
+    <description>
+      The name attribute of group LDAP object.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.auth.type</name>
+    <value>BIND</value>
+    <description>
+      LDAP authentication type. Possible values:
+        BIND: search user by specified filters and authenticate with found user's DN and provided password
+        PASSWORD_COMPARE: search user by specified filters and use LDAP password compare operation
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.predefined.password.encoder</name>
+    <value>noop</value>
+    <description>
+      Default encoder for predefined users passwords in case if password doesn't have {%encoderId%} prefix.
+      Possible values:
+      noop (for plaintext passwords), bcrypt, ldap, md4, md5, pbkdf2, scrypt, sha-1, sha-256.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.ldap.password.encoder</name>
+    <value>noop</value>
+    <description>
+      Default encoder for LDAP users passwords in case if password doesn't have {%encoderId%} prefix.
+      Possible values:
+      noop (for plaintext passwords), bcrypt, ldap, md4, md5, pbkdf2, scrypt, sha-1, sha-256.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.rest.server.auth.failures.logging.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable unsuccessful REST server auth attempts.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.check.interval.ms</name>
+    <value>500</value>
+    <description>
+      Time interval in milliseconds to check metastore for unhandled pending file diffs.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.check.interval.ms</name>
+    <value>500</value>
+    <description>
+      Time interval in milliseconds to check metastore for unhandled pending file diffs.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.diff.chain.append.merge.threshold.size</name>
+    <value>402653184</value>
+    <description>
+      The threshold size in bytes for merging multiple appends to the same file into one.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.diff.chain.append.merge.threshold.count</name>
+    <value>10</value>
+    <description>
+      The threshold number of append diffs to the same file for merging them into one.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.retry.count</name>
+    <value>3</value>
+    <description>
+      The maximum number of retries for sync actions.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.copy.scheduler.diff.cache.sync.threshold</name>
+    <value>500</value>
+    <description>
+      The threshold number of file diff cache elements for starting cache invalidation.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable metrics collection and export.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.jmx.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable JMX metrics exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.jmx.domain</name>
+    <value>metrics</value>
+    <description>
+      Default domain for JMX exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.prometheus.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable Prometheus metrics exporter.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.metrics.db.queries.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to enable SQL queries statistics export.
     </description>
   </property>
 </configuration>

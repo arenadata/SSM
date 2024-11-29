@@ -17,20 +17,17 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
-import java.io.IOException;
-import java.net.URI;
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An action to merge a list of file,
@@ -43,84 +40,42 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + " $src " + ConcatFileAction.DEST_PATH + " $dest"
 )
 public class ConcatFileAction extends HdfsAction {
-  private static final Logger LOG = LoggerFactory.getLogger(ConcatFileAction.class);
   public static final String DEST_PATH = "-dest";
-  private LinkedList<String> srcPathList;
-  private String targetPath;
+
+  private Deque<Path> srcPaths;
+  private Path targetPath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    String inputSrcPath = args.get(FILE_PATH);
-    //init the linkedList
-    String[] srcArray = inputSrcPath.split(",");
-    srcPathList = new LinkedList<>(Arrays.asList(srcArray));
-    if (args.containsKey(DEST_PATH)) {
-      this.targetPath = args.get(DEST_PATH);
-    }
+    this.srcPaths = Optional.ofNullable(args.get(FILE_PATH))
+        .map(paths -> paths.split(","))
+        .map(Arrays::stream)
+        .orElseGet(Stream::empty)
+        .map(Path::new)
+        .collect(Collectors.toCollection(ArrayDeque::new));
+    this.targetPath = getPathArg(DEST_PATH);
   }
 
   @Override
   protected void execute() throws Exception {
-    if (srcPathList == null || srcPathList.size() == 0) {
-      throw new IllegalArgumentException("Dest File parameter is missing.");
+    validateNonEmptyArgs(FILE_PATH, DEST_PATH);
+    if (srcPaths.isEmpty()) {
+      throw new IllegalArgumentException("Source files not provided");
     }
-    if (srcPathList.size() == 1) {
+    if (srcPaths.size() == 1) {
       throw new IllegalArgumentException("Don't accept only one source file");
     }
-    if (targetPath == null) {
-      throw new IllegalArgumentException("File parameter is missing.");
+
+    for (Path sourcePath : srcPaths) {
+      if (localFileSystem.getFileStatus(sourcePath).isDirectory()) {
+        throw new IllegalArgumentException("File parameter is not file");
+      }
     }
 
-    appendLog(
-        String.format("Action starts at %s : Concat %s to %s",
-            Utils.getFormatedCurrentTime(), srcPathList, targetPath));
-    //Merge the files
-    concatFiles(srcPathList, targetPath);
-  }
-
-  private boolean concatFiles(LinkedList<String> allFiles, String target) throws IOException {
-    if (target.startsWith("hdfs")) {
-      //merge in remote cluster
-      //check if all of the source file
-      // TODO read conf from files
-      Configuration conf = new Configuration();
-      FileSystem fs = FileSystem.get(URI.create(target), conf);
-      for (String sourceFile : allFiles) {
-        if (!fs.isFile(new Path(sourceFile))) {
-          throw new IllegalArgumentException("File parameter is not file");
-        }
-      }
-      Path firstFile = new Path(allFiles.removeFirst());
-      Path[] restFile = new Path[allFiles.size()];
-
-      int index = -1;
-      for (String transFile : allFiles) {
-        index++;
-        restFile[index] = new Path(transFile);
-      }
-
-      fs.concat(firstFile, restFile);
-      if (fs.exists(new Path(target))) {
-        fs.delete(new Path(target), true);
-      }
-      fs.rename(firstFile, new Path(target));
-      return true;
-    } else {
-      for (String sourceFile : allFiles) {
-        if (dfsClient.getFileInfo(sourceFile).isDir()) {
-          throw new IllegalArgumentException("File parameter is not file");
-        }
-      }
-      String firstFile = allFiles.removeFirst();
-      String[] restFile = new String[allFiles.size()];
-      allFiles.toArray(restFile);
-      dfsClient.concat(firstFile, restFile);
-      if (dfsClient.exists(target)) {
-        dfsClient.delete(target, true);
-      }
-      dfsClient.rename(firstFile, target, Options.Rename.NONE);
-      return true;
-    }
+    Path firstPath = srcPaths.removeFirst();
+    Path[] restPaths = srcPaths.toArray(new Path[0]);
+    localFileSystem.concat(firstPath, restPaths);
+    localFileSystem.rename(firstPath, targetPath, Options.Rename.OVERWRITE);
   }
 }

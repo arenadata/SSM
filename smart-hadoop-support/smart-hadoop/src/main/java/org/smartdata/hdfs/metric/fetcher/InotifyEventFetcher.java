@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.squareup.tape.QueueFile;
+import org.apache.hadoop.fs.impl.WrappedIOException;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.inotify.Event;
@@ -34,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.SmartConstants;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
-
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.SystemInfo;
@@ -42,6 +42,7 @@ import org.smartdata.utils.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -84,7 +85,7 @@ public class InotifyEventFetcher {
     this.conf = conf;
     this.nameSpaceFetcher = new NamespaceFetcher(client, metaStore, null, conf);
     this.applier = applier == null
-        ? new InotifyEventApplier(conf, metaStore, client, nameSpaceFetcher)
+        ? new InotifyEventApplier(conf, metaStore, client)
         : applier;
   }
 
@@ -96,7 +97,7 @@ public class InotifyEventFetcher {
       Long lastTxid = getLastTxid();
       //If whitelist is changed, the whole namespace will be fetched when servers restart
       if (lastTxid != null && lastTxid != -1 && canContinueFromLastTxid(client, lastTxid)
-              && !isWhitelistChanged(conf, metaStore)) {
+          && !isWhitelistChanged(conf, metaStore)) {
         startFromLastTxid(lastTxid);
       } else {
         startWithFetchingNameSpace();
@@ -149,7 +150,7 @@ public class InotifyEventFetcher {
     LOG.info("Start fetching namespace with current edit log txid = " + startId);
     nameSpaceFetcher.startFetch();
     inotifyFetchFuture = scheduledExecutorService.scheduleAtFixedRate(
-      new InotifyFetchTask(queueFile, client, startId), 0, 100, TimeUnit.MILLISECONDS);
+        new InotifyFetchTask(queueFile, client, startId), 0, 100, TimeUnit.MILLISECONDS);
     eventApplyTask = new EventApplyTask(nameSpaceFetcher, applier, queueFile, startId, conf);
     ListenableFuture<?> future = listeningExecutorService.submit(eventApplyTask);
     Futures.addCallback(future, new NameSpaceFetcherCallBack(), scheduledExecutorService);
@@ -204,7 +205,7 @@ public class InotifyEventFetcher {
     if (inotifyFetchFuture != null) {
       inotifyFetchFuture.cancel(true);
     }
-    if (fetchAndApplyFuture != null){
+    if (fetchAndApplyFuture != null) {
       fetchAndApplyFuture.cancel(true);
     }
     nameSpaceFetcher.stop();
@@ -294,7 +295,7 @@ public class InotifyEventFetcher {
             break;
           }
         }
-      } catch (InterruptedException | IOException  e) {
+      } catch (InterruptedException | IOException | UncheckedIOException e) {
         LOG.error("Inotify dequeue error", e);
       }
     }

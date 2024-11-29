@@ -18,18 +18,20 @@
 package org.smartdata.utils;
 
 import org.smartdata.model.FileDiff;
+import org.smartdata.model.FileDiffType;
 
 public class FileDiffUtils {
   public static final String LENGTH_ARG = "-length";
   public static final String OFFSET_ARG = "-offset";
   public static final String DEST_ARG = "-dest";
+  public static final String BASE_OPERATION = "-baseOperation";
 
   public static String getParameter(FileDiff fileDiff, String parameter) {
     return fileDiff.getParameters().get(parameter);
   }
 
-  public static String getOffset(FileDiff fileDiff) {
-    return getParameter(fileDiff, OFFSET_ARG);
+  public static Long getOffset(FileDiff fileDiff) {
+    return Long.parseLong(getParameter(fileDiff, OFFSET_ARG));
   }
 
   public static String getLength(FileDiff fileDiff) {
@@ -38,5 +40,14 @@ public class FileDiffUtils {
 
   public static String getDest(FileDiff fileDiff) {
     return getParameter(fileDiff, DEST_ARG);
+  }
+
+  public static boolean isBaseOperation(FileDiff fileDiff) {
+    return getParameter(fileDiff, BASE_OPERATION) != null;
+  }
+
+  public static boolean isCreateFileDiff(FileDiff fileDiff) {
+    return fileDiff.getDiffType() == FileDiffType.APPEND
+        && getOffset(fileDiff) == 0L;
   }
 }

@@ -87,11 +87,20 @@ public class SmartFileSystem extends DistributedFileSystem {
   private SmartDFSClient smartDFSClient;
   private boolean verifyChecksum = true;
 
+  public SmartFileSystem() {
+  }
+
+  public SmartFileSystem(SmartDFSClient smartDFSClient) {
+    this.smartDFSClient = smartDFSClient;
+  }
+
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
 
-    this.smartDFSClient = new SmartDFSClient(uri, conf);
+    if (smartDFSClient == null) {
+      this.smartDFSClient = new SmartDFSClient(uri, conf);
+    }
   }
 
   @Override

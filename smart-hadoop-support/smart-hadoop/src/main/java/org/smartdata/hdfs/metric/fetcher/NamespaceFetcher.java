@@ -138,27 +138,6 @@ public class NamespaceFetcher {
     IngestionTask.init(dir);
   }
 
-  /*
-  startFetch(dir) is used to restart fetcher to fetch one specific dir.
-  In rename event, when src is not in file table because it is not fetched or other reason,
-  dest should be fetched by using startFetch(dest).
-  */
-  public void startFetch(String dir) {
-    init(dir);
-    this.fetchTaskFutures = new ScheduledFuture[ingestionTasks.length];
-    for (int i = 0; i < ingestionTasks.length; i++) {
-      fetchTaskFutures[i] = this.scheduledExecutorService.scheduleAtFixedRate(
-          ingestionTasks[i], 0, fetchInterval, TimeUnit.MILLISECONDS);
-    }
-
-    this.consumerFutures = new ScheduledFuture[consumers.length];
-    for (int i = 0; i < consumers.length; i++) {
-      consumerFutures[i] = this.scheduledExecutorService.scheduleAtFixedRate(
-          consumers[i], 0, fetchInterval, TimeUnit.MILLISECONDS);
-    }
-    LOG.info("Start fetch the given dir.");
-  }
-
   public boolean fetchFinished() {
     return IngestionTask.finished();
   }

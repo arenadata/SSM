@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BigTextCell from './BigTextCell/BigTextCell';
+import BigTextCell from './BigTextCell';
 import DateTimeCell from './DateTimeCell';
 import DurationCell from './DurationCell';
 import MemoryCell from './MemoryCell';

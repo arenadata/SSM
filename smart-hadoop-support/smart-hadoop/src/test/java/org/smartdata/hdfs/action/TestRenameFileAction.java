@@ -48,7 +48,7 @@ public class TestRenameFileAction extends MiniClusterHarness {
     Assert.assertTrue(dfsClient.exists(srcPath + "/" + file1));
 
     RenameFileAction renameFileAction = new RenameFileAction();
-    renameFileAction.setDfsClient(dfsClient);
+    renameFileAction.setLocalFileSystem(dfs);
     renameFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(RenameFileAction.FILE_PATH, srcPath + "/" + file1);
@@ -74,7 +74,7 @@ public class TestRenameFileAction extends MiniClusterHarness {
     DFSTestUtil.writeFile(dfs, new Path(dfs.getUri() + srcPath + "/" + file1), "testCopy1");
 
     RenameFileAction renameFileAction = new RenameFileAction();
-    renameFileAction.setDfsClient(dfsClient);
+    renameFileAction.setLocalFileSystem(dfs);
     renameFileAction.setContext(smartContext);
     Map<String , String> args = new HashMap<>();
     args.put(RenameFileAction.FILE_PATH , dfs.getUri() + srcPath + "/" +file1);
@@ -113,7 +113,7 @@ public class TestRenameFileAction extends MiniClusterHarness {
 
   private void verifyRenameFailed(String src, String dest) throws Exception {
     RenameFileAction renameFileAction = new RenameFileAction();
-    renameFileAction.setDfsClient(dfsClient);
+    renameFileAction.setLocalFileSystem(dfs);
     renameFileAction.setContext(smartContext);
     Map<String , String> args = new HashMap<>();
     args.put(RenameFileAction.FILE_PATH , src);

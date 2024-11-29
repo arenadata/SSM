@@ -56,7 +56,7 @@ public class TestInotifyFetcher extends TestDaoBase {
     private final List<Event> events = new ArrayList<>();
 
     public EventApplierForTest(MetaStore metaStore, DFSClient client) {
-      super(metaStore, client);
+      super(new SmartConf(), metaStore, client);
     }
 
     @Override

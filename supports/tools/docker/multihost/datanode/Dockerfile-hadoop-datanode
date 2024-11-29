@@ -4,6 +4,9 @@ FROM cloud-hub.adsw.io/library/hadoop-base:${HADOOP_VERSION:-3.3.6}
 ENV HDFS_PARENT_DATA_DIR=/hadoop/dfs
 ENV HDFS_CONF_dfs_datanode_data_dir=file://$HDFS_PARENT_DATA_DIR/data
 
+RUN apt-get update \
+    && apt-get install -y jsvc
+
 RUN mkdir -p $HDFS_PARENT_DATA_DIR/data
 RUN mkdir -p $HDFS_PARENT_DATA_DIR/ssd-data
 RUN mkdir -p $HDFS_PARENT_DATA_DIR/ram-data

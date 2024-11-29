@@ -17,74 +17,72 @@
  */
 package org.smartdata.hdfs.action;
 
-import java.util.Map;
-import java.util.Random;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.smartdata.action.ActionException;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
+import java.util.Map;
+import java.util.Random;
+
 @ActionSignature(
-  actionId = "append",
-  displayName = "append",
-  usage = HdfsAction.FILE_PATH + " $src" +
-      AppendFileAction.LENGTH + " $length" +
-      AppendFileAction.BUF_SIZE + " $size"
+    actionId = "append",
+    displayName = "append",
+    usage = HdfsAction.FILE_PATH + " $src" +
+        AppendFileAction.LENGTH + " $length" +
+        AppendFileAction.BUF_SIZE + " $size"
 )
-public class AppendFileAction extends HdfsAction {
+public class AppendFileAction extends HdfsActionWithRemoteClusterSupport {
   static final String BUF_SIZE = "-bufSize";
   static final String LENGTH = "-length";
-  private String srcPath;
-  private long length = 1024;
-  private int bufferSize = 64 * 1024;
+
+  private static final int DEFAULT_BUFF_SIZE = 64 * 1024;
+  private static final long DEFAULT_LENGTH = 1024L;
+
+
+  private Path filePath;
+  private long length;
+  private int bufferSize;
 
   @Override
   public void init(Map<String, String> args) {
-    withDefaultFs();
     super.init(args);
-    this.srcPath = args.get(FILE_PATH);
-    if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
-    }
-    if (args.containsKey(LENGTH)) {
-      length = Long.parseLong(args.get(LENGTH));
-    }
+    this.filePath = getPathArg(FILE_PATH);
+
+    this.bufferSize = args.containsKey(BUF_SIZE)
+        ? Integer.parseInt(args.get(BUF_SIZE))
+        : DEFAULT_BUFF_SIZE;
+
+    this.length = args.containsKey(LENGTH)
+        ? Long.parseLong(args.get(LENGTH))
+        : DEFAULT_LENGTH;
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (srcPath != null && !srcPath.isEmpty()) {
-      Path path = new Path(srcPath);
-      FileSystem fileSystem = path.getFileSystem(getContext().getConf());
-      appendLog(
-          String.format("Action starts at %s : Read %s",
-              Utils.getFormatedCurrentTime(), srcPath));
-      if (!fileSystem.exists(path)) {
-        throw new ActionException("Append Action fails, file doesn't exist!");
+  protected void preExecute() throws Exception {
+    validateNonEmptyArg(FILE_PATH);
+  }
+
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    if (!fileSystem.exists(filePath)) {
+      throw new ActionException("Append Action fails, file doesn't exist!");
+    }
+    appendLog(
+        String.format("Append to %s", filePath));
+
+    Random random = new Random();
+    try (FSDataOutputStream os = fileSystem.append(filePath, bufferSize)) {
+      long remaining = length;
+
+      while (remaining > 0) {
+        int toAppend = (int) Math.min(remaining, bufferSize);
+        byte[] bytes = new byte[toAppend];
+        random.nextBytes(bytes);
+        os.write(bytes);
+        remaining -= toAppend;
       }
-      appendLog(
-          String.format("Append to %s", srcPath));
-      Random random = new Random();
-      FSDataOutputStream os = null;
-      try {
-        os = fileSystem.append(path, bufferSize);
-        long remaining = length;
-        while (remaining > 0) {
-          int toAppend = (int) Math.min(remaining, bufferSize);
-          byte[] bytes = new byte[toAppend];
-          random.nextBytes(bytes);
-          os.write(bytes);
-          remaining -= toAppend;
-        }
-      } finally {
-        if (os != null) {
-          os.close();
-        }
-      }
-    } else {
-      throw new ActionException("File parameter is missing.");
     }
   }
 }

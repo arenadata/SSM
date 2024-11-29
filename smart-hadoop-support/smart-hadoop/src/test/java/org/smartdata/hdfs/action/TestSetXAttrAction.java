@@ -36,7 +36,7 @@ public class TestSetXAttrAction extends MiniClusterHarness {
     args.put(SetXAttrAction.ATT_NAME, "" + attName);
     args.put(SetXAttrAction.ATT_VALUE, "" + attValue);
     SetXAttrAction setXAttrAction = new SetXAttrAction();
-    setXAttrAction.setDfsClient(dfsClient);
+    setXAttrAction.setLocalFileSystem(dfs);
     setXAttrAction.setContext(smartContext);
     setXAttrAction.init(args);
     setXAttrAction.run();

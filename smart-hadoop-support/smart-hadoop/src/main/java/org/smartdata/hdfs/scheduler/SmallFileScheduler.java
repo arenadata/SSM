@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.SmartFilePermission;
+import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.hdfs.action.SmallFileCompactAction;
@@ -160,19 +161,19 @@ public class SmallFileScheduler extends ActionSchedulerService {
       throws IOException {
     // check args
     if (actionInfo.getArgs() == null) {
-      throw new IOException("No arguments for the action");
+      throw new ActionRejectedException("No arguments for the action");
     }
     if (COMPACT_ACTION_NAME.equals(actionInfo.getActionName())) {
       // Check if container file is null
       String containerFilePath = getContainerFile(actionInfo);
       if (containerFilePath == null || containerFilePath.isEmpty()) {
-        throw new IOException("Illegal container file path: " + containerFilePath);
+        throw new ActionRejectedException("Illegal container file path: " + containerFilePath);
       }
 
       // Check if small files is null or empty
       String smallFiles = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
       if (smallFiles == null || smallFiles.isEmpty()) {
-        throw new IOException("Illegal small files: " + smallFiles);
+        throw new ActionRejectedException("Illegal small files: " + smallFiles);
       }
 
       // Check if small file list converted from Json is not empty
@@ -180,7 +181,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
           smallFiles, new TypeToken<ArrayList<String>>() {
           }.getType());
       if (smallFileList.isEmpty()) {
-        throw new IOException("Illegal small files list: " + smallFileList);
+        throw new ActionRejectedException("Illegal small files list: " + smallFileList);
       }
 
       // Check whitelist
@@ -190,7 +191,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
       if (checkIfValidSmallFiles(smallFileList)) {
         return true;
       } else {
-        throw new IOException("Illegal small files are provided.");
+        throw new ActionRejectedException("Illegal small files are provided.");
       }
     } else {
       return true;

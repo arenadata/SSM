@@ -17,12 +17,10 @@
  */
 package org.smartdata.hdfs.action;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveInfo;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Map;
@@ -31,49 +29,44 @@ import java.util.Map;
  * An action to un-cache a file.
  */
 @ActionSignature(
-  actionId = "uncache",
-  displayName = "uncache",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "uncache",
+    displayName = "uncache",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class UncacheFileAction extends HdfsAction {
-  private String fileName;
+  private Path filePath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    fileName = args.get(FILE_PATH);
+    filePath = getPathArg(FILE_PATH);
   }
 
   @Override
   protected void execute() throws Exception {
-    if (fileName == null) {
-      throw new IllegalArgumentException("File parameter is missing! ");
+    validateNonEmptyArg(FILE_PATH);
+
+    Long id = getCacheId();
+    if (id == null) {
+      this.appendLog(String.format("File %s is not in cache. " +
+          "So there is no need to execute this action.", filePath));
+      return;
     }
-    this.appendLog(
-        String.format(
-            "Action starts at %s : %s -> uncache", Utils.getFormatedCurrentTime(), fileName));
-    removeDirective(fileName);
+    localFileSystem.removeCacheDirective(id);
   }
 
-  @VisibleForTesting
-  Long getCacheId(String fileName) throws Exception {
-    CacheDirectiveInfo.Builder filterBuilder = new CacheDirectiveInfo.Builder();
-    filterBuilder.setPath(new Path(fileName));
-    CacheDirectiveInfo filter = filterBuilder.build();
-    RemoteIterator<CacheDirectiveEntry> directiveEntries = dfsClient.listCacheDirectives(filter);
+  private Long getCacheId() throws Exception {
+    CacheDirectiveInfo filter = new CacheDirectiveInfo.Builder()
+        .setPath(filePath)
+        .build();
+
+    RemoteIterator<CacheDirectiveEntry> directiveEntries =
+        localFileSystem.listCacheDirectives(filter);
     if (!directiveEntries.hasNext()) {
       return null;
     }
-    return directiveEntries.next().getInfo().getId();
-  }
-
-  private void removeDirective(String fileName) throws Exception {
-    Long id = getCacheId(fileName);
-    if (id == null) {
-      this.appendLog(String.format("File %s is not in cache. " +
-          "So there is no need to execute this action.", fileName));
-      return;
-    }
-    dfsClient.removeCacheDirective(id);
+    return directiveEntries.next()
+        .getInfo()
+        .getId();
   }
 }

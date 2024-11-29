@@ -23,9 +23,7 @@ import org.junit.Test;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.FileInfo;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class TestFileInfoDao extends TestDaoBase {
   private FileInfoDao fileInfoDao;
@@ -36,7 +34,7 @@ public class TestFileInfoDao extends TestDaoBase {
   }
 
   @Test
-  public void testInsetGetDeleteFiles() throws Exception {
+  public void testInsetGetDeleteFiles() {
     String path = "/testFile";
     long length = 123L;
     boolean isDir = false;
@@ -47,33 +45,39 @@ public class TestFileInfoDao extends TestDaoBase {
     short permission = 1;
     String owner = "root";
     String group = "admin";
-    long fileId = 312321L;
+    long fileId = 1L;
     byte storagePolicy = 0;
     byte erasureCodingPolicy = 0;
     FileInfo fileInfo = new FileInfo(path, fileId, length, isDir, blockReplication, blockSize,
         modTime, accessTime, permission, owner, group, storagePolicy, erasureCodingPolicy);
-    fileInfoDao.insert(fileInfo);
+    fileInfoDao.insert(fileInfo, true);
+
     FileInfo file1 = fileInfoDao.getByPath("/testFile");
-    Assert.assertTrue(fileInfo.equals(file1));
+    Assert.assertEquals(fileInfo, file1);
+
     FileInfo file2 = fileInfoDao.getById(fileId);
-    Assert.assertTrue(fileInfo.equals(file2));
+    Assert.assertEquals(fileInfo, file2);
+
     FileInfo fileInfo1 = new FileInfo(path, fileId + 1, length, isDir, blockReplication, blockSize,
         modTime, accessTime, permission, owner, group, storagePolicy, erasureCodingPolicy);
-    fileInfoDao.insert(fileInfo1);
+    fileInfoDao.insert(fileInfo1, true);
     List<FileInfo> fileInfos = fileInfoDao.getFilesByPrefix("/testaaFile");
-    Assert.assertTrue(fileInfos.size() == 0);
+    Assert.assertEquals(0, fileInfos.size());
+
     fileInfos = fileInfoDao.getFilesByPrefix("/testFile");
-    Assert.assertTrue(fileInfos.size() == 2);
+    Assert.assertEquals(2, fileInfos.size());
+
     fileInfoDao.deleteById(fileId);
     fileInfos = fileInfoDao.getAll();
-    Assert.assertTrue(fileInfos.size() == 1);
+    Assert.assertEquals(1, fileInfos.size());
+
     fileInfoDao.deleteAll();
     fileInfos = fileInfoDao.getAll();
-    Assert.assertTrue(fileInfos.size() == 0);
+    Assert.assertTrue(fileInfos.isEmpty());
   }
 
   @Test
-  public void testInsertUpdateFiles() throws Exception {
+  public void testInsertUpdateFiles() {
     String path = "/testFile";
     long length = 123L;
     boolean isDir = false;
@@ -84,19 +88,17 @@ public class TestFileInfoDao extends TestDaoBase {
     short permission = 1;
     String owner = "root";
     String group = "admin";
-    long fileId = 312321L;
+    long fileId = 1L;
     byte storagePolicy = 0;
     byte erasureCodingPolicy = 0;
-    Map<Integer, String> mapOwnerIdName = new HashMap<>();
-    mapOwnerIdName.put(1, "root");
-    Map<Integer, String> mapGroupIdName = new HashMap<>();
-    mapGroupIdName.put(1, "admin");
+
     FileInfo fileInfo = new FileInfo(path, fileId, length, isDir, blockReplication, blockSize,
         modTime, accessTime, permission, owner, group, storagePolicy, erasureCodingPolicy);
-    fileInfoDao.insert(fileInfo);
+    fileInfoDao.insert(fileInfo, true);
     fileInfoDao.update(path, 10);
     FileInfo file = fileInfoDao.getById(fileId);
     fileInfo.setStoragePolicy((byte) 10);
-    Assert.assertTrue(file.equals(fileInfo));
+
+    Assert.assertEquals(file, fileInfo);
   }
 }

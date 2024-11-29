@@ -46,27 +46,27 @@ public class TestUncacheFileAction extends MiniClusterHarness {
     CacheScheduler.createCachePool(dfsClient);
 
     CacheFileAction cacheFileAction = new CacheFileAction();
-    cacheFileAction.setDfsClient(dfsClient);
+    cacheFileAction.setLocalFileSystem(dfs);
     cacheFileAction.setContext(smartContext);
-    Map<String, String> argsCache = new HashMap();
+    Map<String, String> argsCache = new HashMap<>();
     argsCache.put(CacheFileAction.FILE_PATH, file);
     cacheFileAction.init(argsCache);
 
     UncacheFileAction uncacheFileAction = new UncacheFileAction();
-    uncacheFileAction.setDfsClient(dfsClient);
+    uncacheFileAction.setLocalFileSystem(dfs);
     uncacheFileAction.setContext(smartContext);
 
-    Map<String, String> argsUncache = new HashMap();
+    Map<String, String> argsUncache = new HashMap<>();
     argsUncache.put(UncacheFileAction.FILE_PATH, file);
     uncacheFileAction.init(argsUncache);
 
     cacheFileAction.run();
     Assert.assertTrue(cacheFileAction.getExpectedAfterRun());
-    Assert.assertTrue(cacheFileAction.isCached(file));
+    Assert.assertTrue(cacheFileAction.isFileCached());
 
     uncacheFileAction.run();
     Assert.assertTrue(uncacheFileAction.getExpectedAfterRun());
-    Assert.assertFalse(cacheFileAction.isCached(file));
+    Assert.assertFalse(cacheFileAction.isFileCached());
   }
 
   @Test
@@ -84,18 +84,18 @@ public class TestUncacheFileAction extends MiniClusterHarness {
     CacheScheduler.createCachePool(dfsClient);
 
     UncacheFileAction uncacheFileAction = new UncacheFileAction();
-    uncacheFileAction.setDfsClient(dfsClient);
+    uncacheFileAction.setLocalFileSystem(dfs);
     uncacheFileAction.setContext(smartContext);
 
-    Map<String, String> argsUncache = new HashMap();
+    Map<String, String> argsUncache = new HashMap<>();
     argsUncache.put(UncacheFileAction.FILE_PATH, file);
     uncacheFileAction.init(argsUncache);
 
     uncacheFileAction.run();
     Assert.assertTrue(uncacheFileAction.getExpectedAfterRun());
     CacheFileAction cacheFileAction = new CacheFileAction();
-    cacheFileAction.setDfsClient(dfsClient);
+    cacheFileAction.setLocalFileSystem(dfs);
     cacheFileAction.setContext(smartContext);
-    Assert.assertFalse(cacheFileAction.isCached(file));
+    Assert.assertFalse(cacheFileAction.isFileCached());
   }
 }

@@ -53,7 +53,7 @@ public class TestCopy2S3Action extends MiniClusterHarness {
   //
   // private void copy2S3File(String src, String dest) throws Exception {
   //   Copy2S3Action copy2S3Action = new Copy2S3Action();
-  //   copy2S3Action.setDfsClient(dfsClient);
+  //   copy2S3Action.setLocalFileSystem(dfs);
   //   copy2S3Action.setContext(testContext);
   //   copy2S3Action.setStatusReporter(new MockActionStatusReporter());
   //   Map<String, String> args = new HashMap<>();

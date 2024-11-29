@@ -18,7 +18,7 @@
 import React from 'react';
 import { Button } from '@uikit';
 import { useDispatch, useStore } from '@hooks';
-import { openCreateActionDialog } from '@store/adh/actions/actionsActionsSlice';
+import { openCreateActionDialog } from '@store/adh/actionDialogs/actionsActionsSlice';
 
 const ActionCreateBtn: React.FC = () => {
   const dispatch = useDispatch();

@@ -76,10 +76,7 @@ public class CacheScheduler extends ActionSchedulerService {
 
   @Override
   public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    if (isLocked(actionInfo)) {
-      return false;
-    }
-    return true;
+    return !isLocked(actionInfo);
   }
 
   @Override

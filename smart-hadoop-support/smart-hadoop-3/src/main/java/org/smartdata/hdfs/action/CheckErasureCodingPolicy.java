@@ -17,10 +17,12 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * An action to check the EC policy for a file or dir.
@@ -33,26 +35,29 @@ import java.util.Map;
 public class CheckErasureCodingPolicy extends HdfsAction {
   public static final String RESULT_OF_NULL_EC_POLICY =
       "The EC policy is replication.";
-  private String srcPath;
+
+  private Path srcPath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.srcPath = args.get(HdfsAction.FILE_PATH);
+    this.srcPath = getPathArg(FILE_PATH);
   }
 
   @Override
   public void execute() throws Exception {
-    ErasureCodingPolicy srcEcPolicy = dfsClient.getErasureCodingPolicy(srcPath);
-    if (srcEcPolicy == null) {
-      appendLog(RESULT_OF_NULL_EC_POLICY);
-    } else {
-      appendLog(srcEcPolicy.toString());
-    }
+    validateNonEmptyArg(FILE_PATH);
+
+    String result = Optional.ofNullable(
+            localFileSystem.getErasureCodingPolicy(srcPath))
+        .map(ErasureCodingPolicy::toString)
+        .orElse(RESULT_OF_NULL_EC_POLICY);
+
+    appendResult(result);
   }
 
   @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

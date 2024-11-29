@@ -39,6 +39,13 @@ const routes: RoutesConfigs = {
       },
     ],
   },
+  '/actions/': {
+    breadcrumbs: [
+      {
+        label: 'Actions',
+      },
+    ],
+  },
   '/audit': {
     breadcrumbs: [
       {

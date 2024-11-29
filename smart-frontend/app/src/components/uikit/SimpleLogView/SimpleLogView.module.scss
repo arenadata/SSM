@@ -1,0 +1,51 @@
+:global {
+  body.theme-dark {
+    --simple-log-view-color: var(--color-JSONblue);
+    --simple-log-view-border-color: var(--color-dark1);
+    --simple-log-view-bg-hover-color: var(--color-black1F);
+  }
+
+  body.theme-light {
+    --simple-log-view-color: var(--color-ADPG-btnDark);
+    --simple-log-view-border-color: var(--color-lightStroke);
+    --simple-log-view-bg-hover-color: var(--color-colourful);
+  }
+}
+
+.simpleLogView {
+  max-width: 100%;
+  position: relative;
+
+  &__wrapper {
+    overflow: auto;
+    max-width: 100%;
+  }
+
+  pre {
+    border: 2px solid var(--simple-log-view-border-color);
+    color: var(--simple-log-view-color);
+    border-radius: 20px;
+    margin: 0;
+    padding: 18px;
+    font-weight: 500;
+    font-size: 15px;
+    min-width: 100%;
+    width: fit-content;
+    box-sizing: border-box;
+
+    &:hover {
+      background: var(--simple-log-view-bg-hover-color);
+    }
+  }
+
+  &:hover button {
+    opacity: 1;
+  }
+
+  button {
+    opacity: 0;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+}

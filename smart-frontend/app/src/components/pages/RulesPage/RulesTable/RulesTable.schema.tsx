@@ -23,6 +23,8 @@ import { AdhRuleState } from '@models/adh';
 import RuleStatusCell from './RuleStatusCell/RuleStatusCell';
 import RuleActionsCell from './RuleActionsCell/RuleActionsCell';
 import { getOptionsFromEnum } from '@uikit/Select/Select.utils';
+import SmartRuleHighlighter from '@uikit/SmartRuleHighlighter/SmartRuleHighlighter';
+import TableCell from '@uikit/Table/TableCell/TableCell';
 
 const ruleStatesOptions = getOptionsFromEnum(AdhRuleState);
 
@@ -40,7 +42,13 @@ export const rulesColumns: TableColumnSchema[] = [
     },
     filterName: 'textRepresentationLike',
     schema: {
-      type: SchemaColumnType.BigText,
+      cellRenderer: (rule: AdhRule) => {
+        return (
+          <TableCell>
+            <SmartRuleHighlighter rule={rule.textRepresentation} />
+          </TableCell>
+        );
+      },
     },
   },
   {

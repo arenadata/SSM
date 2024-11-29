@@ -77,8 +77,6 @@ import org.smartdata.model.SystemInfo;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -202,8 +200,8 @@ public class MetaStore implements CopyMetaService,
     return defaultTransactionRunner.getTransactionManager();
   }
 
-  public DataSource getDataSource() {
-    return dbPool.getDataSource();
+  public DBPool dbPool() {
+    return dbPool;
   }
 
   public Long queryForLong(String sql) throws MetaStoreException {
@@ -218,20 +216,20 @@ public class MetaStore implements CopyMetaService,
   /**
    * Store a single file info into database.
    */
-  public void insertFile(FileInfo file)
+  public void insertFile(FileInfo file, boolean generateId)
       throws MetaStoreException {
     updateCache();
-    fileInfoDao.insert(file);
+    fileInfoDao.insert(file, generateId);
   }
 
 
   /**
    * Store files info into database.
    */
-  public void insertFiles(FileInfo[] files)
+  public void insertFiles(FileInfo[] files, boolean generateIds)
       throws MetaStoreException {
     updateCache();
-    fileInfoDao.insert(files);
+    fileInfoDao.insert(files, generateIds);
   }
 
   public void updateFileByPath(String path, FileInfoDiff fileUpdate) {

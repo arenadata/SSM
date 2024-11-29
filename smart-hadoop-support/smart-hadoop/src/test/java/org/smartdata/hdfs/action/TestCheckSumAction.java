@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.smartdata.action.ActionException;
 import org.smartdata.hdfs.MiniClusterHarness;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +46,7 @@ public class TestCheckSumAction extends MiniClusterHarness {
   @Before
   public void setUp() {
     action = new CheckSumAction();
-    action.setDfsClient(dfsClient);
+    action.setLocalFileSystem(dfs);
     action.setContext(smartContext);
   }
 
@@ -97,7 +97,7 @@ public class TestCheckSumAction extends MiniClusterHarness {
   }
 
   @Test
-  public void testThrowIfFileNotFound() throws IOException {
+  public void testThrowIfFileNotFound() {
     final String file = "/unknownFile";
     Map<String, String> args = new HashMap<>();
     args.put(CheckSumAction.FILE_PATH, file);
@@ -106,12 +106,12 @@ public class TestCheckSumAction extends MiniClusterHarness {
 
     Throwable error = action.getActionStatus().getThrowable();
     assertNotNull(error);
-    assertTrue(error instanceof ActionException);
-    assertEquals("Provided file doesn't exist: /unknownFile", error.getMessage());
+    assertTrue(error instanceof FileNotFoundException);
+    assertEquals("File does not exist: /unknownFile", error.getMessage());
   }
 
   @Test
-  public void testThrowIfDirectoryNotFound() throws IOException {
+  public void testThrowIfDirectoryNotFound() {
     final String file = "/unknownDir/*";
     Map<String, String> args = new HashMap<>();
     args.put(CheckSumAction.FILE_PATH, file);
@@ -121,11 +121,11 @@ public class TestCheckSumAction extends MiniClusterHarness {
     Throwable error = action.getActionStatus().getThrowable();
     assertNotNull(error);
     assertTrue(error instanceof ActionException);
-    assertEquals("Provided directory doesn't exist: /unknownDir/", error.getMessage());
+    assertEquals("Provided directory doesn't exist: /unknownDir", error.getMessage());
   }
 
-  private List<String> getChecksumFiles() throws UnsupportedEncodingException {
-    String[] logLines = Optional.ofNullable(action.getActionStatus().getLog())
+  private List<String> getChecksumFiles() {
+    String[] logLines = Optional.ofNullable(action.getActionStatus().getResult())
         .map(log -> log.split("\n"))
         .orElse(new String[0]);
 

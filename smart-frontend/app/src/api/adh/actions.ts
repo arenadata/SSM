@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AdhAction, AdhActionsFilter } from '@models/adh';
+import type { AdhAction, AdhActionDetails, AdhActionsFilter } from '@models/adh';
 import type { PaginationParams, SortParams } from '@models/table';
 import type { PaginateCollection } from '@models/collection';
 import { prepareNamedDateRange, prepareQueryParams } from '@utils/requestUtils';
@@ -41,6 +41,12 @@ export class AdhActionsApi {
     const query = qs.stringify(queryParams, { arrayFormat: 'repeat' });
 
     const response = await httpClient.get<PaginateCollection<AdhAction>>(`/api/v2/actions?${query}`);
+
+    return response.data;
+  }
+
+  public static async getAction(actionId: number): Promise<AdhActionDetails> {
+    const response = await httpClient.get<AdhActionDetails>(`/api/v2/actions/${actionId}`);
 
     return response.data;
   }

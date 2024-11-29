@@ -20,21 +20,16 @@ package org.smartdata.hdfs.action;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.mutable.MutableFloat;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Options;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.XAttrSetFlag;
 import org.apache.hadoop.hdfs.CompressionCodecFactory;
-import org.apache.hadoop.hdfs.DFSInputStream;
 import org.apache.hadoop.hdfs.SmartCompressorStream;
-import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.SmartConstants;
 import org.smartdata.action.ActionException;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.model.CompressionFileInfo;
 import org.smartdata.model.CompressionFileState;
 import org.smartdata.utils.StringUtil;
@@ -45,6 +40,9 @@ import java.io.OutputStream;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.smartdata.SmartConstants.SMART_FILE_STATE_XATTR_NAME;
+import static org.smartdata.utils.PathUtil.getRawPath;
 
 /**
  * This action is used to compress a file.
@@ -61,16 +59,16 @@ import java.util.Set;
             + " $codec"
 )
 public class CompressionAction extends HdfsAction {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(CompressionAction.class);
-
+  public static final String COMPRESS_TMP = "-compressTmp";
   public static final String BUF_SIZE = "-bufSize";
   public static final String CODEC = "-codec";
+
   private static final Set<String> SUPPORTED_CODECS =
       CompressionCodecFactory.getInstance().getSupportedCodecs();
 
-  private String filePath;
-  private Configuration conf;
+  private final Gson compressionInfoSerializer;
+
+  private Path filePath;
   private MutableFloat progress;
 
   // bufferSize is also chunk size.
@@ -81,144 +79,110 @@ public class CompressionAction extends HdfsAction {
   private String compressCodec;
   // Specified by user in action arg.
   private int userDefinedBufferSize;
-  public static final String XATTR_NAME =
-      SmartConstants.SMART_FILE_STATE_XATTR_NAME;
 
-  private CompressionFileInfo compressionFileInfo;
   private CompressionFileState compressionFileState;
 
-  private String compressTmpPath;
-  public static final String COMPRESS_TMP = "-compressTmp";
+  private Path compressTmpPath;
+
+  public CompressionAction() {
+    this.compressionInfoSerializer = new Gson();
+  }
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.conf = getContext().getConf();
-    this.compressCodec = conf.get(
+    this.compressCodec = getContext().getConf().get(
         SmartConfKeys.SMART_COMPRESSION_CODEC,
         SmartConfKeys.SMART_COMPRESSION_CODEC_DEFAULT);
-    this.maxSplit = conf.getInt(
+    this.maxSplit = getContext().getConf().getInt(
         SmartConfKeys.SMART_COMPRESSION_MAX_SPLIT,
         SmartConfKeys.SMART_COMPRESSION_MAX_SPLIT_DEFAULT);
-    this.filePath = args.get(FILE_PATH);
+    this.filePath = getPathArg(FILE_PATH);
     if (args.containsKey(BUF_SIZE) && !args.get(BUF_SIZE).isEmpty()) {
       this.userDefinedBufferSize = (int) StringUtil.parseToByte(args.get(BUF_SIZE));
     }
     this.compressCodec = args.get(CODEC) != null ? args.get(CODEC) : compressCodec;
     // This is a temp path for compressing a file.
-    this.compressTmpPath = args.containsKey(COMPRESS_TMP) ?
-        args.get(COMPRESS_TMP) : compressTmpPath;
+    this.compressTmpPath = getPathArg(COMPRESS_TMP);
     this.progress = new MutableFloat(0.0F);
   }
 
   @Override
   protected void execute() throws Exception {
-    if (filePath == null) {
-      throw new IllegalArgumentException("File path is missing.");
-    }
-    if (compressTmpPath == null) {
-      throw new IllegalArgumentException("Compression tmp path is not specified!");
-    }
+    validateNonEmptyArgs(FILE_PATH, COMPRESS_TMP);
+
     if (!SUPPORTED_CODECS.contains(compressCodec)) {
       throw new ActionException(
           "Compression Action failed due to unsupported codec: " + compressCodec);
     }
-    appendLog(
-        String.format("Compression Action started at %s for %s",
-            Utils.getFormatedCurrentTime(), filePath));
 
-    if (!dfsClient.exists(filePath)) {
+    if (!localFileSystem.exists(filePath)) {
       throw new ActionException(
           "Failed to execute Compression Action: the given file doesn't exist!");
     }
 
-    HdfsFileStatus srcFileStatus = dfsClient.getFileInfo(filePath);
+    FileStatus srcFileStatus = localFileSystem.getFileStatus(filePath);
     // Consider directory case.
-    if (srcFileStatus.isDir()) {
+    if (srcFileStatus.isDirectory()) {
       appendLog("Compression is not applicable to a directory.");
       return;
     }
     // Generate compressed file
-    compressionFileState = new CompressionFileState(filePath, bufferSize, compressCodec);
+    compressionFileState = new CompressionFileState(getRawPath(filePath), bufferSize, compressCodec);
     compressionFileState.setOriginalLength(srcFileStatus.getLen());
 
-    OutputStream appendOut = null;
-    DFSInputStream in = null;
-    OutputStream out = null;
-    try {
-      if (srcFileStatus.getLen() == 0) {
-        compressionFileInfo = new CompressionFileInfo(false, compressionFileState);
-      } else {
-        short replication = srcFileStatus.getReplication();
-        long blockSize = srcFileStatus.getBlockSize();
-        long fileSize = srcFileStatus.getLen();
-        appendLog("File length: " + fileSize);
-        bufferSize = getActualBuffSize(fileSize);
+    CompressionFileInfo compressionFileInfo;
+    if (srcFileStatus.getLen() == 0) {
+      compressionFileInfo = new CompressionFileInfo(false, compressionFileState);
+    } else {
+      try (
+          // SmartDFSClient will fail to open compressing file with PROCESSING FileStage
+          // set by Compression scheduler. But considering DfsClient may be used, we use
+          // append operation to lock the file to avoid any modification.
+          OutputStream lockStream = localFileSystem.append(filePath, bufferSize);
 
-        // SmartDFSClient will fail to open compressing file with PROCESSING FileStage
-        // set by Compression scheduler. But considering DfsClient may be used, we use
-        // append operation to lock the file to avoid any modification.
-        appendOut = CompatibilityHelperLoader.getHelper().
-            getDFSClientAppend(dfsClient, filePath, bufferSize);
-        in = dfsClient.open(filePath);
-        out = dfsClient.create(compressTmpPath,
-            true, replication, blockSize);
+          FSDataInputStream in = localFileSystem.open(filePath);
+          OutputStream out = localFileSystem.create(compressTmpPath,
+              true,
+              getLocalDfsClient().getConf().getIoBufferSize(),
+              srcFileStatus.getReplication(),
+              srcFileStatus.getBlockSize())
+      ) {
 
-        // Keep storage policy consistent.
-        // The below statement is not supported on Hadoop-2.7.3 or CDH-5.10.1
-        // String storagePolicyName = dfsClient.getStoragePolicy(filePath).getName();
-        byte storagePolicyId = srcFileStatus.getStoragePolicy();
-        String storagePolicyName = SmartConstants.STORAGE_POLICY_MAP.get(storagePolicyId);
+        appendLog("File length: " + srcFileStatus.getLen());
+        bufferSize = getActualBuffSize(srcFileStatus.getLen());
+
+        String storagePolicyName = localFileSystem.getStoragePolicy(filePath).getName();
         if (!storagePolicyName.equals("UNDEF")) {
-          dfsClient.setStoragePolicy(compressTmpPath, storagePolicyName);
+          localFileSystem.setStoragePolicy(compressTmpPath, storagePolicyName);
         }
 
         compress(in, out);
-        HdfsFileStatus destFileStatus = dfsClient.getFileInfo(compressTmpPath);
-        dfsClient.setOwner(compressTmpPath, srcFileStatus.getOwner(), srcFileStatus.getGroup());
-        dfsClient.setPermission(compressTmpPath, srcFileStatus.getPermission());
+        FileStatus destFileStatus = localFileSystem.getFileStatus(compressTmpPath);
+        localFileSystem.setOwner(compressTmpPath, srcFileStatus.getOwner(), srcFileStatus.getGroup());
+        localFileSystem.setPermission(compressTmpPath, srcFileStatus.getPermission());
         compressionFileState.setCompressedLength(destFileStatus.getLen());
         appendLog("Compressed file length: " + destFileStatus.getLen());
         compressionFileInfo =
-            new CompressionFileInfo(true, compressTmpPath, compressionFileState);
+            new CompressionFileInfo(true, getRawPath(compressTmpPath), compressionFileState);
       }
-      compressionFileState.setBufferSize(bufferSize);
-      appendLog("Compression buffer size: " + bufferSize);
-      appendLog("Compression codec: " + compressCodec);
-      String compressionInfoJson = new Gson().toJson(compressionFileInfo);
-      appendResult(compressionInfoJson);
-      LOG.warn(compressionInfoJson);
-      if (compressionFileInfo.needReplace()) {
-        // Add to temp path
-        // Please make sure content write to Xatte is less than 64K
-        dfsClient.setXAttr(compressionFileInfo.getTempPath(),
-            XATTR_NAME, SerializationUtils.serialize(compressionFileState),
-            EnumSet.of(XAttrSetFlag.CREATE));
-        // Rename operation is moved from CompressionScheduler.
-        // Thus, modification for original file will be avoided.
-        dfsClient.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
-      } else {
-        // Add to raw path
-        dfsClient.setXAttr(filePath,
-            XATTR_NAME, SerializationUtils.serialize(compressionFileState),
-            EnumSet.of(XAttrSetFlag.CREATE));
-      }
-    } catch (IOException e) {
-      throw new IOException(e);
-    } finally {
-      if (appendOut != null) {
-        try {
-          appendOut.close();
-        } catch (IOException e) {
-          // Hide the expected exception that the original file is missing.
-        }
-      }
-      if (in != null) {
-        in.close();
-      }
-      if (out != null) {
-        out.close();
-      }
+    }
+
+    compressionFileState.setBufferSize(bufferSize);
+    appendLog("Compression buffer size: " + bufferSize);
+    appendLog("Compression codec: " + compressCodec);
+    String compressionInfoJson = compressionInfoSerializer.toJson(compressionFileInfo);
+    appendResult(compressionInfoJson);
+    if (compressionFileInfo.needReplace()) {
+      // Add to temp path
+      // Please make sure content write to Xattr is less than 64K
+      setXAttr(compressTmpPath, compressionFileState);
+      // Rename operation is moved from CompressionScheduler.
+      // Thus, modification for original file will be avoided.
+      localFileSystem.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
+    } else {
+      // Add to raw path
+      setXAttr(filePath, compressionFileState);
     }
   }
 
@@ -233,23 +197,29 @@ public class CompressionAction extends HdfsAction {
     // The capacity of originalPos and compressedPos is maxSplit (1000, by default) in database
     // Calculated by max number of splits.
     int calculatedBufferSize = (int) (fileSize / maxSplit);
-    LOG.debug("Calculated buffer size: " + calculatedBufferSize);
-    LOG.debug("MaxSplit: " + maxSplit);
+    appendLog("Calculated buffer size: " + calculatedBufferSize);
+    appendLog("MaxSplit: " + maxSplit);
     // Determine the actual buffer size
     if (userDefinedBufferSize < bufferSize || userDefinedBufferSize < calculatedBufferSize) {
       if (bufferSize <= calculatedBufferSize) {
-        LOG.debug("User defined buffer size is too small, use the calculated buffer size:" +
-            calculatedBufferSize);
+        appendLog("User defined buffer size is too small, use the calculated buffer size: "
+            + calculatedBufferSize);
       } else {
-        LOG.debug("User defined buffer size is too small, use the default buffer size:" +
-            bufferSize);
+        appendLog("User defined buffer size is too small, use the default buffer size: "
+            + bufferSize);
       }
     }
     return Math.max(Math.max(userDefinedBufferSize, calculatedBufferSize), bufferSize);
   }
 
+  private void setXAttr(Path path, CompressionFileState compressionFileState) throws IOException {
+    localFileSystem.setXAttr(path, SMART_FILE_STATE_XATTR_NAME,
+        SerializationUtils.serialize(compressionFileState),
+        EnumSet.of(XAttrSetFlag.CREATE));
+  }
+
   @Override
   public float getProgress() {
-    return (float) this.progress.getValue();
+    return progress.getValue();
   }
 }

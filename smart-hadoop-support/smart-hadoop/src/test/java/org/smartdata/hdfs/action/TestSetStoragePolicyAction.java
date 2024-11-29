@@ -67,7 +67,7 @@ public class TestSetStoragePolicyAction extends MiniClusterHarness {
   private byte setStoragePolicy(String file, String storagePolicy)
       throws IOException {
     SetStoragePolicyAction action = new SetStoragePolicyAction();
-    action.setDfsClient(dfsClient);
+    action.setLocalFileSystem(dfs);
     action.setContext(smartContext);
     Map<String, String> args = new HashMap();
     args.put(SetStoragePolicyAction.FILE_PATH, file);

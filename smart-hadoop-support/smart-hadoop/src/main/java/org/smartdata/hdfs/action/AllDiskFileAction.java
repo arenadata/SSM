@@ -23,9 +23,9 @@ import org.smartdata.action.annotation.ActionSignature;
  * An action to do all-disk for a file.
  */
 @ActionSignature(
-  actionId = "alldisk",
-  displayName = "alldisk",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "alldisk",
+    displayName = "alldisk",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class AllDiskFileAction extends MoveFileAction {
 

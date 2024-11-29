@@ -64,7 +64,7 @@ public class TestSmallFileRead extends MiniSmartClusterHarness {
     }
 
     SmallFileCompactAction smallFileCompactAction = new SmallFileCompactAction();
-    smallFileCompactAction.setDfsClient(dfsClient);
+    smallFileCompactAction.setLocalFileSystem(dfs);
     smallFileCompactAction.setContext(smartContext);
     Map<String , String> args = new HashMap<>();
     List<String> smallFileList = new ArrayList<>();

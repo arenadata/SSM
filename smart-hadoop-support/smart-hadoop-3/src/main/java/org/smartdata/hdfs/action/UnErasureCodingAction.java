@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.utils.StringUtil;
 
 import java.io.IOException;
 import java.util.Map;
@@ -45,32 +44,22 @@ public class UnErasureCodingAction extends ErasureCodingBase {
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.conf = getContext().getConf();
-    this.srcPath = args.get(FILE_PATH);
+    this.srcPath = getPathArg(FILE_PATH);
     this.ecPolicyName = REPLICATION_POLICY_NAME;
-    if (args.containsKey(EC_TMP)) {
-      this.ecTmpPath = args.get(EC_TMP);
-    }
-    if (args.containsKey(BUF_SIZE) && !args.get(BUF_SIZE).isEmpty()) {
-      this.bufferSize = (int) StringUtil.parseToByte(args.get(BUF_SIZE));
-    }
+    this.ecTmpPath = getPathArg(EC_TMP);
+    this.bufferSize = isArgPresent(BUF_SIZE)
+        ? Integer.parseInt(args.get(BUF_SIZE))
+        : DEFAULT_BUF_SIZE;
     this.progress = 0.0F;
   }
 
   @Override
   protected void execute() throws Exception {
-    final String MATCH_RESULT =
-        "The current EC policy is replication already.";
-    final String DIR_RESULT =
-        "The replication EC policy is set successfully for the given directory.";
-    final String CONVERT_RESULT =
-        "The file is converted successfully with replication EC policy.";
+    validateNonEmptyArgs(FILE_PATH);
 
-    HdfsFileStatus fileStatus = dfsClient.getFileInfo(srcPath);
-    if (fileStatus == null) {
-      throw new ActionException("File doesn't exist!");
-    }
+    HdfsFileStatus fileStatus = (HdfsFileStatus) localFileSystem.getFileStatus(srcPath);
     ErasureCodingPolicy srcEcPolicy = fileStatus.getErasureCodingPolicy();
+
     // if ecPolicy is null, it means replication.
     if (srcEcPolicy == null) {
       this.progress = 1.0F;
@@ -78,22 +67,23 @@ public class UnErasureCodingAction extends ErasureCodingBase {
       return;
     }
     if (fileStatus.isDir()) {
-      dfsClient.setErasureCodingPolicy(srcPath, ecPolicyName);
+      localFileSystem.setErasureCodingPolicy(srcPath, ecPolicyName);
       progress = 1.0F;
       appendLog(DIR_RESULT);
       return;
     }
+
     try {
       convert(fileStatus);
-      setAttributes(srcPath, fileStatus, ecTmpPath);
-      dfsClient.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
+      setAttributes(fileStatus);
+      localFileSystem.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
       appendLog(CONVERT_RESULT);
       appendLog(String.format("The previous EC policy is %s.", srcEcPolicy.getName()));
       appendLog(String.format("The current EC policy is %s.", REPLICATION_POLICY_NAME));
     } catch (ActionException ex) {
       try {
-        if (dfsClient.getFileInfo(ecTmpPath) != null) {
-          dfsClient.delete(ecTmpPath, false);
+        if (localFileSystem.exists(ecTmpPath)) {
+          localFileSystem.delete(ecTmpPath, false);
         }
       } catch (IOException e) {
         LOG.error("Failed to delete tmp file created during the conversion!");
@@ -103,12 +93,7 @@ public class UnErasureCodingAction extends ErasureCodingBase {
   }
 
   @Override
-  public float getProgress() {
-    return progress;
-  }
-
-  @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

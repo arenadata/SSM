@@ -17,15 +17,19 @@
  */
 package org.smartdata.utils;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
+import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
+
 public class PathUtil {
   private static final String DIR_SEP = "/";
-  private static final String HDFS_SCHEME = "hdfs";
-  private static final String[] GLOBS = new String[] {
+  private static final String[] GLOBS = new String[]{
       "*", "?"
   };
 
@@ -66,18 +70,44 @@ public class PathUtil {
         .startsWith(addPathSeparator(prefixToCheck));
   }
 
+  public static boolean isAbsoluteRemotePath(String path) {
+    return isAbsoluteRemotePath(new Path(path));
+  }
+
   // todo replace 'stringPath.startsWith("hdfs")' calls with this method
   public static boolean isAbsoluteRemotePath(Path path) {
     return Optional.ofNullable(path)
-            .map(Path::toUri)
-            .filter(PathUtil::isAbsoluteRemotePath)
-            .isPresent();
+        .map(Path::toUri)
+        .filter(PathUtil::isAbsoluteRemotePath)
+        .isPresent();
   }
 
   public static boolean isAbsoluteRemotePath(URI uri) {
     return Optional.ofNullable(uri)
         .map(URI::getScheme)
-        .filter(HDFS_SCHEME::equals)
         .isPresent();
+  }
+
+  public static Optional<String> getScheme(String path) {
+    return Optional.ofNullable(path)
+        .map(URI::create)
+        .map(URI::getScheme);
+  }
+
+  public static Optional<String> getScheme(Path path) {
+    return Optional.ofNullable(path)
+        .map(Path::toUri)
+        .map(URI::getScheme);
+  }
+
+  // todo we use default HDFS config, add mechanism to provide
+  // hdfs config paths for remote clusters
+  public static FileSystem getRemoteFileSystem(
+      Path path, Configuration configuration) throws IOException {
+    return path.getFileSystem(toRemoteClusterConfig(configuration));
+  }
+
+  public static String getRawPath(Path path) {
+    return path.toUri().getPath();
   }
 }

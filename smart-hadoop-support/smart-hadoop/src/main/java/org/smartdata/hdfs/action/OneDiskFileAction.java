@@ -23,9 +23,9 @@ import org.smartdata.action.annotation.ActionSignature;
  * An action to do one-disk for a file.
  */
 @ActionSignature(
-  actionId = "onedisk",
-  displayName = "onedisk",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "onedisk",
+    displayName = "onedisk",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class OneDiskFileAction extends MoveFileAction {
 

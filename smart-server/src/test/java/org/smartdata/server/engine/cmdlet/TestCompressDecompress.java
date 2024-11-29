@@ -17,11 +17,13 @@
  */
 package org.smartdata.server.engine.cmdlet;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSInputStream;
 import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
@@ -61,7 +63,6 @@ public class TestCompressDecompress extends MiniSmartClusterHarness {
   @Override
   @Before
   public void init() throws Exception {
-    DEFAULT_BLOCK_SIZE = 1024 * 1024;
     super.init();
     this.codec = ZLibCompressorFactory.ZLIB_CODEC;
     smartDFSClient = new SmartDFSClient(ssm.getContext().getConf());
@@ -69,6 +70,13 @@ public class TestCompressDecompress extends MiniSmartClusterHarness {
     cmdletManager = ssm.getCmdletManager();
     cmdletInfoHandler = cmdletManager.getCmdletInfoHandler();
     actionInfoHandler = cmdletManager.getActionInfoHandler();
+  }
+
+  @Override
+  protected void initConf(Configuration conf) {
+    super.initConf(conf);
+    conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, 1024 * 1024);
+    conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, 1024 * 1024);
   }
 
   @Test

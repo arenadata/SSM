@@ -17,6 +17,8 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.XAttrSetFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,52 +37,41 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + " $src " + SetXAttrAction.ATT_NAME +
         " $name " + SetXAttrAction.ATT_VALUE + " $value"
 )
-public class SetXAttrAction extends HdfsAction {
+public class SetXAttrAction extends HdfsActionWithRemoteClusterSupport {
   private static final Logger LOG =
       LoggerFactory.getLogger(SetXAttrAction.class);
   public static final String ATT_NAME = "-name";
   public static final String ATT_VALUE = "-value";
 
-  private String srcPath;
+  private Path srcPath;
   private String attName;
   private String attValue;
-
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    if (args.containsKey(FILE_PATH)) {
-      this.srcPath = args.get(FILE_PATH);
-    }
-    if (args.containsKey(ATT_NAME)) {
-      this.attName = args.get(ATT_NAME);
-    }
-    if (args.containsKey(ATT_VALUE)) {
-      this.attValue = args.get(ATT_VALUE);
-    }
+    this.srcPath = getPathArg(FILE_PATH);
+    this.attName = args.get(ATT_NAME);
+    this.attValue = args.get(ATT_VALUE);
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (srcPath == null) {
-      throw new IllegalArgumentException("File parameter is missing.");
-    }
-    if (attName == null) {
-      throw new IllegalArgumentException("attName parameter is missing.");
-    }
-    if (attValue == null) {
-      throw new IllegalArgumentException("attValue parameter is missing.");
-    }
-    if (!dfsClient.exists(srcPath)) {
-      throw new ActionException("SetXAttr Action fails, file doesn't exist!");
-    }
-    LOG.debug("SetXattr path={} name={} value={}", srcPath, attName, attValue);
-    appendLog(String.format("SetXattr path=%s name=%s value=%s",
-        srcPath, attName, attValue));
-    dfsClient.setXAttr(srcPath, attName, attValue.getBytes(),
-        EnumSet.of(XAttrSetFlag.CREATE, XAttrSetFlag.REPLACE));
-    appendLog("SetXattr Successfully!!");
+  protected void preExecute() {
+    validateNonEmptyArgs(FILE_PATH, ATT_NAME, ATT_VALUE);
   }
 
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    if (!fileSystem.exists(srcPath)) {
+      throw new ActionException("SetXAttr Action fails, file doesn't exist!");
+    }
+    LOG.debug("Setting XAttribute path={} name={} value={}",
+        srcPath, attName, attValue);
+    appendLog(String.format("Setting XAttribute path=%s name=%s value=%s",
+        srcPath, attName, attValue));
 
+    fileSystem.setXAttr(srcPath, attName, attValue.getBytes(),
+        EnumSet.of(XAttrSetFlag.CREATE, XAttrSetFlag.REPLACE));
+    appendLog("Xattr was set successfully!");
+  }
 }

@@ -23,6 +23,7 @@ import com.google.common.collect.ListMultimap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
@@ -30,6 +31,7 @@ import org.smartdata.action.ActionException;
 import org.smartdata.cmdlet.parser.CmdletParser;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.exception.SsmParseException;
@@ -141,7 +143,7 @@ public class CmdletManager extends AbstractService
   private final AuditService auditService;
   private final SmartPrincipalManager smartPrincipalManager;
   private final PathChecker pathChecker;
-  private List<ActionSchedulerService> schedulerServices;
+  private final List<ActionSchedulerService> schedulerServices;
   private CmdletDispatcher dispatcher;
 
   public CmdletManager(
@@ -151,7 +153,8 @@ public class CmdletManager extends AbstractService
     super(context);
 
     this.metaStore = context.getMetaStore();
-    this.executorService = Executors.newScheduledThreadPool(4);
+    this.executorService = context.getMetricsFactory().wrap(
+        Executors.newScheduledThreadPool(4), "cmdletSchedulerExecutor");
     this.runningCmdlets = new ArrayList<>();
     this.pendingCmdlets = new LinkedList<>();
     this.schedulingCmdlets = new LinkedList<>();
@@ -170,8 +173,8 @@ public class CmdletManager extends AbstractService
         CacheScheduler.class
     ), context, metaStore);
     this.ruleCmdletTracker = new RuleCmdletTracker();
-    this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlets,
-        idToLaunchCmdlets, runningCmdlets, schedulers);
+    this.dispatcher = new CmdletDispatcher(context, this,
+        scheduledCmdlets, idToLaunchCmdlets, runningCmdlets, schedulers);
     this.pathChecker = new PathChecker(context.getConf());
     this.maxNumPendingCmdlets = context.getConf()
         .getInt(SmartConfKeys.SMART_CMDLET_MAX_NUM_PENDING_KEY,
@@ -183,7 +186,7 @@ public class CmdletManager extends AbstractService
     this.inMemoryRegistry = new InMemoryRegistry(context, ruleCmdletTracker, executorService);
 
     CmdletManagerContext cmdletManagerContext = new CmdletManagerContext(
-        getContext().getConf(), metaStore, inMemoryRegistry, schedulers);
+        context.getConf(), metaStore, context.getMetricsFactory(), inMemoryRegistry, schedulers);
     this.detectTimeoutActionsTask =
         new DetectTimeoutActionsTask(cmdletManagerContext, this, idToLaunchCmdlets.keySet());
     this.actionInfoHandler = new ActionInfoHandler(cmdletManagerContext);
@@ -308,7 +311,7 @@ public class CmdletManager extends AbstractService
     for (ActionInfo actionInfo : actionInfos) {
       for (ActionScheduler p : schedulers.get(actionInfo.getActionName())) {
         if (!p.onSubmit(cmdletInfo, actionInfo)) {
-          throw new IOException("Action rejected by scheduler: " + actionInfo);
+          throw new ActionRejectedException("Action rejected by scheduler: " + actionInfo);
         }
       }
     }
@@ -563,7 +566,7 @@ public class CmdletManager extends AbstractService
         try {
           scheduleResult = scheduler.onSchedule(info, actionInfo, launchCmdlet, launchAction);
         } catch (Exception exception) {
-          actionInfo.appendLogLine("OnSchedule exception: " + exception);
+          actionInfo.appendLogLine("OnSchedule exception: " + ExceptionUtils.getStackTrace(exception));
           scheduleResult = ScheduleResult.FAIL;
         }
 
@@ -695,7 +698,7 @@ public class CmdletManager extends AbstractService
 
   public void updateStatus(StatusMessage status) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Got status update: " + status);
+      LOG.debug("Got status update: {}", status);
     }
     try {
       if (status instanceof CmdletStatusUpdate) {
@@ -705,7 +708,7 @@ public class CmdletManager extends AbstractService
         onStatusReport((StatusReport) status);
       }
     } catch (IOException e) {
-      LOG.error(String.format("Update status %s failed with %s", status, e));
+      LOG.error("Update status {} failed with {}", status, e);
     } catch (ActionException e) {
       LOG.error("Action Status error", e);
     }

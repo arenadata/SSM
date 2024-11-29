@@ -46,7 +46,7 @@ public class TestDeleteFileAction extends MiniClusterHarness {
     Assert.assertTrue(dfsClient.exists(srcPath + "/" + file1));
 
     DeleteFileAction deleteFileAction = new DeleteFileAction();
-    deleteFileAction.setDfsClient(dfsClient);
+    deleteFileAction.setLocalFileSystem(dfs);
     deleteFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(DeleteFileAction.FILE_PATH, srcPath + "/" + file1);
@@ -70,7 +70,7 @@ public class TestDeleteFileAction extends MiniClusterHarness {
     Assert.assertTrue(dfsClient.exists(srcPath + "/" + file1));
 
     DeleteFileAction deleteFileAction = new DeleteFileAction();
-    deleteFileAction.setDfsClient(dfsClient);
+    deleteFileAction.setLocalFileSystem(dfs);
     deleteFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     // Destination with "hdfs" prefix

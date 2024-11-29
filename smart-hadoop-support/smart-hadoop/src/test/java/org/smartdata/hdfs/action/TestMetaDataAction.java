@@ -87,7 +87,7 @@ public class TestMetaDataAction extends MiniClusterHarness {
 
   private void runAction(Map<String, String> args) throws UnsupportedEncodingException {
     MetaDataAction metaFileAction = new MetaDataAction();
-    metaFileAction.setDfsClient(dfsClient);
+    metaFileAction.setLocalFileSystem(dfs);
     metaFileAction.setContext(smartContext);
 
     metaFileAction.init(args);

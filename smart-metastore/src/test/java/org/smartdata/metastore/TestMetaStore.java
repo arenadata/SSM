@@ -173,7 +173,7 @@ public class TestMetaStore extends TestDaoBase {
             group,
             storagePolicy,
             erasureCodingPolicy);
-    metaStore.insertFile(fileInfo);
+    metaStore.insertFile(fileInfo, false);
     FileInfo dbFileInfo = metaStore.getFile(56);
     Assert.assertEquals(fileInfo, dbFileInfo);
     dbFileInfo = metaStore.getFile("/tmp/des");
@@ -331,7 +331,7 @@ public class TestMetaStore extends TestDaoBase {
             storagePolicy,
             erasureCodingPolicy)
     };
-    metaStore.insertFiles(files);
+    metaStore.insertFiles(files, false);
     FileInfo dbFileInfo = metaStore.getFile("/tmp/testFile");
     Assert.assertEquals(files[0], dbFileInfo);
   }

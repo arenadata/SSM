@@ -76,8 +76,8 @@ public class TestSmartAgent extends ActorSystemHarness {
 
     @Override
     public void run() {
-      SmartAgent agent = new SmartAgent();
-      agent.start(config, masters, new SmartConf());
+      SmartAgent agent = new SmartAgent(new SmartConf(), config, masters);
+      agent.start();
     }
   }
 
@@ -87,6 +87,10 @@ public class TestSmartAgent extends ActorSystemHarness {
    * waiting for actor system to shut down.
    */
   static class NoExitSecurityManager extends SecurityManager {
+    @Override
+    public void checkPermission(Permission perm, Object context) {
+    }
+
     @Override
     public void checkPermission(Permission perm) {
     }

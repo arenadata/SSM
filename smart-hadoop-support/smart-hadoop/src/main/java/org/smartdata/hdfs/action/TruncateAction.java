@@ -17,18 +17,12 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.hdfs.CompatibilityHelperLoader;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * action to truncate file
@@ -36,61 +30,41 @@ import java.util.Map;
 @ActionSignature(
     actionId = "truncate",
     displayName = "truncate",
-    usage = HdfsAction.FILE_PATH + " $src " + TruncateAction.LENGTH + " $length"
+    usage = HdfsAction.FILE_PATH + " $src "
+        + TruncateAction.LENGTH + " $length"
 )
-public class TruncateAction extends HdfsAction {
-  private static final Logger LOG = LoggerFactory.getLogger(TruncateAction.class);
+public class TruncateAction extends HdfsActionWithRemoteClusterSupport {
   public static final String LENGTH = "-length";
 
-  private String srcPath;
+  private Path srcPath;
   private long length;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    srcPath = args.get(FILE_PATH);
 
-    this.length = -1;
+    this.srcPath = getPathArg(FILE_PATH);
+    this.length = Optional.ofNullable(args.get(LENGTH))
+        .map(Long::parseLong)
+        .orElse(-1L);
+  }
 
-    if (args.containsKey(LENGTH)) {
-      this.length = Long.parseLong(args.get(LENGTH));
+  @Override
+  protected void preExecute() {
+    validateNonEmptyArgs(FILE_PATH, LENGTH);
+
+    if (length < 0) {
+      throw new IllegalArgumentException("Length should be non negative number");
     }
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (srcPath == null) {
-      throw new IllegalArgumentException("File src is missing.");
+  protected void execute(FileSystem fileSystem) throws Exception {
+    long oldLength = fileSystem.getFileStatus(srcPath).getLen();
+
+    if (length > oldLength) {
+      throw new IllegalArgumentException("Length is illegal");
     }
-
-    if (length == -1) {
-      throw new IllegalArgumentException("Length is missing");
-    }
-
-    truncateClusterFile(srcPath, length);
-  }
-
-  private boolean truncateClusterFile(String srcFile, long length) throws IOException {
-    if (srcFile.startsWith("hdfs")) {
-      // TODO read conf from files
-      Configuration conf = new Configuration();
-      DistributedFileSystem fs = new DistributedFileSystem();
-      fs.initialize(URI.create(srcFile), conf);
-
-      //check the length
-      long oldLength = fs.getFileStatus(new Path(srcFile)).getLen();
-
-      if (length > oldLength) {
-        throw new IllegalArgumentException("Length is illegal");
-      }
-      return fs.truncate(new Path(srcPath), length);
-    } else {
-      long oldLength = dfsClient.getFileInfo(srcFile).getLen();
-
-      if (length > oldLength) {
-        throw new IllegalArgumentException("Length is illegal");
-      }
-      return dfsClient.truncate(srcFile, length);
-    }
+    fileSystem.truncate(srcPath, length);
   }
 }

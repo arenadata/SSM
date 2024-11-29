@@ -21,6 +21,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.ipc.RemoteException;
@@ -44,6 +45,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.smartdata.utils.PathUtil.getRawPath;
 
 /**
  * Contain utils related to hadoop cluster.
@@ -95,7 +99,7 @@ public class HadoopUtil {
    * @param hadoopConfPath directory that hadoop config files located.
    */
   public static void loadHadoopConf(String hadoopConfPath, Configuration conf)
-          throws IOException {
+      throws IOException {
     HdfsConfiguration hadoopConf = getHadoopConf(hadoopConfPath);
     if (hadoopConf != null) {
       for (Map.Entry<String, String> entry : hadoopConf) {
@@ -141,7 +145,7 @@ public class HadoopUtil {
         URI nnUri = HadoopUtil.getNameNodeUri(conf);
         if (nnUri != null) {
           conf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
-                  nnUri.toString());
+              nnUri.toString());
         }
       }
     } catch (IOException ex) {
@@ -155,7 +159,7 @@ public class HadoopUtil {
    * @param hadoopConfPath directory that hadoop config files located.
    */
   public static HdfsConfiguration getHadoopConf(String hadoopConfPath)
-          throws IOException {
+      throws IOException {
     if (hadoopConfPath == null || hadoopConfPath.isEmpty()) {
       LOG.warn("Hadoop configuration path is not set");
       return null;
@@ -221,7 +225,7 @@ public class HadoopUtil {
       throws IOException {
     String nnRpcAddr = null;
 
-    String[] rpcAddrKeys = {        
+    String[] rpcAddrKeys = {
         SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
         DFSConfigKeys.DFS_NAMENODE_RPC_ADDRESS_KEY,
         DFSConfigKeys.DFS_NAMENODE_SERVICE_RPC_ADDRESS_KEY,
@@ -257,81 +261,51 @@ public class HadoopUtil {
   }
 
   public static FileInfo convertFileStatus(HdfsFileStatus status, String path) {
-    return FileInfo.newBuilder()
-      .setPath(path)
-      .setFileId(status.getFileId())
-      .setLength(status.getLen())
-      .setIsdir(status.isDir())
-      .setBlockReplication(status.getReplication())
-      .setBlocksize(status.getBlockSize())
-      .setModificationTime(status.getModificationTime())
-      .setAccessTime(status.getAccessTime())
-      .setPermission(status.getPermission().toShort())
-      .setOwner(status.getOwner())
-      .setGroup(status.getGroup())
-      .setStoragePolicy(status.getStoragePolicy())
-      .setErasureCodingPolicy(CompatibilityHelperLoader.getHelper().getErasureCodingPolicy(status))
-      .build();
+    return FileInfo.builder()
+        .setPath(path)
+        .setFileId(status.getFileId())
+        .setLength(status.getLen())
+        .setIsDir(status.isDir())
+        .setBlockReplication(status.getReplication())
+        .setBlockSize(status.getBlockSize())
+        .setModificationTime(status.getModificationTime())
+        .setAccessTime(status.getAccessTime())
+        .setPermission(status.getPermission().toShort())
+        .setOwner(status.getOwner())
+        .setGroup(status.getGroup())
+        .setStoragePolicy(status.getStoragePolicy())
+        .setErasureCodingPolicy(CompatibilityHelperLoader.getHelper().getErasureCodingPolicy(status))
+        .build();
+  }
+
+  public static <T> T doAsCurrentUser(PrivilegedExceptionAction<T> action) throws IOException {
+    try {
+      return UserGroupInformation.getCurrentUser().doAs(action);
+    } catch (InterruptedException e) {
+      throw new IOException("Privileged action interrupted", e);
+    }
   }
 
   public static DFSClient getDFSClient(final URI nnUri, final Configuration conf)
-    throws IOException{
-    try {
-      return UserGroupInformation.getCurrentUser()
-          .doAs(new PrivilegedExceptionAction<DFSClient>() {
-        @Override
-        public DFSClient run() throws Exception {
-          return new DFSClient(nnUri, conf);
-        }
-      });
-    } catch (InterruptedException e) {
-      LOG.error("Fail to new DFSClient for : " + e.getMessage());
-      throw new IOException("Fail to new DFSClient for : " + e.getMessage());
-    }
+      throws IOException {
+    return doAsCurrentUser(() -> new DFSClient(nnUri, conf));
   }
 
-  public static String translateStoragePoliceId2Name(int id) {
-    switch (id){
-      case 15:
-        return "Lazy_Persist";
-      case 12:
-        return "All_SSD";
-      case 10:
-        return "One_SSD";
-      case 7:
-        return "Hot";
-      case 5:
-        return "Warm";
-      case 2:
-        return "Cold";
-    }
-    return "";
-  }
-
-  public static byte translateStoragePoliceName2Id(String name) {
-    switch (name){
-      case "Lazy_Persist":
-        return 15;
-      case "All_SSD":
-        return 12;
-      case "One_SSD":
-        return 10;
-      case "Hot":
-        return 7;
-      case "Warm":
-        return 5;
-      case "Cold":
-        return 2;
-    }
-    return 0;
+  public static DistributedFileSystem getDistributedFileSystem(
+      final URI nnUri, final Configuration conf) throws IOException {
+    return doAsCurrentUser(() -> {
+      DistributedFileSystem fileSystem = new DistributedFileSystem();
+      fileSystem.initialize(nnUri, conf);
+      return fileSystem;
+    });
   }
 
   /**
    * Return FileState, like SmartDFSClient#getFileState().
    * @param   dfsClient
    * @param   filePath
-   * @return  a FileState
-   * @throws  IOException
+   * @return a FileState
+   * @throws IOException
    */
   public static FileState getFileState(DFSClient dfsClient, String filePath)
       throws IOException {
@@ -345,5 +319,21 @@ public class HadoopUtil {
       return new NormalFileState(filePath);
     }
     return new NormalFileState(filePath);
+  }
+
+  public static FileState getFileState(
+      DistributedFileSystem fileSystem,
+      org.apache.hadoop.fs.Path filePath)
+      throws IOException {
+    try {
+      byte[] fileState = fileSystem.getXAttr(
+          filePath, SmartConstants.SMART_FILE_STATE_XATTR_NAME);
+      return Optional.ofNullable(fileState)
+          .map(SerializationUtils::deserialize)
+          .map(FileState.class::cast)
+          .orElseGet(() -> new NormalFileState(getRawPath(filePath)));
+    } catch (RemoteException e) {
+      return new NormalFileState(getRawPath(filePath));
+    }
   }
 }

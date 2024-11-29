@@ -55,7 +55,7 @@ public class TestDistCpAction extends MiniClusterHarness {
 
   public DistCpAction createAction(Map<String, String> args) {
     DistCpAction distCpAction = new DistCpAction();
-    distCpAction.setDfsClient(dfsClient);
+    distCpAction.setLocalFileSystem(dfs);
     distCpAction.setContext(smartContext);
     distCpAction.init(args);
     return distCpAction;

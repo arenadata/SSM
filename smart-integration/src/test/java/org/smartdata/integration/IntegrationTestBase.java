@@ -112,7 +112,7 @@ public class IntegrationTestBase {
     );
   }
 
-  protected static String resourceAbsolutePath(String relativePath) {
+  public static String resourceAbsolutePath(String relativePath) {
     return Optional.ofNullable(
             IntegrationTestBase.class.getClassLoader().getResource(relativePath))
         .map(URL::getPath)

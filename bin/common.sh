@@ -16,9 +16,12 @@
 # limitations under the License.
 #
 
-export SMART_SERVER_LOG_FILE_NAME=smartserver-master-$(hostname)-$(whoami).log
-export SMART_STANDBY_LOG_FILE_NAME=smartserver-standby-$(hostname)-$(whoami).log
-export SMART_AGENT_LOG_FILE_NAME=smartagent-$(hostname)-$(whoami).log
+export SMART_SERVER_LOG_FILE_NAME=smartserver-master-$(hostname)-$(whoami)
+export SMART_STANDBY_LOG_FILE_NAME=smartserver-standby-$(hostname)-$(whoami)
+export SMART_AGENT_LOG_FILE_NAME=smartagent-$(hostname)-$(whoami)
+export LOG_FILE_EXTENSION=.log
+export STDOUT_FILE_EXTENSION=.out
+export STDERR_FILE_EXTENSION=.err
 export SMART_LOG_FILE_NAME=${SMART_SERVER_LOG_FILE_NAME}
 
 if [ -L ${BASH_SOURCE-$0} ]; then
@@ -40,7 +43,6 @@ fi
 if [[ -z "${SMART_LOG_DIR}" ]]; then
   export SMART_LOG_DIR="/var/log/ssm"
 fi
-export SMART_LOG_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}
 
 if [[ -z "$SMART_PID_DIR" ]]; then
   export SMART_PID_DIR="${SMART_HOME}/run"
@@ -137,7 +139,6 @@ fi
 
 # JAVA_OPTS+=" ${SMART_JAVA_OPTS} -Dfile.encoding=${SMART_ENCODING} ${SMART_MEM}"
 # JAVA_OPTS+=" -Dlog4j.configuration=file://${SMART_CONF_DIR}/log4j.properties"
-JAVA_OPTS+=" -Dlog4j2.configurationFile=file://${SMART_CONF_DIR}/log4j.properties"
 export JAVA_OPTS
 
 JAVA_INTP_OPTS="${SMART_INTP_JAVA_OPTS} -Dfile.encoding=${SMART_ENCODING}"
@@ -195,7 +196,9 @@ function smart_start_daemon() {
     rm -f "${pidfile}" >/dev/null 2>&1
   fi
 
-  start_daemon "${pidfile}" >>${SMART_LOG_FILE} 2>&1 < /dev/null &
+  SMART_OUT_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}${STDOUT_FILE_EXTENSION}
+  SMART_ERR_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}${STDERR_FILE_EXTENSION}
+  start_daemon "${pidfile}" >>${SMART_OUT_FILE} 2>>${SMART_ERR_FILE} < /dev/null &
   daemon_pid=$!
 
   (( counter=0 ))
@@ -296,10 +299,11 @@ function init_command() {
       SMART_CLASSNAME=org.smartdata.server.SmartDaemon
       SMART_PID_FILE=/tmp/SmartServer.pid
       ALLOW_DAEMON_OPT=true
+      export SMART_LOG_FILE_NAME=${SMART_SERVER_LOG_FILE_NAME}
       if [ $SSM_DEBUG_ENABLED == "true" ]; then
         JAVA_OPTS+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=8008,server=y,suspend=y"
       fi
-      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}
+      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}${LOG_FILE_EXTENSION}
       JAVA_OPTS+=" ${SSM_JAVA_OPT} ${SSM_SERVER_JAVA_OPT}"
       SMART_VARGS+=" -D smart.agent.master.address="${SSM_EXEC_HOST}
       reorder_lib
@@ -309,11 +313,10 @@ function init_command() {
       SMART_PID_FILE=/tmp/SmartAgent.pid
       ALLOW_DAEMON_OPT=true
       export SMART_LOG_FILE_NAME=${SMART_AGENT_LOG_FILE_NAME}
-      export SMART_LOG_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}
       if [ $SSM_DEBUG_ENABLED == "true" ]; then
        JAVA_OPTS+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=8008,server=y,suspend=y"
       fi
-      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}
+      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}${LOG_FILE_EXTENSION}
       JAVA_OPTS+=" ${SSM_JAVA_OPT} ${SSM_AGENT_JAVA_OPT}"
       SMART_VARGS+=" -D smart.agent.address="${SSM_EXEC_HOST}
     ;;
@@ -322,11 +325,10 @@ function init_command() {
       SMART_PID_FILE=/tmp/SmartServer.pid
       ALLOW_DAEMON_OPT=true
       export SMART_LOG_FILE_NAME=${SMART_STANDBY_LOG_FILE_NAME}
-      export SMART_LOG_FILE=${SMART_LOG_DIR}/${SMART_LOG_FILE_NAME}
       if [ $SSM_DEBUG_ENABLED == "true" ]; then
         JAVA_OPTS+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=8008,server=y,suspend=y"
       fi
-      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}
+      JAVA_OPTS+=" -Dsmart.log.file="${SMART_LOG_FILE_NAME}${LOG_FILE_EXTENSION}
       JAVA_OPTS+=" ${SSM_JAVA_OPT} ${SSM_SERVER_JAVA_OPT}"
       SMART_VARGS+=" -D smart.agent.master.address="${SSM_EXEC_HOST}
       reorder_lib

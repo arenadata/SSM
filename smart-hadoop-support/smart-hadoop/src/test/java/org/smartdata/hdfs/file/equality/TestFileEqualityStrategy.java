@@ -111,7 +111,7 @@ public class TestFileEqualityStrategy extends MultiClusterHarness {
 
   private boolean checkFilesEquality(Path srcPath, Path destPath) throws IOException {
     FileStatus srcFileStatus = dfs.getFileStatus(srcPath);
-    FileInfo srcFileInfo = FileInfo.newBuilder()
+    FileInfo srcFileInfo = FileInfo.builder()
         .setPath(srcPath.toUri().getPath())
         .setLength(srcFileStatus.getLen())
         .build();

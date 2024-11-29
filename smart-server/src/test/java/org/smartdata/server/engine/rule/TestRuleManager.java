@@ -300,7 +300,7 @@ public class TestRuleManager extends TestDaoBase {
     FileInfo[] files = {new FileInfo("/tmp/testfile", fid, length, false, (short) 3,
         1024, now, now, (short) 1, null, null, (byte) 3, (byte) 0)};
 
-    metaStore.insertFiles(files);
+    metaStore.insertFiles(files, false);
     long rid = ruleManager.submitRule(rule, RuleState.ACTIVE);
 
     long start = System.currentTimeMillis();

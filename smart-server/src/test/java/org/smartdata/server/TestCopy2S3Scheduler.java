@@ -22,15 +22,106 @@ import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.junit.Assert;
 import org.junit.Test;
+import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
+import org.smartdata.model.FileInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.S3FileState;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+
 public class TestCopy2S3Scheduler extends MiniSmartClusterHarness {
+
+  @Test
+  public void testThrowIfNoArgsProvided() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3"));
+
+    assertEquals("Required argument not found: -file", exception.getMessage());
+  }
+
+  @Test
+  public void testThrowIfNoFileArgProvided() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3 -key val"));
+
+    assertEquals("Required argument not found: -file", exception.getMessage());
+  }
+
+  @Test
+  public void testThrowIfSrcFileNotFound() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3 -file /test.bin"));
+
+    assertEquals("The source file /test.bin not found", exception.getMessage());
+  }
+
+  @Test
+  public void testThrowIfSrcFileIsEmpty() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ssm.getMetaStore().insertFile(FileInfo.builder()
+        .setPath("/empty.file")
+        .setLength(0L)
+        .build(), true);
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3 -file /empty.file"));
+
+    assertEquals("The source file /empty.file length is 0", exception.getMessage());
+  }
+
+  @Test
+  public void testThrowIfSrcFileIsAlreadyCopied() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ssm.getMetaStore().insertFile(FileInfo.builder()
+        .setPath("/test.file")
+        .setLength(10L)
+        .build(), true);
+
+    ssm.getMetaStore().insertUpdateFileState(new S3FileState("/test.file"));
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3 -file /test.file"));
+
+    assertEquals("The source file /test.file is already copied", exception.getMessage());
+  }
+
+  @Test
+  public void testThrowIfSrcFileIsLocked() throws Exception {
+    waitTillSSMExitSafeMode();
+
+    ssm.getMetaStore().insertFile(FileInfo.builder()
+        .setPath("/test.file")
+        .setLength(10L)
+        .build(), true);
+
+    ssm.getCmdletManager()
+        .submitCmdlet("sleep -ms 10000; copy2s3 -file /test.file");
+
+    ActionRejectedException exception = assertThrows(
+        ActionRejectedException.class,
+        () -> ssm.getCmdletManager().submitCmdlet("copy2s3 -file /test.file"));
+
+    assertEquals("The source file /test.file is locked", exception.getMessage());
+  }
 
   @Test(timeout = 45000)
   public void testDir() throws Exception {

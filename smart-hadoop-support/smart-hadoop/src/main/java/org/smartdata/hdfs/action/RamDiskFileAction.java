@@ -23,9 +23,9 @@ import org.smartdata.action.annotation.ActionSignature;
  * An action to do ram-disk for a file.
  */
 @ActionSignature(
-  actionId = "ramdisk",
-  displayName = "ramdisk",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "ramdisk",
+    displayName = "ramdisk",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class RamDiskFileAction extends MoveFileAction {
 

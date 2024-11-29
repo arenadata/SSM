@@ -1,0 +1,68 @@
+$syntaxLiteral: #ff7f00;
+$syntaxId: #00e2ff;
+$syntaxSymbols: #ffffff;
+$syntaxMatches: #00ff00;
+$syntaxString: #ff00bb;
+$syntaxError: #ff0000;
+$syntaxTimeKeyword: #5858dd;
+$syntaxTimeintvalconst: #b3ff00;
+
+
+:export {
+  syntaxLiteral: $syntaxLiteral;
+  syntaxId: $syntaxId;
+  syntaxSymbols: $syntaxSymbols;
+  syntaxMatches: $syntaxMatches;
+  syntaxString: $syntaxString;
+  syntaxError: $syntaxError;
+
+  syntaxEvery: $syntaxTimeKeyword;
+  syntaxAt: $syntaxTimeKeyword;
+  syntaxFrom: $syntaxTimeKeyword;
+  syntaxTo: $syntaxTimeKeyword;
+  syntaxNow: $syntaxTimeKeyword;
+
+  syntaxTimeintvalconst: $syntaxTimeintvalconst;
+  syntaxLong: $syntaxTimeintvalconst;
+}
+
+.smartRuleHighlighter {
+  font-family: monospace;
+
+  .token {
+    display: inline;
+  }
+
+  &>.objecttype\.ssmrule {
+    color: $syntaxLiteral;
+  }
+
+  &>.id\.ssmrule {
+    color: $syntaxId;
+  }
+
+  &>.matches\.ssmrule {
+    color: $syntaxMatches;
+  }
+
+  &>.string\.ssmrule {
+    color: $syntaxString;
+    font-style: italic;
+  }
+
+  &>.symbols\.ssmrule, &>.or\.ssmrule, &>.and\.ssmrule {
+    color: $syntaxSymbols;
+  }
+
+  &>:is(.unrecognized\.ssmrule, .error\.ssmrule) {
+    color: $syntaxError;
+  }
+
+  &>:is(.every\.ssmrule, .at\.ssmrule, .from\.ssmrule, .to\.ssmrule, .now\.ssmrule) {
+    color: $syntaxTimeKeyword;
+  }
+
+  &>:is(.timeintvalconst\.ssmrule, .long\.ssmrule) {
+    color: $syntaxTimeintvalconst;
+  }
+}

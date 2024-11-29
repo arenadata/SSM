@@ -28,12 +28,20 @@ public class AuditApiWrapper {
   private final AuditApi apiClient;
 
   public AuditApiWrapper() {
-    this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).audit();
+    this(ApiClient.Config.apiConfig());
+  }
+
+  public AuditApiWrapper(ApiClient.Config config) {
+    this.apiClient = ApiClient.api(config).audit();
   }
 
   public AuditEventsDto getAuditEvents() {
     return apiClient.getAuditEvents()
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .executeAs(Response::andReturn);
+  }
+
+  public AuditApi rawClient() {
+    return apiClient;
   }
 }

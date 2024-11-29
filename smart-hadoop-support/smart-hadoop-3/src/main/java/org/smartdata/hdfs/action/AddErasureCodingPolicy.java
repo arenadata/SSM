@@ -44,7 +44,7 @@ public class AddErasureCodingPolicy extends HdfsAction {
   public static final String DATA_UNITS_NUM = "-dataNum";
   public static final String PARITY_UNITS_NUM = "-parityNum";
   public static final String CELL_SIZE = "-cellSize";
-  private String policyName;
+
   private String codecName;
   private int numDataUnits;
   private int numParityUnits;
@@ -54,7 +54,7 @@ public class AddErasureCodingPolicy extends HdfsAction {
   public void init(Map<String, String> args) {
     super.init(args);
     if (args.get(POLICY_NAME) != null && !args.get(POLICY_NAME).isEmpty()) {
-      this.policyName = args.get(POLICY_NAME);
+      String policyName = args.get(POLICY_NAME);
       String[] policySchema = policyName.split("-");
       if (policySchema.length != 4) {
         return;
@@ -81,6 +81,27 @@ public class AddErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
+    validateArgs();
+
+    ECSchema ecSchema = new ECSchema(codecName, numDataUnits, numParityUnits);
+    ErasureCodingPolicy ecPolicy = new ErasureCodingPolicy(ecSchema, cellSize);
+    AddErasureCodingPolicyResponse addEcResponse =
+        localFileSystem.addErasureCodingPolicies(new ErasureCodingPolicy[]{ecPolicy})[0];
+
+    if (!addEcResponse.isSucceed()) {
+      appendLog("Failed to add the given EC policy!");
+      throw new ActionException(addEcResponse.getErrorMsg());
+    } else {
+      appendLog("EC policy is added successfully: " + addEcResponse.getPolicy().getName());
+    }
+  }
+
+  @Override
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
+  }
+
+  private void validateArgs() throws ActionException {
     if (codecName == null || numDataUnits <= 0 || numParityUnits <= 0 ||
         cellSize <= 0 || cellSize % 1024 != 0) {
       throw new ActionException("Illegal EC policy Schema! " +
@@ -88,21 +109,5 @@ public class AddErasureCodingPolicy extends HdfsAction {
           "the dataNum, parityNum and cellSize should be positive and " +
           "the cellSize should be divisible by 1024.");
     }
-    ECSchema ecSchema = new ECSchema(codecName, numDataUnits, numParityUnits);
-    ErasureCodingPolicy ecPolicy = new ErasureCodingPolicy(ecSchema, cellSize);
-    AddErasureCodingPolicyResponse addEcResponse =
-        dfsClient.addErasureCodingPolicies(new ErasureCodingPolicy[]{ecPolicy})[0];
-    if (addEcResponse.isSucceed()) {
-      appendLog(String.format("EC policy named %s is added successfully!",
-          addEcResponse.getPolicy().getName()));
-    } else {
-      appendLog(String.format("Failed to add the given EC policy!"));
-      throw new ActionException(addEcResponse.getErrorMsg());
-    }
-  }
-
-  @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
   }
 }

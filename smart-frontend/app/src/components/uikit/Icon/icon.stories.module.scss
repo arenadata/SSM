@@ -1,0 +1,29 @@
+.iconsContainer {
+  padding: 20px 20px;
+}
+
+.iconsWrapper {
+  display: grid;
+  grid-template-columns: repeat(12, 34px);
+  gap: 18px 30px;
+  margin-top: 40px;
+}
+
+.iconWrapper {
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+
+  & > div {
+    margin-top: 8px;
+    font-weight: bold;
+    visibility: hidden;
+    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+  }
+
+  &:hover > div {
+    visibility: visible;
+  }
+}

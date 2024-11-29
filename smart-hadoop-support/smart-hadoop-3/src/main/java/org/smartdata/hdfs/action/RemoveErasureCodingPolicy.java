@@ -41,12 +41,12 @@ public class RemoveErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    dfsClient.removeErasureCodingPolicy(policyName);
-    appendLog(String.format("The EC policy named %s is removed!", policyName));
+    localFileSystem.removeErasureCodingPolicy(policyName);
+    appendLog("The EC policy named is removed: " + policyName);
   }
 
   @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

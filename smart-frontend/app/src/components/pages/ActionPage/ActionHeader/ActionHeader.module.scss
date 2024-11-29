@@ -1,0 +1,30 @@
+:global {
+  body.theme-dark {
+    --action-header-action-text-color: var(--color-JSONblue);
+  }
+
+  body.theme-light {
+    --action-header-action-text-color: var(--color-ADPG-btnDark);
+  }
+}
+
+
+.actionHeader {
+  margin-bottom: var(--size-section-margin);
+
+  &__titleWrapper {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    gap: 8px;
+
+    & > * { max-width: fit-content; }
+  }
+
+  &__text {
+    margin-top: var(--size-section-margin);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--action-header-action-text-color);
+  }
+}

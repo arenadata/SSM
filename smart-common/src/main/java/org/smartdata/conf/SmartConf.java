@@ -26,6 +26,7 @@ import org.smartdata.utils.ConfigUtil;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -104,6 +105,13 @@ public class SmartConf extends Configuration {
     return Optional.ofNullable(get(key))
         .filter(StringUtils::isNotBlank)
         .orElseThrow(() -> new IllegalArgumentException(errorText));
+  }
+
+  public Collection<String> getStringCollection(String name, Collection<String> defaultValue) {
+    Collection<String> stringCollection = super.getStringCollection(name);
+    return stringCollection.isEmpty()
+        ? defaultValue
+        : stringCollection;
   }
 
   public Map<String, String> asMap() {

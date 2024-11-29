@@ -17,6 +17,8 @@
  */
 package org.smartdata.conf;
 
+import org.smartdata.metrics.impl.SmartServerAccessEventSource;
+
 /**
  * This class contains the configure keys needed by SSM.
  */
@@ -54,6 +56,8 @@ public class SmartConfKeys {
 
     public static final String SMART_REST_SERVER_PORT_KEY = "smart.rest.server.port";
     public static final int SMART_REST_SERVER_PORT_KEY_DEFAULT = 8081;
+    public static final String SMART_AGENT_HTTP_SERVER_PORT_KEY = "smart.agent.http.server.port";
+    public static final int SMART_AGENT_HTTP_SERVER_PORT_DEFAULT = 8081;
     public static final String SMART_SECURITY_ENABLE = "smart.security.enable";
     public static final String SMART_SERVER_KEYTAB_FILE_KEY = "smart.server.keytab.file";
     public static final String SMART_SERVER_KERBEROS_PRINCIPAL_KEY =
@@ -110,10 +114,6 @@ public class SmartConfKeys {
             "smart.dispatch.cmdlets.extra.num";
     public static final int SMART_DISPATCH_CMDLETS_EXTRA_NUM_DEFAULT = 10;
 
-    public static final String SMART_SYNC_SCHEDULE_STRATEGY_KEY = "smart.sync.schedule.strategy";
-    public static final String SMART_SYNC_SCHEDULE_STRATEGY_DEFAULT = "UNORDERED";
-
-
     public static final String SMART_SYNC_FILE_EQUALITY_STRATEGY =
             "smart.sync.file.equality.strategy";
     public static final String SMART_SYNC_FILE_EQUALITY_STRATEGY_DEFAULT = "CHECKSUM";
@@ -139,14 +139,36 @@ public class SmartConfKeys {
     public static final int SMART_CMDLET_MOVER_MAX_CONCURRENT_BLOCKS_PER_SRV_INST_DEFAULT = 0;
 
     // Schedulers
-    public static final String SMART_COPY_SCHEDULER_BASE_SYNC_BATCH =
+    public static final String SMART_COPY_SCHEDULER_BASE_SYNC_BATCH_KEY =
             "smart.copy.scheduler.base.sync.batch";
     public static final int SMART_COPY_SCHEDULER_BASE_SYNC_BATCH_DEFAULT =
             500;
-    public static final String SMART_COPY_SCHEDULER_CHECK_INTERVAL =
-            "smart.copy.scheduler.check.interval";
+    public static final String SMART_COPY_SCHEDULER_CHECK_INTERVAL_KEY =
+            "smart.copy.scheduler.check.interval.ms";
     public static final int SMART_COPY_SCHEDULER_CHECK_INTERVAL_DEFAULT =
             500;
+    public static final String SMART_COPY_SCHEDULER_FILE_DIFF_ARCHIVE_SIZE_KEY =
+        "smart.copy.scheduler.diff.archive.size";
+    public static final int SMART_COPY_SCHEDULER_FILE_DIFF_ARCHIVE_SIZE_DEFAULT =
+        1000;
+    public static final String SMART_COPY_SCHEDULER_APPEND_CHAIN_MERGE_SIZE_KEY =
+        "smart.copy.scheduler.diff.chain.append.merge.threshold.size";
+    public static final long SMART_COPY_SCHEDULER_APPEND_CHAIN_MERGE_SIZE_DEFAULT =
+        // default block size in bytes x 3
+        134217728L * 3;
+    public static final String SMART_COPY_SCHEDULER_APPEND_CHAIN_MERGE_COUNT_KEY =
+        "smart.copy.scheduler.diff.chain.append.merge.threshold.count";
+    public static final long SMART_COPY_SCHEDULER_APPEND_CHAIN_MERGE_COUNT_DEFAULT =
+        10;
+    public static final String SMART_COPY_SCHEDULER_ACTION_RETRY_COUNT_KEY =
+        "smart.copy.scheduler.retry.count";
+    public static final int SMART_COPY_SCHEDULER_ACTION_RETRY_COUNT_DEFAULT =
+        3;
+    public static final String SMART_COPY_SCHEDULER_DIFF_CACHE_SYNC_THRESHOLD_KEY =
+        "smart.copy.scheduler.diff.cache.sync.threshold";
+    public static final int SMART_COPY_SCHEDULER_DIFF_CACHE_SYNC_THRESHOLD_DEFAULT =
+        500;
+
     public static final String SMART_FILE_DIFF_MAX_NUM_RECORDS_KEY =
             "smart.file.diff.max.num.records";
     public static final int SMART_FILE_DIFF_MAX_NUM_RECORDS_DEFAULT =
@@ -263,4 +285,29 @@ public class SmartConfKeys {
     public static final String SMART_ACTION_CLIENT_CACHE_TTL_KEY =
         "smart.action.client.cache.ttl";
     public static final String SMART_ACTION_CLIENT_CACHE_TTL_DEFAULT = "10m";
+
+    public static final String ACCESS_EVENT_SOURCE_KEY = "smart.data.file.event.source";
+    public static final String ACCESS_EVENT_SOURCE_DEFAULT =
+        SmartServerAccessEventSource.class.getName();
+
+    // Metrics
+    public static final String SMART_METRICS_ENABLED_KEY =
+        "smart.metrics.enabled";
+    public static final boolean SMART_METRICS_ENABLED_DEFAULT = true;
+
+    public static final String SMART_METRICS_JMX_ENABLED_KEY =
+        "smart.metrics.jmx.enabled";
+    public static final boolean SMART_METRICS_JMX_ENABLED_DEFAULT = true;
+
+    public static final String SMART_METRICS_JMX_DOMAIN_KEY =
+        "smart.metrics.jmx.domain";
+    public static final String SMART_METRICS_JMX_DOMAIN_DEFAULT = "metrics";
+
+    public static final String SMART_METRICS_PROMETHEUS_ENABLED_KEY =
+        "smart.metrics.prometheus.enabled";
+    public static final boolean SMART_METRICS_PROMETHEUS_ENABLED_DEFAULT = true;
+
+    public static final String SMART_METRICS_DB_QUERIES_ENABLED_KEY =
+        "smart.metrics.db.queries.enabled";
+    public static final boolean SMART_METRICS_DB_QUERIES_ENABLED_DEFAULT = false;
 }

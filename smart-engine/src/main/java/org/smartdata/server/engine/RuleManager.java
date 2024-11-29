@@ -64,8 +64,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.smartdata.conf.SmartConfKeys.SMART_SYNC_SCHEDULE_STRATEGY_DEFAULT;
-import static org.smartdata.conf.SmartConfKeys.SMART_SYNC_SCHEDULE_STRATEGY_KEY;
 import static org.smartdata.model.WhitelistHelper.validatePathsCovered;
 import static org.smartdata.model.audit.UserActivityObject.RULE;
 import static org.smartdata.model.audit.UserActivityOperation.CREATE;
@@ -125,13 +123,8 @@ public class RuleManager
     this.ruleInfoHandler = new RuleInfoHandler(ruleDao);
     this.pathChecker = new PathChecker(context.getConf());
 
-    FileCopyScheduleStrategy copyScheduleStrategy = FileCopyScheduleStrategy.of(
-        context.getConf().get(
-            SMART_SYNC_SCHEDULE_STRATEGY_KEY,
-            SMART_SYNC_SCHEDULE_STRATEGY_DEFAULT));
-
     RuleExecutorPluginManager.addPlugin(new FileCopyDrPlugin(
-        context.getMetaStore(), copyScheduleStrategy));
+        context.getMetaStore(), FileCopyScheduleStrategy.ordered()));
     RuleExecutorPluginManager.addPlugin(new FileCopy2S3Plugin());
     RuleExecutorPluginManager.addPlugin(new SmallFilePlugin(context, cmdletManager));
     RuleExecutorPluginManager.addPlugin(new ErasureCodingPlugin(context));

@@ -19,6 +19,7 @@ import { useDebounce, useDispatch, useRequestTimer, useStore } from '@hooks';
 import { useEffect } from 'react';
 import { cleanupActions, getActions, refreshActions } from '@store/adh/actions/actionsSlice';
 import { cleanupActionsTable, loadHosts } from '@store/adh/actions/actionsTableSlice';
+import { cleanupActions as cleanupActionDialogs } from '@store/adh/actionDialogs/actionsActionsSlice';
 import { defaultDebounceDelay } from '@constants';
 
 export const useRequestActions = () => {
@@ -34,6 +35,7 @@ export const useRequestActions = () => {
     return () => {
       dispatch(cleanupActions());
       dispatch(cleanupActionsTable());
+      dispatch(cleanupActionDialogs());
     };
   }, [dispatch]);
 

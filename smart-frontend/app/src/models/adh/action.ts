@@ -40,6 +40,10 @@ export interface AdhAction {
   log?: string;
 }
 
+export interface AdhActionDetails extends AdhAction {
+  result: string;
+}
+
 export interface AdhActionsFilter {
   textRepresentationLike?: string;
   submissionTime?: DateRange<SerializedDate>;

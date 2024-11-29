@@ -20,10 +20,10 @@ package org.smartdata.hdfs.action;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -33,62 +33,65 @@ import java.util.Random;
  * <p>Arguments: file_path length [buffer_size, default=64k]
  */
 @ActionSignature(
-  actionId = "write",
-  displayName = "write",
-  usage =
-      HdfsAction.FILE_PATH
-          + " $file "
-          + WriteFileAction.LENGTH
-          + " $length "
-          + WriteFileAction.BUF_SIZE
-          + " $size"
+    actionId = "write",
+    displayName = "write",
+    usage =
+        HdfsAction.FILE_PATH
+            + " $file "
+            + WriteFileAction.LENGTH
+            + " $length "
+            + WriteFileAction.BUF_SIZE
+            + " $size"
 )
-public class WriteFileAction extends HdfsAction {
+public class WriteFileAction extends HdfsActionWithRemoteClusterSupport {
   public static final String LENGTH = "-length";
   public static final String BUF_SIZE = "-bufSize";
-  private String filePath;
-  private long length = -1;
-  private int bufferSize = 64 * 1024;
+
+  public static final long DEFAULT_LENGTH = 1024;
+  public static final int DEFAULT_BUF_SIZE = 64 * 1024;
+
+  private Path filePath;
+  private long length;
+  private int bufferSize;
 
   @Override
   public void init(Map<String, String> args) {
-    withDefaultFs();
     super.init(args);
-    this.filePath = args.get(FILE_PATH);
-    if (args.containsKey(LENGTH)) {
-      length = Long.parseLong(args.get(LENGTH));
-    }
-    if (args.containsKey(BUF_SIZE)) {
-      this.bufferSize = Integer.parseInt(args.get(BUF_SIZE));
+    this.filePath = getPathArg(FILE_PATH);
+    this.length = Optional.ofNullable(args.get(LENGTH))
+        .map(Long::parseLong)
+        .orElse(DEFAULT_LENGTH);
+
+    this.bufferSize = Optional.ofNullable(args.get(BUF_SIZE))
+        .map(Integer::parseInt)
+        .orElse(DEFAULT_BUF_SIZE);
+  }
+
+  @Override
+  protected void preExecute() throws Exception {
+    validateNonEmptyArg(FILE_PATH);
+
+    if (length == -1) {
+      throw new IllegalArgumentException("Write Action provides wrong length! ");
     }
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (filePath == null) {
-      throw new IllegalArgumentException("File parameter is missing! ");
-    }
-    if (length == -1) {
-      throw new IllegalArgumentException("Write Action provides wrong length! ");
-    }
-    appendLog(
-        String.format(
-            "Action starts at %s : Write %s with length %s",
-            Utils.getFormatedCurrentTime(), filePath, length));
+  protected void execute(FileSystem fileSystem) throws Exception {
+    short replication = fileSystem.getServerDefaults(filePath).getReplication();
 
-    Path path = new Path(filePath);
-    FileSystem fileSystem = path.getFileSystem(getContext().getConf());
-    int replication = fileSystem.getServerDefaults(new Path(filePath)).getReplication();
-    final FSDataOutputStream out = fileSystem.create(path, true, replication);
-    // generate random data with given length
-    byte[] buffer = new byte[bufferSize];
-    new Random().nextBytes(buffer);
-    appendLog(String.format("Generate random data with length %d", length));
-    for (long pos = 0; pos < length; pos += bufferSize) {
-      long writeLength = pos + bufferSize < length ? bufferSize : length - pos;
-      out.write(buffer, 0, (int) writeLength);
+    try (FSDataOutputStream out = fileSystem.create(filePath, replication)) {
+      // generate random data with given length
+      byte[] buffer = new byte[bufferSize];
+      new Random().nextBytes(buffer);
+
+      appendLog("Generate random data with length: " + length);
+      for (long pos = 0; pos < length; pos += bufferSize) {
+        long writeLength = pos + bufferSize < length ? bufferSize : length - pos;
+        out.write(buffer, 0, (int) writeLength);
+      }
     }
-    out.close();
+
     appendLog("Write Successfully!");
   }
 }

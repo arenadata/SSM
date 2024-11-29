@@ -17,93 +17,76 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.fs.CacheFlag;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveInfo;
-import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.hdfs.scheduler.CacheScheduler;
 
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Optional;
 
 /**
  * Move to Cache Action
  */
 @ActionSignature(
-  actionId = "cache",
-  displayName = "cache",
-  usage = HdfsAction.FILE_PATH + " $file " + CacheFileAction.REPLICA + " $replica "
+    actionId = "cache",
+    displayName = "cache",
+    usage = HdfsAction.FILE_PATH + " $file "
+        + CacheFileAction.REPLICA + " $replica "
 )
 public class CacheFileAction extends HdfsAction {
   public static final String REPLICA = "-replica";
-  private String fileName;
-  private LinkedBlockingQueue<String> actionEvents;
-  private short replication = 0;
 
-  public CacheFileAction() {
-    super();
-    this.actionEvents = new LinkedBlockingQueue<>();
-  }
+  private Path filePath;
+  private short replication;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    fileName = args.get(FILE_PATH);
-    if (args.containsKey("-replica")) {
-      replication = (short) Integer.parseInt(args.get(REPLICA));
-    }
+
+    filePath = getPathArg(FILE_PATH);
+    replication = Optional.ofNullable(args.get(REPLICA))
+        .map(Short::parseShort)
+        .orElse((short) 0);
   }
 
   @Override
   protected void execute() throws Exception {
-    if (fileName == null) {
-      throw new IllegalArgumentException("File parameter is missing! ");
-    }
+    validateNonEmptyArg(FILE_PATH);
+
     // set cache replication as the replication number of the file if not set
     if (replication == 0) {
-      HdfsFileStatus fileStatus = dfsClient.getFileInfo(fileName);
-      replication = fileStatus.isDir() ? 1 : fileStatus.getReplication();
+      FileStatus fileStatus = localFileSystem.getFileStatus(filePath);
+      replication = fileStatus.isDirectory() ? 1 : fileStatus.getReplication();
     }
-    addActionEvent(fileName);
-    executeCacheAction(fileName);
+    executeCacheAction();
   }
 
-  public void addActionEvent(String fileName) throws Exception {
-    actionEvents.put(fileName);
+  boolean isFileCached() throws Exception {
+    CacheDirectiveInfo filter = new CacheDirectiveInfo.Builder()
+        .setPath(filePath)
+        .build();
+    return localFileSystem.listCacheDirectives(filter).hasNext();
   }
 
-  private void executeCacheAction(String fileName) throws Exception {
-    if (isCached(fileName)) {
+  private void executeCacheAction() throws Exception {
+    if (isFileCached()) {
       this.appendLog("The given file has already been cached, " +
           "so there is no need to execute this action.");
       return;
     }
-    this.appendLog(
-        String.format(
-            "Action starts at %s : cache -> %s", Utils.getFormatedCurrentTime(), fileName));
-    addDirective(fileName);
+
+    addDirective();
   }
 
-  public boolean isCached(String fileName) throws Exception {
-    CacheDirectiveInfo.Builder filterBuilder = new CacheDirectiveInfo.Builder();
-    filterBuilder.setPath(new Path(fileName));
-    CacheDirectiveInfo filter = filterBuilder.build();
-    RemoteIterator<CacheDirectiveEntry> directiveEntries = dfsClient.listCacheDirectives(filter);
-    return directiveEntries.hasNext();
-  }
-
-  private void addDirective(String fileName) throws Exception {
-    CacheDirectiveInfo.Builder filterBuilder = new CacheDirectiveInfo.Builder();
-    filterBuilder.setPath(new Path(fileName))
+  private void addDirective() throws Exception {
+    CacheDirectiveInfo filter = new CacheDirectiveInfo.Builder()
+        .setPath(filePath)
         .setPool(CacheScheduler.SSM_POOL)
-        .setReplication(replication);
-    CacheDirectiveInfo filter = filterBuilder.build();
-    EnumSet<CacheFlag> flags = EnumSet.noneOf(CacheFlag.class);
-    dfsClient.addCacheDirective(filter, flags);
+        .setReplication(replication)
+        .build();
+
+    localFileSystem.addCacheDirective(filter);
   }
 }

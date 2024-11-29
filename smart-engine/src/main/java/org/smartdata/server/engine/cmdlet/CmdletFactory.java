@@ -25,8 +25,8 @@ import org.smartdata.action.ActionException;
 import org.smartdata.action.ActionRegistry;
 import org.smartdata.action.SmartAction;
 import org.smartdata.hdfs.action.HdfsAction;
-import org.smartdata.hdfs.client.CachingDfsClientProvider;
-import org.smartdata.hdfs.client.DfsClientProvider;
+import org.smartdata.hdfs.client.CachingLocalFileSystemProvider;
+import org.smartdata.hdfs.client.LocalFileSystemProvider;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
@@ -40,15 +40,15 @@ public class CmdletFactory implements Closeable {
   static final Logger LOG = LoggerFactory.getLogger(CmdletFactory.class);
 
   private final SmartContext smartContext;
-  private final DfsClientProvider dfsClientProvider;
+  private final LocalFileSystemProvider localFileSystemProvider;
 
   public CmdletFactory(SmartContext smartContext) {
-    this(smartContext, new CachingDfsClientProvider(smartContext.getConf()));
+    this(smartContext, new CachingLocalFileSystemProvider(smartContext.getConf()));
   }
 
-  public CmdletFactory(SmartContext smartContext, DfsClientProvider dfsClientProvider) {
+  public CmdletFactory(SmartContext smartContext, LocalFileSystemProvider localFileSystemProvider) {
     this.smartContext = smartContext;
-    this.dfsClientProvider = dfsClientProvider;
+    this.localFileSystemProvider = localFileSystemProvider;
   }
 
   public Cmdlet createCmdlet(LaunchCmdlet launchCmdlet) throws ActionException {
@@ -73,15 +73,15 @@ public class CmdletFactory implements Closeable {
     smartAction.init(launchAction.getArgs());
     smartAction.setActionId(launchAction.getActionId());
     if (smartAction instanceof HdfsAction) {
-      setDfsClient((HdfsAction) smartAction);
+      setLocalFileSystem((HdfsAction) smartAction);
     }
     return smartAction;
   }
 
-  private void setDfsClient(HdfsAction action) throws ActionException {
+  private void setLocalFileSystem(HdfsAction action) throws ActionException {
     try {
-      action.setDfsClient(
-          dfsClientProvider.provide(smartContext.getConf(), action.dfsClientType())
+      action.setLocalFileSystem(
+          localFileSystemProvider.provide(smartContext.getConf(), action.localFsType())
       );
     } catch (IOException exception) {
       LOG.error("smartAction aid={} setDfsClient error", action.getActionId(), exception);
@@ -92,7 +92,7 @@ public class CmdletFactory implements Closeable {
   @Override
   public void close() {
     try {
-      dfsClientProvider.close();
+      localFileSystemProvider.close();
     } catch (IOException exception) {
       String errorMessage = "Error closing DFS client provider";
       log.error(errorMessage, exception);

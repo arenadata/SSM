@@ -29,6 +29,7 @@ import LoginPage from '@pages/LoginPage/LoginPage';
 import UserSession from '@layouts/partials/UserSession/UserSession';
 import PrivateResource from '@layouts/partials/PrivateResource/PrivateResource';
 import NotFoundPage from '@pages/NotFoundPage/NotFoundPage';
+import ActionPage from '@pages/ActionPage/ActionPage';
 
 function App() {
   return (
@@ -49,7 +50,10 @@ function App() {
             >
               <Route index element={<ClusterInfoPage />} />
               <Route path="/rules" element={<RulesPage />} />
-              <Route path="/actions" element={<ActionsPage />} />
+              <Route path="/actions">
+                <Route index element={<ActionsPage />} />
+                <Route path="/actions/:actionId" element={<ActionPage />} />
+              </Route>
               <Route path="/audit" element={<AuditPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

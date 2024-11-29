@@ -34,17 +34,19 @@ import akka.remote.DisassociatedEvent;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.micrometer.core.instrument.Tags;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AgentService;
 import org.smartdata.SmartConstants;
+import org.smartdata.agent.http.SmartAgentHttpServer;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.HadoopUtil;
+import org.smartdata.metrics.MetricsFactory;
 import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.protocol.message.StatusReporter;
-import org.smartdata.server.engine.cmdlet.CmdletExecutor;
 import org.smartdata.server.engine.cmdlet.StatusReportTask;
 import org.smartdata.server.engine.cmdlet.agent.AgentCmdletService;
 import org.smartdata.server.engine.cmdlet.agent.AgentConstants;
@@ -57,10 +59,10 @@ import org.smartdata.server.utils.GenericOptionsParser;
 import org.smartdata.utils.SecurityUtil;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -73,34 +75,54 @@ import scala.concurrent.duration.FiniteDuration;
 public class SmartAgent implements StatusReporter {
   private static final String NAME = "SmartAgent";
   private static final Logger LOG = LoggerFactory.getLogger(SmartAgent.class);
+  public static final Tags SMART_AGENT_BASE_TAGS = Tags.of("service", "smart-agent");
+
+  private final SmartAgentHttpServer httpServer;
+  private final SmartConf smartConfig;
+  private final String[] masters;
+  private final Config akkaConfig;
   private ActorSystem system;
   private ActorRef agentActor;
-  private CmdletExecutor cmdletExecutor;
 
-  public static void main(String[] args) throws IOException {
-    SmartAgent agent = new SmartAgent();
+  public SmartAgent(SmartConf smartConfig) throws IOException {
+    this.masters = Optional.ofNullable(AgentUtils.getMasterAddress(smartConfig))
+        .map(AgentUtils::getMasterActorPaths)
+        .orElseThrow(() -> new IOException("No master address found!"));
+    LOG.info("Agent masters: {}", Arrays.toString(masters));
 
-    SmartConf conf = (SmartConf) new GenericOptionsParser(
-        new SmartConf(), args).getConfiguration();
+    String agentAddress = AgentUtils.getAgentAddress(smartConfig);
+    LOG.info("Agent address: {}", agentAddress);
+    this.akkaConfig = AgentUtils.overrideRemoteAddress(
+        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), agentAddress);
 
-    String[] masters = AgentUtils.getMasterAddress(conf);
-    if (masters == null) {
-      throw new IOException("No master address found!");
-    }
-    for (int i = 0; i < masters.length; i++) {
-      LOG.info("Agent master " + i + ":  " + masters[i]);
-    }
-    String agentAddress = AgentUtils.getAgentAddress(conf);
-    LOG.info("Agent address: " + agentAddress);
     RegisterNewAgent.getInstance(
         "SSMAgent@" + agentAddress.replaceAll(":.*$", ""));
+    HadoopUtil.setSmartConfByHadoop(smartConfig);
 
-    HadoopUtil.setSmartConfByHadoop(conf);
+    this.smartConfig = smartConfig;
+    this.httpServer = new SmartAgentHttpServer(smartConfig,
+        MetricsFactory.from(smartConfig, SMART_AGENT_BASE_TAGS));
+  }
+
+  public SmartAgent(SmartConf smartConf, Config akkaConfig, String[] masters) {
+    this.masters = masters;
+    this.akkaConfig = akkaConfig;
+    this.smartConfig = smartConf;
+    this.httpServer = new SmartAgentHttpServer(smartConf,
+        MetricsFactory.from(smartConf, SMART_AGENT_BASE_TAGS));
+  }
+
+  public static void main(String[] args) throws IOException {
+    SmartConf conf = (SmartConf) new GenericOptionsParser(
+        new SmartConf(), args).getConfiguration();
+    SmartAgent smartAgent = SmartAgent.buildWith(conf);
+    smartAgent.start();
+  }
+
+  public static SmartAgent buildWith(SmartConf conf) throws IOException {
+    SmartAgent agent = new SmartAgent(conf);
     agent.authentication(conf);
-
-    agent.start(AgentUtils.overrideRemoteAddress(
-        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), agentAddress),
-        AgentUtils.getMasterActorPaths(masters), conf);
+    return agent;
   }
 
   //TODO: remove loadHadoopConf
@@ -133,55 +155,54 @@ public class SmartAgent implements StatusReporter {
     SecurityUtil.loginUsingKeytab(keytabFilename, principal);
   }
 
-  private static String getDateString() {
-    Date now = new Date();
-    SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-    return df.format(now);
-  }
-
-  public void start(Config config, String[] masterPath, SmartConf conf) {
-    system = ActorSystem.apply(NAME, config);
+  public void start() {
+    system = ActorSystem.apply(NAME, akkaConfig);
     agentActor = system.actorOf(Props.create(
-        AgentActor.class, this, masterPath, conf), getAgentName());
+        AgentActor.class, masters, smartConfig), getAgentName());
     final Thread currentThread = Thread.currentThread();
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        shutdown();
-        try {
-          currentThread.join();
-        } catch (InterruptedException e) {
-          // Ignore
-        }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      shutdown();
+      try {
+        currentThread.join();
+      } catch (InterruptedException e) {
+        // Ignore
       }
-    });
-    Services.init(new SmartAgentContext(conf, this));
+    }));
+    Services.init(new SmartAgentContext(smartConfig, this));
     Services.start();
 
     AgentCmdletService agentCmdletService =
         (AgentCmdletService) Services.getService(
             SmartConstants.AGENT_CMDLET_SERVICE_NAME);
-    cmdletExecutor = agentCmdletService.getCmdletExecutor();
 
     ScheduledExecutorService executorService =
         Executors.newSingleThreadScheduledExecutor();
     int reportPeriod =
-        conf.getInt(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY,
+        smartConfig.getInt(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY,
             SmartConfKeys.SMART_STATUS_REPORT_PERIOD_DEFAULT);
     StatusReportTask statusReportTask =
-        new StatusReportTask(this, cmdletExecutor, conf);
+        new StatusReportTask(this, agentCmdletService.getCmdletExecutor(), smartConfig);
     executorService.scheduleAtFixedRate(
-            statusReportTask, 1000, reportPeriod, TimeUnit.MILLISECONDS);
+        statusReportTask, 1000, reportPeriod, TimeUnit.MILLISECONDS);
+
+    httpServer.start();
 
     try {
       Await.result(system.whenTerminated(), Duration.Inf());
     } catch (Exception e) {
-        LOG.error("Failure during actor system runtime.", e);
-      }
+      LOG.error("Failure during actor system runtime.", e);
+    }
   }
 
   public void shutdown() {
     Services.stop();
+
+    try {
+      httpServer.stop();
+    } catch (Exception e) {
+      LOG.error("Error stopping agent http server", e);
+    }
+
     if (system != null && !system.whenTerminated().isCompleted()) {
       LOG.info("Shutting down system {}", AgentUtils.getSystemAddres(system));
       system.terminate();
@@ -198,7 +219,7 @@ public class SmartAgent implements StatusReporter {
   }
 
   private String getAgentName() {
-    return "agent-" + UUID.randomUUID().toString();
+    return "agent-" + UUID.randomUUID();
   }
 
   /**
@@ -233,21 +254,19 @@ public class SmartAgent implements StatusReporter {
     private static final FiniteDuration RETRY_INTERVAL =
         Duration.create(2, TimeUnit.SECONDS);
 
+    private final String[] masters;
+    private final SmartConf conf;
+    private final Deque<Object> unhandledMessages = new LinkedList<>();
     private MasterToAgent.AgentId id;
     private ActorRef master;
-    private final SmartAgent agent;
-    private final String[] masters;
-    private SmartConf conf;
-    private Deque<Object> unhandledMessages = new LinkedList<>();
 
-    public AgentActor(SmartAgent agent, String[] masters, SmartConf conf) {
-      this.agent = agent;
+    public AgentActor(String[] masters, SmartConf conf) {
       this.masters = masters;
-      this.conf =  conf;
+      this.conf = conf;
     }
 
     @Override
-    public void onReceive(Object message) throws Exception {
+    public void onReceive(Object message) {
       unhandled(message);
     }
 
@@ -272,8 +291,7 @@ public class SmartAgent implements StatusReporter {
      */
     private Cancellable findMaster() {
       if (master != null) {
-        LOG.info("Before finding master, unwatch current master: "
-            + master.path().address());
+        LOG.info("Before finding master, unwatch current master: {}", master.path().address());
         this.context().unwatch(master);
         master = null;
       }
@@ -289,7 +307,7 @@ public class SmartAgent implements StatusReporter {
                 actorSelection.tell(new Identify(null), getSelf());
               }
             }
-          }, new Shutdown(agent));
+          }, new Shutdown());
     }
 
     /**
@@ -331,9 +349,9 @@ public class SmartAgent implements StatusReporter {
             // will be instantiated with this address.
             String rpcHost = master.path().address().host().get();
             String rpcPort = conf
-                    .get(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
-                            SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT)
-                    .split(":")[1];
+                .get(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
+                    SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT)
+                .split(":")[1];
             conf.set(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
                 rpcHost + ":" + rpcPort);
 
@@ -341,7 +359,7 @@ public class SmartAgent implements StatusReporter {
                 AgentUtils.repeatActionUntil(getContext().system(),
                     Duration.Zero(), RETRY_INTERVAL, TIMEOUT,
                     new SendMessage(master, RegisterNewAgent.getInstance()),
-                    new Shutdown(agent));
+                    new Shutdown());
             LOG.info("Registering to master {}", master);
             getContext().become(new WaitForRegisterAgent(registerAgent));
           }
@@ -372,7 +390,7 @@ public class SmartAgent implements StatusReporter {
        * message.
        */
       @Override
-      public void apply(Object message) throws Exception {
+      public void apply(Object message) {
         if (message instanceof AgentRegistered) {
           AgentRegistered registered = (AgentRegistered) message;
           registerAgent.cancel();
@@ -391,7 +409,7 @@ public class SmartAgent implements StatusReporter {
             return;
           }
           LOG.warn("Received event: {}, details: {}",
-              associEvent.eventName(), associEvent.toString());
+              associEvent.eventName(), associEvent);
           LOG.warn("Go back to the preceding context to find master..");
           getContext().become(new WaitForFindMaster(findMaster()));
         } else {
@@ -418,13 +436,12 @@ public class SmartAgent implements StatusReporter {
         }
         LOG.info("Applying {} unhandled message(s)...",
             unhandledMessages.size());
-        while (unhandledMessages.size() != 0) {
+        while (!unhandledMessages.isEmpty()) {
           Object message = unhandledMessages.pollFirst();
           try {
             this.apply(message);
           } catch (Exception e) {
-            LOG.warn("Failed to handle message: "
-                + message.toString() + "Reason: " + e.getMessage());
+            LOG.warn("Failed to handle message: {}Reason: {}", message.toString(), e.getMessage());
           }
         }
       }
@@ -441,7 +458,7 @@ public class SmartAgent implements StatusReporter {
        * find new master if this event is received.
        */
       @Override
-      public void apply(Object message) throws Exception {
+      public void apply(Object message) {
         if (message instanceof AgentService.Message) {
           try {
             Services.dispatch((AgentService.Message) message);
@@ -467,11 +484,11 @@ public class SmartAgent implements StatusReporter {
             return;
           }
           LOG.warn("Received event: {}, details: {}",
-              associEvent.eventName(), associEvent.toString());
+              associEvent.eventName(), associEvent);
           LOG.warn("Try to register to a new master...");
           getContext().become(new WaitForFindMaster(findMaster()));
         } else {
-          LOG.warn("Unhandled message: " + message.toString());
+          LOG.warn("Unhandled message: {}", message.toString());
         }
       }
     }
@@ -493,13 +510,6 @@ public class SmartAgent implements StatusReporter {
     }
 
     private class Shutdown implements Runnable {
-
-      private SmartAgent agent;
-
-      public Shutdown(SmartAgent agent) {
-        this.agent = agent;
-      }
-
       /**
        * {@link SmartAgent#shutdown() shutdown} will be called before
        * the program exits.

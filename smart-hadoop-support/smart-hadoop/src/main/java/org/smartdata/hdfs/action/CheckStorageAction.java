@@ -17,75 +17,78 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
-import org.apache.hadoop.hdfs.protocol.DatanodeInfoWithStorage;
-import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.apache.hadoop.hdfs.protocol.LocatedBlock;
-import org.smartdata.action.ActionException;
+import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.StorageType;
 import org.smartdata.action.annotation.ActionSignature;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * Check and return file blocks storage location.
  */
 @ActionSignature(
-  actionId = "checkstorage",
-  displayName = "checkstorage",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "checkstorage",
+    displayName = "checkstorage",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
-public class CheckStorageAction extends HdfsAction {
-  private String fileName;
+public class CheckStorageAction extends HdfsActionWithRemoteClusterSupport {
+  private Path filePath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    fileName = args.get(FILE_PATH);
+    filePath = getPathArg(FILE_PATH);
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (fileName == null) {
-      throw new IllegalArgumentException("File parameter is missing! ");
-    }
-    HdfsFileStatus fileStatus = dfsClient.getFileInfo(fileName);
-    if (fileStatus == null) {
-      throw new ActionException("File does not exist.");
-    }
-    if (fileStatus.isDir()) {
+  protected void preExecute() {
+    validateNonEmptyArg(FILE_PATH);
+  }
+
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    FileStatus fileStatus = fileSystem.getFileStatus(filePath);
+    if (fileStatus.isDirectory()) {
       appendResult("This is a directory which has no storage result!");
-      // Append to log for the convenience of UI implementation
-      appendLog("This is a directory which has no storage result!");
-      return;
-    }
-    long length = fileStatus.getLen();
-    List<LocatedBlock> locatedBlocks =
-        dfsClient.getLocatedBlocks(fileName, 0, length).getLocatedBlocks();
-
-    if (locatedBlocks.size() == 0) {
-      appendResult("File '" + fileName + "' has no blocks.");
-      appendLog("File '" + fileName + "' has no blocks.");
       return;
     }
 
-    for (LocatedBlock locatedBlock : locatedBlocks) {
-      StringBuilder blockInfo = new StringBuilder();
-      blockInfo.append("File offset = ").append(locatedBlock.getStartOffset()).append(", ");
-      blockInfo.append("Block locations = {");
-      for (DatanodeInfo datanodeInfo : locatedBlock.getLocations()) {
-        blockInfo.append(datanodeInfo.getName());
-        if (datanodeInfo instanceof DatanodeInfoWithStorage) {
-          blockInfo
-              .append("[")
-              .append(((DatanodeInfoWithStorage) datanodeInfo).getStorageType())
-              .append("]");
-        }
-        blockInfo.append(" ");
-      }
-      blockInfo.append("}");
-      appendResult(blockInfo.toString());
-      appendLog(blockInfo.toString());
+    BlockLocation[] fileBlockLocations =
+        fileSystem.getFileBlockLocations(filePath, 0, fileStatus.getLen());
+    if (fileBlockLocations.length == 0) {
+      appendResult("File '" + filePath + "' has no blocks.");
+      return;
+    }
+
+    for (BlockLocation blockLocation : fileBlockLocations) {
+      appendResult(buildBlockInfo(blockLocation));
     }
   }
+
+  private String buildBlockInfo(BlockLocation blockLocation) throws IOException {
+    StringBuilder blockInfo = new StringBuilder();
+
+    String[] names = blockLocation.getNames();
+    StorageType[] storageTypes = blockLocation.getStorageTypes();
+
+    blockInfo.append("File offset = ")
+        .append(blockLocation.getOffset())
+        .append(", ")
+        .append("Block locations = {");
+
+    for (int i = 0; i < names.length; i++) {
+      blockInfo.append(names[i])
+          .append("[")
+          .append(storageTypes[i])
+          .append("]")
+          .append(" ");
+    }
+
+    return blockInfo.toString();
+  }
+
 }

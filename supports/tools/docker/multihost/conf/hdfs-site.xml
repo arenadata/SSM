@@ -20,11 +20,6 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-  <!-- Turn security off for tests by default -->
-  <property>
-    <name>hadoop.security.authentication</name>
-    <value>simple</value>
-  </property>
   <!-- Disable min block size since most tests use tiny blocks -->
   <property>
     <name>dfs.namenode.fs-limits.min-block-size</name>
@@ -32,18 +27,61 @@
   </property>
   <property>
     <name>smart.server.rpc.address</name>
-    <value>ssm-server:7042</value>
+    <value>ssm-server.demo:7042</value>
   </property>
   <property>
     <name>dfs.datanode.data.dir</name>
     <value>[RAM_DISK]file://hadoop/dfs/ram-data,[SSD]file://hadoop/dfs/ssd-data,[DISK]file://hadoop/dfs/data,[ARCHIVE]file://hadoop/dfs/archive-data</value>
   </property>
   <property>
-    <name>dfs.permissions.enabled</name>
-    <value>false</value>
+    <name>hadoop.user.group.static.mapping.overrides</name>
+    <value>ssm=supergroup;agent=supergroup</value>
   </property>
   <property>
     <name>dfs.blocksize</name>
     <value>1048576</value>
+  </property>
+  <property>
+    <name>dfs.namenode.keytab.file</name>
+    <value>/etc/secrets/namenode.keytab</value>
+  </property>
+  <property>
+    <name>dfs.namenode.kerberos.principal</name>
+    <value>namenode/_HOST@DEMO</value>
+  </property>
+  <property>
+    <name>dfs.namenode.delegation.token.max-lifetime</name>
+    <value>604800000</value>
+    <description>The maximum lifetime in milliseconds for which a delegation token is valid.</description>
+  </property>
+  <property>
+    <name>dfs.datanode.keytab.file</name>
+    <value>/etc/secrets/datanode.keytab</value>
+  </property>
+  <property>
+    <name>dfs.datanode.kerberos.principal</name>
+    <value>datanode/_HOST@DEMO</value>
+  </property>
+  <property>
+    <name>dfs.block.access.token.enable</name>
+    <value>true</value>
+  </property>
+
+  <!-- Set privileged ports -->
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>0.0.0.0:1004</value>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:1006</value>
+  </property>
+  <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:1007</value>
+  </property>
+  <property>
+    <name>dfs.datanode.ipc.address</name>
+    <value>0.0.0.0:1005</value>
   </property>
 </configuration>

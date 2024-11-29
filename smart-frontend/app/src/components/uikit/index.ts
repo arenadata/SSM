@@ -41,9 +41,12 @@ import Text from './Text/Text';
 import Title from './Title/Title';
 import Tooltip from './Tooltip/Tooltip';
 import LegendCard from './LegendCard/LegendCard';
+import BigTextTooltip from '@uikit/Tooltip/AdvancedTooltips/BigTextTooltip/BigTextTooltip';
+import SimpleLogView from '@uikit/SimpleLogView/SimpleLogView';
 
 export {
   //
+  BigTextTooltip,
   Button,
   Checkbox,
   ConditionalWrapper,
@@ -64,6 +67,7 @@ export {
   PopoverPanelDefault,
   Select,
   SearchInput,
+  SimpleLogView,
   Tab,
   TabsBlock,
   Text,

@@ -39,13 +39,13 @@ public class ListErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    for (ErasureCodingPolicyInfo policyInfo : dfsClient.getErasureCodingPolicies()) {
-      appendLog("{" + policyInfo.toString() + "}");
+    for (ErasureCodingPolicyInfo policyInfo : localFileSystem.getAllErasureCodingPolicies()) {
+      appendResult("{" + policyInfo.toString() + "}");
     }
   }
 
   @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

@@ -1,0 +1,29 @@
+springdoc:
+  api-docs:
+    path: /openapi-spec
+  swagger-ui:
+    url: /ssm-api.yaml
+    disable-swagger-default-url: true
+server:
+  servlet:
+    session:
+      cookie:
+        name: SSM_SESSION_ID
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,heapdump,metrics,threaddump,env
+  health:
+    ldap:
+      enabled: false
+spring:
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          cache-private: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher

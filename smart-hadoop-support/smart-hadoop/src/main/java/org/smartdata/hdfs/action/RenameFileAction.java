@@ -17,19 +17,16 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.action.ActionException;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.smartdata.utils.PathUtil.getScheme;
 
 /**
  * An action to rename a single file
@@ -43,62 +40,58 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + " $src " + RenameFileAction.DEST_PATH +
         " $dest"
 )
-public class RenameFileAction extends HdfsAction {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(RenameFileAction.class);
+public class RenameFileAction extends HdfsActionWithRemoteClusterSupport {
   public static final String DEST_PATH = "-dest";
-  private String srcPath;
-  private String destPath;
+
+  private Path srcPath;
+  private Path destPath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.srcPath = args.get(FILE_PATH);
-    if (args.containsKey(DEST_PATH)) {
-      this.destPath = args.get(DEST_PATH);
+    this.srcPath = getPathArg(FILE_PATH);
+    this.destPath = getPathArg(DEST_PATH);
+  }
+
+  @Override
+  protected boolean isRemoteMode() {
+    return getScheme(srcPath).isPresent() || getScheme(destPath).isPresent();
+  }
+
+  @Override
+  protected void preExecute() {
+    validateNonEmptyArgs(FILE_PATH, DEST_PATH);
+  }
+
+  @Override
+  protected void preRemoteExecute() throws Exception {
+    Optional<String> srcScheme = getScheme(srcPath);
+    Optional<String> destScheme = getScheme(destPath);
+
+    // One of files is in local cluster and second is in remote
+    // TODO handle the case when absolute path's host is local cluster
+    if (!srcScheme.isPresent() || !destScheme.isPresent()) {
+      throw new ActionException("Paths are not in the same cluster");
+    }
+
+    if (!srcScheme.get().equals(destScheme.get())) {
+      throw new ActionException("Paths have different schemes");
+    }
+
+    if (!destPath.toUri().getHost().equals(srcPath.toUri().getHost())) {
+      throw new ActionException("Paths are not in the same cluster");
     }
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (srcPath == null) {
-      throw new IllegalArgumentException("File parameter is missing.");
-    }
-    if (destPath == null) {
-      throw new IllegalArgumentException("Dest File parameter is missing.");
-    }
-    appendLog(String.format("Action starts at %s : Rename %s to %s",
-        Utils.getFormatedCurrentTime(), srcPath, destPath));
-
-    if (!renameSingleFile(srcPath, destPath)) {
-      throw new IOException("Failed to rename " + srcPath + " -> " + destPath);
+  protected void execute(FileSystem fileSystem) throws Exception {
+    if (!fileSystem.rename(srcPath, destPath)) {
+      throw new IOException("Failed to rename " + srcPath + " to " + destPath);
     }
   }
 
-  private boolean renameSingleFile(String src,
-      String dest) throws IOException, ActionException {
-    if (dest.startsWith("hdfs") && src.startsWith("hdfs")) {
-      //rename file in the same remote cluster
-      // TODO read conf from files
-      //check the file name
-      if (!URI.create(dest).getHost().equals(URI.create(src).getHost())) {
-        throw new ActionException("the file names are not in the same cluster");
-      }
-      Configuration conf = new Configuration();
-      //get FileSystem object
-      FileSystem fs = FileSystem.get(URI.create(dest), conf);
-      return fs.rename(new Path(src), new Path(dest));
-    } else if (!dest.startsWith("hdfs") && !src.startsWith("hdfs")) {
-      //rename file in local cluster and overwrite
-      if (!dfsClient.exists(src)) {
-        throw new ActionException("the source file is not exist");
-      }
-      dfsClient.rename(src, dest, Options.Rename.NONE);
-      return true;
-    } else {
-      // TODO handle the case when dest prefixed with the default hdfs uri
-      // while src not, the two path are in the same cluster
-      throw new ActionException("the file names are not in the same cluster");
-    }
+  @Override
+  protected void postExecute() {
+    appendLog("File " + srcPath + " was renamed to " + destPath);
   }
 }

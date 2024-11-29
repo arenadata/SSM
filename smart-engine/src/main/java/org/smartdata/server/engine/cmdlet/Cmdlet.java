@@ -24,7 +24,6 @@ import org.smartdata.action.SmartAction;
 import org.smartdata.model.CmdletState;
 import org.smartdata.protocol.message.ActionStatus;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -103,12 +102,12 @@ public class Cmdlet implements Runnable {
       act.init(act.getArguments());
       act.run();
       if (!act.isSuccessful()) {
-          while (iter.hasNext()) {
-            SmartAction nextAct = iter.next();
-            synchronized (this) {
-              actionReportList.remove(nextAct);
-            }
+        while (iter.hasNext()) {
+          SmartAction nextAct = iter.next();
+          synchronized (this) {
+            actionReportList.remove(nextAct);
           }
+        }
         state = CmdletState.FAILED;
         stateUpdateTime = System.currentTimeMillis();
         LOG.error("Executing Cmdlet [id={}] meets failed.", getId());
@@ -125,7 +124,7 @@ public class Cmdlet implements Runnable {
     runAllActions();
   }
 
-  public synchronized List<ActionStatus> getActionStatuses() throws UnsupportedEncodingException {
+  public synchronized List<ActionStatus> getActionStatuses() {
     if (actionReportList.isEmpty()) {
       return null;
     }

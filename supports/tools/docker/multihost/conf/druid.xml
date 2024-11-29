@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-    <entry key="url">jdbc:postgresql://ssm-metastore-db:5432/metastore</entry>
+    <entry key="url">jdbc:postgresql://ssm-metastore-db.demo:5432/metastore</entry>
     <entry key="username">ssm</entry>
     <entry key="password">ssm</entry>
 

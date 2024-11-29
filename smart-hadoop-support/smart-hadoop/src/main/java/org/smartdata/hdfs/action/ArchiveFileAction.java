@@ -17,20 +17,17 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.action.annotation.ActionSignature;
 
 /**
  * An action to archive a file.
  */
 @ActionSignature(
-  actionId = "archive",
-  displayName = "archive",
-  usage = HdfsAction.FILE_PATH + " $file "
+    actionId = "archive",
+    displayName = "archive",
+    usage = HdfsAction.FILE_PATH + " $file "
 )
 public class ArchiveFileAction extends MoveFileAction {
-  private static final Logger LOG = LoggerFactory.getLogger(ArchiveFileAction.class);
 
   @Override
   public String getStoragePolicy() {

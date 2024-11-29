@@ -63,7 +63,7 @@ public class TestSmallFileCompactAction extends MiniClusterHarness {
     Assert.assertTrue(dfsClient.exists("/test/small_files/file_2"));
 
     SmallFileCompactAction smallFileCompactAction = new SmallFileCompactAction();
-    smallFileCompactAction.setDfsClient(dfsClient);
+    smallFileCompactAction.setLocalFileSystem(dfs);
     smallFileCompactAction.setContext(smartContext);
     Map<String , String> args = new HashMap<>();
     args.put(SmallFileCompactAction.FILE_PATH , new Gson().toJson(smallFileList));

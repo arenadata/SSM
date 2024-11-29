@@ -3,11 +3,13 @@ services:
 
   hadoop-namenode:
     image: cloud-hub.adsw.io/library/hadoop-namenode:${HADOOP_VERSION:-3.3.6}
-    hostname: hadoop-namenode
+    hostname: hadoop-namenode.demo
     container_name: hadoop-namenode
     restart: unless-stopped
     volumes:
-        - hadoop-namenode:/hadoop/dfs/name
+      - hadoop-namenode:/hadoop/dfs/name
+      - secrets:/etc/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
     ports:
       - "9870:9870"
       - "8020:8020"
@@ -18,12 +20,15 @@ services:
       interval: 30s
       timeout: 15s
       retries: 5
+    networks:
+      - demo
     depends_on:
       - ssm-metastore-db
+      - kdc-server
 
   hadoop-datanode:
     image: cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION:-3.3.6}
-    hostname: hadoop-datanode
+    hostname: hadoop-datanode.demo
     container_name: hadoop-datanode
     restart: unless-stopped
     volumes:
@@ -32,42 +37,57 @@ services:
       - hadoop-datanode-ram-data:/hadoop/dfs/ram-data
       - hadoop-datanode-ssd-data:/hadoop/dfs/ssd-data
       - hadoop-datanode-archive-data:/hadoop/dfs/archive-data
+      - secrets:/etc/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
     ports:
       - "9864:9864"
       - "7048:7048"
       - "7051:7051"
+      # SSM Agent web server port
+      - "18081:8081"
+      # JMX port
+      - "3334:3334"
     env_file:
       - hadoop.env
     healthcheck:
-      test: curl http://hadoop-datanode:9864 || exit 1
+      test: curl http://hadoop-datanode.demo:1006 || exit 1
       interval: 30s
       timeout: 15s
       retries: 5
+    networks:
+      - demo
     depends_on:
       - ssm-server
 
   ssm-server:
-    image: cloud-hub.adsw.io/library/ssm-server:2.0.0_alpha
-    hostname: ssm-server
+    image: cloud-hub.adsw.io/library/ssm-server:2.0.0-SNAPSHOT
+    hostname: ssm-server.demo
     restart: unless-stopped
     container_name: ssm-server
     volumes:
       - ssm-shared:/tmp/shared
+      - secrets:/etc/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
     ports:
       - "7042:7042"
       - "8081:8081"
+      # JMX port
+      - "3333:3333"
     healthcheck:
-      test: curl http://ssm-server:8081 || exit 1
+      test: curl http://ssm-server.demo:8081 || exit 1
       interval: 30s
       timeout: 15s
       retries: 5
+    networks:
+      - demo
     depends_on:
       - ssm-metastore-db
+      - kdc-server
 
   ssm-metastore-db:
     image: "docker.io/library/postgres:14.0"
     restart: unless-stopped
-    container_name: ssm-metastore-db
+    container_name: ssm-metastore-db.demo
     hostname: ssm-metastore-db
     environment:
       POSTGRES_DB: 'metastore'
@@ -80,10 +100,51 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
+    networks:
+      - demo
+
+  kdc-server:
+    image: cloud-hub.adsw.io/library/ssm-kdc-server:${HADOOP_VERSION:-3.3.6}
+    restart: unless-stopped
+    container_name: kdc-server
+    hostname: kdc-server.demo
+    volumes:
+      - secrets:/tmp/secrets
+    ports:
+      - "749:749"
+      - "88:88/udp"
+    networks:
+      - demo
+
+  samba:
+    image: hub.adsw.io/qa-samba/samba:demo
+    hostname: samba
+    container_name: samba
+    privileged: true
+    ports:
+      - "389:389"
+    environment:
+      SMB_ADMIN_PASSWORD: "LZ2ibGAn2H0D0UW3"
+    volumes:
+      - ./ldap:/opt/ad-scripts
+    networks:
+      - demo
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./conf/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - demo
 
 networks:
-  default:
-    name: ssm-automation
+  demo:
+    name: demo
 
 volumes:
   ssm-shared:
@@ -92,3 +153,4 @@ volumes:
   hadoop-datanode-ram-data:
   hadoop-datanode-ssd-data:
   hadoop-datanode-archive-data:
+  secrets:

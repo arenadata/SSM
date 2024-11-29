@@ -17,20 +17,19 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.tools.DistCp;
+import org.apache.hadoop.tools.DistCpOptions;
+import org.apache.hadoop.tools.OptionsParser;
+import org.smartdata.action.annotation.ActionSignature;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.mapreduce.Cluster;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.tools.DistCp;
-import org.apache.hadoop.tools.DistCpOptions;
-import org.apache.hadoop.tools.OptionsParser;
-import org.smartdata.action.Utils;
-import org.smartdata.action.annotation.ActionSignature;
 
 @ActionSignature(
     actionId = "distcp",
@@ -77,15 +76,11 @@ public class DistCpAction extends HdfsAction {
     // we need to perform validation and option parsing here
     // because SSM doesn't correctly handle exceptions thrown in the init method
     DistCpOptions distCpOptions = buildDistCpOptions();
-
     DistCp distCp = new DistCp(getContext().getConf(), distCpOptions);
-    appendLog(
-        String.format("DistCp Action started at %s for options %s",
-            Utils.getFormatedCurrentTime(), distCpOptions));
 
-    try (JobCloseableWrapper jobWrapper = new JobCloseableWrapper(distCp.execute())) {
-      distCp.waitForJobCompletion(jobWrapper.job);
-      appendLog(jobWrapper.job.getCounters().toString());
+    try (Job job = distCp.execute()) {
+      distCp.waitForJobCompletion(job);
+      appendLog(job.getCounters().toString());
     }
   }
 
@@ -136,23 +131,5 @@ public class DistCpAction extends HdfsAction {
     return args.keySet()
         .stream()
         .anyMatch(option -> option.startsWith(PRESERVE_DISTCP_OPTION_PREFIX));
-  }
-
-  /** Used to gracefully close MapReduce job (MR Job is not AutoCloseable inheritor in Hadoop 2.7) */
-  private static class JobCloseableWrapper implements AutoCloseable {
-
-    private final Job job;
-
-    private JobCloseableWrapper(Job job) {
-      this.job = job;
-    }
-
-    @Override
-    public void close() throws Exception {
-      Cluster cluster = job.getCluster();
-      if (cluster != null) {
-        cluster.close();
-      }
-    }
   }
 }

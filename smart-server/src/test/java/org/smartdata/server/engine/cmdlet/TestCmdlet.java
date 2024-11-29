@@ -78,7 +78,7 @@ public class TestCmdlet extends MiniClusterHarness {
     // actions[1].setContext(new SmartContext(smartConf));
     // actions[1].getDNStorageReports(new String[]{"/testMoveFile/file2", "COLD"});
     actions[2] = new CacheFileAction();
-    ((HdfsAction) actions[2]).setDfsClient(dfsClient);
+    ((HdfsAction) actions[2]).setLocalFileSystem(dfs);
     actions[2].setContext(smartContext);
     Map<String, String> args = new HashMap();
     args.put(CacheFileAction.FILE_PATH, "/testCacheFile");

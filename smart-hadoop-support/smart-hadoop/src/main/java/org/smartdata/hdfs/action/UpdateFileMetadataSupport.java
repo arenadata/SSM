@@ -17,51 +17,36 @@
  */
 package org.smartdata.hdfs.action;
 
-import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.URI;
-import java.util.Optional;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.model.FileInfoDiff;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Optional;
+
 public class UpdateFileMetadataSupport {
-  private final Configuration configuration;
   private final PrintStream logOutput;
 
-  public UpdateFileMetadataSupport(Configuration configuration, PrintStream logOutput) {
-    this.configuration = configuration;
+  public UpdateFileMetadataSupport(PrintStream logOutput) {
     this.logOutput = logOutput;
   }
 
-  public void changeFileMetadata(FileInfoDiff fileInfoDiff) throws IOException {
-    if (fileInfoDiff.getPath().startsWith("hdfs")) {
-      changeRemoteFileMetadata(fileInfoDiff);
-    } else {
-      changeLocalFileMetadata(fileInfoDiff);
-    }
+  public void changeFileMetadata(FileSystem destFileSystem,
+      FileInfoDiff fileInfoDiff) throws IOException {
+    Path srcPath = new Path(fileInfoDiff.getPath());
+    FileStatus srcFileStatus = destFileSystem.getFileStatus(srcPath);
+
+    maybeChangeOwnerAndGroup(destFileSystem, fileInfoDiff, srcFileStatus);
+    maybeChangeBlockReplication(destFileSystem, fileInfoDiff, srcFileStatus);
+    maybeChangePermissions(destFileSystem, fileInfoDiff, srcFileStatus);
+    maybeChangeTimes(destFileSystem, fileInfoDiff, srcFileStatus);
   }
 
-  private void changeRemoteFileMetadata(FileInfoDiff fileInfoDiff) throws IOException {
-    FileSystem remoteFileSystem = FileSystem.get(URI.create(fileInfoDiff.getPath()),
-        toRemoteClusterConfig(configuration));
-    changeFileMetadata(fileInfoDiff, remoteFileSystem);
-  }
-
-  private void changeLocalFileMetadata(FileInfoDiff fileInfoDiff) throws IOException {
-    FileSystem localFileSystem = FileSystem.get(
-        HadoopUtil.getNameNodeUri(configuration), configuration);
-    changeFileMetadata(fileInfoDiff, localFileSystem);
-  }
-
-  private void maybeChangeOwnerAndGroup(FileSystem fileSystem,
-      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) throws IOException {
+  private void maybeChangeOwnerAndGroup(FileSystem destFileSystem,
+      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) {
 
     String owner = Optional.ofNullable(fileInfoDiff.getOwner())
         .orElseGet(srcFileStatus::getOwner);
@@ -74,36 +59,51 @@ public class UpdateFileMetadataSupport {
               "and file's group from '%s' to '%s'%n",
           srcFileStatus.getOwner(), owner,
           srcFileStatus.getGroup(), group);
-      fileSystem.setOwner(srcFileStatus.getPath(), owner, group);
+
+      try {
+        destFileSystem.setOwner(srcFileStatus.getPath(), owner, group);
+      } catch (IOException e) {
+        logOutput.println("Error changing owner and group: " + e.getMessage());
+      }
     }
   }
 
-  private void maybeChangeBlockReplication(FileSystem fileSystem,
-      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) throws IOException {
+  private void maybeChangeBlockReplication(FileSystem destFileSystem,
+      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) {
 
     Short newBlockReplication = fileInfoDiff.getBlockReplication();
     if (newBlockReplication != null
         && !newBlockReplication.equals(srcFileStatus.getReplication())) {
       logOutput.printf("Updating file's replication factor from '%s' to '%s'%n",
           srcFileStatus.getReplication(), newBlockReplication);
-      fileSystem.setReplication(srcFileStatus.getPath(), newBlockReplication);
+
+      try {
+        destFileSystem.setReplication(srcFileStatus.getPath(), newBlockReplication);
+      } catch (IOException e) {
+        logOutput.println("Error changing replication: " + e.getMessage());
+      }
     }
   }
 
-  private void maybeChangePermissions(FileSystem fileSystem,
-      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) throws IOException {
+  private void maybeChangePermissions(FileSystem destFileSystem,
+      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) {
 
     Short newPermission = fileInfoDiff.getPermission();
     if (newPermission != null
         && !newPermission.equals(srcFileStatus.getPermission().toShort())) {
       logOutput.printf("Updating file's permissions from '%s' to '%s'%n",
           srcFileStatus.getPermission().toShort(), newPermission);
-      fileSystem.setPermission(srcFileStatus.getPath(), new FsPermission(newPermission));
+
+      try {
+        destFileSystem.setPermission(srcFileStatus.getPath(), new FsPermission(newPermission));
+      } catch (IOException e) {
+        logOutput.println("Error changing permissions: " + e.getMessage());
+      }
     }
   }
 
-  private void maybeChangeTimes(FileSystem fileSystem,
-      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) throws IOException {
+  private void maybeChangeTimes(FileSystem destFileSystem,
+      FileInfoDiff fileInfoDiff, FileStatus srcFileStatus) {
 
     long modificationTime = Optional.ofNullable(fileInfoDiff.getModificationTime())
         .orElseGet(srcFileStatus::getModificationTime);
@@ -116,18 +116,12 @@ public class UpdateFileMetadataSupport {
               "and file's modification time from '%s' to '%s'%n",
           srcFileStatus.getAccessTime(), accessTime,
           srcFileStatus.getModificationTime(), modificationTime);
-      fileSystem.setTimes(srcFileStatus.getPath(), modificationTime, accessTime);
+
+      try {
+        destFileSystem.setTimes(srcFileStatus.getPath(), modificationTime, accessTime);
+      } catch (IOException e) {
+        logOutput.println("Error changing times: " + e.getMessage());
+      }
     }
-  }
-
-  private void changeFileMetadata(
-      FileInfoDiff fileInfoDiff, FileSystem fileSystem) throws IOException {
-    Path srcPath = new Path(fileInfoDiff.getPath());
-    FileStatus srcFileStatus = fileSystem.getFileStatus(srcPath);
-
-    maybeChangeOwnerAndGroup(fileSystem, fileInfoDiff, srcFileStatus);
-    maybeChangeBlockReplication(fileSystem, fileInfoDiff, srcFileStatus);
-    maybeChangePermissions(fileSystem, fileInfoDiff, srcFileStatus);
-    maybeChangeTimes(fileSystem, fileInfoDiff, srcFileStatus);
   }
 }

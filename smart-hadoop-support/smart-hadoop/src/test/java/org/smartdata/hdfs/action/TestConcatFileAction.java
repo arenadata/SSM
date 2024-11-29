@@ -18,49 +18,57 @@
 package org.smartdata.hdfs.action;
 
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.smartdata.hdfs.MiniClusterHarness;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Test for concatFileAction
  */
+@RunWith(Parameterized.class)
 public class TestConcatFileAction extends MiniClusterHarness {
+
+  @Parameterized.Parameter
+  public boolean useAbsolutePath;
+
+  @Parameterized.Parameters(name = "useAbsolutePath = {0}")
+  public static Object[] parameters() {
+    return new Object[]{true, false};
+  }
+
   @Test
-  public void testRemoteFileConcat() throws IOException {
-    final String srcPath = "/testConcat";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String target = "/target";
+  public void testFileConcat() throws IOException {
+    String srcPath = "/testConcat";
+    Path file1 = new Path(srcPath, "file1");
+    Path file2 = new Path(srcPath, "file2");
+    String target = "/target";
+
+    if (useAbsolutePath) {
+      file1 = dfs.makeQualified(file1);
+      file2 = dfs.makeQualified(file2);
+    }
 
     dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(target));
+    DFSTestUtil.writeFile(dfs, new Path(target), "");
     //write to DISK
     //write 50 Bytes to file1 and 50 Byte to file2. then concat them
-    FSDataOutputStream out1 = dfs.create(new Path(srcPath + "/" + file1));
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      out1.writeByte(1);
-    }
-    out1.close();
-
-    out1 = dfs.create(new Path(srcPath + "/" + file2));
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      out1.writeByte(2);
-    }
-    out1.close();
+    createFileWithContent(file1, (byte) 1);
+    createFileWithContent(file2, (byte) 2);
 
     ConcatFileAction concatFileAction = new ConcatFileAction();
-    concatFileAction.setDfsClient(dfsClient);
+    concatFileAction.setLocalFileSystem(dfs);
     concatFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
-    args.put(CopyFileAction.FILE_PATH, dfs.getUri() + srcPath + "/" +
-        file1 + "," + dfs.getUri() + srcPath + "/" + "file2");
+    args.put(CopyFileAction.FILE_PATH, file1 + "," + file2);
     args.put(ConcatFileAction.DEST_PATH, dfs.getUri() + target);
     concatFileAction.init(args);
     concatFileAction.run();
@@ -68,56 +76,18 @@ public class TestConcatFileAction extends MiniClusterHarness {
     Assert.assertTrue(concatFileAction.getExpectedAfterRun());
     Assert.assertTrue(dfsClient.exists(target));
     //read and check file
-    FSDataInputStream in = dfs.open(new Path(target),50);
+    FSDataInputStream in = dfs.open(new Path(target), 50);
     for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      Assert.assertTrue(in.readByte() == 1);
+      Assert.assertEquals(1, in.readByte());
     }
     for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      Assert.assertTrue(in.readByte() == 2);
+      Assert.assertEquals(2, in.readByte());
     }
   }
 
-  @Test
-  public void testLocalFileConcat() throws IOException {
-    final String srcPath = "/testConcat";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String target = "/target";
-
-    dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(target));
-    //write to DISK
-    FSDataOutputStream out1 = dfs.create(new Path(srcPath + "/" + file1));
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      out1.writeByte(1);
-    }
-    out1.close();
-
-    out1 = dfs.create(new Path(srcPath + "/" + file2));
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      out1.writeByte(2);
-    }
-    out1.close();
-
-    ConcatFileAction concatFileAction = new ConcatFileAction();
-    concatFileAction.setDfsClient(dfsClient);
-    concatFileAction.setContext(smartContext);
-    Map<String, String> args = new HashMap<>();
-    args.put(CopyFileAction.FILE_PATH, srcPath + "/" +
-        file1 + "," + srcPath + "/" + "file2");
-    args.put(ConcatFileAction.DEST_PATH, target);
-    concatFileAction.init(args);
-    concatFileAction.run();
-
-    Assert.assertTrue(concatFileAction.getExpectedAfterRun());
-    Assert.assertTrue(dfsClient.exists(target));
-    //read and check file
-    FSDataInputStream in = dfs.open(new Path(target),50);
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      Assert.assertTrue(in.readByte() == 1);
-    }
-    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
-      Assert.assertTrue(in.readByte() == 2);
-    }
+  private void createFileWithContent(Path path, byte content) throws IOException {
+    byte[] contentBytes = new byte[DEFAULT_BLOCK_SIZE];
+    Arrays.fill(contentBytes, content);
+    DFSTestUtil.writeFile(dfs, path, contentBytes);
   }
 }

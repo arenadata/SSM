@@ -17,11 +17,12 @@
  */
 package org.smartdata.hdfs.action;
 
-import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.hadoop.fs.FileSystem;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.model.FileInfoDiff;
+
+import java.util.Map;
 
 /**
  * action to set MetaData of file
@@ -34,7 +35,7 @@ import org.smartdata.model.FileInfoDiff;
         MetaDataAction.PERMISSION + " $permission " + MetaDataAction.MTIME + " $mtime " +
         MetaDataAction.ATIME + " $atime"
 )
-public class MetaDataAction extends HdfsAction {
+public class MetaDataAction extends HdfsActionWithRemoteClusterSupport {
   public static final String OWNER_NAME = "-owner";
   public static final String GROUP_NAME = "-group";
   public static final String BLOCK_REPLICATION = "-replication";
@@ -66,16 +67,16 @@ public class MetaDataAction extends HdfsAction {
       fileInfoDiff.setPermission(Short.parseShort(args.get(PERMISSION)));
     }
 
-    delegate = new UpdateFileMetadataSupport(
-        getContext().getConf(), getLogPrintStream());
+    delegate = new UpdateFileMetadataSupport(getLogPrintStream());
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (StringUtils.isBlank(fileInfoDiff.getPath())) {
-      throw new IllegalArgumentException("File src is missing.");
-    }
+  protected void preExecute() throws Exception {
+    validateNonEmptyArg(FILE_PATH);
+  }
 
-    delegate.changeFileMetadata(fileInfoDiff);
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    delegate.changeFileMetadata(fileSystem, fileInfoDiff);
   }
 }

@@ -28,15 +28,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.smartdata.SmartContext;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.conf.SmartConfKeys;
 
 import java.io.IOException;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY;
 
 /**
  * A MiniCluster for action test.
  */
 public abstract class MiniClusterHarness {
-  public static int DEFAULT_BLOCK_SIZE = 50;
+  public static final int DEFAULT_BLOCK_SIZE = 50;
+
   protected MiniDFSCluster cluster;
   protected DistributedFileSystem dfs;
   protected DFSClient dfsClient;
@@ -51,8 +55,10 @@ public abstract class MiniClusterHarness {
     SmartConf conf = new SmartConf();
     initConf(conf);
     cluster = createCluster(conf);
+    conf.set(SMART_SERVER_RPC_ADDRESS_KEY,
+        SMART_SERVER_RPC_ADDRESS_DEFAULT);
     // Add namenode URL to smartContext
-    conf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
+    conf.set(SMART_DFS_NAMENODE_RPCSERVER_KEY,
         "hdfs://" + cluster.getNameNode().getNameNodeAddressHostPortString());
     cluster.waitActive();
     dfs = cluster.getFileSystem();
@@ -60,7 +66,7 @@ public abstract class MiniClusterHarness {
     smartContext = new SmartContext(conf);
   }
 
-  static void initConf(Configuration conf) {
+  protected void initConf(Configuration conf) {
     conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, DEFAULT_BLOCK_SIZE);
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, DEFAULT_BLOCK_SIZE);
     conf.setLong(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY, 1L);

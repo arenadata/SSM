@@ -17,8 +17,11 @@
  */
 package org.smartdata.model;
 
-import java.util.Objects;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
+@Data
+@Accessors(chain = true)
 public class FileInfoDiff {
   private String path;
   private Long length;
@@ -29,126 +32,5 @@ public class FileInfoDiff {
   private String owner;
   private String group;
   private Byte erasureCodingPolicy;
-
-  public String getPath() {
-    return path;
-  }
-
-  public FileInfoDiff setPath(String path) {
-    this.path = path;
-    return this;
-  }
-
-  public Long getLength() {
-    return length;
-  }
-
-  public FileInfoDiff setLength(Long length) {
-    this.length = length;
-    return this;
-  }
-
-  public Short getBlockReplication() {
-    return blockReplication;
-  }
-
-  public FileInfoDiff setBlockReplication(Short blockReplication) {
-    this.blockReplication = blockReplication;
-    return this;
-  }
-
-  public Long getModificationTime() {
-    return modificationTime;
-  }
-
-  public FileInfoDiff setModificationTime(Long modificationTime) {
-    this.modificationTime = modificationTime;
-    return this;
-  }
-
-  public Long getAccessTime() {
-    return accessTime;
-  }
-
-  public FileInfoDiff setAccessTime(Long accessTime) {
-    this.accessTime = accessTime;
-    return this;
-  }
-
-  public Short getPermission() {
-    return permission;
-  }
-
-  public FileInfoDiff setPermission(Short permission) {
-    this.permission = permission;
-    return this;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public FileInfoDiff setOwner(String owner) {
-    this.owner = owner;
-    return this;
-  }
-
-  public String getGroup() {
-    return group;
-  }
-
-  public FileInfoDiff setGroup(String group) {
-    this.group = group;
-    return this;
-  }
-
-  public Byte getErasureCodingPolicy() {
-    return erasureCodingPolicy;
-  }
-
-  public FileInfoDiff setErasureCodingPolicy(Byte erasureCodingPolicy) {
-    this.erasureCodingPolicy = erasureCodingPolicy;
-    return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    FileInfoDiff that = (FileInfoDiff) o;
-    return Objects.equals(path, that.path)
-        && Objects.equals(length, that.length)
-        && Objects.equals(blockReplication, that.blockReplication)
-        && Objects.equals(modificationTime, that.modificationTime)
-        && Objects.equals(accessTime, that.accessTime)
-        && Objects.equals(permission, that.permission)
-        && Objects.equals(owner, that.owner)
-        && Objects.equals(group, that.group)
-        && Objects.equals(erasureCodingPolicy, that.erasureCodingPolicy);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(path, length, blockReplication,
-        modificationTime, accessTime, permission, owner, group, erasureCodingPolicy);
-  }
-
-  @Override
-  public String toString() {
-    return "FileInfoDiff{"
-        + "path='" + path + '\''
-        + ", length=" + length
-        + ", blockReplication=" + blockReplication
-        + ", modificationTime=" + modificationTime
-        + ", accessTime=" + accessTime
-        + ", permission=" + permission
-        + ", owner='" + owner + '\''
-        + ", group='" + group + '\''
-        + ", erasureCodingPolicy=" + erasureCodingPolicy
-        + '}';
-  }
+  private Byte storagePolicy;
 }

@@ -17,12 +17,14 @@
  */
 package org.smartdata.server.engine.data;
 
+import io.micrometer.core.instrument.Counter;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.metastore.accesscount.AccessEventAggregator;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventCollector;
+import org.smartdata.metrics.MetricsFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,12 +47,14 @@ public class AccessEventFetcher {
       Configuration conf,
       AccessEventAggregator accessEventAggregator,
       ScheduledExecutorService service,
-      FileAccessEventCollector collector) {
+      FileAccessEventCollector collector,
+      MetricsFactory metricsFactory) {
     this.fetchInterval = conf.getLong(
         SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_KEY,
         SMART_ACCESS_EVENT_FETCH_INTERVAL_MS_DEFAULT
     );
-    this.fetchTask = new FetchTask(accessEventAggregator, collector);
+    Counter eventsCounter = metricsFactory.counter("access-events-count");
+    this.fetchTask = new FetchTask(accessEventAggregator, collector, eventsCounter);
     this.scheduledExecutorService = service;
   }
 
@@ -68,11 +72,13 @@ public class AccessEventFetcher {
   private static class FetchTask implements Runnable {
     private final AccessEventAggregator accessEventAggregator;
     private final FileAccessEventCollector collector;
+    private final Counter eventsCounter;
 
     public FetchTask(AccessEventAggregator accessEventAggregator,
-                     FileAccessEventCollector collector) {
+                     FileAccessEventCollector collector, Counter eventsCounter) {
       this.accessEventAggregator = accessEventAggregator;
       this.collector = collector;
+      this.eventsCounter = eventsCounter;
     }
 
     @Override
@@ -80,6 +86,7 @@ public class AccessEventFetcher {
       try {
         List<FileAccessEvent> events = this.collector.collect();
         if (!events.isEmpty()) {
+          eventsCounter.increment(events.size());
           accessEventAggregator.aggregate(events);
         }
       } catch (IOException e) {

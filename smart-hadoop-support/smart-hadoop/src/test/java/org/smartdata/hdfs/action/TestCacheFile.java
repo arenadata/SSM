@@ -48,14 +48,14 @@ public class TestCacheFile extends MiniClusterHarness {
 
     CacheFileAction cacheAction = new CacheFileAction();
     cacheAction.setContext(smartContext);
-    cacheAction.setDfsClient(dfsClient);
-    Map<String, String> args = new HashMap();
+    cacheAction.setLocalFileSystem(dfs);
+    Map<String, String> args = new HashMap<>();
     args.put(CacheFileAction.FILE_PATH, file);
     cacheAction.init(args);
     try {
-      Assert.assertFalse(cacheAction.isCached(file));
+      Assert.assertFalse(cacheAction.isFileCached());
       cacheAction.run();
-      Assert.assertTrue(cacheAction.isCached(file));
+      Assert.assertTrue(cacheAction.isFileCached());
       Assert.assertTrue(cacheAction.getExpectedAfterRun());
     } catch (Exception e) {
       throw new RuntimeException(e);

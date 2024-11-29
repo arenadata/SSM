@@ -17,22 +17,19 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * action to Merge File
@@ -43,89 +40,54 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + "  $src " + MergeFileAction.DEST_PATH + " $dest " +
         MergeFileAction.BUF_SIZE + " $size"
 )
-public class MergeFileAction extends HdfsAction {
-  private static final Logger LOG = LoggerFactory.getLogger(MergeFileAction.class);
+public class MergeFileAction extends HdfsActionWithRemoteClusterSupport {
   public static final String DEST_PATH = "-dest";
   public static final String BUF_SIZE = "-bufSize";
-  private LinkedList<String> srcPathList;
-  private int bufferSize = 64 * 1024;
-  private String target;
 
+  public static final int DEFAULT_BUF_SIZE = 64 * 1024;
+
+  private List<Path> srcPaths;
+  private Path target;
+  private int bufferSize;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    String allSrcPath = args.get(FILE_PATH);
+    this.srcPaths = Optional.ofNullable(args.get(FILE_PATH))
+        .map(paths -> paths.split(","))
+        .map(Arrays::stream)
+        .orElseGet(Stream::empty)
+        .map(Path::new)
+        .collect(Collectors.toList());
 
-    String[] allSrcPathArr = allSrcPath.split(",");
-    srcPathList = new LinkedList<String>(Arrays.asList(allSrcPathArr));
+    this.target = getPathArg(DEST_PATH);
+    this.bufferSize = isArgPresent(BUF_SIZE)
+        ? Integer.parseInt(args.get(BUF_SIZE))
+        : DEFAULT_BUF_SIZE;
+  }
 
-    if (args.containsKey(DEST_PATH)) {
-      this.target = args.get(DEST_PATH);
-    }
-    if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.valueOf(args.get(BUF_SIZE));
+  @Override
+  protected void preExecute() throws Exception {
+    validateNonEmptyArgs(FILE_PATH, DEST_PATH);
+    if (srcPaths.size() == 1) {
+      throw new IllegalArgumentException("Don't accept only one source file");
     }
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (srcPathList == null || srcPathList.size() == 0) {
-      throw new IllegalArgumentException("File parameter is missing.");
-    }
-    if (target == null) {
-      throw new IllegalArgumentException("Dest File parameter is missing.");
-    }
-    if (srcPathList.size() == 1) {
-      throw new IllegalArgumentException("Don't accept only one source file");
-    }
-
-    appendLog(
-        String.format("Action starts at %s : Merge %s to %s",
-            Utils.getFormatedCurrentTime(), srcPathList, target));
-
-    //Merge
-    mergeFiles(srcPathList,target);
-  }
-
-  private boolean mergeFiles(LinkedList<String> srcFiles, String dest) throws IOException {
-    InputStream srcInputStream = null;
-    OutputStream destInputStream = getTargetOutputStream(dest);
-    for (String srcEle : srcPathList) {
-      srcInputStream = getSourceInputStream(srcEle);
-      IOUtils.copyBytes(srcInputStream, destInputStream, bufferSize, false);
-      IOUtils.closeStream(srcInputStream);
-    }
-    IOUtils.closeStream(destInputStream);
-    return true;
-  }
-
-  private InputStream getSourceInputStream(String src) throws IOException {
-    if (src.startsWith("hdfs")) {
-      //get stream of source
-      // TODO read conf from files
-      Configuration conf = new Configuration();
-      FileSystem fs = FileSystem.get(URI.create(src), conf);
-      return fs.open(new Path(src));
-    } else {
-      return dfsClient.open(src);
-    }
-  }
-
-  private OutputStream getTargetOutputStream(String dest) throws IOException {
-    if (dest.startsWith("hdfs")) {
-      // TODO read conf from files
-      Configuration conf = new Configuration();
-      FileSystem fs = FileSystem.get(URI.create(dest), conf);
-      if (fs.exists(new Path(target))) {
-        fs.delete(new Path(target), true);
+  protected void execute(FileSystem fileSystem) throws Exception {
+    try (OutputStream destInputStream = fileSystem.create(target, true)) {
+      for (Path srcPath : srcPaths) {
+        try (InputStream srcInputStream = getFileSystemFor(srcPath).open(srcPath)) {
+          IOUtils.copyBytes(srcInputStream,
+              destInputStream, bufferSize, false);
+        }
       }
-      return fs.create(new Path(dest), true);
-    } else {
-      if (dfsClient.exists(target)) {
-        dfsClient.delete(target, true);
-      }
-      return dfsClient.create(dest, true);
     }
+  }
+
+  @Override
+  protected Path getTargetFile() {
+    return target;
   }
 }

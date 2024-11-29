@@ -21,7 +21,7 @@ import ActionCreateBtn from './ActionCreateBtn/ActionCreateBtn';
 import ActionsToolbar from './ActionsToolbar/ActionsToolbar';
 import ActionsTable from './ActionsTable/ActionsTable';
 import { useRequestActions } from '@pages/ActionsPage/useRequestActions';
-import ActionsDialogs from './ActionsDialogs/ActionsDialogs';
+import ActionsDialogs from '@commonComponents/Action/ActionsDialogs/ActionsDialogs';
 
 const ActionsPage: React.FC = () => {
   useRequestActions();

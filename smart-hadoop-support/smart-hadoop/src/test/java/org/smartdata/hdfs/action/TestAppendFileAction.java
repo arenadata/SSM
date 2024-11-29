@@ -35,7 +35,7 @@ public class TestAppendFileAction extends MiniClusterHarness {
     args.put(AppendFileAction.FILE_PATH, src);
     args.put(AppendFileAction.LENGTH, "" + length);
     AppendFileAction appendFileAction = new AppendFileAction();
-    appendFileAction.setDfsClient(dfsClient);
+    appendFileAction.setLocalFileSystem(dfs);
     appendFileAction.setContext(smartContext);
     appendFileAction.init(args);
     appendFileAction.run();

@@ -17,12 +17,16 @@
  */
 package org.smartdata;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.smartdata.conf.SmartConf;
 
 
 /**
  * SSM context for running an action.
  */
+@Setter
+@Getter
 public class SmartContext {
 
   private SmartConf conf;
@@ -35,11 +39,4 @@ public class SmartContext {
     this.conf = conf;
   }
 
-  public SmartConf getConf() {
-    return conf;
-  }
-
-  public void setConf(SmartConf conf) {
-    this.conf = conf;
-  }
 }

@@ -1,0 +1,8 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,heapdump,metrics,threaddump,env
+  health:
+    ldap:
+      enabled: false

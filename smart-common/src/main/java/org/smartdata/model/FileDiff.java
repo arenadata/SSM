@@ -17,14 +17,16 @@
  */
 package org.smartdata.model;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 
+@Data
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class FileDiff {
   private long diffId;
   private long ruleId;
@@ -51,119 +53,7 @@ public class FileDiff {
     this.state = state;
   }
 
-  public long getDiffId() {
-    return diffId;
-  }
-
-  public void setDiffId(long diffId) {
-    this.diffId = diffId;
-  }
-
-  public long getRuleId() {
-    return ruleId;
-  }
-
-  public void setRuleId(long ruleId) {
-    this.ruleId = ruleId;
-  }
-
-  public FileDiffType getDiffType() {
-    return diffType;
-  }
-
-  public void setDiffType(FileDiffType diffType) {
-    this.diffType = diffType;
-  }
-
-  public String getSrc() {
-    return src;
-  }
-
-  public void setSrc(String src) {
-    this.src = src;
-  }
-
-  public Map<String, String> getParameters() {
-    return parameters;
-  }
-
-  public void setParameters(Map<String, String>  parameters) {
-    this.parameters = parameters;
-  }
-
   public void setParameter(String key, String value) {
     parameters.put(key, value);
-  }
-
-  public String getParametersJsonString() {
-    Gson gson = new Gson();
-    return gson.toJson(parameters);
-  }
-
-  public void setParametersFromJsonString(String jsonParameters) {
-    Gson gson = new Gson();
-    parameters = gson.fromJson(jsonParameters,
-        new TypeToken<Map<String, String>>() {
-        }.getType());
-  }
-
-  public String getParametersString() {
-    StringBuffer ret = new StringBuffer();
-    if (parameters.containsKey("-dest")) {
-      ret.append(String.format(" -dest %s", parameters.get("-dest")));
-      parameters.remove("-dest");
-    }
-    for (Iterator<Map.Entry<String, String>> it = parameters.entrySet().iterator(); it.hasNext();) {
-      Map.Entry<String, String> entry = it.next();
-        ret.append(String.format(" %s %s", entry.getKey(), entry.getValue()));
-    }
-    return ret.toString();
-  }
-
-
-  public FileDiffState getState() {
-    return state;
-  }
-
-  public void setState(FileDiffState state) {
-    this.state = state;
-  }
-
-  public long getCreateTime() {
-    return createTime;
-  }
-
-  public void setCreateTime(long createTime) {
-    this.createTime = createTime;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    FileDiff fileDiff = (FileDiff) o;
-    return diffId == fileDiff.diffId
-        && ruleId == fileDiff.ruleId
-        && createTime == fileDiff.createTime
-        && diffType == fileDiff.diffType
-        && Objects.equals(src, fileDiff.src)
-        && Objects.equals(parameters, fileDiff.parameters)
-        && state == fileDiff.state;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(diffId, ruleId, diffType, src, parameters, state, createTime);
-  }
-
-  @Override
-  public String toString() {
-    return String.format(
-        "FileDiff{diffId=%s, parameters=%s, src=%s, diffType=%s, state=%s, createTime=%s}",
-        diffId, parameters, src, diffType, state.getValue(), createTime);
   }
 }

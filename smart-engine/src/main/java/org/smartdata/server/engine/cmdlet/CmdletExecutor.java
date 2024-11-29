@@ -22,15 +22,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.CmdletState;
 import org.smartdata.protocol.message.ActionStatus;
 import org.smartdata.protocol.message.StatusReport;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,45 +39,42 @@ import java.util.concurrent.Future;
 //Todo: 1. make this a interface so that we could have different executor implementation
 //      2. add api providing available resource
 public class CmdletExecutor {
-  static final Logger LOG = LoggerFactory.getLogger(CmdletExecutor.class);
+  private final Map<Long, Future<?>> listenableFutures;
+  private final Map<Long, Cmdlet> runningCmdlets;
+  private final Map<Long, Cmdlet> idToReportCmdlet;
 
-  private final SmartConf smartConf;
-  private Map<Long, Future> listenableFutures;
-  private Map<Long, Cmdlet> runningCmdlets;
-  private Map<Long, Cmdlet> idToReportCmdlet;
-
-  private ListeningExecutorService executorService;
+  private final ListeningExecutorService executorService;
 
   public CmdletExecutor(SmartConf smartConf) {
-    this.smartConf = smartConf;
     this.listenableFutures = new ConcurrentHashMap<>();
     this.runningCmdlets = new ConcurrentHashMap<>();
     this.idToReportCmdlet = new ConcurrentHashMap<>();
-    int nThreads =
+    int cmdletExecutorsNum =
         smartConf.getInt(
             SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY,
             SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT);
-    this.executorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(nThreads));
+    this.executorService = MoreExecutors.listeningDecorator(
+        Executors.newFixedThreadPool(cmdletExecutorsNum));
   }
 
   public void execute(Cmdlet cmdlet) {
-    ListenableFuture<?> future = this.executorService.submit(cmdlet);
+    ListenableFuture<?> future = executorService.submit(cmdlet);
     Futures.addCallback(future, new CmdletCallBack(cmdlet), executorService);
-    this.listenableFutures.put(cmdlet.getId(), future);
-    this.runningCmdlets.put(cmdlet.getId(), cmdlet);
+    listenableFutures.put(cmdlet.getId(), future);
+    runningCmdlets.put(cmdlet.getId(), cmdlet);
     idToReportCmdlet.put(cmdlet.getId(), cmdlet);
   }
 
   public void stop(Long cmdletId) {
-    if (this.listenableFutures.containsKey(cmdletId)) {
+    if (listenableFutures.containsKey(cmdletId)) {
       runningCmdlets.get(cmdletId).setState(CmdletState.FAILED);
-      this.listenableFutures.get(cmdletId).cancel(true);
+      listenableFutures.get(cmdletId).cancel(true);
     }
     removeCmdlet(cmdletId);
   }
 
   public void shutdown() {
-    this.executorService.shutdown();
+    executorService.shutdown();
   }
 
   public StatusReport getStatusReport() {
@@ -92,15 +86,11 @@ public class CmdletExecutor {
     Iterator<Cmdlet> iter = idToReportCmdlet.values().iterator();
     while (iter.hasNext()) {
       Cmdlet cmdlet = iter.next();
-      try {
-        List<ActionStatus> statuses = cmdlet.getActionStatuses();
-        if (statuses != null) {
-          actionStatusList.addAll(statuses);
-        } else {
-          iter.remove();
-        }
-      } catch (UnsupportedEncodingException e) {
-        LOG.error("Get actionStatus for cmdlet [id={}] error", cmdlet.getId(), e);
+      List<ActionStatus> statuses = cmdlet.getActionStatuses();
+      if (statuses != null) {
+        actionStatusList.addAll(statuses);
+      } else {
+        iter.remove();
       }
     }
 
@@ -108,8 +98,8 @@ public class CmdletExecutor {
   }
 
   private void removeCmdlet(long cmdletId) {
-    this.runningCmdlets.remove(cmdletId);
-    this.listenableFutures.remove(cmdletId);
+    runningCmdlets.remove(cmdletId);
+    listenableFutures.remove(cmdletId);
   }
 
   private class CmdletCallBack implements FutureCallback<Object> {

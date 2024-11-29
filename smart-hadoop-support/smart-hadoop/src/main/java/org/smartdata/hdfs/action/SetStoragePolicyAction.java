@@ -17,31 +17,39 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Map;
 
 /** Set storage policy */
 @ActionSignature(
-  actionId = "setstoragepolicy",
-  displayName = "setstoragepolicy",
-  usage = HdfsAction.FILE_PATH + " $file " + SetStoragePolicyAction.STORAGE_POLICY + " $policy"
+    actionId = "setstoragepolicy",
+    displayName = "setstoragepolicy",
+    usage = HdfsAction.FILE_PATH + " $file "
+        + SetStoragePolicyAction.STORAGE_POLICY + " $policy"
 )
-public class SetStoragePolicyAction extends HdfsAction {
+public class SetStoragePolicyAction extends HdfsActionWithRemoteClusterSupport {
   public static final String STORAGE_POLICY = "-storagePolicy";
 
-  private String fileName;
+  private Path filePath;
   private String storagePolicy;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.fileName = args.get(FILE_PATH);
+    this.filePath = getPathArg(FILE_PATH);
     this.storagePolicy = args.get(STORAGE_POLICY);
   }
 
   @Override
-  protected void execute() throws Exception {
-    dfsClient.setStoragePolicy(fileName, storagePolicy);
+  protected void preExecute() {
+    validateNonEmptyArg(FILE_PATH);
+  }
+
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    fileSystem.setStoragePolicy(filePath, storagePolicy);
   }
 }

@@ -61,7 +61,7 @@ public class TestAccessEventAggregator extends TestDaoBase {
     aggregator =
         new DbAccessEventAggregator(metaStore.fileInfoDao(),
             dbTableManager, new Failover<AccessCountContext>(){});
-    metaStore.fileInfoDao().insert(testFileInfos());
+    metaStore.fileInfoDao().insert(testFileInfos(), false);
   }
 
   @Test
@@ -106,7 +106,7 @@ public class TestAccessEventAggregator extends TestDaoBase {
   }
 
   private FileInfo dummyFileInfo(String path, long fileId) {
-    return FileInfo.newBuilder()
+    return FileInfo.builder()
         .setPath(path)
         .setFileId(fileId)
         .build();

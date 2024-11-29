@@ -57,9 +57,26 @@ export const secondsToDuration = (seconds: number) => {
 };
 
 export const millisecondsToDuration = (milliseconds: number) => {
-  const curDate = new Date(0);
+  if (milliseconds < 1000) {
+    return `${milliseconds}ms`;
+  }
 
-  return dateDuration(curDate, new Date(curDate.getTime() + milliseconds));
+  // If duration is more than 1,000 ms
+  const days = Math.floor(milliseconds / 86400000); // 1 day = 86,400,000 ms
+  const hours = Math.floor((milliseconds % 86400000) / 3600000); // 1 hour = 3,600,000 ms
+  const minutes = Math.floor((milliseconds % 3600000) / 60000); // 1 minute = 60,000 ms
+  const seconds = Math.floor((milliseconds % 60000) / 1000); // 1 second = 1,000 ms
+  const ms = milliseconds % 1000;
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  } else if (seconds > 0) {
+    return `${seconds}s ${ms}ms`;
+  }
 };
 
 export const millisecondsToDate = (milliseconds: number): Date => {

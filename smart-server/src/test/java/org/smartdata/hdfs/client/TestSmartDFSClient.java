@@ -51,7 +51,7 @@ public class TestSmartDFSClient extends MiniSmartClusterHarness {
     }
     // Compact small files
     SmallFileCompactAction smallFileCompactAction = new SmallFileCompactAction();
-    smallFileCompactAction.setDfsClient(dfsClient);
+    smallFileCompactAction.setLocalFileSystem(dfs);
     smallFileCompactAction.setContext(smartContext);
     Map<String , String> args = new HashMap<>();
     List<String> smallFileList = new ArrayList<>();

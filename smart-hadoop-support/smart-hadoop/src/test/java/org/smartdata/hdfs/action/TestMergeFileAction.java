@@ -20,10 +20,14 @@ package org.smartdata.hdfs.action;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runners.Parameterized;
 import org.smartdata.hdfs.MiniClusterHarness;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,80 +36,38 @@ import java.util.Map;
  */
 public class TestMergeFileAction extends MiniClusterHarness {
 
-  @Test
-  public void testLocalFileMerge() throws Exception {
-    final String srcPath = "/testMerge";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String target = "/target";
+  @Parameterized.Parameter
+  public boolean useAbsolutePath;
 
-    dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(target));
-    //write to DISK
-    //write 40 Bytes to file1 and 50 Byte to file2. then concat them
-    FSDataOutputStream out1 = dfs.create(new Path(srcPath + "/" + file1));
-    for (int i = 0; i < 60; i++) {
-      out1.writeByte(1);
-    }
-    out1.close();
-
-    out1 = dfs.create(new Path(srcPath + "/" + file2));
-    for (int i = 0; i < 50; i++) {
-      out1.writeByte(2);
-    }
-    out1.close();
-
-    MergeFileAction mergeFileAction = new MergeFileAction();
-    mergeFileAction.setDfsClient(dfsClient);
-    mergeFileAction.setContext(smartContext);
-    Map<String, String> args = new HashMap<>();
-    args.put(MergeFileAction.FILE_PATH, srcPath + "/" +
-        file1 + "," + dfs.getUri() + srcPath + "/" + "file2");
-    args.put(MergeFileAction.DEST_PATH, target);
-    mergeFileAction.init(args);
-    mergeFileAction.run();
-
-    Assert.assertTrue(mergeFileAction.getExpectedAfterRun());
-    Assert.assertTrue(dfsClient.exists(target));
-    //read and check file
-    FSDataInputStream in = dfs.open(new Path(target),50);
-    for (int i = 0; i < 60; i++) {
-      Assert.assertTrue(in.readByte() == 1);
-    }
-    for (int i = 0; i < 50; i++) {
-      Assert.assertTrue(in.readByte() == 2);
-    }
+  @Parameterized.Parameters(name = "useAbsolutePath = {0}")
+  public static Object[] parameters() {
+    return new Object[]{true, false};
   }
 
   @Test
-  public void testRemoteFileMerge() throws Exception {
-    final String srcPath = "/testMerge";
-    final String file1 = "file1";
-    final String file2 = "file2";
-    final String target = "/target";
+  public void testFileMerge() throws IOException {
+    String srcPath = "/testConcat";
+    Path file1 = new Path(srcPath, "file1");
+    Path file2 = new Path(srcPath, "file2");
+    String target = "/target";
+
+    if (useAbsolutePath) {
+      file1 = dfs.makeQualified(file1);
+      file2 = dfs.makeQualified(file2);
+    }
 
     dfs.mkdirs(new Path(srcPath));
-    dfs.mkdirs(new Path(target));
+    DFSTestUtil.writeFile(dfs, new Path(target), "");
     //write to DISK
-    //write 40 Bytes to file1 and 50 Byte to file2. then concat them
-    FSDataOutputStream out1 = dfs.create(new Path(srcPath + "/" + file1));
-    for (int i = 0; i < 60; i++) {
-      out1.writeByte(1);
-    }
-    out1.close();
-
-    out1 = dfs.create(new Path(srcPath + "/" + file2));
-    for (int i = 0; i < 50; i++) {
-      out1.writeByte(2);
-    }
-    out1.close();
+    //write 50 Bytes to file1 and 50 Byte to file2. then concat them
+    createFileWithContent(file1, (byte) 1);
+    createFileWithContent(file2, (byte) 2);
 
     MergeFileAction mergeFileAction = new MergeFileAction();
-    mergeFileAction.setDfsClient(dfsClient);
+    mergeFileAction.setLocalFileSystem(dfs);
     mergeFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
-    args.put(MergeFileAction.FILE_PATH, dfs.getUri() + srcPath + "/" +
-        file1 + "," + dfs.getUri() + srcPath + "/" + "file2");
+    args.put(MergeFileAction.FILE_PATH, file1 + "," + file2);
     args.put(MergeFileAction.DEST_PATH, dfs.getUri() + target);
     mergeFileAction.init(args);
     mergeFileAction.run();
@@ -113,12 +75,18 @@ public class TestMergeFileAction extends MiniClusterHarness {
     Assert.assertTrue(mergeFileAction.getExpectedAfterRun());
     Assert.assertTrue(dfsClient.exists(target));
     //read and check file
-    FSDataInputStream in = dfs.open(new Path(target),50);
-    for (int i = 0; i < 60; i++) {
-      Assert.assertTrue(in.readByte() == 1);
+    FSDataInputStream in = dfs.open(new Path(target), 50);
+    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
+      Assert.assertEquals(1, in.readByte());
     }
-    for (int i = 0; i < 50; i++) {
-      Assert.assertTrue(in.readByte() == 2);
+    for (int i = 0; i < DEFAULT_BLOCK_SIZE; i++) {
+      Assert.assertEquals(2, in.readByte());
     }
+  }
+
+  private void createFileWithContent(Path path, byte content) throws IOException {
+    byte[] contentBytes = new byte[DEFAULT_BLOCK_SIZE];
+    Arrays.fill(contentBytes, content);
+    DFSTestUtil.writeFile(dfs, path, contentBytes);
   }
 }

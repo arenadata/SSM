@@ -17,23 +17,56 @@
  */
 package org.smartdata.hdfs.action;
 
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.smartdata.action.SmartAction;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.model.CmdletDescriptor;
+
+import java.io.IOException;
+import java.util.Optional;
+
+import static org.smartdata.utils.PathUtil.getRemoteFileSystem;
+import static org.smartdata.utils.PathUtil.isAbsoluteRemotePath;
+
 
 /**
  * Base class for all HDFS actions.
  */
+@Setter
 public abstract class HdfsAction extends SmartAction {
   public static final String FILE_PATH = CmdletDescriptor.HDFS_FILE_PATH;
-  // SmartDFSClient
-  protected DFSClient dfsClient = null;
 
-  public void setDfsClient(DFSClient dfsClient) {
-    this.dfsClient = dfsClient;
+  protected DistributedFileSystem localFileSystem;
+
+  public enum FsType {
+    SMART,
+    DEFAULT_HDFS
+  }
+
+  public FsType localFsType() {
+    return FsType.SMART;
+  }
+
+  @Override
+  protected void preRun() throws Exception {
+    super.preRun();
+    withDefaultFs();
+  }
+
+  protected DFSClient getLocalDfsClient() {
+    return Optional.ofNullable(localFileSystem)
+        .map(DistributedFileSystem::getClient)
+        .orElse(null);
   }
 
   protected void withDefaultFs() {
@@ -42,12 +75,48 @@ public abstract class HdfsAction extends SmartAction {
     conf.set(DFSConfigKeys.FS_DEFAULT_NAME_KEY, nameNodeURL);
   }
 
-  public DfsClientType dfsClientType() {
-    return DfsClientType.SMART;
+  protected void validateNonEmptyArgs(String... keys) {
+    for (String key : keys) {
+      validateNonEmptyArg(key);
+    }
   }
 
-  public enum DfsClientType {
-    SMART,
-    DEFAULT_HDFS
+  protected void validateNonEmptyArg(String key) {
+    if (StringUtils.isBlank(getArguments().get(key))) {
+      throw new IllegalArgumentException(key + " parameter is missing.");
+    }
+  }
+
+  protected SmartConf getConf() {
+    return getContext().getConf();
+  }
+
+  protected Path getPathArg(String key) {
+    return Optional.ofNullable(getArguments().get(key))
+        .filter(StringUtils::isNotBlank)
+        .map(Path::new)
+        .orElse(null);
+  }
+
+  protected FileSystem getFileSystemFor(Path path) throws IOException {
+    return isAbsoluteRemotePath(path)
+        ? getRemoteFileSystem(path, getConf())
+        : localFileSystem;
+  }
+
+  protected boolean isArgPresent(String key) {
+    return StringUtils.isNotBlank(getArguments().get(key));
+  }
+
+  protected Optional<FileStatus> getFileStatus(FileSystem fileSystem, Path path) throws IOException {
+    try {
+      return Optional.of(fileSystem.getFileStatus(path));
+    } catch (IOException e) {
+      return Optional.empty();
+    }
+  }
+
+  protected Optional<HdfsFileStatus> getHdfsFileStatus(FileSystem fileSystem, Path path) throws IOException {
+    return getFileStatus(fileSystem, path).map(HdfsFileStatus.class::cast);
   }
 }

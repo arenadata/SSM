@@ -17,6 +17,8 @@
  */
 package org.smartdata.metastore.dao.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.FileDiffDao;
@@ -29,6 +31,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import javax.sql.DataSource;
 
+import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +43,11 @@ import java.util.stream.Collectors;
 
 public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   private static final String TABLE_NAME = "file_diff";
+
+  private static final Gson DIFF_PARAMS_SERIALIZER = new Gson();
+  private static final Type DIFF_PARAMS_TYPE =
+      new TypeToken<Map<String, String>>() {}.getType();
+
   public String uselessFileDiffStates;
 
   public DefaultFileDiffDao(DataSource dataSource) {
@@ -225,7 +233,7 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
 
   @Override
   public int update(long did, FileDiffState state,
-                    String parameters) {
+      String parameters) {
     String sql = "UPDATE " + TABLE_NAME + " SET state = ?, "
         + "parameters = ? WHERE did = ?";
     return jdbcTemplate.update(sql, state.getValue(), parameters, did);
@@ -245,12 +253,13 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
         new BatchPreparedStatementSetter() {
           @Override
           public void setValues(PreparedStatement ps,
-                                int i) throws SQLException {
+              int i) throws SQLException {
             FileDiff fileDiff = fileDiffs.get(i);
             ps.setLong(1, fileDiff.getRuleId());
             ps.setInt(2, fileDiff.getDiffType().getValue());
             ps.setString(3, fileDiff.getSrc());
-            ps.setString(4, fileDiff.getParametersJsonString());
+            ps.setString(4,
+                DIFF_PARAMS_SERIALIZER.toJson(fileDiff.getParameters()));
             ps.setInt(5, fileDiff.getState().getValue());
             ps.setLong(6, fileDiff.getCreateTime());
             ps.setLong(7, fileDiff.getDiffId());
@@ -275,7 +284,8 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
         + "WHERE did = ?";
     return jdbcTemplate.update(sql, fileDiff.getRuleId(),
         fileDiff.getDiffType().getValue(), fileDiff.getSrc(),
-        fileDiff.getParametersJsonString(), fileDiff.getState().getValue(),
+        DIFF_PARAMS_SERIALIZER.toJson(fileDiff.getParameters()),
+        fileDiff.getState().getValue(),
         fileDiff.getCreateTime(), fileDiff.getDiffId());
   }
 
@@ -287,13 +297,13 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
   }
 
   private Map<String, Object> toMap(FileDiff fileDiff) {
-    // System.out.println(fileDiff.getDiffType());
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("did", fileDiff.getDiffId());
     parameters.put("rid", fileDiff.getRuleId());
     parameters.put("diff_type", fileDiff.getDiffType().getValue());
     parameters.put("src", fileDiff.getSrc());
-    parameters.put("parameters", fileDiff.getParametersJsonString());
+    parameters.put("parameters",
+        DIFF_PARAMS_SERIALIZER.toJson(fileDiff.getParameters()));
     parameters.put("state", fileDiff.getState().getValue());
     parameters.put("create_time", fileDiff.getCreateTime());
     return parameters;
@@ -305,10 +315,11 @@ public class DefaultFileDiffDao extends AbstractDao implements FileDiffDao {
       FileDiff fileDiff = new FileDiff();
       fileDiff.setDiffId(resultSet.getLong("did"));
       fileDiff.setRuleId(resultSet.getLong("rid"));
-      fileDiff.setDiffType(FileDiffType.fromValue((int) resultSet.getByte("diff_type")));
+      fileDiff.setDiffType(FileDiffType.fromValue(resultSet.getByte("diff_type")));
       fileDiff.setSrc(resultSet.getString("src"));
-      fileDiff.setParametersFromJsonString(resultSet.getString("parameters"));
-      fileDiff.setState(FileDiffState.fromValue((int) resultSet.getByte("state")));
+      fileDiff.setParameters(DIFF_PARAMS_SERIALIZER.fromJson(
+          resultSet.getString("parameters"), DIFF_PARAMS_TYPE));
+      fileDiff.setState(FileDiffState.fromValue(resultSet.getByte("state")));
       fileDiff.setCreateTime(resultSet.getLong("create_time"));
       return fileDiff;
     }

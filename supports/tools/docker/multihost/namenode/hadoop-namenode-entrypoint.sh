@@ -3,7 +3,7 @@
 . ./common.sh
 
 service ssh start
-ssh-keyscan ssm-server >> /root/.ssh/known_hosts
+ssh-keyscan ssm-server.demo >> /root/.ssh/known_hosts
 echo "export JAVA_HOME=${JAVA_HOME}" >> /root/.bashrc
 
 namedir=`echo $HDFS_CONF_dfs_namenode_name_dir | perl -pe 's#file://##'`

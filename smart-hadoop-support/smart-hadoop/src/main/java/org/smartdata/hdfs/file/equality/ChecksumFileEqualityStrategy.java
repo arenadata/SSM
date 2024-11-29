@@ -17,8 +17,6 @@
  */
 package org.smartdata.hdfs.file.equality;
 
-import java.io.IOException;
-import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileChecksum;
 import org.apache.hadoop.fs.FileStatus;
@@ -29,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.model.FileInfo;
 
-import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
+import java.io.IOException;
+import java.util.Optional;
+
+import static org.smartdata.utils.PathUtil.getRemoteFileSystem;
 import static org.smartdata.utils.PathUtil.isAbsoluteRemotePath;
 
 public class ChecksumFileEqualityStrategy implements FileEqualityStrategy {
@@ -46,7 +47,7 @@ public class ChecksumFileEqualityStrategy implements FileEqualityStrategy {
 
   private FileSystem getFileSystem(Path path, Configuration conf) throws IOException {
     return isAbsoluteRemotePath(path)
-        ? path.getFileSystem(toRemoteClusterConfig(conf))
+        ? getRemoteFileSystem(path, conf)
         : FileSystem.get(HadoopUtil.getNameNodeUri(conf), conf);
   }
 

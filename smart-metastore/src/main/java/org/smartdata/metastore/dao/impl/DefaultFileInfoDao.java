@@ -24,11 +24,13 @@ import org.smartdata.model.FileInfoDiff;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import javax.sql.DataSource;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -101,13 +103,21 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
   }
 
   @Override
-  public void insert(FileInfo fileInfo) {
-    insert(fileInfo, this::toMap);
+  public void insert(FileInfo fileInfo, boolean generateId) {
+    SimpleJdbcInsert simpleJdbcInsert = simpleJdbcInsert();
+    if (generateId) {
+      simpleJdbcInsert.usingGeneratedKeyColumns("fid");
+    }
+    simpleJdbcInsert.execute(toMap(fileInfo));
   }
 
   @Override
-  public void insert(FileInfo[] fileInfos) {
-    insert(fileInfos, this::toMap);
+  public void insert(FileInfo[] fileInfos, boolean generateId) {
+    SimpleJdbcInsert simpleJdbcInsert = simpleJdbcInsert();
+    if (generateId) {
+      simpleJdbcInsert.usingGeneratedKeyColumns("fid");
+    }
+    insert(simpleJdbcInsert, Arrays.asList(fileInfos), this::toMap);
   }
 
   @Override
@@ -128,7 +138,7 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
   }
 
   @Override
-  public void deleteByPath(String path,  boolean recursive) {
+  public void deleteByPath(String path, boolean recursive) {
     String sql = "DELETE FROM file WHERE path = ?";
     jdbcTemplate.update(sql, path);
     if (recursive) {
@@ -171,6 +181,7 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
         .put("owner_group", fileInfo.getGroup());
     parameters.put("permission", fileInfo.getPermission());
     parameters.put("ec_policy_id", fileInfo.getErasureCodingPolicy());
+    parameters.put("sid", fileInfo.getStoragePolicy());
     return parameters;
   }
 
@@ -180,10 +191,10 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
     parameters.put("fid", fileInfo.getFileId());
     parameters.put("length", fileInfo.getLength());
     parameters.put("block_replication", fileInfo.getBlockReplication());
-    parameters.put("block_size", fileInfo.getBlocksize());
+    parameters.put("block_size", fileInfo.getBlockSize());
     parameters.put("modification_time", fileInfo.getModificationTime());
     parameters.put("access_time", fileInfo.getAccessTime());
-    parameters.put("is_dir", fileInfo.isdir());
+    parameters.put("is_dir", fileInfo.isDir());
     parameters.put("sid", fileInfo.getStoragePolicy());
     parameters
         .put("owner", fileInfo.getOwner());

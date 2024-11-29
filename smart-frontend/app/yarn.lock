@@ -4351,6 +4351,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"antlr4@npm:4.13.2":
+  version: 4.13.2
+  resolution: "antlr4@npm:4.13.2"
+  checksum: 10c0/dfe7dcb24fe99ce103e1eac3ce30558a3df713cf5deeacd7e30686f5cca8206864e49b254af3bd5eff5904d31e5cd7902a7468c13dcb619da10caf3f703d03b4
+  languageName: node
+  linkType: hard
+
 "anymatch@npm:~3.1.2":
   version: 3.1.3
   resolution: "anymatch@npm:3.1.3"
@@ -8729,6 +8736,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"monaco-editor@npm:0.52.0":
+  version: 0.52.0
+  resolution: "monaco-editor@npm:0.52.0"
+  checksum: 10c0/962c75272568eb1556835f0097da2c7768bffe1116b252bb8b3aefd34f31e2dc46baa27e3911c0a6617bf556e6d6802e6e9f0f5548edd832c33872a8a0c146d3
+  languageName: node
+  linkType: hard
+
 "ms@npm:2.0.0":
   version: 2.0.0
   resolution: "ms@npm:2.0.0"
@@ -10548,6 +10562,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:7.2.0"
     "@typescript-eslint/parser": "npm:7.2.0"
     "@vitejs/plugin-react": "npm:4.2.1"
+    antlr4: "npm:4.13.2"
     axios: "npm:1.7.2"
     classnames: "npm:2.5.1"
     date-fns: "npm:3.6.0"
@@ -10565,6 +10580,7 @@ __metadata:
     husky: "npm:9.0.11"
     js-base64: "npm:3.7.7"
     lint-staged: "npm:15.2.2"
+    monaco-editor: "npm:0.52.0"
     prettier: "npm:3.2.5"
     qs: "npm:6.12.1"
     react: "npm:18.2.0"

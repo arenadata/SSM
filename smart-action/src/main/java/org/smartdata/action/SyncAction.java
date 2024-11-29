@@ -38,6 +38,7 @@ public class SyncAction extends SmartAction {
   // related to remote cluster and fileDiff.src
   public static final String DEST = "-dest";
   public static final String PRESERVE = "-preserve";
+  public static final String BASE_OPERATION = "-baseOperation";
 
   @Override
   protected void execute() throws Exception {

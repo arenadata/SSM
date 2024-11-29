@@ -13,4 +13,5 @@
     <include file="db/changelog/changelog-3.create-user-activities-table.xml"/>
     <include file="/db/changelog/changelog-4.add-action-search-fields.xml"/>
     <include file="/db/changelog/changelog-5.add-partitioning.xml"/>
+    <include file="/db/changelog/changelog-6.make-fileId-autoincrement.xml"/>
 </databaseChangeLog>

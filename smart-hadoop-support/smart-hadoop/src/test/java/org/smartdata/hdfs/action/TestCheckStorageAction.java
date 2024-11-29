@@ -34,7 +34,7 @@ public class TestCheckStorageAction extends MiniClusterHarness {
   @Test
   public void testCheckStorageAction() throws IOException {
     CheckStorageAction checkStorageAction = new CheckStorageAction();
-    checkStorageAction.setDfsClient(dfsClient);
+    checkStorageAction.setLocalFileSystem(dfs);
     checkStorageAction.setContext(smartContext);
     final String file = "/testPath/file1";
     dfsClient.mkdirs("/testPath", null, true);
@@ -55,7 +55,7 @@ public class TestCheckStorageAction extends MiniClusterHarness {
   @Test
   public void testCheckStorageActionWithWrongFileName() throws IOException {
     CheckStorageAction checkStorageAction = new CheckStorageAction();
-    checkStorageAction.setDfsClient(dfsClient);
+    checkStorageAction.setLocalFileSystem(dfs);
     checkStorageAction.setContext(smartContext);
 
     final String file = "/testPath/wrongfile";

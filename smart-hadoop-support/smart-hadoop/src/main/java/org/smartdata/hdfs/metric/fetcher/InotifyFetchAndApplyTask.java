@@ -29,7 +29,7 @@ import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.SystemInfo;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class InotifyFetchAndApplyTask implements Runnable {
@@ -42,8 +42,7 @@ public class InotifyFetchAndApplyTask implements Runnable {
   private final INotifyEventFilter eventFilter;
 
   public InotifyFetchAndApplyTask(DFSClient client, MetaStore metaStore,
-                                  InotifyEventApplier applier, long startId, SmartConf conf)
-      throws IOException {
+      InotifyEventApplier applier, long startId, SmartConf conf) throws IOException {
     this.applier = applier;
     this.metaStore = metaStore;
     this.lastId = new AtomicLong(startId);
@@ -53,7 +52,7 @@ public class InotifyFetchAndApplyTask implements Runnable {
 
   @Override
   public void run() {
-    LOG.trace("InotifyFetchAndApplyTask run at " +  new Date());
+    LOG.debug("InotifyFetchAndApplyTask run at {}", LocalDateTime.now());
     try {
       EventBatch eventBatch = inotifyEventInputStream.poll();
       while (eventBatch != null) {
@@ -71,9 +70,5 @@ public class InotifyFetchAndApplyTask implements Runnable {
     } catch (Throwable t) {
       LOG.error("Inotify Apply Events error", t);
     }
-  }
-
-  public long getLastId() {
-    return this.lastId.get();
   }
 }

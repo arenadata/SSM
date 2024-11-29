@@ -47,7 +47,7 @@ public class TestTruncateAction extends MiniClusterHarness {
     out.close();
 
     TruncateAction truncateAction = new TruncateAction();
-    truncateAction.setDfsClient(dfsClient);
+    truncateAction.setLocalFileSystem(dfs);
     truncateAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(TruncateAction.FILE_PATH, srcPath + "/" + file);
@@ -84,7 +84,7 @@ public class TestTruncateAction extends MiniClusterHarness {
     out.close();
 
     TruncateAction truncateAction = new TruncateAction();
-    truncateAction.setDfsClient(dfsClient);
+    truncateAction.setLocalFileSystem(dfs);
     truncateAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(TruncateAction.FILE_PATH, dfs.getUri() + srcPath + "/" + file);

@@ -25,7 +25,6 @@ import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
 import org.apache.hadoop.hdfs.protocol.datatransfer.sasl.SaslDataTransferClient;
 import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos;
-import org.apache.hadoop.hdfs.protocolPB.PBHelper;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier;
 import org.apache.hadoop.hdfs.security.token.block.InvalidBlockTokenException;
 import org.apache.hadoop.hdfs.server.balancer.KeyManager;
@@ -63,7 +62,7 @@ class ReplicaMove {
   private Configuration conf;
 
   public ReplicaMove(DBlock block, StorageGroup source, StorageGroup target, NameNodeConnector nnc,
-                     SaslDataTransferClient saslClient, Configuration conf) {
+      SaslDataTransferClient saslClient, Configuration conf) {
     this.nnc = nnc;
     this.saslClient = saslClient;
     this.block =
@@ -151,27 +150,28 @@ class ReplicaMove {
         DataTransferProtos.BlockOpResponseProto.parseFrom(CompatibilityHelperLoader.getHelper().getVintPrefixed(in));
     while (response.getStatus() == DataTransferProtos.Status.IN_PROGRESS) {
       // read intermediate responses
-      response = DataTransferProtos.BlockOpResponseProto.parseFrom(CompatibilityHelperLoader.getHelper().getVintPrefixed(in));
+      response =
+          DataTransferProtos.BlockOpResponseProto.parseFrom(CompatibilityHelperLoader.getHelper().getVintPrefixed(in));
     }
     String logInfo = "block move is failed";
     checkBlockOpStatus(response, logInfo);
   }
 
   public static void checkBlockOpStatus(
-    DataTransferProtos.BlockOpResponseProto response,
-    String logInfo) throws IOException {
+      DataTransferProtos.BlockOpResponseProto response,
+      String logInfo) throws IOException {
     if (response.getStatus() != DataTransferProtos.Status.SUCCESS) {
       if (response.getStatus() == DataTransferProtos.Status.ERROR_ACCESS_TOKEN) {
         throw new InvalidBlockTokenException(
-          "Got access token error"
-            + ", status message " + response.getMessage()
-            + ", " + logInfo
+            "Got access token error"
+                + ", status message " + response.getMessage()
+                + ", " + logInfo
         );
       } else {
         throw new IOException(
-          "Got error"
-            + ", status message " + response.getMessage()
-            + ", " + logInfo
+            "Got error"
+                + ", status message " + response.getMessage()
+                + ", " + logInfo
         );
       }
     }
@@ -189,7 +189,7 @@ class ReplicaMove {
 
   public static boolean allMoveFinished(List<ReplicaMove> allMoves) {
     for (ReplicaMove move : allMoves) {
-      if (!move.status.isFinished()){
+      if (!move.status.isFinished()) {
         return false;
       }
     }
@@ -220,7 +220,7 @@ class ReplicaMove {
    * @return number of remaining moves
    */
   public static int refreshMoverList(List<ReplicaMove> allMoves) {
-    for (Iterator<ReplicaMove> it = allMoves.iterator(); it.hasNext();) {
+    for (Iterator<ReplicaMove> it = allMoves.iterator(); it.hasNext(); ) {
       ReplicaMove replicaMove = it.next();
       if (replicaMove.status.isSuccessful()) {
         it.remove();

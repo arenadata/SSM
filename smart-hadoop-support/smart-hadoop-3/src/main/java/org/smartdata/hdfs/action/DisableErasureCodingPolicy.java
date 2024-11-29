@@ -31,6 +31,7 @@ import java.util.Map;
 )
 public class DisableErasureCodingPolicy extends HdfsAction {
   public static final String EC_POLICY_NAME = "-policy";
+
   private String policyName;
 
   @Override
@@ -41,12 +42,12 @@ public class DisableErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    dfsClient.disableErasureCodingPolicy(policyName);
+    localFileSystem.disableErasureCodingPolicy(policyName);
     appendLog(String.format("The EC policy named %s is disabled!", policyName));
   }
 
   @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

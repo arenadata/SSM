@@ -43,9 +43,9 @@ public interface FileInfoDao {
   Map<String, Long> getPathFids(Collection<String> paths)
       throws SQLException;
 
-  void insert(FileInfo fileInfo);
+  void insert(FileInfo fileInfo, boolean generateId);
 
-  void insert(FileInfo[] fileInfos);
+  void insert(FileInfo[] fileInfos, boolean generateIds);
 
   int update(String path, int storagePolicy);
 

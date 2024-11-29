@@ -20,20 +20,6 @@ package org.smartdata.server.engine.rule.copy;
 import java.util.List;
 
 public class DiffCreationTimeCopyScheduleStrategy implements FileCopyScheduleStrategy {
-  public DiffCreationTimeCopyScheduleStrategy(DiffSelectionStrategy diffSelectionStrategy) {
-    this.diffSelectionStrategy = diffSelectionStrategy;
-  }
-
-  /** Behaviour in case if there are several pending diff for the same file. */
-  public enum DiffSelectionStrategy {
-    /** Select pending diff with the earliest creation time. */
-    EARLIEST,
-    /** Select pending diff with the latest creation time. */
-    LATEST
-  }
-
-  private final DiffSelectionStrategy diffSelectionStrategy;
-
   @Override
   public String wrapGetFilesToCopyQuery(String query, List<String> pathTemplates) {
     return "SELECT file_diff.src "
@@ -49,12 +35,6 @@ public class DiffCreationTimeCopyScheduleStrategy implements FileCopyScheduleStr
         + ")) "
         // choose only one pending file_diff per file based on the provided strategy
         + "GROUP BY file_diff.src "
-        + "ORDER BY " + orderClause() + ";";
-  }
-
-  private String orderClause() {
-    return diffSelectionStrategy == DiffSelectionStrategy.EARLIEST
-        ? "MIN(create_time)"
-        : "MAX(create_time) DESC";
+        + "ORDER BY MIN(create_time);";
   }
 }

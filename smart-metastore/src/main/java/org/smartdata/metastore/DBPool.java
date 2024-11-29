@@ -17,6 +17,8 @@
  */
 package org.smartdata.metastore;
 
+import org.smartdata.metrics.MetricsFactory;
+
 import javax.sql.DataSource;
 
 import java.sql.Connection;
@@ -30,4 +32,8 @@ public interface DBPool {
   void closeConnection(Connection conn) throws SQLException;
 
   void close();
+
+  default void bindMetrics(MetricsFactory metricFactory) {
+    // do nothing
+  }
 }

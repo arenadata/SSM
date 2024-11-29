@@ -17,11 +17,12 @@
  */
 package org.smartdata.hdfs.action;
 
-import org.apache.hadoop.hdfs.DFSInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.smartdata.action.ActionException;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -31,40 +32,43 @@ import java.util.Map;
  * <p>Arguments: file_path [buffer_size, default=64k]
  */
 @ActionSignature(
-  actionId = "read",
-  displayName = "read",
-  usage = HdfsAction.FILE_PATH + " $file " + ReadFileAction.BUF_SIZE + " $size"
+    actionId = "read",
+    displayName = "read",
+    usage = HdfsAction.FILE_PATH + " $file "
+        + ReadFileAction.BUF_SIZE + " $size"
 )
-public class ReadFileAction extends HdfsAction {
+public class ReadFileAction extends HdfsActionWithRemoteClusterSupport {
   public static final String BUF_SIZE = "-bufSize";
-  private String filePath;
-  private int bufferSize = 64 * 1024;
+  public static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
+
+  private Path filePath;
+  private int bufferSize;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.filePath = args.get(FILE_PATH);
-    if (args.containsKey(BUF_SIZE)) {
-      bufferSize = Integer.parseInt(args.get(BUF_SIZE));
-    }
+    this.filePath = getPathArg(FILE_PATH);
+    this.bufferSize = args.containsKey(BUF_SIZE)
+        ? Integer.parseInt(args.get(BUF_SIZE))
+        : DEFAULT_BUFFER_SIZE;
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (filePath == null) {
-      throw new IllegalArgumentException("File parameter is missing.");
-    }
-    appendLog(
-        String.format("Action starts at %s : Read %s",
-            Utils.getFormatedCurrentTime(), filePath));
-    if (!dfsClient.exists(filePath)) {
+  protected void preExecute() {
+    validateNonEmptyArg(FILE_PATH);
+  }
+
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    if (!fileSystem.exists(filePath)) {
       throw new ActionException("ReadFile Action fails, file " +
           filePath + " doesn't exist!");
     }
 
     byte[] buffer = new byte[bufferSize];
-    try (DFSInputStream inputStream = dfsClient.open(filePath)) {
-      while (inputStream.read(buffer, 0, bufferSize) != -1) {}
+    try (InputStream inputStream = fileSystem.open(filePath)) {
+      while (inputStream.read(buffer, 0, bufferSize) != -1) {
+      }
     }
   }
 }

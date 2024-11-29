@@ -45,12 +45,12 @@ public class FileStatusIngester implements Runnable {
       if (batch != null) {
         FileInfo[] statuses = batch.getFileInfos();
         if (statuses.length == batch.actualSize()) {
-          this.dbAdapter.insertFiles(batch.getFileInfos());
+          this.dbAdapter.insertFiles(batch.getFileInfos(), true);
           IngestionTask.numPersisted.addAndGet(statuses.length);
         } else {
           FileInfo[] actual = new FileInfo[batch.actualSize()];
           System.arraycopy(statuses, 0, actual, 0, batch.actualSize());
-          this.dbAdapter.insertFiles(actual);
+          this.dbAdapter.insertFiles(actual, true);
           IngestionTask.numPersisted.addAndGet(actual.length);
         }
 

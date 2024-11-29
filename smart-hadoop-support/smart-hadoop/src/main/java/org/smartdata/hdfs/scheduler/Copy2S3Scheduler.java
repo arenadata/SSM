@@ -17,106 +17,71 @@
  */
 package org.smartdata.hdfs.scheduler;
 
-import org.apache.hadoop.conf.Configuration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
+import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
+import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
-import org.smartdata.model.LaunchAction;
 import org.smartdata.model.S3FileState;
-import org.smartdata.model.action.ScheduleResult;
-import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Copy2S3Scheduler extends ActionSchedulerService {
-  private static final List<String> actions = Arrays.asList("copy2s3");
-  static final Logger LOG =
+  private static final Logger LOG =
       LoggerFactory.getLogger(Copy2S3Scheduler.class);
-  private MetaStore metaStore;
+  private static final List<String> SUPPORTED_ACTIONS =
+      Collections.singletonList("copy2s3");
+
+  private final MetaStore metaStore;
   //The file in copy need to be locked
-  private Set<String> fileLock;
-  // Global variables
-  private Configuration conf;
+  private final Set<String> fileLock;
 
   public Copy2S3Scheduler(SmartContext context, MetaStore metaStore) {
     super(context, metaStore);
     this.metaStore = metaStore;
-    this.fileLock = Collections.synchronizedSet(new HashSet<String>());
-    try {
-      this.conf = getContext().getConf();
-    } catch (NullPointerException e) {
-      // If SmartContext is empty
-      this.conf = new Configuration();
-    }
-  }
-
-  private void lockTheFile(String filePath) {
-    fileLock.add(filePath);
-  }
-
-  private void unLockTheFile(String filePath) {
-    fileLock.remove(filePath);
-  }
-
-  private boolean ifLocked(String filePath) {
-    return fileLock.contains(filePath);
-  }
-
-  private long checkTheLengthOfFile(String fileName) {
-    try {
-      return metaStore.getFile(fileName).getLength();
-    } catch (MetaStoreException e) {
-      e.printStackTrace();
-    }
-    return 0;
-  }
-
-  private boolean isOnS3(String fileName) {
-    try {
-      return metaStore.getFileState(fileName)
-          .getFileType().getValue() == FileState.FileType.S3.getValue();
-    } catch (MetaStoreException e) {
-      return false;
-    }
+    this.fileLock = ConcurrentHashMap.newKeySet();
   }
 
   @Override
   public List<String> getSupportedActions() {
-    return actions;
+    return SUPPORTED_ACTIONS;
   }
 
   @Override
-  public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo)
-      throws IOException {
+  public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo) throws IOException {
     // check args
-    if (actionInfo.getArgs() == null) {
-      throw new IOException("No arguments for the action");
+    String path = Optional.ofNullable(actionInfo.getArgs())
+        .map(args -> args.get(HdfsAction.FILE_PATH))
+        .orElseThrow(() -> new ActionRejectedException(
+            "Required argument not found: " + HdfsAction.FILE_PATH));
+
+    if (isLocked(path)) {
+      throw new ActionRejectedException("The source file " + path + " is locked");
     }
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
-    if (ifLocked(path)) {
-      throw new IOException("The submit file " + path + " is locked");
+
+    Optional<Long> fileLength = getFileLength(path);
+    if (!fileLength.isPresent()) {
+      throw new ActionRejectedException("The source file " + path + " not found");
     }
-    if (checkTheLengthOfFile(path) == 0) {
-      throw new IOException("The submit file " + path + " length is 0");
+    if (fileLength.get() == 0) {
+      throw new ActionRejectedException("The source file " + path + " length is 0");
     }
     if (isOnS3(path)) {
-      throw new IOException("The submit file " + path + " is already copied");
+      throw new ActionRejectedException("The source file " + path + " is already copied");
     }
-    lockTheFile(path);
-    LOG.debug("The file {} can be submitted", path);
+    fileLock.add(path);
     return true;
   }
 
@@ -132,8 +97,8 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
       }
     }
     // unlock filelock
-    if (ifLocked(path)) {
-      unLockTheFile(path);
+    if (isLocked(path)) {
+      fileLock.remove(path);
       LOG.debug("unlocked copy2s3 file {}", path);
     }
   }
@@ -144,11 +109,34 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
 
   @Override
   public void start() throws IOException {
-
   }
 
   @Override
   public void stop() throws IOException {
   }
 
+
+  private boolean isLocked(String filePath) {
+    return fileLock.contains(filePath);
+  }
+
+  private Optional<Long> getFileLength(String fileName) {
+    try {
+      return Optional.ofNullable(metaStore.getFile(fileName))
+          .map(FileInfo::getLength);
+    } catch (MetaStoreException e) {
+      LOG.warn("Error fetching info about file: {}", fileName, e);
+      return Optional.empty();
+    }
+  }
+
+  private boolean isOnS3(String fileName) {
+    try {
+      return metaStore.getFileState(fileName)
+          .getFileType()
+          .getValue() == FileState.FileType.S3.getValue();
+    } catch (MetaStoreException e) {
+      return false;
+    }
+  }
 }

@@ -48,7 +48,7 @@ public class TestReadFileAction extends MiniClusterHarness {
     int size = 66560;
     writeFile(filePath, size);
     ReadFileAction readFileAction = new ReadFileAction();
-    readFileAction.setDfsClient(dfsClient);
+    readFileAction.setLocalFileSystem(dfs);
     readFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(ReadFileAction.FILE_PATH, filePath);

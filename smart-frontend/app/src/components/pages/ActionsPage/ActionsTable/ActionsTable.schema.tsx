@@ -21,10 +21,11 @@ import { TableDateRangePickerFilter, TableMultiSelectFilter, TableSearchFilter }
 import { AdhActionSource, AdhActionState } from '@models/adh';
 import type { AdhActionsFilter, AdhAction } from '@models/adh';
 import { getOptionsFromEnum } from '@uikit/Select/Select.utils';
-import ActionActionsCell from './ActionActionsCell/ActionActionsCell';
-import ActionStatusCell from './ActionStatusCell/ActionStatusCell';
-import ActionSourceCell from './ActionSourceCell/ActionSourceCell';
-import ActionsHostsFilter from '@pages/ActionsPage/ActionsTable/ActionsHostsFilter/ActionsHostsFilter';
+import ActionActionsCell from '@commonComponents/Action/ActionTableComponents/Cells/ActionActionsCell/ActionActionsCell';
+import ActionStatusCell from '@commonComponents/Action/ActionTableComponents/Cells/ActionStatusCell/ActionStatusCell';
+import ActionSourceCell from '@commonComponents/Action/ActionTableComponents/Cells/ActionSourceCell/ActionSourceCell';
+import ActionsHostsFilter from '@commonComponents/Action/ActionTableComponents/Cells/ActionsHostsFilter/ActionsHostsFilter';
+import ActionActionTextCell from '@commonComponents/Action/ActionTableComponents/Cells/ActionActionTextCell/ActionActionTextCell';
 
 const actionStatesOptions = getOptionsFromEnum(AdhActionState);
 const actionSourcesOptions = [
@@ -52,7 +53,7 @@ export const actionsColumns: TableColumnSchema[] = [
     },
     filterName: 'textRepresentationLike',
     schema: {
-      type: SchemaColumnType.BigText,
+      cellRenderer: (action: AdhAction) => <ActionActionTextCell action={action} />,
     },
   },
   {

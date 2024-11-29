@@ -2,11 +2,29 @@
 <configuration>
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://hadoop-namenode:8020</value>
+        <value>hdfs://hadoop-namenode.demo:8020</value>
     </property>
     <property>
         <name>fs.hdfs.impl</name>
         <value>org.smartdata.hadoop.filesystem.SmartFileSystem</value>
         <description>The FileSystem for hdfs URL</description>
+    </property>
+    <property>
+        <name>hadoop.security.authorization</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hadoop.security.authentication</name>
+        <value>kerberos</value>
+    </property>
+
+    <property>
+        <name>smart.server.kerberos.principal</name>
+        <value>ssm/ssm-server.demo@DEMO</value>
+    </property>
+
+    <property>
+        <name>ipc.client.fallback-to-simple-auth-allowed</name>
+        <value>true</value>
     </property>
 </configuration>

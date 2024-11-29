@@ -29,7 +29,7 @@ import java.util.Map;
 public class TestWriteFileAction extends MiniClusterHarness {
   protected void writeFile(String filePath, long length) throws IOException {
     WriteFileAction writeFileAction = new WriteFileAction();
-    writeFileAction.setDfsClient(dfsClient);
+    writeFileAction.setLocalFileSystem(dfs);
     writeFileAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
     args.put(WriteFileAction.FILE_PATH, filePath);

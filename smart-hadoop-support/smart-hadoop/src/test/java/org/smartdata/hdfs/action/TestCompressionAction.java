@@ -17,13 +17,13 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.hdfs.MiniClusterHarness;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -31,43 +31,38 @@ import java.util.Map;
 import java.util.Random;
 
 public class TestCompressionAction extends MiniClusterHarness {
+  private static final int BLOCK_SIZE = 1024 * 1024;
 
   @Override
-  @Before
-  public void init() throws Exception {
-    DEFAULT_BLOCK_SIZE = 1024 * 1024;
-    super.init();
+  protected void initConf(Configuration conf) {
+    super.initConf(conf);
+    conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, BLOCK_SIZE);
+    conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, BLOCK_SIZE);
   }
 
-  protected void compression(String filePath, String bufferSize) throws IOException {
+  protected void compression(String filePath, String bufferSize) {
     CompressionAction compressionAction = new CompressionAction();
-    compressionAction.setDfsClient(dfsClient);
+    compressionAction.setLocalFileSystem(dfs);
     compressionAction.setContext(smartContext);
     Map<String, String> args = new HashMap<>();
-    args.put(compressionAction.FILE_PATH, filePath);
-    args.put(compressionAction.BUF_SIZE, bufferSize);
+    args.put(CompressionAction.FILE_PATH, filePath);
+    args.put(CompressionAction.BUF_SIZE, bufferSize);
     // set a tmp dir for compression
     String COMPRESS_DIR = "/system/ssm/compress_tmp";
     String tempPath = COMPRESS_DIR + filePath + "_" + "aid" + compressionAction.getActionId()
         + "_" + System.currentTimeMillis();
-    args.put(compressionAction.COMPRESS_TMP, tempPath);
-//    args.put(CompressionAction.COMPRESS_IMPL, "Lz4");
-//    args.put(CompressionAction.COMPRESS_IMPL,"Bzip2");
-//    args.put(CompressionAction.COMPRESS_IMPL,"Zlib");
+    args.put(CompressionAction.COMPRESS_TMP, tempPath);
     compressionAction.init(args);
     compressionAction.run();
   }
 
   @Test
-  public void testInit() throws IOException {
+  public void testInit() {
     Map<String, String> args = new HashMap<>();
     args.put(CompressionAction.FILE_PATH, "/Test");
     args.put(CompressionAction.BUF_SIZE, "1024");
-//    args.put(CompressionAction.COMPRESS_IMPL, "Lz4");
-//    args.put(CompressionAction.COMPRESS_IMPL,"Bzip2");
-//    args.put(CompressionAction.COMPRESS_IMPL,"Zlib");
     CompressionAction compressionAction = new CompressionAction();
-    compressionAction.setDfsClient(dfsClient);
+    compressionAction.setLocalFileSystem(dfs);
     compressionAction.setContext(smartContext);
     compressionAction.init(args);
   }
@@ -76,16 +71,12 @@ public class TestCompressionAction extends MiniClusterHarness {
   public void testExecute() throws Exception {
     String filePath = "/testCompressFile/fadsfa/213";
     int bufferSize = 1024 * 128;
-//    String compressionImpl = "Lz4";
-//    String compressionImpl = "Bzip2";
-//    String compressionImpl = "Zlib";
     byte[] bytes = TestCompressionAction.BytesGenerator.get(bufferSize);
     short replication = 3;
-    long blockSize = DEFAULT_BLOCK_SIZE;
 
     // Create HDFS file
     OutputStream outputStream = dfsClient.create(filePath, true,
-      replication, blockSize);
+        replication, BLOCK_SIZE);
     outputStream.write(bytes);
     outputStream.close();
     dfsClient.setStoragePolicy(filePath, "COLD");
@@ -98,7 +89,7 @@ public class TestCompressionAction extends MiniClusterHarness {
     // Check HdfsFileStatus
     HdfsFileStatus fileStatus = dfsClient.getFileInfo(filePath);
     Assert.assertEquals(replication, fileStatus.getReplication());
-    Assert.assertEquals(blockSize, fileStatus.getBlockSize());
+    Assert.assertEquals(BLOCK_SIZE, fileStatus.getBlockSize());
 
     // 0 means unspecified.
     if (srcFileStatus.getStoragePolicy() != 0) {
@@ -109,16 +100,18 @@ public class TestCompressionAction extends MiniClusterHarness {
   }
 
   static final class BytesGenerator {
-    private static final byte[] CACHE = new byte[] { 0x0, 0x1, 0x2, 0x3, 0x4,
-      0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF };
-    private static final Random rnd = new Random(12345l);
+    private static final byte[] CACHE = new byte[]{0x0, 0x1, 0x2, 0x3, 0x4,
+        0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF};
+    private static final Random rnd = new Random(12345L);
+
     private BytesGenerator() {
     }
 
     public static byte[] get(int size) {
       byte[] array = (byte[]) Array.newInstance(byte.class, size);
-      for (int i = 0; i < size; i++)
+      for (int i = 0; i < size; i++) {
         array[i] = CACHE[rnd.nextInt(CACHE.length - 1)];
+      }
       return array;
     }
   }

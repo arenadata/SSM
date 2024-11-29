@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao;
 
+import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,13 +80,14 @@ public class TestFileDiffDao extends TestDaoBase {
     List<FileDiff> fileInfoList = fileDiffDao.getAll();
     assertEquals(fileDiffs, fileInfoList);
 
+    Gson diffParametersSerializer = new Gson();
     //update
     List<Long> dids = new ArrayList<>();
     dids.add(1L);
     dids.add(2L);
     List<String> parameters = new ArrayList<>();
-    parameters.add(fileDiffs.get(0).getParametersJsonString());
-    parameters.add(fileDiffs.get(1).getParametersJsonString());
+    parameters.add(diffParametersSerializer.toJson(fileDiffs.get(0).getParameters()));
+    parameters.add(diffParametersSerializer.toJson(fileDiffs.get(1).getParameters()));
     List<FileDiffState> fileDiffStates = new ArrayList<>();
     fileDiffStates.add(FileDiffState.APPLIED);
     fileDiffStates.add(fileDiffs.get(1).getState());

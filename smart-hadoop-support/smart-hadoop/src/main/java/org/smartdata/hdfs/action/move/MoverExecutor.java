@@ -134,7 +134,7 @@ public class MoverExecutor {
    * @throws Exception
    */
   public int doMove(PrintStream resultOs, PrintStream logOs) throws Exception {
-    for (int retryTimes = 0; retryTimes < maxRetryTimes; retryTimes ++) {
+    for (int retryTimes = 0; retryTimes < maxRetryTimes; retryTimes++) {
       final AtomicInteger running = new AtomicInteger(0);
       for (final ReplicaMove replicaMove : allMoves) {
         moveExecutor.execute(new Runnable() {
@@ -218,7 +218,7 @@ public class MoverExecutor {
     List<String> targetStorageTypes = plan.getTargetStorageTypes();
     List<Long> blockIds = plan.getBlockIds();
 
-    for (int planIndex = 0; planIndex < blockIds.size(); planIndex ++) {
+    for (int planIndex = 0; planIndex < blockIds.size(); planIndex++) {
       // build block
       DBlock block = sourceBlockMap.get(blockIds.get(planIndex));
       // build source

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.hdfs.action.MoveFileAction;
@@ -129,7 +130,7 @@ public class MoverScheduler extends ActionSchedulerService {
       throws IOException {
     // check args
     if (actionInfo.getArgs() == null) {
-      throw new IOException("No arguments for the action");
+      throw new ActionRejectedException("No arguments for the action");
     }
 
     if (fileLock.contains(actionInfo.getArgs().get(HdfsAction.FILE_PATH))) {

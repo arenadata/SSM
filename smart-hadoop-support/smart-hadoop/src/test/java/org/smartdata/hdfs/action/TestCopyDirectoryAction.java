@@ -41,7 +41,7 @@ public class TestCopyDirectoryAction extends MultiClusterHarness {
   @Before
   public void setupAction() {
     copyDirectoryAction = new CopyDirectoryAction();
-    copyDirectoryAction.setDfsClient(dfsClient);
+    copyDirectoryAction.setLocalFileSystem(dfs);
     copyDirectoryAction.setContext(smartContext);
   }
 

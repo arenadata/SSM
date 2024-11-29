@@ -17,12 +17,11 @@
  */
 package org.smartdata.hdfs.action;
 
+import org.apache.hadoop.fs.FileChecksum;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.MD5MD5CRC32FileChecksum;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
 
@@ -32,79 +31,76 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
+import static org.smartdata.utils.PathUtil.getRawPath;
+
 @ActionSignature(
     actionId = "checksum",
     displayName = "checksum",
     usage = HdfsAction.FILE_PATH + " $src "
 )
-public class CheckSumAction extends HdfsAction {
-  private String fileName;
+public class CheckSumAction extends HdfsActionWithRemoteClusterSupport {
+  private String fileRawPath;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    withDefaultFs();
-    fileName = args.get(FILE_PATH);
+    this.fileRawPath = args.get(FILE_PATH);
   }
 
   @Override
-  protected void execute() throws Exception {
-    if (fileName == null) {
-      throw new IllegalArgumentException("Please specify file path!");
-    }
-
-    if (fileName.charAt(fileName.length() - 1) == '*') {
-      String directoryPath = fileName.substring(0, fileName.length() - 1);
-      directoryContentChecksum(directoryPath);
-      return;
-    }
-
-    HdfsFileStatus fileStatus = dfsClient.getFileInfo(fileName);
-
-    if (fileStatus == null) {
-      throw new ActionException("Provided file doesn't exist: " + fileName);
-    }
-
-    if (fileStatus.isDir()) {
-      appendResult("This is a directory which has no checksum result!");
-      appendLog("This is a directory which has no checksum result!");
-      return;
-    }
-
-    checksum(fileName, fileStatus.getLen());
+  protected void preExecute() throws Exception {
+    validateNonEmptyArg(FILE_PATH);
   }
 
-  private void directoryContentChecksum(String directory) throws Exception {
-    Path directoryPath = new Path(directory);
-    FileSystem fileSystem = directoryPath.getFileSystem(getContext().getConf());
+  @Override
+  protected void execute(FileSystem fileSystem) throws Exception {
+    if (fileRawPath.charAt(fileRawPath.length() - 1) == '*') {
+      String directoryPath = fileRawPath.substring(0, fileRawPath.length() - 1);
+      directoryContentChecksum(fileSystem, new Path(directoryPath));
+      return;
+    }
 
+    Path filePath = new Path(fileRawPath);
+    FileStatus fileStatus = fileSystem.getFileStatus(filePath);
+
+    if (fileStatus.isDirectory()) {
+      appendResult("This is a directory which has no checksum result!");
+      return;
+    }
+
+    checksum(fileSystem, filePath, fileStatus.getLen());
+  }
+
+  private void directoryContentChecksum(
+      FileSystem fileSystem, Path directoryPath) throws Exception {
     RemoteIterator<FileStatus> statusIter;
     try {
       statusIter = fileSystem.listStatusIterator(directoryPath);
     } catch (FileNotFoundException e) {
-      throw new ActionException("Provided directory doesn't exist: " + directory);
+      throw new ActionException("Provided directory doesn't exist: " + directoryPath);
     }
 
     while (statusIter.hasNext()) {
       try {
         FileStatus status = statusIter.next();
-        checksum(status.getPath().toUri().getPath(), status.getLen());
+        checksum(fileSystem, status.getPath(), status.getLen());
       } catch (FileNotFoundException e) {
         // skip file if it was deleted between listing and checksum requests
       }
     }
   }
 
-  private void checksum(String path, long fileSize) throws IOException {
-    MD5MD5CRC32FileChecksum md5 = dfsClient.getFileChecksum(path, fileSize);
+  private void checksum(FileSystem fileSystem,
+      Path path, long fileSize) throws IOException {
+    FileChecksum md5 = fileSystem.getFileChecksum(path, fileSize);
 
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream dataStream = new DataOutputStream(byteStream);
     md5.write(dataStream);
     byte[] bytes = byteStream.toByteArray();
-    appendLog(
+    appendResult(
         String.format("%s\t%s\t%s",
-            path,
+            getRawPath(path),
             md5.getAlgorithmName(),
             byteArray2HexString(bytes)
         ));

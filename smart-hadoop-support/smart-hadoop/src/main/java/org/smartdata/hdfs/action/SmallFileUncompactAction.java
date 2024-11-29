@@ -17,22 +17,22 @@
  */
 package org.smartdata.hdfs.action;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import lombok.Getter;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.XAttrSetFlag;
-import org.apache.hadoop.hdfs.DFSClient;
-import org.apache.hadoop.hdfs.DFSInputStream;
-import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.io.IOUtils;
 import org.smartdata.SmartConstants;
-import org.smartdata.action.Utils;
 import org.smartdata.action.annotation.ActionSignature;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
+
+import static org.smartdata.hdfs.action.SmallFileCompactAction.parseSmallFileList;
 
 /**
  * An action to recovery contents of compacted ssm small files.
@@ -46,86 +46,57 @@ public class SmallFileUncompactAction extends HdfsAction {
   public static final String CONTAINER_FILE =
       SmallFileCompactAction.CONTAINER_FILE;
 
-  private float status = 0f;
-  private String smallFiles = null;
-  private String xAttrNameFileState = null;
-  private String xAttrNameCheckSum = null;
-  private String containerFile = null;
-  private DFSClient smartDFSClient = null;
+  @Getter
+  private float progress;
+  private String smallFiles;
+  private String xAttrNameFileState;
+  private String xAttrNameCheckSum;
+  private Path containerFile;
 
   @Override
   public void init(Map<String, String> args) {
     super.init(args);
-    this.smartDFSClient = dfsClient;
     this.xAttrNameFileState = SmartConstants.SMART_FILE_STATE_XATTR_NAME;
     this.xAttrNameCheckSum = SmartConstants.SMART_FILE_CHECKSUM_XATTR_NAME;
     this.smallFiles = args.get(FILE_PATH);
-    this.containerFile = args.get(CONTAINER_FILE);
+    this.containerFile = getPathArg(CONTAINER_FILE);
+    this.progress = 0.0f;
   }
 
   @Override
   protected void execute() throws Exception {
     // Get small file list
-    if (smallFiles == null || smallFiles.isEmpty()) {
-      throw new IllegalArgumentException(
-          String.format("Invalid small files: %s.", smallFiles));
-    }
-    ArrayList<String> smallFileList = new Gson().fromJson(
-        smallFiles, new TypeToken<ArrayList<String>>() {
-        }.getType());
-    if (smallFileList == null || smallFileList.isEmpty()) {
-      throw new IllegalArgumentException(
-          String.format("Invalid small files: %s.", smallFiles));
-    }
+    validateNonEmptyArgs(FILE_PATH, CONTAINER_FILE);
 
-    // Get container file path
-    if (containerFile == null || containerFile.isEmpty()) {
-      throw new IllegalArgumentException(
-          String.format("Invalid container file: %s.", containerFile));
-    }
-    appendLog(String.format(
-        "Action starts at %s : uncompact small files.",
-        Utils.getFormatedCurrentTime()));
+    List<String> smallFileList = parseSmallFileList(smallFiles);
+    for (int i = 0; i < smallFileList.size(); i++) {
+      Path smallFile = new Path(smallFileList.get(i));
 
-    for (String smallFile : smallFileList) {
-      if ((smallFile != null) && !smallFile.isEmpty()
-          && dfsClient.exists(smallFile)) {
-        DFSInputStream in = null;
-        OutputStream out = null;
-        try {
-          // Get compact input stream
-          in = smartDFSClient.open(smallFile);
+      if (localFileSystem.exists(smallFile)) {
+        // Get compact input stream
+        try (FSDataInputStream in = localFileSystem.open(smallFile);
+             // Create new small file
+             OutputStream out = localFileSystem.create(smallFile, true)) {
 
           // Save original metadata of small file and delete original small file
-          HdfsFileStatus fileStatus = dfsClient.getFileInfo(smallFile);
-          Map<String, byte[]> xAttr = dfsClient.getXAttrs(smallFile);
-          dfsClient.delete(smallFile, false);
-
-          // Create new small file
-          out = dfsClient.create(smallFile, true);
+          FileStatus fileStatus = localFileSystem.getFileStatus(smallFile);
+          Map<String, byte[]> xAttr = localFileSystem.getXAttrs(smallFile);
+          localFileSystem.delete(smallFile, false);
 
           // Copy contents to original small file
           IOUtils.copyBytes(in, out, 4096);
 
           // Reset file meta data
-          resetFileMeta(smallFile, fileStatus, xAttr);
+          resetFileMeta(fileStatus, xAttr);
 
           // Set status and update log
-          this.status = (smallFileList.indexOf(smallFile) + 1.0f)
-              / smallFileList.size();
-          appendLog(String.format("Uncompact %s successfully.", smallFile));
-        } finally {
-          if (in != null) {
-            in.close();
-          }
-          if (out != null) {
-            out.close();
-          }
+          this.progress = (i + 1.0f) / smallFileList.size();
+          appendLog("Uncompact successfully: " + smallFile);
         }
       }
     }
 
-    dfsClient.delete(containerFile, false);
+    localFileSystem.delete(containerFile, false);
     appendLog(String.format("Uncompact all the small files of %s successfully.", containerFile));
   }
 
@@ -133,27 +104,22 @@ public class SmallFileUncompactAction extends HdfsAction {
    * Reset meta data of small file. We should exclude the setting for
    * xAttrNameFileState or xAttrNameCheckSum.
    */
-  private void resetFileMeta(String path, HdfsFileStatus fileStatus,
+  private void resetFileMeta(FileStatus fileStatus,
       Map<String, byte[]> xAttr) throws IOException {
-    dfsClient.setOwner(path, fileStatus.getOwner(), fileStatus.getGroup());
-    dfsClient.setPermission(path, fileStatus.getPermission());
+    localFileSystem.setOwner(fileStatus.getPath(), fileStatus.getOwner(), fileStatus.getGroup());
+    localFileSystem.setPermission(fileStatus.getPath(), fileStatus.getPermission());
 
-    for(Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+    for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
       if (!entry.getKey().equals(xAttrNameFileState) &&
           !entry.getKey().equals(xAttrNameCheckSum)) {
-        dfsClient.setXAttr(path, entry.getKey(), entry.getValue(),
+        localFileSystem.setXAttr(fileStatus.getPath(), entry.getKey(), entry.getValue(),
             EnumSet.of(XAttrSetFlag.CREATE, XAttrSetFlag.REPLACE));
       }
     }
   }
 
   @Override
-  public float getProgress() {
-    return this.status;
-  }
-
-  @Override
-  public DfsClientType dfsClientType() {
-    return DfsClientType.DEFAULT_HDFS;
+  public FsType localFsType() {
+    return FsType.DEFAULT_HDFS;
   }
 }

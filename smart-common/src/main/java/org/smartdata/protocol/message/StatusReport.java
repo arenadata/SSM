@@ -17,16 +17,11 @@
  */
 package org.smartdata.protocol.message;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class StatusReport implements StatusMessage {
-  private List<ActionStatus> actionStatuses;
-
-  public StatusReport(List<ActionStatus> actionStatuses) {
-    this.actionStatuses = actionStatuses;
-  }
-
-  public List<ActionStatus> getActionStatuses() {
-    return actionStatuses;
-  }
+  private final List<ActionStatus> actionStatuses;
 }

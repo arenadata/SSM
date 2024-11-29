@@ -63,7 +63,7 @@
 //
 //    // schedule move to Archive
 //    OneSsdFileAction action = new OneSsdFileAction();
-//    action.setDfsClient(dfsClient);
+//    action.setLocalFileSystem(dfs);
 //    action.setContext(smartContext);
 //    action.setStatusReporter(new MockActionStatusReporter());
 //    Map<String, String> args = new HashMap();
