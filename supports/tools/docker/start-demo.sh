@@ -9,12 +9,20 @@ while [ $# -gt 0 ]; do
     --hadoop=*)
       HADOOP_PROFILE="${1#*=}"
       ;;
+    --debugMaster)
+      SSM_DEBUG_OPT+="--debug master "
+      ;;
+    --debugAgent)
+      SSM_DEBUG_OPT+="--debug agent "
+      ;;
     *)
       echo "=========================================================="
-      echo " Error: Invalid argument. Should be in the form --key=arg."
+      echo " Error: Invalid argument. Should be in the form --key=arg or --key."
       echo " Supported arguments:"
       echo "    --cluster: multihost (default) | singlehost"
       echo "    --hadoop: 3.3 (default)"
+      echo "    --debugMaster"
+      echo "    --debugAgent"
       echo "=========================================================="
       exit 1
   esac
@@ -47,4 +55,4 @@ case $CLUSTER_TYPE in
   ;;
 esac
 
-env HADOOP_VERSION=$HADOOP_VERSION docker compose -f ${COMPOSE_FILE_PATH} up -d
+env HADOOP_VERSION=$HADOOP_VERSION SSM_DEBUG_OPT="$SSM_DEBUG_OPT" docker compose -f ${COMPOSE_FILE_PATH} up -d

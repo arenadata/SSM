@@ -54,8 +54,9 @@ while [ $# != 0 ]; do
           shift
           ;;
         *)
+          shift
+          ;;
       esac
-      shift
       ;;
     "--help" | "-h")
       echo "--help -h Show this usage information"

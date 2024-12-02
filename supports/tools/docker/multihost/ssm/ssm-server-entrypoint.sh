@@ -17,7 +17,7 @@ echo "---------------------------"
 echo "Starting SSM server and agents"
 echo "---------------------------"
 
-source bin/start-ssm.sh --config ${SSM_HOME}/conf/ &
+source bin/start-ssm.sh ${SSM_DEBUG_OPT} --config ${SSM_HOME}/conf/ &
 wait_for_it $(hostname -f):8081
 wait_for_it hadoop-datanode.demo:7048
 

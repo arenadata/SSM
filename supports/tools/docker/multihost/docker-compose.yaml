@@ -50,6 +50,10 @@ services:
       - "18081:8081"
       # JMX port
       - "3334:3334"
+      # agent debug port
+      - "8009:8008"
+    environment:
+      - SSM_DEBUG_OPT
     env_file:
       - hadoop.env
     healthcheck:
@@ -77,6 +81,10 @@ services:
       - "8081:8081"
       # JMX port
       - "3333:3333"
+      # ssm debug port
+      - "8008:8008"
+    environment:
+      - SSM_DEBUG_OPT
     healthcheck:
       test: curl http://ssm-server.demo:8081 || exit 1
       interval: 30s
