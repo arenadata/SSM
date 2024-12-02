@@ -23,7 +23,6 @@ RUN mkdir /opt/ssm/conf
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/smart-*.jar $HADOOP_HOME/share/hadoop/common/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
-COPY ./supports/tools/docker/multihost/conf/* $SSM_HOME/conf/
 
 ADD ./supports/tools/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
 ADD ./supports/tools/docker/multihost/common.sh /common.sh

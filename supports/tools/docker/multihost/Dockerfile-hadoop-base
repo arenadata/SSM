@@ -38,14 +38,10 @@ RUN mkdir /opt/ssm/bin
 RUN mkdir /opt/ssm/lib
 RUN mkdir /opt/ssm/conf
 
-# Copy custom hadoop config files to $HADOOP_CONF_DIR
-COPY ./supports/tools/docker/multihost/conf/* $HADOOP_CONF_DIR/
-
 # Copy ssm jars to $HADOOP_HOME/share/hadoop/common/lib
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/smart-*.jar $HADOOP_HOME/share/hadoop/common/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
-COPY ./supports/tools/docker/multihost/conf/* $SSM_HOME/conf/
 
 RUN chmod a+x $SSM_HOME/bin/install.sh
 RUN chmod a+x $SSM_HOME/bin/start-ssm.sh

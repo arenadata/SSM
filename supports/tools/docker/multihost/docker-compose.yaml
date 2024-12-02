@@ -10,6 +10,7 @@ services:
       - hadoop-namenode:/hadoop/dfs/name
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./conf:/etc/conf
     ports:
       - "9870:9870"
       - "8020:8020"
@@ -39,6 +40,8 @@ services:
       - hadoop-datanode-archive-data:/hadoop/dfs/archive-data
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./conf:/etc/conf
+      - ./conf:/opt/ssm/conf
     ports:
       - "9864:9864"
       - "7048:7048"
@@ -68,6 +71,7 @@ services:
       - ssm-shared:/tmp/shared
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./conf:/opt/ssm/conf
     ports:
       - "7042:7042"
       - "8081:8081"
@@ -110,6 +114,11 @@ services:
     hostname: kdc-server.demo
     volumes:
       - secrets:/tmp/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./kerberos/kdc.conf:/etc/krb5kdc/kdc.conf
+      - ./kerberos/kdc.conf:/var/kerberos/krb5kdc/kdc.conf
+      - ./kerberos/kadm5.acl:/etc/krb5kdc/kadm5.acl
+      - ./kerberos/kdc-init.sh:/tmp/kdc-init.sh
     ports:
       - "749:749"
       - "88:88/udp"

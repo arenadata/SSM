@@ -17,6 +17,8 @@ if [ -z "$CLUSTER_NAME" ]; then
   exit 2
 fi
 
+moveHadoopConfFiles /etc/conf ${HADOOP_CONF_DIR}
+
 # HDFS
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0

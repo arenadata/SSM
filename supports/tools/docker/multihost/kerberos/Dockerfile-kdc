@@ -9,10 +9,4 @@ ENV MASTER_PASSWORD ${MASTER_PASSWORD:-masterpassword}
 ENV KADMIN_PRINCIPAL ${KADMIN_PRINCIPAL:-kadmin/admin}
 ENV KADMIN_PASSWORD ${KADMIN_PASSWORD:-adminpassword}
 
-COPY ./supports/tools/docker/multihost/kerberos/krb5.conf /etc/krb5.conf
-COPY ./supports/tools/docker/multihost/kerberos/kdc.conf /etc/krb5kdc/kdc.conf
-COPY ./supports/tools/docker/multihost/kerberos/kdc.conf /var/kerberos/krb5kdc/kdc.conf
-COPY ./supports/tools/docker/multihost/kerberos/kadm5.acl /etc/krb5kdc/kadm5.acl
-COPY ./supports/tools/docker/multihost/kerberos/kdc-init.sh /tmp/
-
 CMD bash /tmp/kdc-init.sh

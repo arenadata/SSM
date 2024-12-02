@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./common.sh
+
 cp /etc/ssm/shared/id_rsa /root/.ssh/id_rsa
 cp /etc/ssm/shared/id_rsa.pub /root/.ssh/id_rsa.pub
 cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
@@ -14,6 +16,8 @@ if [ ! -d $datadir ]; then
 fi
 
 chmod +r /etc/secrets/*.keytab
+
+moveHadoopConfFiles /etc/conf ${HADOOP_CONF_DIR}
 
 $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
 

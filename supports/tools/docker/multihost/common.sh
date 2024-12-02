@@ -40,6 +40,13 @@ function addProperty() {
   sed -i "/<\/configuration>/ s/.*/${escapedEntry}\n&/" $path
 }
 
+function moveHadoopConfFiles() {
+  local srcDirectory=$1
+  local target=$2
+
+  cp ${srcDirectory}/*.xml ${target}
+}
+
 function configure() {
     local path=$1
     local module=$2
