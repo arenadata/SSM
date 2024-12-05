@@ -13,6 +13,7 @@ $syntaxTimeintvalconst: #b3ff00;
   syntaxId: $syntaxId;
   syntaxSymbols: $syntaxSymbols;
   syntaxMatches: $syntaxMatches;
+  syntaxCompare: $syntaxMatches;
   syntaxString: $syntaxString;
   syntaxError: $syntaxError;
 
@@ -52,6 +53,10 @@ $syntaxTimeintvalconst: #b3ff00;
 
   &>.symbols\.ssmrule, &>.or\.ssmrule, &>.and\.ssmrule {
     color: $syntaxSymbols;
+  }
+
+  &>.opeqcmp\.ssmrule, &>.opcmp\.ssmrule {
+    color: $syntaxMatches;
   }
 
   &>:is(.unrecognized\.ssmrule, .error\.ssmrule) {

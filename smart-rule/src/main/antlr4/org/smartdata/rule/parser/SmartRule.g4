@@ -55,11 +55,11 @@ boolvalue
     ;
 
 compareexpr
-    : numricexpr oPCMP numricexpr                           #cmpIdLong
-    | stringexpr ('==' | '!=') stringexpr                   #cmpIdString
+    : numricexpr OPCMP numricexpr                           #cmpIdLong
+    | stringexpr OPEQCMP stringexpr                   #cmpIdString
     | stringexpr MATCHES stringexpr                         #cmpIdStringMatches
-    | timeintvalexpr oPCMP timeintvalexpr                   #cmpTimeintvalTimeintval
-    | timepointexpr oPCMP timepointexpr                     #cmpTimepointTimePoint
+    | timeintvalexpr OPCMP timeintvalexpr                   #cmpTimeintvalTimeintval
+    | timepointexpr OPCMP timepointexpr                     #cmpTimepointTimePoint
     ;
 
 timeintvalexpr
@@ -128,14 +128,17 @@ id
     | OBJECTTYPE '.' ID '(' constexpr (',' constexpr)* ')'          #idObjAttPara
     ;
 
-
-oPCMP
+OPEQCMP
     : '=='
+    | '!='
+    ;
+
+OPCMP
+    : OPEQCMP
     | '>'
     | '<'
     | '>='
     | '<='
-    | '!='
     ;
 
 opr
