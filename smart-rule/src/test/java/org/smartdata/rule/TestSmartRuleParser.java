@@ -79,6 +79,7 @@ public class TestSmartRuleParser {
     rules.add("file : every 1s | storagePolicy == \"ALL_SSD\" | cache");
     rules.add("file : accessCount(10min) < 20 | uncache");
     rules.add("file : accessCount(10min) == 0 | uncache");
+    rules.add("file : accessCount(10min) != 0 | uncache");
     rules.add("file : accessCount(10min) <= 1 | uncache");
     rules.add("file : accessCount(1min) > 5 | cache -replica 2");
     rules.add("file : age <= 1 | echo -msg \"crul world\"");
