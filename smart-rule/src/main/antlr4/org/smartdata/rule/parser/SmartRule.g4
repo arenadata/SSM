@@ -56,10 +56,13 @@ boolvalue
 
 compareexpr
     : numricexpr OPCMP numricexpr                           #cmpIdLong
-    | stringexpr OPEQCMP stringexpr                   #cmpIdString
+    | numricexpr OPEQ numricexpr                            #cmpEqIdLong
+    | stringexpr OPEQ stringexpr                            #cmpIdString
     | stringexpr MATCHES stringexpr                         #cmpIdStringMatches
     | timeintvalexpr OPCMP timeintvalexpr                   #cmpTimeintvalTimeintval
+    | timeintvalexpr OPEQ timeintvalexpr                    #cmpEqTimeintvalTimeintval
     | timepointexpr OPCMP timepointexpr                     #cmpTimepointTimePoint
+    | timepointexpr OPEQ timepointexpr                      #cmpEqTimepointTimePoint
     ;
 
 timeintvalexpr
@@ -128,26 +131,17 @@ id
     | OBJECTTYPE '.' ID '(' constexpr (',' constexpr)* ')'          #idObjAttPara
     ;
 
-OPEQCMP
+OPEQ
     : '=='
     | '!='
     ;
 
 OPCMP
-    : OPEQCMP
-    | '>'
+    : '>'
     | '<'
     | '>='
     | '<='
     ;
-
-opr
-   : '*'
-   | '/'
-   | '+'
-   | '-'
-   | '%'
-   ;
 
 fileEvent
    : FILECREATE
