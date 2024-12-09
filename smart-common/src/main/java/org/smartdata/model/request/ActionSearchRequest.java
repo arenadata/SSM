@@ -39,6 +39,7 @@ public class ActionSearchRequest {
   private final List<ActionState> states;
   @Singular(ignoreNullCollections = true)
   private final List<ActionSource> sources;
+  private final TimeInterval startTime;
   private final TimeInterval completionTime;
 
   public static ActionSearchRequest noFilters() {

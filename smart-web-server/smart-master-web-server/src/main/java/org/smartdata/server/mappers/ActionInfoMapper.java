@@ -30,6 +30,7 @@ import org.smartdata.server.generated.model.ActionSourceDto;
 import org.smartdata.server.generated.model.ActionStateDto;
 import org.smartdata.server.generated.model.ActionsDto;
 import org.smartdata.server.generated.model.CompletionTimeIntervalDto;
+import org.smartdata.server.generated.model.StartTimeIntervalDto;
 import org.smartdata.server.generated.model.SubmissionTimeIntervalDto;
 
 import java.util.List;
@@ -60,6 +61,7 @@ public interface ActionInfoMapper extends SmartMapper {
   ActionSearchRequest toSearchRequest(
       String textRepresentationLike,
       SubmissionTimeIntervalDto submissionTime,
+      StartTimeIntervalDto startTime,
       List<String> hosts,
       List<ActionStateDto> states,
       List<ActionSourceDto> sources,
@@ -69,13 +71,19 @@ public interface ActionInfoMapper extends SmartMapper {
   @Mapping(source = "submissionTimeTo", target = "to")
   TimeInterval toTimeInterval(SubmissionTimeIntervalDto intervalDto);
 
+  @Mapping(source = "startTimeFrom", target = "from")
+  @Mapping(source = "startTimeTo", target = "to")
+  TimeInterval toTimeInterval(StartTimeIntervalDto intervalDto);
+
   @Mapping(source = "completionTimeFrom", target = "from")
   @Mapping(source = "completionTimeTo", target = "to")
   TimeInterval toTimeInterval(CompletionTimeIntervalDto intervalDto);
 
   default ActionStateDto toActionState(ActionInfo actionInfo) {
     if (!actionInfo.isFinished()) {
-      return ActionStateDto.RUNNING;
+      return actionInfo.getStartTime() == null
+          ? ActionStateDto.SCHEDULED
+          : ActionStateDto.RUNNING;
     }
 
     return actionInfo.isSuccessful()

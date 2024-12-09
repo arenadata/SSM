@@ -25,6 +25,7 @@ import org.smartdata.server.generated.model.ActionStateDto;
 import org.smartdata.server.generated.model.ActionsDto;
 import org.smartdata.server.generated.model.CompletionTimeIntervalDto;
 import org.smartdata.server.generated.model.PageRequestDto;
+import org.smartdata.server.generated.model.StartTimeIntervalDto;
 import org.smartdata.server.generated.model.SubmissionTimeIntervalDto;
 import org.smartdata.server.generated.model.SubmitActionRequestDto;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -67,6 +68,7 @@ public interface ActionsApiDelegate {
      * @param sort Sort field names prefixed with &#39;-&#39; for descending order (optional)
      * @param textRepresentationLike The object&#39;s text representation filter.  May contain special characters like \&quot;/\&quot;, \&quot;&#39;\&quot;, so should be encoded. (optional)
      * @param submissionTime Time interval in which the entity was submitted (optional)
+     * @param startTime Time interval in which an action started (optional)
      * @param hosts List of hosts on which the action is/was running (optional)
      * @param states List of action states (optional)
      * @param sources List of action sources (optional)
@@ -80,6 +82,7 @@ public interface ActionsApiDelegate {
         List<@Valid ActionSortDto> sort,
         String textRepresentationLike,
         SubmissionTimeIntervalDto submissionTime,
+        StartTimeIntervalDto startTime,
         List<String> hosts,
         List<@Valid ActionStateDto> states,
         List<@Valid ActionSourceDto> sources,

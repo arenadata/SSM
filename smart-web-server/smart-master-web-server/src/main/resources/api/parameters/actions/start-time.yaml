@@ -1,0 +1,22 @@
+name: startTime
+in: query
+required: false
+description: Time interval in which an action started
+schema:
+  title: StartTimeInterval
+  type: object
+  properties:
+    startTimeFrom:
+      type: integer
+      format: int64
+      nullable: true
+      default: null
+      minimum: 0
+      description: UNIX timestamp (UTC) of the interval start
+    startTimeTo:
+      type: integer
+      format: int64
+      nullable: true
+      default: null
+      minimum: 0
+      description: UNIX timestamp (UTC) of the interval end

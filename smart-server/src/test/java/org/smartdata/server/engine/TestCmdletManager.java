@@ -221,7 +221,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     cmdletManager.updateStatus(statusReport);
     Assert.assertTrue(actionInfo.isFinished());
     Assert.assertTrue(actionInfo.isSuccessful());
-    assertEquals(actionInfo.getCreateTime(), startTime);
+    assertEquals((long) actionInfo.getStartTime(), startTime);
     assertEquals((long) actionInfo.getFinishTime(), finishTime);
     assertEquals(cmdletInfo.getState(), CmdletState.DONE);
 

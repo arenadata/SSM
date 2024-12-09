@@ -51,6 +51,8 @@ import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.and;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNotNull;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNull;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.notLike;
 import static org.smartdata.metastore.queries.sort.Sorting.descending;
@@ -165,12 +167,12 @@ public class DefaultActionDao
             + "exec_host, "
             + "progress, "
             + "action_text, "
-            + "source) "
-            + " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "source, "
+            + "start_time)"
+            + " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.batchUpdate(sql,
         new BatchPreparedStatementSetter() {
-          public void setValues(PreparedStatement ps,
-                                int i) throws SQLException {
+          public void setValues(PreparedStatement ps, int i) throws SQLException {
             ActionInfo actionInfo = actionInfos.get(i);
             ps.setLong(1, actionInfo.getActionId());
             ps.setLong(2, actionInfo.getCmdletId());
@@ -186,6 +188,7 @@ public class DefaultActionDao
             ps.setFloat(12, actionInfo.getProgress());
             ps.setString(13, actionInfo.getActionText());
             ps.setString(14, actionInfo.getSource().toString());
+            ps.setLong(15, actionInfo.getStartTime());
           }
 
           public int getBatchSize() {
@@ -196,7 +199,7 @@ public class DefaultActionDao
 
   @Override
   public int update(final ActionInfo actionInfo) {
-    return update(new ActionInfo[] {actionInfo})[0];
+    return update(new ActionInfo[]{actionInfo})[0];
   }
 
   @Override
@@ -208,7 +211,7 @@ public class DefaultActionDao
             + "result = ?, "
             + "log = ?, "
             + "successful = ?, "
-            + "create_time = ?, "
+            + "start_time = ?, "
             + "finished = ?, "
             + "finish_time = ?, "
             + "exec_host = ?, "
@@ -218,13 +221,12 @@ public class DefaultActionDao
             + "WHERE aid = ?";
     return jdbcTemplate.batchUpdate(sql,
         new BatchPreparedStatementSetter() {
-          public void setValues(PreparedStatement ps,
-                                int i) throws SQLException {
+          public void setValues(PreparedStatement ps, int i) throws SQLException {
             ActionInfo actionInfo = actionInfos[i];
             ps.setString(1, actionInfo.getResult());
             ps.setString(2, actionInfo.getLog());
             ps.setBoolean(3, actionInfo.isSuccessful());
-            ps.setLong(4, actionInfo.getCreateTime());
+            ps.setLong(4, actionInfo.getStartTime());
             ps.setBoolean(5, actionInfo.isFinished());
             ps.setLong(6, actionInfo.getFinishTime());
             ps.setString(7, actionInfo.getExecHost());
@@ -262,6 +264,7 @@ public class DefaultActionDao
     parameters.put("log", StringEscapeUtils.escapeJava(actionInfo.getLog()));
     parameters.put("successful", actionInfo.isSuccessful());
     parameters.put("create_time", actionInfo.getCreateTime());
+    parameters.put("start_time", actionInfo.getStartTime());
     parameters.put("finished", actionInfo.isFinished());
     parameters.put("finish_time", actionInfo.getFinishTime());
     parameters.put("exec_host", actionInfo.getExecHost());
@@ -279,6 +282,7 @@ public class DefaultActionDao
             in("aid", searchRequest.getIds()),
             like("action_text", searchRequest.getTextRepresentationLike()),
             betweenEpochInclusive("create_time", searchRequest.getSubmissionTime()),
+            betweenEpochInclusive("start_time", searchRequest.getStartTime()),
             in("exec_host", searchRequest.getHosts()),
             betweenEpochInclusive("finish_time", searchRequest.getCompletionTime()),
             buildQueryOperator(searchRequest.getSources(), this::sourceToExpression),
@@ -317,8 +321,16 @@ public class DefaultActionDao
             equal("finished", true),
             equal("successful", true)
         );
+      case SCHEDULED:
+        return and(
+            equal("finished", false),
+            isNull("start_time")
+        );
       default:
-        return equal("finished", false);
+        return and(
+            equal("finished", false),
+            isNotNull("start_time")
+        );
     }
   }
 
@@ -347,6 +359,7 @@ public class DefaultActionDao
         .setActionName(resultSet.getString("action_name"))
         .setSuccessful(resultSet.getBoolean("successful"))
         .setCreateTime(resultSet.getLong("create_time"))
+        .setStartTime(resultSet.getObject("start_time", Long.class))
         .setFinished(resultSet.getBoolean("finished"))
         .setFinishTime(resultSet.getObject("finish_time", Long.class))
         .setExecHost(resultSet.getString("exec_host"))

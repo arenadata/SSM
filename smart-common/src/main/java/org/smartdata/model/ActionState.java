@@ -20,5 +20,6 @@ package org.smartdata.model;
 public enum ActionState {
   RUNNING,
   SUCCESSFUL,
+  SCHEDULED,
   FAILED
 }

@@ -43,6 +43,8 @@ public class ActionInfoDto {
 
   private Long submissionTime;
 
+  private Long startTime;
+
   private Long completionTime = null;
 
   private ActionStateDto state;
@@ -165,6 +167,26 @@ public class ActionInfoDto {
     this.submissionTime = submissionTime;
   }
 
+  public ActionInfoDto startTime(Long startTime) {
+    this.startTime = startTime;
+    return this;
+  }
+
+  /**
+   * UNIX timestamp (UTC) of the action submission
+   * @return startTime
+  */
+  
+  @Schema(name = "startTime", description = "UNIX timestamp (UTC) of the action submission", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("startTime")
+  public Long getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(Long startTime) {
+    this.startTime = startTime;
+  }
+
   public ActionInfoDto completionTime(Long completionTime) {
     this.completionTime = completionTime;
     return this;
@@ -239,6 +261,7 @@ public class ActionInfoDto {
         Objects.equals(this.textRepresentation, actionInfo.textRepresentation) &&
         Objects.equals(this.execHost, actionInfo.execHost) &&
         Objects.equals(this.submissionTime, actionInfo.submissionTime) &&
+        Objects.equals(this.startTime, actionInfo.startTime) &&
         Objects.equals(this.completionTime, actionInfo.completionTime) &&
         Objects.equals(this.state, actionInfo.state) &&
         Objects.equals(this.source, actionInfo.source);
@@ -246,7 +269,7 @@ public class ActionInfoDto {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, cmdletId, textRepresentation, execHost, submissionTime, completionTime, state, source);
+    return Objects.hash(id, cmdletId, textRepresentation, execHost, submissionTime, startTime, completionTime, state, source);
   }
 
   @Override
@@ -258,6 +281,7 @@ public class ActionInfoDto {
     sb.append("    textRepresentation: ").append(toIndentedString(textRepresentation)).append("\n");
     sb.append("    execHost: ").append(toIndentedString(execHost)).append("\n");
     sb.append("    submissionTime: ").append(toIndentedString(submissionTime)).append("\n");
+    sb.append("    startTime: ").append(toIndentedString(startTime)).append("\n");
     sb.append("    completionTime: ").append(toIndentedString(completionTime)).append("\n");
     sb.append("    state: ").append(toIndentedString(state)).append("\n");
     sb.append("    source: ").append(toIndentedString(source)).append("\n");

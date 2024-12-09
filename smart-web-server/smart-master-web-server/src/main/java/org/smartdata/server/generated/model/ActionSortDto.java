@@ -28,29 +28,33 @@ import javax.annotation.Generated;
 
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
 public enum ActionSortDto {
-
+  
   ID("id"),
-
+  
   EXECHOST("execHost"),
-
+  
   SUBMISSIONTIME("submissionTime"),
-
+  
+  STARTTIME("startTime"),
+  
   COMPLETIONTIME("completionTime"),
-
+  
   STATE("state"),
-
+  
   SOURCE("source"),
-
+  
   _ID("-id"),
-
+  
   _EXECHOST("-execHost"),
-
+  
   _SUBMISSIONTIME("-submissionTime"),
-
+  
+  _STARTTIME("-startTime"),
+  
   _COMPLETIONTIME("-completionTime"),
-
+  
   _STATE("-state"),
-
+  
   _SOURCE("-source");
 
   private String value;

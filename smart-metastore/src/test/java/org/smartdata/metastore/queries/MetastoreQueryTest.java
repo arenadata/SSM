@@ -40,6 +40,8 @@ import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.greaterThan;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.greaterThanEqual;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNotNull;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNull;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.lessThan;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.lessThanEqual;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
@@ -70,12 +72,14 @@ public class MetastoreQueryTest {
                         lessThan("ltColumn", 2L),
                         greaterThanEqual("gteColumn", 3.0),
                         lessThanEqual("lteColumn", 4.0F),
-                        betweenInclusive("betweenInclusiveColumn", 2, 3)
+                        betweenInclusive("betweenInclusiveColumn", 2, 3),
+                        isNotNull("gteColumn")
                     ),
                     equal("anotherColumn", "str_val"),
                     in("listMember", Arrays.asList(1, 2)),
                     like("strColumn", "pattern"),
-                    between("betweenColumn", 0, 1)
+                    between("betweenColumn", 0, 1),
+                    isNull("strColumn")
                 )
             ).withPagination(pageRequest);
 

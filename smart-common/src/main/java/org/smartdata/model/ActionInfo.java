@@ -21,7 +21,6 @@ package org.smartdata.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,15 +35,16 @@ import static org.smartdata.utils.FormattingUtil.actionToString;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-@Builder(setterPrefix = "set")
+@Builder(setterPrefix = "set", toBuilder = true)
 public class ActionInfo {
   // Old file id
   public static final String OLD_FILE_ID = "-oid";
 
-  private long actionId;
-  private long cmdletId;
-  private String actionName;
+  private final long actionId;
+  private final long cmdletId;
+  private final String actionName;
+  private final long createTime;
+
   private Map<String, String> args;
   @lombok.Builder.Default
   private String result = "";
@@ -53,20 +53,11 @@ public class ActionInfo {
 
   // For action set flexibility
   private boolean successful;
-  private long createTime;
   private boolean finished;
+  private Long startTime;
   private Long finishTime;
   private float progress;
   private String execHost;
-
-  public ActionInfo(long actionId, long cmdletId, String actionName,
-                    Map<String, String> args, String result, String log,
-                    boolean successful, long createTime, boolean finished,
-                    long finishTime, float progress) {
-    this(actionId, cmdletId, actionName,
-        args, result, log, successful, createTime,
-        finished, finishTime, progress, "");
-  }
 
   public String getActionText() {
     return actionToString(actionName, args);

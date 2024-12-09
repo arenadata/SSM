@@ -15,4 +15,5 @@
     <include file="/db/changelog/changelog-5.add-partitioning.xml"/>
     <include file="/db/changelog/changelog-6.make-fileId-autoincrement.xml"/>
     <include file="/db/changelog/changelog-7.make-action-finish-time-nullable.xml"/>
+    <include file="/db/changelog/changelog-8.add-action-start-time.xml"/>
 </databaseChangeLog>

@@ -21,6 +21,10 @@ properties:
     type: integer
     format: int64
     description: UNIX timestamp (UTC) of the action submission
+  startTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp (UTC) of the action submission
   completionTime:
     type: integer
     format: int64

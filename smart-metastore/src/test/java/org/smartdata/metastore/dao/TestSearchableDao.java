@@ -93,11 +93,11 @@ public abstract class TestSearchableDao<
     assertEquals(expectedTotal, searchResult.getTotal());
     assertEquals(expectedIds.size(), items.size());
 
-    List<IdT> actualEventTimestamps = items.stream()
+    List<IdT> actualIds = items.stream()
         .map(this::getIdentifier)
         .collect(Collectors.toList());
 
-    assertEquals(expectedIds, actualEventTimestamps);
+    assertEquals(expectedIds, actualIds);
   }
 
   private PageRequest<ColumnT> pageRequest(long offset, int limit) {

@@ -256,8 +256,7 @@ public class CmdletManager extends AbstractService
           .build();
 
       for (CmdletInfo cmdletInfo : cmdletInfoHandler.search(searchRequest)) {
-        recoverCmdletInfo(cmdletInfo,
-            actionInfos -> recoverDispatchedActionInfos(cmdletInfo, actionInfos));
+        recoverCmdletInfo(cmdletInfo, this::recoverDispatchedActionInfos);
       }
 
       for (CmdletInfo cmdletInfo : metaStore.getCmdlets(CmdletState.PENDING)) {
@@ -270,9 +269,8 @@ public class CmdletManager extends AbstractService
     }
   }
 
-  private void recoverDispatchedActionInfos(CmdletInfo cmdletInfo, List<ActionInfo> actionInfos) {
+  private void recoverDispatchedActionInfos(List<ActionInfo> actionInfos) {
     for (ActionInfo actionInfo : actionInfos) {
-      actionInfo.setCreateTime(cmdletInfo.getGenerateTime());
       // Recover scheduler status according to dispatched action.
       onActionInfoRecover(actionInfo);
     }

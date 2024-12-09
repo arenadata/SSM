@@ -44,6 +44,7 @@ public class TestActionDao
   private static final long FIRST_ACTION_ID = 0;
   private static final long SECOND_ACTION_ID = 1;
   private static final long THIRD_ACTION_ID = 2;
+  private static final long FORTH_ACTION_ID = 3;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -57,11 +58,22 @@ public class TestActionDao
   @Test
   public void testInsertGetAction() {
     Map<String, String> args = new HashMap<>();
-    ActionInfo actionInfo = new ActionInfo(1, 1,
-        "cache", args, "Test",
-        "Test", false, 123213213L, true, 123123L,
-        100);
-    actionDao.insert(new ActionInfo[] {actionInfo});
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
+
+    actionDao.insert(new ActionInfo[]{actionInfo});
     ActionInfo dbActionInfo = actionDao.getById(1L);
     Assert.assertEquals(actionInfo, dbActionInfo);
     // Get wrong id
@@ -72,10 +84,21 @@ public class TestActionDao
   @Test
   public void testUpdateAction() {
     Map<String, String> args = new HashMap<>();
-    ActionInfo actionInfo = new ActionInfo(1, 1,
-        "cache", args, "Test",
-        "Test", false, 123213213L, true, 123123L,
-        100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
+
     actionDao.insert(actionInfo);
     actionInfo.setSuccessful(true);
     actionDao.update(actionInfo);
@@ -86,20 +109,34 @@ public class TestActionDao
   @Test
   public void testGetNewDeleteAction() throws Exception {
     Map<String, String> args = new HashMap<>();
-    ActionInfo actionInfo = new ActionInfo(1, 1,
-        "cache", args, "Test",
-        "Test", false, 123213213L, true, 123123L,
-        100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
+
     List<ActionInfo> actionInfoList = actionDao.getLatestActions(0);
     // Get from empty table
     Assert.assertTrue(actionInfoList.isEmpty());
     actionDao.insert(actionInfo);
-    actionInfo.setActionId(2);
+
+    actionInfo = actionInfo.toBuilder().setActionId(2L).build();
     actionDao.insert(actionInfo);
+
     actionInfoList = actionDao.getLatestActions(0);
     Assert.assertEquals(2, actionInfoList.size());
     actionInfoList = actionDao.getByIds(Arrays.asList(1L, 2L));
     Assert.assertEquals(2, actionInfoList.size());
+
     actionDao.delete(actionInfo.getActionId());
     actionInfoList = actionDao.search(ActionSearchRequest.noFilters());
     Assert.assertEquals(1, actionInfoList.size());
@@ -108,10 +145,14 @@ public class TestActionDao
   @Test
   public void testMaxId() {
     Map<String, String> args = new HashMap<>();
-    ActionInfo actionInfo = new ActionInfo(1, 1,
-        "cache", args, "Test",
-        "Test", false, 123213213L, true, 123123L,
-        100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setCreateTime(123213213L)
+        .build();
+
     Assert.assertEquals(0, actionDao.getMaxId());
     actionDao.insert(actionInfo);
     Assert.assertEquals(2, actionDao.getMaxId());
@@ -122,7 +163,7 @@ public class TestActionDao
     insertActionsForSearch();
 
     testSearch(ActionSearchRequest.noFilters(),
-        FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID);
+        FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID, FORTH_ACTION_ID);
   }
 
   @Test
@@ -181,7 +222,8 @@ public class TestActionDao
             Instant.EPOCH, Instant.now()))
         .build();
 
-    testSearch(searchRequest, FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID);
+    testSearch(searchRequest,
+        FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID, FORTH_ACTION_ID);
 
     searchRequest = ActionSearchRequest.builder()
         .submissionTime(new TimeInterval(
@@ -192,7 +234,41 @@ public class TestActionDao
 
     searchRequest = ActionSearchRequest.builder()
         .submissionTime(new TimeInterval(
-            Instant.ofEpochMilli(16), Instant.now()))
+            Instant.ofEpochMilli(16), Instant.ofEpochMilli(500)))
+        .build();
+
+    testSearch(searchRequest, FORTH_ACTION_ID);
+
+    searchRequest = ActionSearchRequest.builder()
+        .submissionTime(new TimeInterval(
+            Instant.ofEpochMilli(201L), Instant.now()))
+        .build();
+
+    testSearch(searchRequest);
+  }
+
+  @Test
+  public void testSearchByStartTime() {
+    insertActionsForSearch();
+
+    ActionSearchRequest searchRequest = ActionSearchRequest.builder()
+        .startTime(new TimeInterval(
+            Instant.EPOCH, Instant.now()))
+        .build();
+
+    testSearch(searchRequest,
+        FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID);
+
+    searchRequest = ActionSearchRequest.builder()
+        .startTime(new TimeInterval(
+            Instant.ofEpochMilli(6), Instant.ofEpochMilli(14)))
+        .build();
+
+    testSearch(searchRequest, SECOND_ACTION_ID);
+
+    searchRequest = ActionSearchRequest.builder()
+        .startTime(new TimeInterval(
+            Instant.ofEpochMilli(51), Instant.ofEpochMilli(500)))
         .build();
 
     testSearch(searchRequest);
@@ -250,6 +326,12 @@ public class TestActionDao
         .build();
 
     testSearch(searchRequest, FIRST_ACTION_ID, SECOND_ACTION_ID);
+
+    searchRequest = ActionSearchRequest.builder()
+        .state(ActionState.SCHEDULED)
+        .build();
+
+    testSearch(searchRequest, FORTH_ACTION_ID);
   }
 
   @Test
@@ -261,7 +343,8 @@ public class TestActionDao
         .source(ActionSource.RULE)
         .build();
 
-    testSearch(searchRequest, FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID);
+    testSearch(searchRequest,
+        FIRST_ACTION_ID, SECOND_ACTION_ID, THIRD_ACTION_ID, FORTH_ACTION_ID);
 
     searchRequest = ActionSearchRequest.builder()
         .source(ActionSource.USER)
@@ -273,7 +356,7 @@ public class TestActionDao
         .source(ActionSource.RULE)
         .build();
 
-    testSearch(searchRequest, SECOND_ACTION_ID);
+    testSearch(searchRequest, SECOND_ACTION_ID, FORTH_ACTION_ID);
   }
 
   @Test
@@ -313,7 +396,7 @@ public class TestActionDao
     testPagedSearch(
         ActionSearchRequest.noFilters(),
         pageRequest,
-        SECOND_ACTION_ID, THIRD_ACTION_ID, FIRST_ACTION_ID);
+        SECOND_ACTION_ID, FORTH_ACTION_ID, THIRD_ACTION_ID, FIRST_ACTION_ID);
   }
 
   private void insertActionsForSearch() {
@@ -326,6 +409,7 @@ public class TestActionDao
         .setLog("logloglog")
         .setSuccessful(true)
         .setCreateTime(0)
+        .setStartTime(5L)
         .setFinished(true)
         .setFinishTime(10L)
         .setExecHost("localhost")
@@ -337,6 +421,7 @@ public class TestActionDao
         .setActionName("write")
         .setArgs(ImmutableMap.of("-arg", "check", "-ruleId", "1"))
         .setCreateTime(1)
+        .setStartTime(10L)
         .setFinished(false)
         .setExecHost("localhost")
         .build();
@@ -348,12 +433,23 @@ public class TestActionDao
         .setArgs(ImmutableMap.of("-file", "test.txt"))
         .setSuccessful(false)
         .setCreateTime(15)
+        .setStartTime(50L)
         .setFinished(true)
         .setFinishTime(100L)
         .setExecHost("remote_host")
         .build();
 
-    actionDao.insert(actionInfo1, actionInfo2, actionInfo3);
+    ActionInfo actionInfo4 = ActionInfo.builder()
+        .setActionId(FORTH_ACTION_ID)
+        .setCmdletId(3)
+        .setActionName("read")
+        .setArgs(ImmutableMap.of("-file", "4.forth", "-ruleId", "2"))
+        .setCreateTime(200L)
+        .setFinished(false)
+        .setExecHost("some_host")
+        .build();
+
+    actionDao.insert(actionInfo1, actionInfo2, actionInfo3, actionInfo4);
   }
 
   @Override

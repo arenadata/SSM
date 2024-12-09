@@ -29,11 +29,13 @@ public interface ActionPageRequestMapper
 
   @ValueMapping(source = "EXECHOST", target = "EXEC_HOST")
   @ValueMapping(source = "SUBMISSIONTIME", target = "CREATE_TIME")
+  @ValueMapping(source = "STARTTIME", target = "START_TIME")
   @ValueMapping(source = "COMPLETIONTIME", target = "FINISH_TIME")
   @ValueMapping(source = "STATE", target = "STATUS")
   @ValueMapping(source = "_ID", target = "ID")
   @ValueMapping(source = "_EXECHOST", target = "EXEC_HOST")
   @ValueMapping(source = "_SUBMISSIONTIME", target = "CREATE_TIME")
+  @ValueMapping(source = "_STARTTIME", target = "START_TIME")
   @ValueMapping(source = "_COMPLETIONTIME", target = "FINISH_TIME")
   @ValueMapping(source = "_STATE", target = "STATUS")
   @ValueMapping(source = "_SOURCE", target = "SOURCE")

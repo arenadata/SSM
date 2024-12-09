@@ -5,12 +5,14 @@ enum:
   - id
   - execHost
   - submissionTime
+  - startTime
   - completionTime
   - state
   - source
   - -id
   - -execHost
   - -submissionTime
+  - -startTime
   - -completionTime
   - -state
   - -source

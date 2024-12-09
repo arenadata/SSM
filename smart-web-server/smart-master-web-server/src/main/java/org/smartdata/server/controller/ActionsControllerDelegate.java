@@ -35,6 +35,7 @@ import org.smartdata.server.generated.model.ActionStateDto;
 import org.smartdata.server.generated.model.ActionsDto;
 import org.smartdata.server.generated.model.CompletionTimeIntervalDto;
 import org.smartdata.server.generated.model.PageRequestDto;
+import org.smartdata.server.generated.model.StartTimeIntervalDto;
 import org.smartdata.server.generated.model.SubmissionTimeIntervalDto;
 import org.smartdata.server.generated.model.SubmitActionRequestDto;
 import org.smartdata.server.mappers.ActionInfoMapper;
@@ -65,6 +66,7 @@ public class ActionsControllerDelegate implements ActionsApiDelegate {
       List<ActionSortDto> actionSort,
       String textRepresentationLike,
       SubmissionTimeIntervalDto submissionTime,
+      StartTimeIntervalDto startTime,
       List<String> hosts,
       List<ActionStateDto> states,
       List<ActionSourceDto> sources,
@@ -74,7 +76,7 @@ public class ActionsControllerDelegate implements ActionsApiDelegate {
         pageRequestMapper.toPageRequest(pageRequestDto, actionSort);
 
     ActionSearchRequest searchRequest = actionInfoMapper.toSearchRequest(
-        textRepresentationLike, submissionTime, hosts, states, sources, completionTime);
+        textRepresentationLike, submissionTime, startTime, hosts, states, sources, completionTime);
 
     SearchResult<ActionInfo> searchResult =
         actionInfoHandler.search(searchRequest, pageRequest);

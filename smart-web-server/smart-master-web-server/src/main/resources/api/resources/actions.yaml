@@ -8,6 +8,7 @@ get:
     - $ref: '../parameters/actions/action-sort.yaml'
     - $ref: '../parameters/common/text-representation-like.yaml'
     - $ref: '../parameters/common/submission-time.yaml'
+    - $ref: '../parameters/actions/start-time.yaml'
     - $ref: '../parameters/actions/hosts.yaml'
     - $ref: '../parameters/actions/action-states.yaml'
     - $ref: '../parameters/actions/sources.yaml'

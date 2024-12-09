@@ -30,6 +30,8 @@ public enum ActionStateDto {
   
   RUNNING("RUNNING"),
   
+  SCHEDULED("SCHEDULED"),
+  
   SUCCESSFUL("SUCCESSFUL"),
   
   FAILED("FAILED");

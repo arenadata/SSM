@@ -105,11 +105,21 @@ public class TestMetaStore extends TestDaoBase {
 
     public void run() {
       Map<String, String> args = new HashMap<>();
-      ActionInfo actionInfo =
-          new ActionInfo(1, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-              100);
       for (int i = 0; i < 100; i++) {
-        actionInfo.setActionId(i);
+        ActionInfo actionInfo = ActionInfo.builder()
+            .setActionId(i)
+            .setCmdletId(1L)
+            .setActionName("cache")
+            .setArgs(args)
+            .setResult("Test")
+            .setLog("Test")
+            .setSuccessful(false)
+            .setCreateTime(123213213L)
+            .setStartTime(123213220L)
+            .setFinished(true)
+            .setFinishTime(123213913L)
+            .setProgress(100)
+            .build();
         try {
           metaStore.insertAction(actionInfo);
         } catch (MetaStoreException e) {
@@ -355,45 +365,75 @@ public class TestMetaStore extends TestDaoBase {
     metaStore.insertCmdlet(command1);
     CmdletInfo command2 = new CmdletInfo(1, 78, CmdletState.DONE, "tt", 128L, 232444994L);
     metaStore.insertCmdlet(command2);
-    ActionInfo actionInfo =
-        new ActionInfo(1, 0, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(0L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(true)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
     metaStore.insertAction(actionInfo);
-    ActionInfo actionInfo2 =
-        new ActionInfo(2, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+
+    ActionInfo actionInfo2 = actionInfo.toBuilder()
+        .setActionId(2L)
+        .setCmdletId(1L)
+        .build();
     metaStore.insertAction(actionInfo2);
-    ActionInfo actionInfo3 =
-        new ActionInfo(3, 0, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+
+    ActionInfo actionInfo3 = actionInfo.toBuilder()
+        .setActionId(3L)
+        .build();
     metaStore.insertAction(actionInfo3);
     metaStore.deleteFinishedCmdletsWithGenTimeBefore(125);
+
     Assert.assertNull(metaStore.getCmdletById(0));
     Assert.assertNull(metaStore.getActionById(1));
     Assert.assertNotNull(metaStore.getActionById(2));
   }
 
   @Test
-  public void testdeleteKeepNewCmdlets() throws Exception {
+  public void testDeleteKeepNewCmdlets() throws Exception {
     Map<String, String> args = new HashMap<>();
     CmdletInfo command1 =
         new CmdletInfo(0, 78, CmdletState.CANCELLED, "test", 123L, 232444444L);
     metaStore.insertCmdlet(command1);
     CmdletInfo command2 = new CmdletInfo(1, 78, CmdletState.DONE, "tt", 128L, 232444994L);
     metaStore.insertCmdlet(command2);
-    ActionInfo actionInfo =
-        new ActionInfo(1, 0, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(0L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
     metaStore.insertAction(actionInfo);
-    ActionInfo actionInfo2 =
-        new ActionInfo(2, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+
+    ActionInfo actionInfo2 = actionInfo.toBuilder()
+        .setActionId(2L)
+        .setCmdletId(1L)
+        .build();
     metaStore.insertAction(actionInfo2);
-    ActionInfo actionInfo3 =
-        new ActionInfo(3, 0, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+
+    ActionInfo actionInfo3 = actionInfo.toBuilder()
+        .setActionId(3L)
+        .build();
     metaStore.insertAction(actionInfo3);
     metaStore.deleteKeepNewCmdlets(1);
+
     Assert.assertNull(metaStore.getCmdletById(0));
     Assert.assertNull(metaStore.getActionById(1));
     Assert.assertNotNull(metaStore.getActionById(2));
@@ -419,15 +459,28 @@ public class TestMetaStore extends TestDaoBase {
   @Test
   public void testInsertListActions() throws Exception {
     Map<String, String> args = new HashMap<>();
-    ActionInfo actionInfo =
-        new ActionInfo(1, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(1L)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
+
     metaStore.upsertActions(Collections.singletonList(actionInfo));
     List<ActionInfo> actionInfos = metaStore.actionDao()
         .search(ActionSearchRequest.noFilters());
     Assert.assertEquals(1, actionInfos.size());
+
     actionInfo.setResult("Finished");
-    metaStore.updateActions(new ActionInfo[] {actionInfo});
+    metaStore.updateActions(new ActionInfo[]{actionInfo});
     actionInfos = metaStore.actionDao().search(ActionSearchRequest.noFilters());
     Assert.assertEquals(actionInfo, actionInfos.get(0));
   }
@@ -437,18 +490,28 @@ public class TestMetaStore extends TestDaoBase {
     long currentId = metaStore.getMaxActionId();
     Map<String, String> args = new HashMap<>();
     Assert.assertEquals(0, currentId);
-    ActionInfo actionInfo =
-        new ActionInfo(
-            currentId, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+    ActionInfo actionInfo = ActionInfo.builder()
+        .setActionId(currentId)
+        .setCmdletId(1L)
+        .setActionName("cache")
+        .setArgs(args)
+        .setResult("Test")
+        .setLog("Test")
+        .setSuccessful(false)
+        .setCreateTime(123213213L)
+        .setStartTime(123213220L)
+        .setFinished(true)
+        .setFinishTime(123213913L)
+        .setProgress(100)
+        .build();
+
     metaStore.upsertActions(Collections.singletonList(actionInfo));
     currentId = metaStore.getMaxActionId();
     Assert.assertEquals(1, currentId);
-    actionInfo =
-        new ActionInfo(
-            currentId, 1, "cache", args, "Test", "Test", true, 123213213L, true, 123123L,
-            100);
+
+    actionInfo = actionInfo.toBuilder().setActionId(currentId).build();
     metaStore.upsertActions(Collections.singletonList(actionInfo));
+
     currentId = metaStore.getMaxActionId();
     Assert.assertEquals(2, currentId);
   }
@@ -601,7 +664,7 @@ public class TestMetaStore extends TestDaoBase {
     SystemInfo systemInfo = new SystemInfo("test", "test");
     metaStore.updateAndInsertIfNotExist(systemInfo);
     Assert.assertTrue(metaStore.containSystemInfo("test"));
-    Assert.assertTrue(metaStore.getSystemInfoByProperty("test").equals(systemInfo));
+    Assert.assertEquals(systemInfo, metaStore.getSystemInfoByProperty("test"));
   }
 
   @Test

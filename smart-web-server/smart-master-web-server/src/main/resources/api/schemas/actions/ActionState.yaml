@@ -3,5 +3,6 @@ type: string
 description: State of the action
 enum:
   - RUNNING
+  - SCHEDULED
   - SUCCESSFUL
   - FAILED

@@ -69,6 +69,14 @@ public class MetastoreQueryDsl {
     return binaryOpWithPlaceholder("=", column, value);
   }
 
+  public static MetastoreQueryExpression isNull(String column) {
+    return binaryOpWithLiteralArgs("is", column, "NULL");
+  }
+
+  public static MetastoreQueryExpression isNotNull(String column) {
+    return binaryOpWithLiteralArgs("is", column, "NOT NULL");
+  }
+
   public static <T> MetastoreQueryExpression in(String column, List<T> values) {
     if (CollectionUtils.isEmpty(values)) {
       return emptyExpression();
@@ -159,9 +167,22 @@ public class MetastoreQueryDsl {
 
     return new MetastoreQueryOperator(operator,
         Arrays.asList(
-            () -> column,
+            literal(column),
             new MetastoreQueryPlaceholder<>(column, value)
         )
     );
+  }
+
+  private static MetastoreQueryExpression binaryOpWithLiteralArgs(
+      String operator, String... args) {
+    return new MetastoreQueryOperator(operator,
+        Arrays.stream(args)
+            .map(MetastoreQueryDsl::literal)
+            .collect(Collectors.toList())
+    );
+  }
+
+  private static MetastoreQueryExpression literal(String literal) {
+    return () -> literal;
   }
 }

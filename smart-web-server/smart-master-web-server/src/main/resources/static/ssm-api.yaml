@@ -422,6 +422,12 @@ paths:
         required: false
         schema:
           $ref: '#/components/schemas/SubmissionTimeInterval'
+      - description: Time interval in which an action started
+        in: query
+        name: startTime
+        required: false
+        schema:
+          $ref: '#/components/schemas/StartTimeInterval'
       - description: List of hosts on which the action is/was running
         in: query
         name: hosts
@@ -866,6 +872,13 @@ components:
         items:
           $ref: '#/components/schemas/ActionSort'
         type: array
+    start-time:
+      description: Time interval in which an action started
+      in: query
+      name: startTime
+      required: false
+      schema:
+        $ref: '#/components/schemas/StartTimeInterval'
     hosts:
       description: List of hosts on which the action is/was running
       in: query
@@ -1257,12 +1270,14 @@ components:
       - id
       - execHost
       - submissionTime
+      - startTime
       - completionTime
       - state
       - source
       - -id
       - -execHost
       - -submissionTime
+      - -startTime
       - -completionTime
       - -state
       - -source
@@ -1272,6 +1287,7 @@ components:
       description: State of the action
       enum:
       - RUNNING
+      - SCHEDULED
       - SUCCESSFUL
       - FAILED
       title: ActionState
@@ -1285,9 +1301,10 @@ components:
       type: string
     ActionInfo:
       example:
-        completionTime: 5
+        completionTime: 2
         textRepresentation: textRepresentation
         execHost: execHost
+        startTime: 5
         id: 6
         state: null
         source: null
@@ -1310,6 +1327,10 @@ components:
           nullable: true
           type: string
         submissionTime:
+          description: UNIX timestamp (UTC) of the action submission
+          format: int64
+          type: integer
+        startTime:
           description: UNIX timestamp (UTC) of the action submission
           format: int64
           type: integer
@@ -1359,6 +1380,7 @@ components:
         log: log
         textRepresentation: textRepresentation
         execHost: execHost
+        startTime: 5
         id: 0
         state: null
         source: null
@@ -1732,6 +1754,22 @@ components:
           ruleId: 1
           submissionTime: 5
       title: Cmdlets
+    StartTimeInterval:
+      properties:
+        startTimeFrom:
+          description: UNIX timestamp (UTC) of the interval start
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+        startTimeTo:
+          description: UNIX timestamp (UTC) of the interval end
+          format: int64
+          minimum: 0
+          nullable: true
+          type: integer
+      title: StartTimeInterval
+      type: object
     CompletionTimeInterval:
       properties:
         completionTimeFrom:
@@ -1761,17 +1799,19 @@ components:
       example:
         total: 0
         items:
-        - completionTime: 5
+        - completionTime: 2
           textRepresentation: textRepresentation
           execHost: execHost
+          startTime: 5
           id: 6
           state: null
           source: null
           cmdletId: 1
           submissionTime: 5
-        - completionTime: 5
+        - completionTime: 2
           textRepresentation: textRepresentation
           execHost: execHost
+          startTime: 5
           id: 6
           state: null
           source: null
