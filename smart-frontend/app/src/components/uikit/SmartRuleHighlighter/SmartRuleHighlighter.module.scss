@@ -55,7 +55,7 @@ $syntaxTimeintvalconst: #b3ff00;
     color: $syntaxSymbols;
   }
 
-  &>.opeqcmp\.ssmrule, &>.opcmp\.ssmrule {
+  &>.opeq\.ssmrule, &>.opcmp\.ssmrule {
     color: $syntaxMatches;
   }
 

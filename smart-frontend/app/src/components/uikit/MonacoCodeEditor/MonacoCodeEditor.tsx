@@ -184,7 +184,7 @@ monaco.editor.defineTheme('ssmruleTheme', {
     { token: 'matches.ssmrule', foreground: smartRuleHighlighterStyles.syntaxMatches, fontStyle: 'bold' },
     { token: 'string.ssmrule', foreground: smartRuleHighlighterStyles.syntaxString, fontStyle: 'italic' },
     { token: 'symbols.ssmrule', foreground: smartRuleHighlighterStyles.syntaxSymbols },
-    { token: 'opeqcmp.ssmrule', foreground: smartRuleHighlighterStyles.syntaxCompare },
+    { token: 'opeq.ssmrule', foreground: smartRuleHighlighterStyles.syntaxCompare },
     { token: 'opcmp.ssmrule', foreground: smartRuleHighlighterStyles.syntaxCompare },
     { token: 'or.ssmrule', foreground: smartRuleHighlighterStyles.syntaxSymbols },
     { token: 'and.ssmrule', foreground: smartRuleHighlighterStyles.syntaxSymbols },

@@ -38,10 +38,13 @@ import { BvNotContext } from "./SmartRuleParser.js";
 import { BvCompareexprContext } from "./SmartRuleParser.js";
 import { BvCurveContext } from "./SmartRuleParser.js";
 import { CmpIdLongContext } from "./SmartRuleParser.js";
+import { CmpEqIdLongContext } from "./SmartRuleParser.js";
 import { CmpIdStringContext } from "./SmartRuleParser.js";
 import { CmpIdStringMatchesContext } from "./SmartRuleParser.js";
 import { CmpTimeintvalTimeintvalContext } from "./SmartRuleParser.js";
+import { CmpEqTimeintvalTimeintvalContext } from "./SmartRuleParser.js";
 import { CmpTimepointTimePointContext } from "./SmartRuleParser.js";
+import { CmpEqTimepointTimePointContext } from "./SmartRuleParser.js";
 import { TieTiIdExprContext } from "./SmartRuleParser.js";
 import { TieTpExprContext } from "./SmartRuleParser.js";
 import { TieConstContext } from "./SmartRuleParser.js";
@@ -68,7 +71,6 @@ import { IdAttContext } from "./SmartRuleParser.js";
 import { IdObjAttContext } from "./SmartRuleParser.js";
 import { IdAttParaContext } from "./SmartRuleParser.js";
 import { IdObjAttParaContext } from "./SmartRuleParser.js";
-import { OprContext } from "./SmartRuleParser.js";
 import { FileEventContext } from "./SmartRuleParser.js";
 import { ConstLongContext } from "./SmartRuleParser.js";
 import { ConstStringContext } from "./SmartRuleParser.js";
@@ -280,6 +282,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 */
 	exitCmpIdLong?: (ctx: CmpIdLongContext) => void;
 	/**
+	 * Enter a parse tree produced by the `cmpEqIdLong`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqIdLong?: (ctx: CmpEqIdLongContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqIdLong`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqIdLong?: (ctx: CmpEqIdLongContext) => void;
+	/**
 	 * Enter a parse tree produced by the `cmpIdString`
 	 * labeled alternative in `SmartRuleParser.compareexpr`.
 	 * @param ctx the parse tree
@@ -316,6 +330,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 */
 	exitCmpTimeintvalTimeintval?: (ctx: CmpTimeintvalTimeintvalContext) => void;
 	/**
+	 * Enter a parse tree produced by the `cmpEqTimeintvalTimeintval`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqTimeintvalTimeintval?: (ctx: CmpEqTimeintvalTimeintvalContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqTimeintvalTimeintval`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqTimeintvalTimeintval?: (ctx: CmpEqTimeintvalTimeintvalContext) => void;
+	/**
 	 * Enter a parse tree produced by the `cmpTimepointTimePoint`
 	 * labeled alternative in `SmartRuleParser.compareexpr`.
 	 * @param ctx the parse tree
@@ -327,6 +353,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitCmpTimepointTimePoint?: (ctx: CmpTimepointTimePointContext) => void;
+	/**
+	 * Enter a parse tree produced by the `cmpEqTimepointTimePoint`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqTimepointTimePoint?: (ctx: CmpEqTimepointTimePointContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqTimepointTimePoint`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqTimepointTimePoint?: (ctx: CmpEqTimepointTimePointContext) => void;
 	/**
 	 * Enter a parse tree produced by the `tieTiIdExpr`
 	 * labeled alternative in `SmartRuleParser.timeintvalexpr`.
@@ -635,16 +673,6 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitIdObjAttPara?: (ctx: IdObjAttParaContext) => void;
-	/**
-	 * Enter a parse tree produced by `SmartRuleParser.opr`.
-	 * @param ctx the parse tree
-	 */
-	enterOpr?: (ctx: OprContext) => void;
-	/**
-	 * Exit a parse tree produced by `SmartRuleParser.opr`.
-	 * @param ctx the parse tree
-	 */
-	exitOpr?: (ctx: OprContext) => void;
 	/**
 	 * Enter a parse tree produced by `SmartRuleParser.fileEvent`.
 	 * @param ctx the parse tree
