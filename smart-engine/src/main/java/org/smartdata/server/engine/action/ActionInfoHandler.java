@@ -164,7 +164,6 @@ public class ActionInfoHandler
     actionInfo.setResult(status.getResult());
     if (!status.isFinished()) {
       actionInfo.setProgress(status.getPercentage());
-      actionInfo.setFinishTime(System.currentTimeMillis());
     } else {
       actionInfo.setProgress(1.0F);
       actionInfo.setFinished(true);

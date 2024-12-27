@@ -327,7 +327,7 @@ public class TestActionDao
         .setSuccessful(true)
         .setCreateTime(0)
         .setFinished(true)
-        .setFinishTime(10)
+        .setFinishTime(10L)
         .setExecHost("localhost")
         .build();
 
@@ -349,7 +349,7 @@ public class TestActionDao
         .setSuccessful(false)
         .setCreateTime(15)
         .setFinished(true)
-        .setFinishTime(100)
+        .setFinishTime(100L)
         .setExecHost("remote_host")
         .build();
 

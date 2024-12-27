@@ -55,7 +55,7 @@ public class ActionInfo {
   private boolean successful;
   private long createTime;
   private boolean finished;
-  private long finishTime;
+  private Long finishTime;
   private float progress;
   private String execHost;
 

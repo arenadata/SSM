@@ -106,7 +106,7 @@ public class DetectTimeoutActionsTask implements Runnable {
   }
 
   private boolean isTimeout(ActionInfo actionInfo) {
-    if (actionInfo.isFinished() || actionInfo.getFinishTime() == 0) {
+    if (actionInfo.isFinished() || actionInfo.getFinishTime() == null) {
       return false;
     }
     long currentTime = System.currentTimeMillis();

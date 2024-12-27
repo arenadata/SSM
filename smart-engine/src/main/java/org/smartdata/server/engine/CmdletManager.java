@@ -268,7 +268,6 @@ public class CmdletManager extends AbstractService
   private void recoverDispatchedActionInfos(CmdletInfo cmdletInfo, List<ActionInfo> actionInfos) {
     for (ActionInfo actionInfo : actionInfos) {
       actionInfo.setCreateTime(cmdletInfo.getGenerateTime());
-      actionInfo.setFinishTime(System.currentTimeMillis());
       // Recover scheduler status according to dispatched action.
       onActionInfoRecover(actionInfo);
     }
