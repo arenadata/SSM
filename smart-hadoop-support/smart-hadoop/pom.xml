@@ -61,12 +61,12 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.artifact}</artifactId>
-            <version>2.0.0-RC1</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.client.artifact}</artifactId>
-            <version>2.0.0-RC1</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>${smart.hadoop.artifact}</artifactId>
-            <version>2.0.0-RC1</version>
+            <version>2.0.0</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
