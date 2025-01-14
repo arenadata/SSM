@@ -54,6 +54,7 @@ import org.smartdata.model.PathChecker;
 import org.smartdata.model.WhitelistHelper;
 import org.smartdata.model.action.ActionScheduler;
 import org.smartdata.model.action.ScheduleResult;
+import org.smartdata.model.request.CmdletSearchRequest;
 import org.smartdata.protocol.message.ActionStatus;
 import org.smartdata.protocol.message.ActionStatusFactory;
 import org.smartdata.protocol.message.CmdletStatus;
@@ -249,14 +250,18 @@ public class CmdletManager extends AbstractService
   private void loadCmdletsFromDb() throws IOException {
     LOG.info("reloading the dispatched and pending cmdlets in DB.");
     try {
-      for (CmdletInfo cmdletInfo : metaStore.getCmdlets(CmdletState.DISPATCHED)) {
+      CmdletSearchRequest searchRequest = CmdletSearchRequest.builder()
+          .state(CmdletState.DISPATCHED)
+          .state(CmdletState.EXECUTING)
+          .build();
+
+      for (CmdletInfo cmdletInfo : cmdletInfoHandler.search(searchRequest)) {
         recoverCmdletInfo(cmdletInfo,
             actionInfos -> recoverDispatchedActionInfos(cmdletInfo, actionInfos));
       }
 
       for (CmdletInfo cmdletInfo : metaStore.getCmdlets(CmdletState.PENDING)) {
-        recoverCmdletInfo(cmdletInfo, actionInfos -> {
-        });
+        recoverCmdletInfo(cmdletInfo, actionInfos -> {});
       }
     } catch (MetaStoreException e) {
       LOG.error("DB connection error occurs when ssm is reloading cmdlets!");
@@ -303,7 +308,7 @@ public class CmdletManager extends AbstractService
    * Let Scheduler check actioninfo onsubmit and add them to cmdletinfo.
    */
   private void checkActionsOnSubmit(CmdletInfo cmdletInfo,
-                                    List<ActionInfo> actionInfos) throws IOException {
+      List<ActionInfo> actionInfos) throws IOException {
     for (ActionInfo actionInfo : actionInfos) {
       cmdletInfo.addAction(actionInfo.getActionId());
     }
@@ -430,7 +435,7 @@ public class CmdletManager extends AbstractService
    * Insert cmdletInfo and actions to metastore and cache.
    */
   private void syncCmdAction(CmdletInfo cmdletInfo,
-                             List<ActionInfo> actionInfos) {
+      List<ActionInfo> actionInfos) {
     LOG.debug("Cache cmdlet {}", cmdletInfo);
     actionInfos.forEach(actionInfoHandler::store);
     cmdletInfoHandler.storeUnfinished(cmdletInfo);
@@ -439,10 +444,12 @@ public class CmdletManager extends AbstractService
       synchronized (pendingCmdlets) {
         pendingCmdlets.add(cmdletInfo.getId());
       }
-    } else if (cmdletInfo.getState() == CmdletState.DISPATCHED) {
+    } else if (cmdletInfo.getState() == CmdletState.DISPATCHED
+        || cmdletInfo.getState() == CmdletState.EXECUTING) {
       runningCmdlets.add(cmdletInfo.getId());
       LaunchCmdlet launchCmdlet = cmdletInfoHandler.createLaunchCmdlet(cmdletInfo);
       idToLaunchCmdlets.put(cmdletInfo.getId(), launchCmdlet);
+      scheduledCmdlets.add(cmdletInfo.getId());
     }
   }
 

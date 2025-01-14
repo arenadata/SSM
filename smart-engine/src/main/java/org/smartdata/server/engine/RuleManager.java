@@ -370,12 +370,12 @@ public class RuleManager
   @Override
   public SearchResult<RuleInfo> search(
       RuleSearchRequest searchRequest,
-      PageRequest<RuleSortField> pageRequest) throws Exception {
+      PageRequest<RuleSortField> pageRequest) throws IOException {
     return ruleInfoHandler.search(searchRequest, pageRequest);
   }
 
   @Override
-  public List<RuleInfo> search(RuleSearchRequest searchRequest) throws Exception {
+  public List<RuleInfo> search(RuleSearchRequest searchRequest) throws IOException {
     return ruleInfoHandler.search(searchRequest);
   }
 }
