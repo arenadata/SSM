@@ -21,11 +21,12 @@ import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.SortField;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface Searchable<RequestT, EntityT, ColumnT extends SortField> {
   SearchResult<EntityT> search(
-      RequestT searchRequest, PageRequest<ColumnT> pageRequest) throws Exception;
+      RequestT searchRequest, PageRequest<ColumnT> pageRequest) throws IOException;
 
-  List<EntityT> search(RequestT searchRequest) throws Exception;
+  List<EntityT> search(RequestT searchRequest) throws IOException;
 }
