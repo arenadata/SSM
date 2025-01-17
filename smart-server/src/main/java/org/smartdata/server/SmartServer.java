@@ -44,6 +44,7 @@ import org.smartdata.server.utils.GenericOptionsParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ import static org.smartdata.metastore.utils.MetaStoreUtils.getDBAdapter;
 /**
  * From this Smart Storage Management begins.
  */
-public class SmartServer {
+public class SmartServer implements AutoCloseable {
   public static final Logger LOG = LoggerFactory.getLogger(SmartServer.class);
   public static final Tags SMART_SERVER_BASE_TAGS = Tags.of("service", "smart-server");
 
@@ -71,12 +72,13 @@ public class SmartServer {
     SLF4JBridgeHandler.install();
   }
 
-  public SmartServer(SmartConf conf) {
+  public SmartServer(SmartConf conf, MetaStore metaStore) throws IOException {
     this.conf = conf;
     this.enabled = false;
+    initWith(metaStore);
   }
 
-  public void initWith(MetaStore metaStore) throws Exception {
+  private void initWith(MetaStore metaStore) throws IOException {
     LOG.info("Start Init Smart Server");
 
     HadoopUtil.setSmartConfByHadoop(conf);
@@ -107,7 +109,6 @@ public class SmartServer {
   public ClusterNodesManager getClusterNodesManager() {
     return engine.getClusterNodesManager();
   }
-
 
   public MetaStore getMetaStore() {
     return this.context.getMetaStore();
@@ -175,9 +176,8 @@ public class SmartServer {
       metaStore.checkTables();
     }
 
-    SmartServer ssm = new SmartServer(conf);
+    SmartServer ssm = new SmartServer(conf, metaStore);
     try {
-      ssm.initWith(metaStore);
       ssm.run();
       return ssm;
     } catch (Exception e) {
@@ -225,7 +225,7 @@ public class SmartServer {
    *
    * @throws Exception
    */
-  private void run() throws Exception {
+  public void run() throws Exception {
     boolean enabled = conf.getBoolean(SmartConfKeys.SMART_DFS_ENABLED,
         SmartConfKeys.SMART_DFS_ENABLED_DEFAULT);
 
@@ -298,6 +298,11 @@ public class SmartServer {
     } catch (Exception e) {
       LOG.error("SmartServer shutdown error", e);
     }
+  }
+
+  @Override
+  public void close() throws Exception {
+    shutdown();
   }
 
   private enum StartupOption {

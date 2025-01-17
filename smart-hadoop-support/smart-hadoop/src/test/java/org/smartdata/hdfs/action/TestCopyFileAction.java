@@ -190,6 +190,19 @@ public class TestCopyFileAction extends MultiClusterHarness {
     }
   }
 
+  @Test
+  public void testAsyncTruncateBeforeAppend() throws Exception {
+    Path srcPath = new Path("/tmp/testFile.txt");
+    Path destPath = anotherClusterPath("/tmp", "testFileNew.txt");
+
+    DFSTestUtil.writeFile(dfs, srcPath, "Lorem ipsum dolor");
+    DFSTestUtil.writeFile(anotherDfs, destPath, "Lorem ipsum brrrrrrr;");
+
+    copyFile(srcPath, destPath, 8, 11);
+
+    assertFileContent(destPath, "Lorem ipsum dolor");
+  }
+
   @Setter
   private static class FailingDfsClient extends SmartDFSClient {
     private boolean shouldFail;

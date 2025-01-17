@@ -348,7 +348,7 @@ public class DefaultActionDao
         .setSuccessful(resultSet.getBoolean("successful"))
         .setCreateTime(resultSet.getLong("create_time"))
         .setFinished(resultSet.getBoolean("finished"))
-        .setFinishTime(resultSet.getLong("finish_time"))
+        .setFinishTime(resultSet.getObject("finish_time", Long.class))
         .setExecHost(resultSet.getString("exec_host"))
         .setProgress(resultSet.getFloat("progress"));
   }

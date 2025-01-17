@@ -16,16 +16,66 @@
  * limitations under the License.
  */
 
-/* eslint-disable spellcheck/spell-checker */
-
-/* eslint-disable prettier/prettier */
-
 // Generated from SmartRule.g4 by ANTLR 4.13.2
 
-import { ParseTreeListener } from 'antlr4';
+import {ParseTreeListener} from "antlr4";
 
 
-import type { RuleLineContext , CommentLineContext , ObjTypeOnlyContext , ObjTypeWithContext , TriTimePointContext , TriCycleContext , TriFileEventContext , TriOnceContext , DuringexprContext , ObjfilterContext , ConditionsContext , BvAndORContext , BvIdContext , BvNotContext , BvCompareexprContext , BvCurveContext , CmpIdLongContext , CmpIdStringContext , CmpIdStringMatchesContext , CmpTimeintvalTimeintvalContext , CmpTimepointTimePointContext , TieTiIdExprContext , TieTpExprContext , TieConstContext , TieTiExprContext , TieCurvesContext , TpeNowContext , TpeTimeConstContext , TpeTimeExprContext , TpeCurvesContext , TpeTimeIdContext , CommonexprContext , NumricexprIdContext , NumricexprCurveContext , NumricexprAddContext , NumricexprMulContext , NumricexprLongContext , StrPlusContext , StrOrdStringContext , StrIDContext , StrCurveContext , StrTimePointStrContext , CmdletContext , IdAttContext , IdObjAttContext , IdAttParaContext , IdObjAttParaContext , OPCMPContext , OprContext , FileEventContext , ConstLongContext , ConstStringContext , ConstTimeInvervalContext , ConstTimePointContext } from './SmartRuleParser.js';
+import { RuleLineContext } from "./SmartRuleParser.js";
+import { CommentLineContext } from "./SmartRuleParser.js";
+import { ObjTypeOnlyContext } from "./SmartRuleParser.js";
+import { ObjTypeWithContext } from "./SmartRuleParser.js";
+import { TriTimePointContext } from "./SmartRuleParser.js";
+import { TriCycleContext } from "./SmartRuleParser.js";
+import { TriFileEventContext } from "./SmartRuleParser.js";
+import { TriOnceContext } from "./SmartRuleParser.js";
+import { DuringexprContext } from "./SmartRuleParser.js";
+import { ObjfilterContext } from "./SmartRuleParser.js";
+import { ConditionsContext } from "./SmartRuleParser.js";
+import { BvAndORContext } from "./SmartRuleParser.js";
+import { BvIdContext } from "./SmartRuleParser.js";
+import { BvNotContext } from "./SmartRuleParser.js";
+import { BvCompareexprContext } from "./SmartRuleParser.js";
+import { BvCurveContext } from "./SmartRuleParser.js";
+import { CmpIdLongContext } from "./SmartRuleParser.js";
+import { CmpEqIdLongContext } from "./SmartRuleParser.js";
+import { CmpIdStringContext } from "./SmartRuleParser.js";
+import { CmpIdStringMatchesContext } from "./SmartRuleParser.js";
+import { CmpTimeintvalTimeintvalContext } from "./SmartRuleParser.js";
+import { CmpEqTimeintvalTimeintvalContext } from "./SmartRuleParser.js";
+import { CmpTimepointTimePointContext } from "./SmartRuleParser.js";
+import { CmpEqTimepointTimePointContext } from "./SmartRuleParser.js";
+import { TieTiIdExprContext } from "./SmartRuleParser.js";
+import { TieTpExprContext } from "./SmartRuleParser.js";
+import { TieConstContext } from "./SmartRuleParser.js";
+import { TieTiExprContext } from "./SmartRuleParser.js";
+import { TieCurvesContext } from "./SmartRuleParser.js";
+import { TpeNowContext } from "./SmartRuleParser.js";
+import { TpeTimeConstContext } from "./SmartRuleParser.js";
+import { TpeTimeExprContext } from "./SmartRuleParser.js";
+import { TpeCurvesContext } from "./SmartRuleParser.js";
+import { TpeTimeIdContext } from "./SmartRuleParser.js";
+import { CommonexprContext } from "./SmartRuleParser.js";
+import { NumricexprIdContext } from "./SmartRuleParser.js";
+import { NumricexprCurveContext } from "./SmartRuleParser.js";
+import { NumricexprAddContext } from "./SmartRuleParser.js";
+import { NumricexprMulContext } from "./SmartRuleParser.js";
+import { NumricexprLongContext } from "./SmartRuleParser.js";
+import { StrPlusContext } from "./SmartRuleParser.js";
+import { StrOrdStringContext } from "./SmartRuleParser.js";
+import { StrIDContext } from "./SmartRuleParser.js";
+import { StrCurveContext } from "./SmartRuleParser.js";
+import { StrTimePointStrContext } from "./SmartRuleParser.js";
+import { CmdletContext } from "./SmartRuleParser.js";
+import { IdAttContext } from "./SmartRuleParser.js";
+import { IdObjAttContext } from "./SmartRuleParser.js";
+import { IdAttParaContext } from "./SmartRuleParser.js";
+import { IdObjAttParaContext } from "./SmartRuleParser.js";
+import { FileEventContext } from "./SmartRuleParser.js";
+import { ConstLongContext } from "./SmartRuleParser.js";
+import { ConstStringContext } from "./SmartRuleParser.js";
+import { ConstTimeInvervalContext } from "./SmartRuleParser.js";
+import { ConstTimePointContext } from "./SmartRuleParser.js";
 
 
 /**
@@ -232,6 +282,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 */
 	exitCmpIdLong?: (ctx: CmpIdLongContext) => void;
 	/**
+	 * Enter a parse tree produced by the `cmpEqIdLong`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqIdLong?: (ctx: CmpEqIdLongContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqIdLong`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqIdLong?: (ctx: CmpEqIdLongContext) => void;
+	/**
 	 * Enter a parse tree produced by the `cmpIdString`
 	 * labeled alternative in `SmartRuleParser.compareexpr`.
 	 * @param ctx the parse tree
@@ -268,6 +330,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 */
 	exitCmpTimeintvalTimeintval?: (ctx: CmpTimeintvalTimeintvalContext) => void;
 	/**
+	 * Enter a parse tree produced by the `cmpEqTimeintvalTimeintval`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqTimeintvalTimeintval?: (ctx: CmpEqTimeintvalTimeintvalContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqTimeintvalTimeintval`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqTimeintvalTimeintval?: (ctx: CmpEqTimeintvalTimeintvalContext) => void;
+	/**
 	 * Enter a parse tree produced by the `cmpTimepointTimePoint`
 	 * labeled alternative in `SmartRuleParser.compareexpr`.
 	 * @param ctx the parse tree
@@ -279,6 +353,18 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitCmpTimepointTimePoint?: (ctx: CmpTimepointTimePointContext) => void;
+	/**
+	 * Enter a parse tree produced by the `cmpEqTimepointTimePoint`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	enterCmpEqTimepointTimePoint?: (ctx: CmpEqTimepointTimePointContext) => void;
+	/**
+	 * Exit a parse tree produced by the `cmpEqTimepointTimePoint`
+	 * labeled alternative in `SmartRuleParser.compareexpr`.
+	 * @param ctx the parse tree
+	 */
+	exitCmpEqTimepointTimePoint?: (ctx: CmpEqTimepointTimePointContext) => void;
 	/**
 	 * Enter a parse tree produced by the `tieTiIdExpr`
 	 * labeled alternative in `SmartRuleParser.timeintvalexpr`.
@@ -587,26 +673,6 @@ export default class SmartRuleListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitIdObjAttPara?: (ctx: IdObjAttParaContext) => void;
-	/**
-	 * Enter a parse tree produced by `SmartRuleParser.oPCMP`.
-	 * @param ctx the parse tree
-	 */
-	enterOPCMP?: (ctx: OPCMPContext) => void;
-	/**
-	 * Exit a parse tree produced by `SmartRuleParser.oPCMP`.
-	 * @param ctx the parse tree
-	 */
-	exitOPCMP?: (ctx: OPCMPContext) => void;
-	/**
-	 * Enter a parse tree produced by `SmartRuleParser.opr`.
-	 * @param ctx the parse tree
-	 */
-	enterOpr?: (ctx: OprContext) => void;
-	/**
-	 * Exit a parse tree produced by `SmartRuleParser.opr`.
-	 * @param ctx the parse tree
-	 */
-	exitOpr?: (ctx: OprContext) => void;
 	/**
 	 * Enter a parse tree produced by `SmartRuleParser.fileEvent`.
 	 * @param ctx the parse tree

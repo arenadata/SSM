@@ -51,7 +51,8 @@ import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAt
         + CopyFileAction.OFFSET_INDEX + " $offset "
         + CopyFileAction.LENGTH + " $length "
         + CopyFileAction.BUF_SIZE + " $size "
-        + CopyFileAction.PRESERVE + " $attributes"
+        + CopyFileAction.PRESERVE + " $attributes "
+        + CopyFileAction.TRUNCATE_WAIT_MS + " $truncateWaitMs "
         + CopyFileAction.FORCE
 )
 public class CopyFileAction extends CopyPreservedAttributesAction {
@@ -61,6 +62,8 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   public static final String LENGTH = "-length";
   public static final String COPY_CONTENT = "-copyContent";
   public static final String FORCE = "-force";
+  public static final String TRUNCATE_WAIT_MS = "-truncateWaitMs";
+  public static final long SMART_ACTION_COPY_TRUNCATE_WAIT_MS_DEFAULT = 100L;
   public static final Set<PreserveAttribute> DEFAULT_PRESERVE_ATTRIBUTES
       = Sets.newHashSet(OWNER, GROUP, PERMISSIONS);
 
@@ -71,6 +74,7 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   private int bufferSize;
   private boolean copyContent;
   private boolean fullCopyAppend;
+  private long truncateWaitMs;
 
   private Set<PreserveAttribute> preserveAttributes;
 
@@ -83,6 +87,7 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
     this.bufferSize = 64 * 1024;
     this.copyContent = true;
     this.fullCopyAppend = false;
+    this.truncateWaitMs = SMART_ACTION_COPY_TRUNCATE_WAIT_MS_DEFAULT;
   }
 
   @Override
@@ -102,6 +107,11 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
     if (args.containsKey(COPY_CONTENT)) {
       copyContent = Boolean.parseBoolean(args.get(COPY_CONTENT));
     }
+
+    truncateWaitMs = Optional.ofNullable(args.get(TRUNCATE_WAIT_MS))
+        .map(Long::parseLong)
+        .orElse(SMART_ACTION_COPY_TRUNCATE_WAIT_MS_DEFAULT);
+
     fullCopyAppend = args.containsKey(FORCE);
   }
 
@@ -191,8 +201,10 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
     }
 
     if (destFileStatus.get().getLen() != offset) {
-      appendLog("Truncating existing file " + destPath + " to the new length " + offset);
-      fileSystem.truncate(destPath, offset);
+      appendLog(String.format(
+          "Truncating existing file %s with length %d to the new length %d",
+          destPath, destFileStatus.get().getLen(), offset));
+      truncateFile(fileSystem, destPath, offset);
     }
 
     appendLog("Appending to existing file " + destPath);
@@ -219,5 +231,26 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
     return preserveAttributes.contains(REPLICATION_NUMBER)
         ? srcFileStatus.getReplication()
         : defaultReplication;
+  }
+
+  @SuppressWarnings("BusyWait")
+  private void truncateFile(FileSystem fileSystem, Path path, long newLength) throws IOException {
+    if (fileSystem.truncate(path, newLength)) {
+      // return if the file is already truncated
+      return;
+    }
+
+    appendLog("Waiting for the file " + path + " to be truncated");
+    try {
+      // wait for the truncation of the blocks on datanodes
+      while (fileSystem.getFileStatus(path).getLen() != newLength) {
+        // HDFS doesn't provide any built-in mechanism for notification of truncation completion,
+        // so we can only use busy waiting for the file length to become expected,
+        // like in HDFS CLI client's truncate operation, when it's called with -w flag
+        Thread.sleep(truncateWaitMs);
+      }
+    } catch (Exception exception) {
+      throw new IOException("Error waiting for truncation completion for " + path, exception);
+    }
   }
 }

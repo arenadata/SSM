@@ -14,4 +14,5 @@
     <include file="/db/changelog/changelog-4.add-action-search-fields.xml"/>
     <include file="/db/changelog/changelog-5.add-partitioning.xml"/>
     <include file="/db/changelog/changelog-6.make-fileId-autoincrement.xml"/>
+    <include file="/db/changelog/changelog-7.make-action-finish-time-nullable.xml"/>
 </databaseChangeLog>

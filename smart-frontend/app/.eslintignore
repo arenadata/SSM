@@ -1,3 +1,4 @@
 vite.config.ts
 .lintstagedrc.js
 .storybook
+src/utils/smartRule/SmartRule*.ts

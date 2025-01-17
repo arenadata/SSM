@@ -23,6 +23,7 @@ import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.SortField;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
@@ -37,7 +38,7 @@ public class SearchableService<RequestT, EntityT, ColumnT extends SortField>
 
   @Override
   public SearchResult<EntityT> search(RequestT searchRequest, PageRequest<ColumnT> pageRequest)
-      throws Exception {
+      throws IOException {
     try {
       return dbDelegate.search(searchRequest, pageRequest);
     } catch (Exception exception) {
@@ -46,7 +47,7 @@ public class SearchableService<RequestT, EntityT, ColumnT extends SortField>
   }
 
   @Override
-  public List<EntityT> search(RequestT searchRequest) throws Exception {
+  public List<EntityT> search(RequestT searchRequest) throws IOException {
     try {
       return dbDelegate.search(searchRequest);
     } catch (Exception exception) {
