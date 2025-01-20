@@ -18,7 +18,6 @@
 import React from 'react';
 import { type TableCellProps } from '@uikit/Table/TableCell/TableCell';
 import TableCell from '@uikit/Table/TableCell/TableCell';
-import { getToday } from '@utils/date/calendarUtils';
 import { millisecondsToDuration } from '@utils/date/dateConvertUtils';
 
 interface PassedTimeCellProps extends Omit<TableCellProps, 'children'> {
@@ -27,7 +26,7 @@ interface PassedTimeCellProps extends Omit<TableCellProps, 'children'> {
 }
 
 const PassedTimeCell = ({ startTime, finishTime, ...props }: PassedTimeCellProps) => {
-  const timeDiff = finishTime ? finishTime - startTime : getToday().getTime() - startTime;
+  const timeDiff = finishTime ? finishTime - startTime : new Date().getTime() - startTime;
   return <TableCell {...props}>{millisecondsToDuration(timeDiff)}</TableCell>;
 };
 
