@@ -60,7 +60,7 @@ services:
       - ssm-server
 
   ssm-server:
-    image: cloud-hub.adsw.io/library/ssm-server:2.0.1
+    image: cloud-hub.adsw.io/library/ssm-server:2.0.2-SNAPSHOT
     hostname: ssm-server.demo
     restart: unless-stopped
     container_name: ssm-server
