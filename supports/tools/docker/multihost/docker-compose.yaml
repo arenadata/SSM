@@ -4,7 +4,6 @@ services:
   hadoop-namenode:
     image: cloud-hub.adsw.io/library/hadoop-namenode:${HADOOP_VERSION:-3.3.6}
     hostname: hadoop-namenode.demo
-    container_name: hadoop-namenode
     restart: unless-stopped
     volumes:
       - hadoop-namenode:/hadoop/dfs/name
@@ -30,7 +29,6 @@ services:
   hadoop-datanode:
     image: cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION:-3.3.6}
     hostname: hadoop-datanode.demo
-    container_name: hadoop-datanode
     restart: unless-stopped
     volumes:
       - ssm-shared:/etc/ssm/shared
@@ -67,10 +65,9 @@ services:
       - ssm-server
 
   ssm-server:
-    image: cloud-hub.adsw.io/library/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
+    image: cloud-hub.adsw.io/library/ssm-server:2.0.0-SNAPSHOT
     hostname: ssm-server.demo
     restart: unless-stopped
-    container_name: ssm-server
     volumes:
       - ssm-shared:/tmp/shared
       - secrets:/etc/secrets
@@ -99,7 +96,6 @@ services:
   ssm-metastore-db:
     image: "docker.io/library/postgres:14.0"
     restart: unless-stopped
-    container_name: ssm-metastore-db.demo
     hostname: ssm-metastore-db
     environment:
       POSTGRES_DB: 'metastore'
@@ -118,7 +114,6 @@ services:
   kdc-server:
     image: cloud-hub.adsw.io/library/ssm-kdc-server:${HADOOP_VERSION:-3.3.6}
     restart: unless-stopped
-    container_name: kdc-server
     hostname: kdc-server.demo
     volumes:
       - secrets:/tmp/secrets
@@ -130,13 +125,17 @@ services:
     ports:
       - "749:749"
       - "88:88/udp"
+    healthcheck:
+      test: bash -c echo -n '' > /dev/tcp/kdc-server.demo/749
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 
   samba:
     image: hub.adsw.io/qa-samba/samba:demo
     hostname: samba
-    container_name: samba
     privileged: true
     ports:
       - "389:389"
@@ -144,18 +143,27 @@ services:
       SMB_ADMIN_PASSWORD: "LZ2ibGAn2H0D0UW3"
     volumes:
       - ./ldap:/opt/ad-scripts
+    healthcheck:
+      test: ps -e | grep samba
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
     volumes:
       - ./conf/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+    healthcheck:
+      test: nc -z localhost 9090
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 

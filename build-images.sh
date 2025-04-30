@@ -67,6 +67,7 @@ echo "========================================================"
 echo "      Build Hadoop ${HADOOP_VERSION} with SSM image     "
 echo "========================================================"
 
+docker pull selenoid/chrome:128.0
 case $CLUSTER_TYPE in
   singlehost)
     docker build -f ./supports/tools/docker/singlehost/Dockerfile -t cloud-hub.adsw.io/library/ssm-hadoop:${HADOOP_VERSION} \

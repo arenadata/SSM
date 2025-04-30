@@ -23,6 +23,8 @@ dependency-reduced-pom.xml
 logs
 .vscode
 *.xml.versionsBackup
+.allure
+smart-tests/ajcore.*.txt
 
 # Filesystem contract test options and credentials
 auth-keys.xml

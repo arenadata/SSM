@@ -1,0 +1,73 @@
+general:
+  # env-type: docker|remote
+  env-type: ${ENV_TYPE:docker}
+  base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
+
+docker-compose-service:
+  selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
+  compose-file-name: ${COMPOSE_FILE_NAME:target/test-classes/env/docker-compose.yaml}
+
+selenoid:
+  proxy-host: ${SELENOID_PROXY_HOST:172.17.0.1}
+  ui-remote-hub: ${SELENOID_UI_REMOTE_HUB:http://localhost:4444/wd/hub}
+  browser-name: ${DEFAULT_BROWSER_NAME:chrome}
+  browser-version: ${DEFAULT_BROWSER_VERSION:stable}
+  screenshot-successful-steps: true
+
+logs:
+  docker-logs-directory: target/allure-results
+  docker-logs-archive-name: logs.zip
+
+ssm-web:
+  credentials:
+    - role: OWNER
+      login: john
+      password: 1234
+
+remote:
+  connectionTimeoutSec: 30
+  services:
+    - component: ssm-server
+      ssh-config:
+        host: ${SSM_HOST:localhost}
+        port: 22
+        authType: PUBLIC_KEY
+        sshFilePath: "test.key"
+        username: test
+        password: test
+      commands:
+        startCommand:
+        stopCommand:
+    - component: ssm-metastore-db
+      ssh-config:
+        host: ${SSM_HOST:localhost}
+        port: 22
+        authType: PUBLIC_KEY
+        sshFilePath: "test.key"
+        username: test
+        password: test
+      commands:
+        startCommand:
+        stopCommand:
+    - component: hadoop-namenode
+      ssh-config:
+        host: ${HADOOP_NAMENODE_HOST:localhost}
+        port: 22
+        authType: PUBLIC_KEY
+        sshFilePath: "test.key"
+        username: test
+        password: test
+      commands:
+        startCommand:
+        stopCommand:
+    - component: hadoop-datanode
+      ssh-config:
+        host: ${HADOOP_DATANODE_HOST:localhost}
+        port: 22
+        authType: PUBLIC_KEY
+        sshFilePath: "test.key"
+        username: test
+        password: test
+      commands:
+        startCommand:
+        stopCommand:
