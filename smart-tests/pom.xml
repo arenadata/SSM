@@ -35,10 +35,6 @@
 
     <repositories>
         <repository>
-            <id>maven-arenadata-snapshot</id>
-            <url>https://nexus.adsw.io/repository/maven-arenadata-snapshot/</url>
-        </repository>
-        <repository>
             <id>maven-arenadata-release</id>
             <url>https://nexus.adsw.io/repository/maven-arenadata-release/</url>
         </repository>
