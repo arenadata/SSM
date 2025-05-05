@@ -6,6 +6,7 @@ general:
 docker-compose-service:
   selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
   compose-file-name: ${COMPOSE_FILE_NAME:target/test-classes/env/docker-compose.yaml}
+  should-run-selenoid: ${SHOULD_RUN_SELENOID:true}
 
 selenoid:
   proxy-host: ${SELENOID_PROXY_HOST:172.17.0.1}
