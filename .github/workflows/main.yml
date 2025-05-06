@@ -23,6 +23,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Install test jar
+        run: mvn install:install-file -pl smart-tests
+
       - name: Build with Maven
         run: mvn clean install -Pdist,web-ui,hadoop-${{ matrix.hdfs-version }} -DskipTests
 

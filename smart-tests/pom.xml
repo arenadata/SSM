@@ -33,13 +33,6 @@
     <name>smart-tests</name>
     <description>SSM System Tests</description>
 
-    <repositories>
-        <repository>
-            <id>maven-arenadata-release</id>
-            <url>https://nexus.adsw.io/repository/maven-arenadata-release/</url>
-        </repository>
-    </repositories>
-
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -151,6 +144,27 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.4</version>
+                <configuration>
+                    <groupId>io.arenadata</groupId>
+                    <artifactId>java-test-common-jdk8</artifactId>
+                    <packaging>jar</packaging>
+                    <file>${basedir}/lib/java-test-common-jdk8-1.8-jdk8.jar</file>
+                    <generatePom>false</generatePom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-jar-lib</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven-resource-plugin.version}</version>
                 <executions>
@@ -174,7 +188,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <id>unpack</id>
