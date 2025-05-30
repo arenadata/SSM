@@ -17,6 +17,13 @@
             <directory>${basedir}/../conf</directory>
             <outputDirectory>/conf</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>${basedir}/../smart-hadoop-support/target</directory>
+            <includes>
+                <include>smart-hadoop-client-shaded-${project.version}.jar</include>
+            </includes>
+            <outputDirectory>/clients</outputDirectory>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>

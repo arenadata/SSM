@@ -113,6 +113,8 @@
     <maven-replacer-plugin.version>1.5.3</maven-replacer-plugin.version>
     <hadoop-thirdparty-shaded.prefix>org.apache.hadoop.thirdparty</hadoop-thirdparty-shaded.prefix>
     <hadoop-thirdparty-shaded.protobuf.prefix>${hadoop-thirdparty-shaded.prefix}.protobuf</hadoop-thirdparty-shaded.protobuf.prefix>
+    <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+    <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
   </properties>
 
   <profiles>

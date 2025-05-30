@@ -55,8 +55,8 @@ ENV SSM_HOME=/opt/ssm
 # Copy custom hadoop config files to $HADOOP_CONF_DIR
 COPY ./supports/tools/docker/singlehost/conf/* $HADOOP_CONF_DIR/
 
-# Copy ssm jars to $HADOOP_HOME/share/hadoop/common/lib
-COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/smart-*.jar $HADOOP_HOME/share/hadoop/common/lib/
+# Copy ssm client jar to $HADOOP_HOME/share/hadoop/common/lib
+COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/clients/smart-hadoop-client-shaded-${SSM_APP_VERSION}.jar $HADOOP_HOME/share/hadoop/common/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
 COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
 COPY ./supports/tools/docker/singlehost/conf/* $SSM_HOME/conf/

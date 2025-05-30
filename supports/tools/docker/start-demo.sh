@@ -55,4 +55,7 @@ case $CLUSTER_TYPE in
   ;;
 esac
 
-env HADOOP_VERSION=$HADOOP_VERSION SSM_DEBUG_OPT="$SSM_DEBUG_OPT" docker compose -f ${COMPOSE_FILE_PATH} up -d
+SSM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive -f "../../../pom.xml" exec:exec)
+SSM_VERSION=$(echo "${SSM_VERSION}" | head -1)
+
+env HADOOP_VERSION=$HADOOP_VERSION SSM_DEBUG_OPT="$SSM_DEBUG_OPT" SSM_VERSION="$SSM_VERSION" docker compose -f ${COMPOSE_FILE_PATH} up -d
