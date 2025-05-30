@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smart-web-server</artifactId>
-        <version>2.1.0-rc1</version>
+        <version>2.1.0-rc2</version>
     </parent>
 
     <artifactId>smart-agent-web-server</artifactId>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-web-server-base</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
         </dependency>
     </dependencies>
 </project>

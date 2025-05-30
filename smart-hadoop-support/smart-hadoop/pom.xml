@@ -25,34 +25,34 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smart-hadoop-support</artifactId>
-        <version>2.1.0-rc1</version>
+        <version>2.1.0-rc2</version>
         <relativePath>..</relativePath>
     </parent>
 
     <artifactId>smart-hadoop</artifactId>
-    <version>2.1.0-rc1</version>
+    <version>2.1.0-rc2</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop-common</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-action</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -144,14 +144,14 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop-common</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-action</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
@@ -223,7 +223,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
@@ -240,7 +240,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-inputstream</artifactId>
-            <version>2.1.0-rc1</version>
+            <version>2.1.0-rc2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
