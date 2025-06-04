@@ -48,7 +48,7 @@ import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
-import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 
 public class DefaultCmdletDao
     extends SearchableAbstractDao<CmdletSearchRequest, CmdletInfo, CmdletSortField>
@@ -132,7 +132,7 @@ public class DefaultCmdletDao
 
     final String querysql = "SELECT cid FROM " + TABLE_NAME
         + " WHERE  generate_time < ? AND state IN (" + terminatedStates + ")";
-    List<Long> cids = jdbcTemplate.queryForList(querysql, new Object[] {timestamp}, Long.class);
+    List<Long> cids = jdbcTemplate.queryForList(querysql, new Object[]{timestamp}, Long.class);
     if (cids.isEmpty()) {
       return 0;
     }
@@ -279,7 +279,7 @@ public class DefaultCmdletDao
         .from(TABLE_NAME)
         .where(
             in("cid", searchRequest.getIds()),
-            like("parameters", searchRequest.getTextRepresentationLike()),
+            likeCaseInsensitive("parameters", searchRequest.getTextRepresentationLike()),
             betweenEpochInclusive("generate_time",
                 searchRequest.getSubmissionTime()),
             in("rid", searchRequest.getRuleIds()),

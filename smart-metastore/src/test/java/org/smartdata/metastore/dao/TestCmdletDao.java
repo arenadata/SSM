@@ -143,6 +143,10 @@ public class TestCmdletDao
     testSearch(searchRequest, SECOND_CMDLET_ID);
 
     searchRequest =
+        CmdletSearchRequest.builder().textRepresentationLike("WRITE").build();
+    testSearch(searchRequest, SECOND_CMDLET_ID);
+
+    searchRequest =
         CmdletSearchRequest.builder().textRepresentationLike("unknown").build();
     testSearch(searchRequest);
   }

@@ -49,7 +49,7 @@ import static org.smartdata.metastore.queries.column.MetastoreQueryColumnDsl.cou
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
-import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 
 public class DefaultRuleDao
     extends SearchableAbstractDao<RuleSearchRequest, RuleInfo, RuleSortField>
@@ -163,7 +163,7 @@ public class DefaultRuleDao
         .from(TABLE_NAME)
         .where(
             in("id", searchRequest.getIds()),
-            like("rule_text", searchRequest.getTextRepresentationLike()),
+            likeCaseInsensitive("rule_text", searchRequest.getTextRepresentationLike()),
             betweenEpochInclusive("submit_time", searchRequest.getSubmissionTime()),
             in("state", stateValues),
             betweenEpochInclusive("last_check_time",
