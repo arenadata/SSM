@@ -153,6 +153,12 @@ public class TestCacheFileDao extends TestSearchableDao<
     testSearch(request, SECOND_FILE_ID);
 
     request = CachedFileSearchRequest.builder()
+        .pathLike("/dESt/ETC")
+        .build();
+
+    testSearch(request, SECOND_FILE_ID);
+
+    request = CachedFileSearchRequest.builder()
         .pathLike("/another_dir")
         .build();
 

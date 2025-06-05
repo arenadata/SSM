@@ -40,7 +40,7 @@ import java.util.Map;
 import static org.smartdata.metastore.queries.MetastoreQuery.select;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
-import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 
 public class DefaultFileAccessDao
     extends
@@ -91,7 +91,7 @@ public class DefaultFileAccessDao
             + "GROUP BY file.fid, file.path", "f")
         .where(
             in("fid", searchRequest.getIds()),
-            like("path", searchRequest.getPathLike()),
+            likeCaseInsensitive("path", searchRequest.getPathLike()),
             betweenEpochInclusive("access_time",
                 searchRequest.getLastAccessedTime())
         );
