@@ -41,7 +41,7 @@ import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.inStrings;
-import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 
 public class DefaultUserActivityDao
     extends SearchableAbstractDao<AuditSearchRequest, UserActivityEvent, AuditSortField>
@@ -70,7 +70,7 @@ public class DefaultUserActivityDao
     return selectAll()
         .from(TABLE_NAME)
         .where(
-            like("username", searchRequest.getUserLike()),
+            likeCaseInsensitive("username", searchRequest.getUserLike()),
             betweenEpochInclusive("timestamp", searchRequest.getTimestampBetween()),
             inStrings("object_type", searchRequest.getObjectTypes()),
             in("object_id", searchRequest.getObjectIds()),

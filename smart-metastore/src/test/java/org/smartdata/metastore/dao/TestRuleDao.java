@@ -179,6 +179,11 @@ public class TestRuleDao
     testSearch(searchRequest, FIRST_RULE_ID, SECOND_RULE_ID);
 
     searchRequest = RuleSearchRequest.builder()
+        .textRepresentationLike("fILe: PatH matches")
+        .build();
+    testSearch(searchRequest, FIRST_RULE_ID, SECOND_RULE_ID);
+
+    searchRequest = RuleSearchRequest.builder()
         .textRepresentationLike("wrong rule")
         .build();
     testSearch(searchRequest);

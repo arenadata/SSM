@@ -54,6 +54,7 @@ import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.in;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNotNull;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNull;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.notLike;
 import static org.smartdata.metastore.queries.sort.Sorting.descending;
 
@@ -280,7 +281,7 @@ public class DefaultActionDao
         .from(TABLE_NAME)
         .where(
             in("aid", searchRequest.getIds()),
-            like("action_text", searchRequest.getTextRepresentationLike()),
+            likeCaseInsensitive("action_text", searchRequest.getTextRepresentationLike()),
             betweenEpochInclusive("create_time", searchRequest.getSubmissionTime()),
             betweenEpochInclusive("start_time", searchRequest.getStartTime()),
             in("exec_host", searchRequest.getHosts()),

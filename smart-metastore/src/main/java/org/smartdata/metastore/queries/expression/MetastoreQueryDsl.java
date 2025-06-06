@@ -22,7 +22,6 @@ import org.smartdata.model.TimeInterval;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.smartdata.utils.DateTimeUtils.intervalEndToEpoch;
@@ -132,18 +131,34 @@ public class MetastoreQueryDsl {
   }
 
   public static <T> MetastoreQueryExpression like(String column, T value) {
-    return patternSearchOp("LIKE", column, value);
+    return patternSearchOp("LIKE", column, value, true);
+  }
+
+  public static MetastoreQueryExpression likeCaseInsensitive(String column, String value) {
+    return patternSearchOp("LIKE", column, value, false);
   }
 
   public static <T> MetastoreQueryExpression notLike(String column, T value) {
-    return patternSearchOp("NOT LIKE", column, value);
+    return patternSearchOp("NOT LIKE", column, value, true);
   }
 
   private static <T> MetastoreQueryExpression patternSearchOp(
-      String operator, String column, T value) {
-    return Optional.ofNullable(value)
-        .map(val -> binaryOpWithPlaceholder(operator, column, "%" + val + "%"))
-        .orElseGet(MetastoreQueryDsl::emptyExpression);
+      String operator, String column, T value, boolean caseSensitive) {
+    if (value == null) {
+      return emptyExpression();
+    }
+
+    String searchPattern = "%" + value + "%";
+    if (caseSensitive) {
+      return binaryOpWithPlaceholder(operator, column, searchPattern);
+    }
+
+    return binaryOpWithPlaceholder(
+        operator,
+        unaryOp("LOWER", literal(column)),
+        column,
+        searchPattern.toLowerCase()
+    );
   }
 
   private static MetastoreQueryExpression operator(
@@ -161,16 +176,25 @@ public class MetastoreQueryDsl {
 
   private static <T> MetastoreQueryExpression binaryOpWithPlaceholder(
       String operator, String column, T value) {
+    return binaryOpWithPlaceholder(operator, literal(column), column, value);
+  }
+
+  private static <T> MetastoreQueryExpression binaryOpWithPlaceholder(
+      String operator, MetastoreQueryExpression leftArg, String column, T value) {
     if (value == null) {
       return emptyExpression();
     }
 
     return new MetastoreQueryOperator(operator,
         Arrays.asList(
-            literal(column),
+            leftArg,
             new MetastoreQueryPlaceholder<>(column, value)
         )
     );
+  }
+
+  private static MetastoreQueryExpression unaryOp(String operator, MetastoreQueryExpression arg) {
+    return new MetastoreUnaryQueryOperator(operator, arg);
   }
 
   private static MetastoreQueryExpression binaryOpWithLiteralArgs(

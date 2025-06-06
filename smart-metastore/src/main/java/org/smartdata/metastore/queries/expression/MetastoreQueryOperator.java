@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 public class MetastoreQueryOperator implements MetastoreQueryExpression {
   private static final String REPLACED_PARAM_PREFIX = "$_";
 
-  private final String operator;
-  private final List<MetastoreQueryExpression> args;
+  protected final String operator;
+  protected final List<MetastoreQueryExpression> args;
 
   private final Set<String> argParamNames;
   private int paramNameCounter;
