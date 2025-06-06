@@ -175,7 +175,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>target/test-classes/env</outputDirectory>
+                            <outputDirectory>target/test-classes/env/multihost</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>../supports/tools/docker/multihost/</directory>
