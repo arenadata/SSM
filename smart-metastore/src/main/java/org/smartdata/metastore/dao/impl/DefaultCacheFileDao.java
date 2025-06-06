@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.betweenEpochInclusive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
-import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 
 public class DefaultCacheFileDao extends SearchableAbstractDao<
     CachedFileSearchRequest, CachedFileStatus, CachedFilesSortField>
@@ -86,7 +86,7 @@ public class DefaultCacheFileDao extends SearchableAbstractDao<
 
   @Override
   public void insert(long fid, String path, long fromTime,
-                     long lastAccessTime, int numAccessed) {
+      long lastAccessTime, int numAccessed) {
     insert(new CachedFileStatus(fid, path,
         fromTime, lastAccessTime, numAccessed));
   }
@@ -157,7 +157,7 @@ public class DefaultCacheFileDao extends SearchableAbstractDao<
     return selectAll()
         .from(TABLE_NAME)
         .where(
-            like("path", searchRequest.getPathLike()),
+            likeCaseInsensitive("path", searchRequest.getPathLike()),
             betweenEpochInclusive("from_time", searchRequest.getCachedTime()),
             betweenEpochInclusive("last_access_time",
                 searchRequest.getLastAccessedTime())

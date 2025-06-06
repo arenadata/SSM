@@ -118,6 +118,12 @@ public class TestUserActivityDao
     testSearch(searchRequest, FIRST_EVENT_TIMESTAMP, SECOND_EVENT_TIMESTAMP);
 
     searchRequest = AuditSearchRequest.builder()
+        .userLike("USEr")
+        .build();
+
+    testSearch(searchRequest, FIRST_EVENT_TIMESTAMP, SECOND_EVENT_TIMESTAMP);
+
+    searchRequest = AuditSearchRequest.builder()
         .userLike("anonymous")
         .build();
 

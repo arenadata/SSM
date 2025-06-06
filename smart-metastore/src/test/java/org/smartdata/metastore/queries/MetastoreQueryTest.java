@@ -45,6 +45,7 @@ import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.isNul
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.lessThan;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.lessThanEqual;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.like;
+import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.likeCaseInsensitive;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.or;
 
 public class MetastoreQueryTest {
@@ -77,7 +78,8 @@ public class MetastoreQueryTest {
                     ),
                     equal("anotherColumn", "str_val"),
                     in("listMember", Arrays.asList(1, 2)),
-                    like("strColumn", "pattern"),
+                    like("strColumn", "PatterN"),
+                    likeCaseInsensitive("strColumn", "InSensiTiVE_PatTErN"),
                     between("betweenColumn", 0, 1),
                     isNull("strColumn")
                 )
@@ -90,7 +92,8 @@ public class MetastoreQueryTest {
         .put("lteColumn", 4.0F)
         .put("anotherColumn", "str_val")
         .put("listMember", Arrays.asList(1, 2))
-        .put("strColumn", "%pattern%")
+        .put("strColumn", "%PatterN%")
+        .put("$_strColumn1", "%insensitive_pattern%")
         .put("betweenInclusiveColumn", 2)
         .put("$_betweenInclusiveColumn1", 3)
         .put("betweenColumn", 0)
@@ -136,6 +139,7 @@ public class MetastoreQueryTest {
                         in("listField", null)
                     ),
                     equal("column", null),
+                    likeCaseInsensitive("test1", null),
                     like("test", null)
                 )
             );

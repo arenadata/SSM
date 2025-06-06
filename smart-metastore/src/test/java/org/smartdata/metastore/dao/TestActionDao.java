@@ -207,6 +207,12 @@ public class TestActionDao
     testSearch(searchRequest, THIRD_ACTION_ID);
 
     searchRequest = ActionSearchRequest.builder()
+        .textRepresentationLike("WrItE -fiLE liCENsE.tXt")
+        .build();
+
+    testSearch(searchRequest, FIRST_ACTION_ID);
+
+    searchRequest = ActionSearchRequest.builder()
         .textRepresentationLike("another text")
         .build();
 
