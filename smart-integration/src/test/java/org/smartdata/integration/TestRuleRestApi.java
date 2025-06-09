@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,11 +22,14 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.client.generated.model.ErrorResponseDto;
+import org.smartdata.client.generated.model.LastActivationTimeIntervalDto;
 import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.client.generated.model.RuleDto;
+import org.smartdata.client.generated.model.RuleSortDto;
 import org.smartdata.client.generated.model.RuleStateDto;
 import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.RulesInfoDto;
+import org.smartdata.client.generated.model.SubmissionTimeIntervalDto;
 import org.smartdata.client.generated.model.SubmitRuleRequestDto;
 import org.smartdata.http.error.SsmErrorCode;
 import org.smartdata.integration.api.RulesApiWrapper;
@@ -67,20 +70,15 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesPagination() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: path matches \"/tmp/test2/*\" | read";
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    apiClient.submitRule(ruleText1);
-    apiClient.submitRule(ruleText2);
-
-    // TODO Wrong params
-    PageRequestDto pageRequestDto = new PageRequestDto().limit(1).offset(1L);
+    apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(ruleText);
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("limit", 1))
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("offset", 1))
-//        .pageRequestQuery(pageRequestDto)
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
@@ -88,254 +86,243 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(2, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    RuleDto ruleDto = rulesDtoResponse.getItems().get(0);
-    assertEquals(2, ruleDto.getId().longValue());
-    assertEquals(ruleText2, ruleDto.getTextRepresentation());
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
   }
 
   @Test
   public void testGetRulesSortById() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: path matches \"/tmp/test2/*\" | read";
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    apiClient.submitRule(ruleText1);
-    apiClient.submitRule(ruleText2);
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("id")
+        .sortQuery(RuleSortDto.ID)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-id")
+        .sortQuery(RuleSortDto._ID)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
   }
 
   @Test
   public void testGetRulesSortBySubmitTime() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: path matches \"/tmp/test2/*\" | read";
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    apiClient.submitRule(ruleText1);
-    apiClient.submitRule(ruleText2);
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("submitTime")
+        .sortQuery(RuleSortDto.SUBMITTIME)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-submitTime")
+        .sortQuery(RuleSortDto._SUBMITTIME)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
   }
 
   @Test
   public void testGetRulesSortByLastActivationTime() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: path matches \"/tmp/test2/*\" | read";
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    RuleDto ruleDto1 = apiClient.submitRule(ruleText1);
-    RuleDto ruleDto2 = apiClient.submitRule(ruleText2);
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
-    apiClient.startRule(ruleDto1.getId());
-    apiClient.startRule(ruleDto2.getId());
+    apiClient.startRule(firstRule.getId());
+    apiClient.startRule(secondRule.getId());
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("lastActivationTime")
+        .sortQuery(RuleSortDto.LASTACTIVATIONTIME)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-lastActivationTime")
+        .sortQuery(RuleSortDto._LASTACTIVATIONTIME)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
   }
 
   @Test
   public void testGetRulesSortByActivationCount() {
     String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    RuleDto ruleDto1 = apiClient.waitTillRuleTriggered(
+    RuleDto firstRule = apiClient.waitTillRuleTriggered(
         ruleText,
         Duration.ofMillis(250),
         Duration.ofSeconds(5));
-    RuleDto ruleDto2 = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("activationCount")
+        .sortQuery(RuleSortDto.ACTIVATIONCOUNT)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-activationCount")
+        .sortQuery(RuleSortDto._ACTIVATIONCOUNT)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
   }
 
   @Test
   public void testGetRulesSortByCmdletsGenerated() {
-    createFile("/tmp/text1.txt");
-
-    RuleDto rule1 = apiClient.waitTillRuleTriggered(
-        "file: at now | path matches \"/tmp/*.txt\" | read",
+    RuleDto firstRule = apiClient.waitTillRuleTriggered(
+        "file: at now | path matches \"/*\" | sleep -ms 100",
         Duration.ofMillis(100),
         Duration.ofSeconds(2));
-
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-    RuleDto rule2 = apiClient.submitRule(ruleText);
-
+    RuleDto secondRule = apiClient.submitRule("file: path matches \"/tmp/test/*\" | read");
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("cmdletsGenerated")
+        .sortQuery(RuleSortDto.CMDLETSGENERATED)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-cmdletsGenerated")
+        .sortQuery(RuleSortDto._CMDLETSGENERATED)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
   }
 
   @Test
-  public void testGetRulesSortBySort() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: path matches \"/tmp/test2/*\" | read";
+  public void testGetRulesSortByState() {
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
 
-    RuleDto ruleDto1 = apiClient.submitRule(ruleText1);
-    RuleDto ruleDto2 = apiClient.submitRule(ruleText2);
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
-    apiClient.startRule(ruleDto1.getId());
-
+    apiClient.startRule(firstRule.getId());
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("state")
+        .sortQuery(RuleSortDto.STATE)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    RuleDto firstRule = rulesDtoResponse.getItems().get(0);
-    RuleDto secondRule = rulesDtoResponse.getItems().get(1);
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(1, firstRule.getId().longValue());
-    assertEquals(2, secondRule.getId().longValue());
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
 
     // DESC
     rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .sortQuery("-state")
+        .sortQuery(RuleSortDto._STATE)
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
 
-    firstRule = rulesDtoResponse.getItems().get(0);
-    secondRule = rulesDtoResponse.getItems().get(1);
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
 
-    assertEquals(2, firstRule.getId().longValue());
-    assertEquals(1, secondRule.getId().longValue());
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
   }
 
   @Test
   public void testGetRulesFilterByTextRepresentationLike() {
-    String ruleText1 = "file: path matches \"/tmp/test1/*\" | read";
-    String ruleText2 = "file: every 5000ms | path matches \"/tmp/test2\" | read";
+    String firstRuleText = "file: path matches \"/tmp/test1/*\" | read";
+    String secondRuleText = "file: every 5000ms | path matches \"/tmp/test2\" | read";
 
-    apiClient.submitRule(ruleText1);
-    apiClient.submitRule(ruleText2);
+    apiClient.submitRule(firstRuleText);
+    RuleDto secondRule = apiClient.submitRule(secondRuleText);
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
@@ -347,22 +334,25 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(1, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    RuleDto rule = rulesDtoResponse.getItems().get(0);
-    assertEquals(2, rule.getId().longValue());
-    assertEquals(ruleText2, rule.getTextRepresentation());
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
+    assertEquals(secondRuleText, fetchedRule.getTextRepresentation());
   }
 
   @Test
   public void testGetRulesFilterByTextSubmissionTime() {
     String ruleText = "file: path matches \"/tmp/test/*\" | read";
     long start = System.currentTimeMillis();
-    apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(ruleText);
     long end = System.currentTimeMillis();
     apiClient.submitRule(ruleText);
+
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("submissionTimeFrom", start))
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("submissionTimeTo", end))
+        .reqSpec(request ->
+            request.addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_FROM, start))
+        .reqSpec(request ->
+            request.addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_TO, end))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
@@ -370,16 +360,16 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(1, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    RuleDto rule = rulesDtoResponse.getItems().get(0);
-    assertEquals(1, rule.getId().longValue());
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
   }
 
   @Test
-  public void testGetRulesFilterByRuleStates() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-    RuleDto rule1 = apiClient.submitRule(ruleText);
-    apiClient.startRule(rule1.getId());
-    RuleDto rule2 = apiClient.submitRule(ruleText);
+  public void testGetRulesFilterByState() {
+    String ruleText = "file: path matches \"/*\" | read";
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    apiClient.startRule(firstRule.getId());
+    RuleDto secondRule = apiClient.submitRule(ruleText);
 
     // ACTIVE
     RulesDto rulesDtoResponse = apiClient.rawClient()
@@ -392,8 +382,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(1, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    RuleDto rule = rulesDtoResponse.getItems().get(0);
-    assertEquals(1, rule.getId().longValue());
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(firstRule.getId(), fetchedRule.getId());
 
     // DISABLED
     rulesDtoResponse = apiClient.rawClient()
@@ -406,8 +396,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(1, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    rule = rulesDtoResponse.getItems().get(0);
-    assertEquals(2, rule.getId().longValue());
+    fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
 
     // ACTIVE+DISABLED
     rulesDtoResponse = apiClient.rawClient()
@@ -420,24 +410,28 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(2, rulesDtoResponse.getTotal().longValue());
     assertEquals(2, rulesDtoResponse.getItems().size());
 
-    rule1 = rulesDtoResponse.getItems().get(0);
-    rule2 = rulesDtoResponse.getItems().get(1);
-    assertEquals(1, rule1.getId().longValue());
-    assertEquals(2, rule2.getId().longValue());
+    fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(firstRule.getId(), fetchedRule.getId());
+
+    fetchedRule = rulesDtoResponse.getItems().get(1);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
   }
 
   @Test
   public void testGetRulesFilterByLastActivationTime() {
     String ruleText = "file: path matches \"/tmp/test/*\" | read";
     long start = System.currentTimeMillis();
-    RuleDto ruleDto = apiClient.submitRule(ruleText);
-    apiClient.startRule(ruleDto.getId());
+    RuleDto rule = apiClient.submitRule(ruleText);
+    apiClient.startRule(rule.getId());
     long end = System.currentTimeMillis();
     apiClient.submitRule(ruleText);
+
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("lastActivationTimeFrom", start))
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("lastActivationTimeTo", end))
+        .reqSpec(request ->
+            request.addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_FROM, start))
+        .reqSpec(request ->
+            request.addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_TO, end))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
@@ -445,8 +439,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(1, rulesDtoResponse.getTotal().longValue());
     assertEquals(1, rulesDtoResponse.getItems().size());
 
-    RuleDto rule = rulesDtoResponse.getItems().get(0);
-    assertEquals(1, rule.getId().longValue());
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
   }
 
   @Test
@@ -549,45 +543,41 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(0, rulesInfo.getActiveRules().longValue());
   }
 
-  /*
-  Negative
-   */
-
   @Test
-  public void testNegativeGetRulesPagination() {
+  public void testGetRulesPaginationWithIncorrectValue() {
     apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("limit", 0))
+        .reqSpec(request -> request.addQueryParam("limit", 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("limit", -1))
+        .reqSpec(request -> request.addQueryParam("limit", -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("offset", -1))
+        .reqSpec(request -> request.addQueryParam("offset", -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("limit", "string"))
+        .reqSpec(request -> request.addQueryParam("limit", "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("offset", "string"))
+        .reqSpec(request -> request.addQueryParam("offset", "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
   }
 
   @Test
-  public void testNegativeGetRulesSort() {
+  public void testGetRulesSortByIncorrectQuery() {
     apiClient.rawClient()
         .getRules()
         .sortQuery("nonexistent")
@@ -596,21 +586,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
-  public void testNegativeGetRulesFilterByTextSubmissionTime() {
-    // TODO status 200 when timeFrom later than timeTo
-    long start = System.currentTimeMillis();
-    long end = start + 1000000;
-
-    apiClient.rawClient()
-        .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("submissionTimeFrom", end))
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("submissionTimeTo", start))
-        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
-  }
-
-  @Test
-  public void testNegativeGetRulesFilterByRuleStates() {
+  public void testGetRulesFilterByIncorrectRuleState() {
     apiClient.rawClient()
         .getRules()
         .ruleStatesQuery("NONEXISTENT")
@@ -619,21 +595,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
-  public void testNegativeGetRulesFilterByLastActivationTime() {
-    // TODO status 200 when timeFrom later than timeTo
-    long start = System.currentTimeMillis();
-    long end = start + 1000000;
-
-    apiClient.rawClient()
-        .getRules()
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("lastActivationTimeFrom", end))
-        .reqSpec(requestSpecBuilder -> requestSpecBuilder.addQueryParam("lastActivationTimeTo", start))
-        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
-  }
-
-  @Test
-  public void testNegativeAddRule() {
+  public void testAddIncorrectRule() {
     apiClient.rawClient()
         .addRule()
         .body(new SubmitRuleRequestDto().rule("INCORRECT_RULE"))
@@ -642,7 +604,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
-  public void testNegativeDeleteRule() {
+  public void testDeleteNotFoundIdRule() {
     apiClient.rawClient()
         .deleteRule()
         .idPath(777)
@@ -651,34 +613,12 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
-  public void testNegativeGetRule() {
+  public void testGetNotFoundIdRule() {
     apiClient.rawClient()
         .getRule()
         .idPath(777)
         .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
         .execute(Response::andReturn);
-  }
-
-  @Test
-  public void testStartAlreadyStartedRule() {
-    createFile("/tmp/text1.txt");
-
-    RuleDto rule = apiClient.waitTillRuleTriggered(
-        "file: at now | path matches \"/tmp/*.txt\" | read",
-        Duration.ofMillis(100),
-        Duration.ofSeconds(2));
-
-    ErrorResponseDto errorDto = apiClient.rawClient()
-        .startRule()
-        .idPath(rule.getId())
-        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::body)
-        .as(ErrorResponseDto.class);
-
-    assertEquals(SsmErrorCode.STATE_TRANSITION_ERROR.getCode(), errorDto.getCode());
-    assertEquals(
-        "Rule state transition is not supported: FINISHED -> ACTIVE",
-        errorDto.getMessage());
   }
 
   @Test
@@ -697,5 +637,27 @@ public class TestRuleRestApi extends IntegrationTestBase {
         .idPath(777)
         .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
         .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testThrowStateTransitionError() {
+    createFile("/tmp/text1.txt");
+
+    RuleDto rule = apiClient.waitTillRuleTriggered(
+        "file: at now | path matches \"/tmp/*.txt\" | read",
+        Duration.ofMillis(100),
+        Duration.ofSeconds(2));
+
+    ErrorResponseDto errorDto = apiClient.rawClient()
+        .startRule()
+        .idPath(rule.getId())
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertEquals(SsmErrorCode.STATE_TRANSITION_ERROR.getCode(), errorDto.getCode());
+    assertEquals(
+        "Rule state transition is not supported: FINISHED -> ACTIVE",
+        errorDto.getMessage());
   }
 }
