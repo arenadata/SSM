@@ -18,33 +18,39 @@
 package org.smartdata.server.engine.cmdlet;
 
 import com.google.common.eventbus.Subscribe;
+import lombok.extern.slf4j.Slf4j;
 import org.smartdata.server.engine.EngineEventBus;
 import org.smartdata.server.engine.message.AddNodeMessage;
 import org.smartdata.server.engine.message.NodeMessage;
 import org.smartdata.server.engine.message.RemoveNodeMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class CmdletDispatcherHelper {
   private static CmdletDispatcherHelper inst;
-  private List<NodeMessage> msgs = new LinkedList<>();
-  private List<Boolean> opers = new LinkedList<>();
-  private CmdletDispatcher dispatcher = null;
+  private final List<NodeMessage> messages;
+  private CmdletDispatcher dispatcher;
+
+  public CmdletDispatcherHelper() {
+    this.messages = new ArrayList<>();
+    this.dispatcher = null;
+  }
 
   public void register(CmdletDispatcher dispatcher) {
-    synchronized (msgs) {
+    synchronized (messages) {
       this.dispatcher = dispatcher;
-      for (int i = 0; i < msgs.size(); i++) {
-        dispatcher.onNodeMessage(msgs.get(i), opers.get(i));
+      for (NodeMessage message : messages) {
+        handleMessageOnDispatcher(message);
       }
-      msgs.clear();
-      opers.clear();
+
+      messages.clear();
     }
   }
 
   public void unregister() {
-    synchronized (msgs) {
+    synchronized (messages) {
       dispatcher = null;
     }
   }
@@ -65,24 +71,34 @@ public class CmdletDispatcherHelper {
 
   @Subscribe
   public void onAddNodeMessage(AddNodeMessage msg) {
-    onNodeMessage(msg, true);
+    onNodeMessage(msg);
   }
 
   @Subscribe
   public void onRemoveNodeMessage(RemoveNodeMessage msg) {
-    onNodeMessage(msg, false);
+    onNodeMessage(msg);
   }
 
-  private void onNodeMessage(NodeMessage msg, boolean add) {
-    synchronized (msgs) {
+  private void onNodeMessage(NodeMessage msg) {
+    synchronized (messages) {
       if (dispatcher == null) {
         // Dispatcher is not registered, but we need to keep message
         // in msgs and ask dispatcher to tackle in #register later.
-        msgs.add(msg);
-        opers.add(add);
-      } else {
-        dispatcher.onNodeMessage(msg, add);
+        messages.add(msg);
+        return;
       }
+
+      handleMessageOnDispatcher(msg);
+    }
+  }
+
+  private void handleMessageOnDispatcher(NodeMessage msg) {
+    if (msg instanceof AddNodeMessage) {
+      dispatcher.onNodeAdded((AddNodeMessage) msg);
+    } else if (msg instanceof RemoveNodeMessage) {
+      dispatcher.onNodeRemoved((RemoveNodeMessage) msg);
+    } else {
+      log.error("Unknown message of type {}: {}", msg.getClass().getName(), msg);
     }
   }
 }

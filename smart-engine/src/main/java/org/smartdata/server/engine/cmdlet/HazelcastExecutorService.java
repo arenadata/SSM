@@ -26,6 +26,7 @@ import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.model.ExecutorType;
 import org.smartdata.protocol.message.ActionStatus;
 import org.smartdata.protocol.message.LaunchCmdlet;
@@ -46,6 +47,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY;
 
 public class HazelcastExecutorService extends CmdletExecutorService {
   private static final Logger LOG = LoggerFactory.getLogger(HazelcastExecutorService.class);
@@ -56,12 +61,12 @@ public class HazelcastExecutorService extends CmdletExecutorService {
   private final Map<Long, String> executingCmdlets;
   private final Map<String, Member> members;
 
-  public HazelcastExecutorService(CmdletManager cmdletManager) {
+  public HazelcastExecutorService(SmartConf smartConf, CmdletManager cmdletManager) {
     super(cmdletManager, ExecutorType.REMOTE_SSM);
     this.executingCmdlets = new HashMap<>();
     this.masterToWorkers = new HashMap<>();
     this.members = new HashMap<>();
-    this.instance = HazelcastInstanceProvider.getInstance();
+    this.instance = HazelcastInstanceProvider.getInstance(smartConf);
     ITopic<StatusMessage> statusTopic = instance.getTopic(STATUS_TOPIC);
     statusTopic.addMessageListener(new StatusMessageListener());
     initChannels();
@@ -100,7 +105,10 @@ public class HazelcastExecutorService extends CmdletExecutorService {
           instance.getTopic(WORKER_TOPIC_PREFIX + member.getUuid());
       this.masterToWorkers.put(id, topic);
       members.put(id, member);
-      EngineEventBus.post(new AddNodeMessage(memberToNodeInfo(member)));
+      EngineEventBus.post(new AddNodeMessage(
+          memberToNodeInfo(member),
+          getExecutorsCount(member)
+      ));
     } else {
       LOG.warn("The member is already added: id = " + id);
     }
@@ -149,6 +157,13 @@ public class HazelcastExecutorService extends CmdletExecutorService {
   private NodeInfo memberToNodeInfo(Member member) {
     return new StandbyServerInfo(getMemberNodeId(member),
         member.getAddress().getHost() + ":" + member.getAddress().getPort());
+  }
+
+  private int getExecutorsCount(Member member) {
+    return Optional.ofNullable(
+            member.getAttribute(SMART_CMDLET_EXECUTORS_KEY)
+        ).map(Integer::parseInt)
+        .orElse(SMART_CMDLET_EXECUTORS_DEFAULT);
   }
 
   private String getMemberNodeId(Member member) {

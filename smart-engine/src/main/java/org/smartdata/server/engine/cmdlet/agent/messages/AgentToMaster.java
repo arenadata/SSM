@@ -17,8 +17,8 @@
  */
 package org.smartdata.server.engine.cmdlet.agent.messages;
 
+import lombok.Data;
 import org.smartdata.server.engine.cmdlet.agent.AgentMaster;
-import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentId;
 
 import java.io.Serializable;
 
@@ -27,70 +27,16 @@ import java.io.Serializable;
  */
 public class AgentToMaster {
 
+  @Data
   public static class RegisterNewAgent implements Serializable {
+    private static final long serialVersionUID = 0L;
 
-    private static final long serialVersionUID = -2967492906579132942L;
-    private static RegisterNewAgent instance = new RegisterNewAgent();
-    private MasterToAgent.AgentId id;
-
-    private RegisterNewAgent() {
-      id = new AgentId("Default");
-    }
-
-    public static RegisterNewAgent getInstance() {
-      return instance;
-    }
-
-    public static RegisterNewAgent getInstance(String id) {
-      instance = new RegisterNewAgent();
-      instance.setId(new AgentId(id));
-      return instance;
-    }
-
-    public AgentId getId() {
-      return id;
-    }
-
-    public void setId(AgentId id) {
-      this.id = id;
-    }
-  }
-
-  public static class RegisterAgent implements Serializable {
-
-    private static final long serialVersionUID = 5566241875786339983L;
     private final MasterToAgent.AgentId id;
+    private final int executorsCount;
 
-    public RegisterAgent(MasterToAgent.AgentId id) {
-      this.id = id;
-    }
-
-    public MasterToAgent.AgentId getId() {
-      return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      RegisterAgent that = (RegisterAgent) o;
-
-      return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-      return id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "RegisterAgent{ id=" + id + "}";
+    public RegisterNewAgent(String id, int executorsCount) {
+      this.id = new MasterToAgent.AgentId(id);
+      this.executorsCount = executorsCount;
     }
   }
 }

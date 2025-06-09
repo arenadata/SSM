@@ -19,18 +19,15 @@ package org.smartdata.server.cluster;
 
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
+import lombok.RequiredArgsConstructor;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.server.utils.HazelcastUtil;
 
+@RequiredArgsConstructor
 public class ClusterMembershipListener implements MembershipListener {
   private final ServerDaemon daemon;
-  private SmartConf conf;
-
-  public ClusterMembershipListener(ServerDaemon daemon, SmartConf conf) {
-    this.daemon = daemon;
-    this.conf = conf;
-  }
+  private final SmartConf conf;
 
   @Override
   public void memberAdded(MembershipEvent membershipEvent) {
@@ -45,16 +42,16 @@ public class ClusterMembershipListener implements MembershipListener {
   @Override
   public void memberRemoved(MembershipEvent membershipEvent) {
     String rpcHost = HazelcastUtil
-            .getMasterMember(HazelcastInstanceProvider.getInstance())
-            .getAddress()
-            .getHost();
+        .getMasterMember(HazelcastInstanceProvider.getInstance(conf))
+        .getAddress()
+        .getHost();
     String rpcPort = conf
-            .get(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
-                    SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT)
-            .split(":")[1];
+        .get(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
+            SmartConfKeys.SMART_SERVER_RPC_ADDRESS_DEFAULT)
+        .split(":")[1];
     conf.set(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY, rpcHost + ":" + rpcPort);
 
-    if (HazelcastUtil.isMaster(HazelcastInstanceProvider.getInstance())) {
+    if (HazelcastUtil.isMaster(HazelcastInstanceProvider.getInstance(conf))) {
       this.daemon.becomeActive();
     }
   }
