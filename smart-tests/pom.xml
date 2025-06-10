@@ -44,7 +44,7 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.8-jdk8</java-test-common.version>
+        <java-test-common.version>1.9-jdk8</java-test-common.version>
     </properties>
 
     <dependencyManagement>
@@ -150,7 +150,7 @@
                     <groupId>io.arenadata</groupId>
                     <artifactId>java-test-common-jdk8</artifactId>
                     <packaging>jar</packaging>
-                    <file>${basedir}/lib/java-test-common-jdk8-1.8-jdk8.jar</file>
+                    <file>${basedir}/lib/java-test-common-jdk8-${java-test-common.version}.jar</file>
                     <generatePom>false</generatePom>
                 </configuration>
                 <executions>
