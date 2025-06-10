@@ -75,8 +75,9 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1))
-        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
+        .reqSpec(request -> request
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
@@ -336,10 +337,9 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(request ->
-            request.addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_FROM, start))
-        .reqSpec(request ->
-            request.addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_TO, end))
+        .reqSpec(request -> request
+            .addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_FROM, start)
+            .addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_TO, end))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
@@ -414,10 +414,9 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
-        .reqSpec(request ->
-            request.addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_FROM, start))
-        .reqSpec(request ->
-            request.addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_TO, end))
+        .reqSpec(request -> request
+            .addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_FROM, start)
+            .addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_TO, end))
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(RulesDto.class);
