@@ -42,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestRuleRestApi extends IntegrationTestBase {
 
-  private final String RULE_TEXT = "file: path matches \"/tmp/test/*\" | read";
+  private static final String RULE_TEXT = "file: path matches \"/tmp/test/*\" | read";
 
   private RulesApiWrapper apiClient;
 
