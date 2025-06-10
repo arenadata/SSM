@@ -42,6 +42,8 @@ import static org.junit.Assert.assertTrue;
 
 public class TestRuleRestApi extends IntegrationTestBase {
 
+  private final String RULE_TEXT = "file: path matches \"/tmp/test/*\" | read";
+
   private RulesApiWrapper apiClient;
 
   @Before
@@ -51,9 +53,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRules() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RulesDto fetchedRules = apiClient.getRules();
 
     assertEquals(1, fetchedRules.getTotal().longValue());
@@ -70,10 +70,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesPagination() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    apiClient.submitRule(ruleText);
-    RuleDto rule = apiClient.submitRule(ruleText);
+    apiClient.submitRule(RULE_TEXT);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
@@ -92,10 +90,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesSortById() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto firstRule = apiClient.submitRule(ruleText);
-    RuleDto secondRule = apiClient.submitRule(ruleText);
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
@@ -128,10 +124,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesSortBySubmitTime() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto firstRule = apiClient.submitRule(ruleText);
-    RuleDto secondRule = apiClient.submitRule(ruleText);
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
@@ -164,10 +158,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesSortByLastActivationTime() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto firstRule = apiClient.submitRule(ruleText);
-    RuleDto secondRule = apiClient.submitRule(ruleText);
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
     apiClient.startRule(firstRule.getId());
     apiClient.startRule(secondRule.getId());
@@ -203,13 +195,11 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesSortByActivationCount() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
     RuleDto firstRule = apiClient.waitTillRuleTriggered(
-        ruleText,
+        RULE_TEXT,
         Duration.ofMillis(250),
         Duration.ofSeconds(5));
-    RuleDto secondRule = apiClient.submitRule(ruleText);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
 
     // ASC
@@ -247,7 +237,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
         "file: at now | path matches \"/*\" | sleep -ms 100",
         Duration.ofMillis(100),
         Duration.ofSeconds(2));
-    RuleDto secondRule = apiClient.submitRule("file: path matches \"/tmp/test/*\" | read");
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
     // ASC
     RulesDto rulesDtoResponse = apiClient.rawClient()
@@ -280,10 +270,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesSortByState() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto firstRule = apiClient.submitRule(ruleText);
-    RuleDto secondRule = apiClient.submitRule(ruleText);
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
 
     apiClient.startRule(firstRule.getId());
 
@@ -341,11 +329,10 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesFilterByTextSubmissionTime() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
     long start = System.currentTimeMillis();
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     long end = System.currentTimeMillis();
-    apiClient.submitRule(ruleText);
+    apiClient.submitRule(RULE_TEXT);
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
@@ -419,12 +406,11 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesFilterByLastActivationTime() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
     long start = System.currentTimeMillis();
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     apiClient.startRule(rule.getId());
     long end = System.currentTimeMillis();
-    apiClient.submitRule(ruleText);
+    apiClient.submitRule(RULE_TEXT);
 
     RulesDto rulesDtoResponse = apiClient.rawClient()
         .getRules()
@@ -445,9 +431,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testAddRule() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RulesDto fetchedRules = apiClient.getRules();
 
     assertEquals(1, fetchedRules.getTotal().longValue());
@@ -455,7 +439,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(1, rule.getId().longValue());
     assertEquals(RuleStateDto.DISABLED, rule.getState());
-    assertEquals(ruleText, rule.getTextRepresentation());
+    assertEquals(RULE_TEXT, rule.getTextRepresentation());
     assertEquals(0, rule.getActivationCount().longValue());
     assertEquals(0, rule.getCmdletsGenerated().longValue());
     assertNull(rule.getLastActivationTime());
@@ -463,9 +447,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRule() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RuleDto fetchedRule = apiClient.getRule(rule.getId());
 
     assertEquals(rule.getId(), fetchedRule.getId());
@@ -500,9 +482,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testDeleteRule() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RuleDto fetchedRule = apiClient.getRule(rule.getId());
 
     apiClient.deleteRule(fetchedRule.getId());
