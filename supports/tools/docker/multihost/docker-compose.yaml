@@ -17,15 +17,14 @@ services:
     env_file:
       - hadoop.env
     healthcheck:
-      test: bash /healthcheck-hadoop-namenode.sh
+      test: ["CMD-SHELL", "bash /healthcheck-hadoop-namenode.sh"]
       interval: 30s
       timeout: 15s
       retries: 5
     networks:
       - demo
     depends_on:
-      - ssm-metastore-db
-      - kdc-server
+      - hadoop-datanode
 
   hadoop-datanode:
     image: cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION:-3.3.6}
@@ -53,11 +52,11 @@ services:
       # agent debug port
       - "8009:8008"
     environment:
-      - SSM_DEBUG_OPT
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
     env_file:
       - hadoop.env
     healthcheck:
-      test: curl http://hadoop-datanode.demo:1006 || exit 1
+      test: ["CMD-SHELL", "curl http://hadoop-datanode.demo:1006 || exit 1"]
       interval: 30s
       timeout: 15s
       retries: 5
@@ -69,8 +68,8 @@ services:
   ssm-server:
     image: cloud-hub.adsw.io/library/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
     hostname: ssm-server.demo
-    restart: unless-stopped
     container_name: ssm-server
+    restart: unless-stopped
     volumes:
       - ssm-shared:/tmp/shared
       - secrets:/etc/secrets
@@ -84,9 +83,9 @@ services:
       # ssm debug port
       - "8008:8008"
     environment:
-      - SSM_DEBUG_OPT
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
     healthcheck:
-      test: curl http://ssm-server.demo:8081 || exit 1
+      test: ["CMD-SHELL", "curl http://ssm-server.demo:8081 || exit 1"]
       interval: 30s
       timeout: 15s
       retries: 5
@@ -108,7 +107,7 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: psql -d metastore -U ssm -Atc 'SELECT 1;'
+      test: ["CMD-SHELL", "psql -d metastore -U ssm -Atc 'SELECT 1;'"]
       interval: 30s
       timeout: 15s
       retries: 3
@@ -130,6 +129,11 @@ services:
     ports:
       - "749:749"
       - "88:88/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c echo -n '' > /dev/tcp/kdc-server.demo/749"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 
@@ -144,6 +148,11 @@ services:
       SMB_ADMIN_PASSWORD: "LZ2ibGAn2H0D0UW3"
     volumes:
       - ./ldap:/opt/ad-scripts
+    healthcheck:
+      test: ["CMD-SHELL", "ps -e | grep samba"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 
@@ -156,6 +165,11 @@ services:
       - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9090"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - demo
 

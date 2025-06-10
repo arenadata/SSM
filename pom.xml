@@ -55,6 +55,7 @@
     <module>smart-integration</module>
     <module>smart-web-server</module>
     <module>smart-hadoop-support</module>
+    <module>smart-tests</module>
   </modules>
 
   <properties>

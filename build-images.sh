@@ -61,12 +61,13 @@ fi
 echo "=============================="
 echo "      Rebuild the project     "
 echo "=============================="
-mvn clean package -Pdist,web-ui,hadoop-${HADOOP_PROFILE} -DskipTests
+sh ./build-project.sh "${HADOOP_PROFILE}"
 
 echo "========================================================"
 echo "      Build Hadoop ${HADOOP_VERSION} with SSM image     "
 echo "========================================================"
 
+sh ./smart-tests/target/common-resources/selenoid/pull-browser-image.sh
 case $CLUSTER_TYPE in
   singlehost)
     docker build -f ./supports/tools/docker/singlehost/Dockerfile -t cloud-hub.adsw.io/library/ssm-hadoop:${HADOOP_VERSION} \
