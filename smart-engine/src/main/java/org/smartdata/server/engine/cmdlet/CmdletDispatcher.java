@@ -370,6 +370,8 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
       try {
         selected.execute(cmdlet);
         dispSucc = true;
+      } catch (Exception e) {
+        LOG.error("Error dispatching cmdlet: {}", cmdlet.getCmdletId(), e);
       } finally {
         if (!dispSucc) {
           counter.incrementAndGet();
