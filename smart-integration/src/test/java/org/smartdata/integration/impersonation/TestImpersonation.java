@@ -89,7 +89,8 @@ public abstract class TestImpersonation extends IntegrationTestBase {
 
   @Test
   public void testCreateFileByRule() throws IOException {
-    createDirectoryWithWriteAccess(new Path("/test"));
+    createDirectoryWithWriteAccess(new Path("/tmp"));
+    createDirectoryWithWriteAccess(new Path("/dest"));
 
     testCreateFileByRule("john", "k1tt3n");
     testCreateFileByRule("mary", "r0s3");
@@ -115,13 +116,13 @@ public abstract class TestImpersonation extends IntegrationTestBase {
 
   private void testCreateFileByRule(String username, String password) throws IOException {
     String fileToCreate = "file_" + username;
-    createFile("/tmp/" + fileToCreate);
+    createFile(new Path("/tmp", new Path(username, fileToCreate)));
 
     ApiClient.Config clientConfig = getConfig(username, password);
 
     RulesApiWrapper rulesApiClient = new RulesApiWrapper(clientConfig);
     RuleDto ruleDto = rulesApiClient.waitTillRuleProducedCmdlets(
-        "file: every 100ms | path matches \"/tmp/*\" | sync -dest /test/",
+        "file: every 100ms | path matches \"/tmp/" + username + "/*\" | sync -dest /dest/",
         Duration.ofMillis(100),
         Duration.ofSeconds(10));
 
@@ -135,7 +136,7 @@ public abstract class TestImpersonation extends IntegrationTestBase {
     rulesApiClient.deleteRule(ruleDto.getId());
 
     FileStatus fileStatus = cluster.getFileSystem()
-        .getFileStatus(new Path("/test", fileToCreate));
+        .getFileStatus(new Path("/dest", fileToCreate));
     Assert.assertEquals(getProxyUserFor(username), fileStatus.getOwner());
   }
 
