@@ -192,6 +192,9 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(secondRule.getId(), firstSortedRule.getId());
     assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
+    apiClient.stopRule(secondRule.getId());
   }
 
   @Test
@@ -230,6 +233,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(firstRule.getId(), firstSortedRule.getId());
     assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
   }
 
   @Test
@@ -267,6 +272,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(firstRule.getId(), firstSortedRule.getId());
     assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
   }
 
   @Test
@@ -303,6 +310,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(secondRule.getId(), firstSortedRule.getId());
     assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
   }
 
   @Test
@@ -402,6 +411,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     fetchedRule = rulesDtoResponse.getItems().get(1);
     assertEquals(secondRule.getId(), fetchedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
   }
 
   @Test
@@ -426,6 +437,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
     assertEquals(rule.getId(), fetchedRule.getId());
+
+    apiClient.stopRule(rule.getId());
   }
 
   @Test
