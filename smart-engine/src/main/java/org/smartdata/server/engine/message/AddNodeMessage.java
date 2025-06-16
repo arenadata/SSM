@@ -17,10 +17,15 @@
  */
 package org.smartdata.server.engine.message;
 
+import lombok.Getter;
 import org.smartdata.server.cluster.NodeInfo;
 
+@Getter
 public class AddNodeMessage extends NodeMessage {
-  public AddNodeMessage(NodeInfo nodeInfo) {
+  private final int cmdletExecutorsCount;
+
+  public AddNodeMessage(NodeInfo nodeInfo, int cmdletExecutorsCount) {
     super(nodeInfo);
+    this.cmdletExecutorsCount = cmdletExecutorsCount;
   }
 }

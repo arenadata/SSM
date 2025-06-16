@@ -61,7 +61,7 @@ public class HazelcastWorker implements StatusReporter {
     this.factory = new CmdletFactory(smartContext, userImpersonationStrategy);
     this.cmdletExecutor = new CmdletExecutor(smartContext.getConf(), userImpersonationStrategy);
     this.executorService = Executors.newSingleThreadScheduledExecutor();
-    HazelcastInstance instance = HazelcastInstanceProvider.getInstance();
+    HazelcastInstance instance = HazelcastInstanceProvider.getInstance(smartConf);
     this.statusTopic = instance.getTopic(HazelcastExecutorService.STATUS_TOPIC);
     String instanceId = String.valueOf(instance.getCluster().getLocalMember().getUuid());
     ITopic<Serializable> masterMessages =

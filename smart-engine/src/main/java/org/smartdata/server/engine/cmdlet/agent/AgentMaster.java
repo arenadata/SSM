@@ -37,7 +37,6 @@ import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.protocol.message.StopCmdlet;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcherHelper;
-import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterAgent;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterNewAgent;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentId;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentRegistered;
@@ -61,9 +60,9 @@ public class AgentMaster {
   private static final Logger LOG = LoggerFactory.getLogger(AgentMaster.class);
   public Timeout masterAskTimeout;
 
+  private final AgentManager agentManager;
   private ActorSystem system;
   private ActorRef master;
-  private AgentManager agentManager;
 
   private static CmdletManager statusUpdater;
   private static AgentMaster agentMaster = null;
@@ -99,10 +98,8 @@ public class AgentMaster {
       throws IOException {
     if (agentMaster == null) {
       agentMaster = new AgentMaster(conf);
-      return agentMaster;
-    } else {
-      return agentMaster;
     }
+    return agentMaster;
   }
 
   public static void setCmdletManager(CmdletManager statusUpdater) {
@@ -202,18 +199,18 @@ public class AgentMaster {
           }
         }
       });
-        try {
-            Await.result(system.whenTerminated(), Duration.Inf());
-        } catch (Exception e) {
-          LOG.error("Failure during actor system runtime.", e);
-        }
+      try {
+        Await.result(system.whenTerminated(), Duration.Inf());
+      } catch (Exception e) {
+        LOG.error("Failure during actor system runtime.", e);
+      }
     }
   }
 
 
   static class MasterActor extends UntypedActor {
     private final Map<Long, ActorRef> dispatches = new HashMap<>();
-    private AgentManager agentManager;
+    private final AgentManager agentManager;
 
     public MasterActor(CmdletManager statusUpdater,
         AgentManager agentManager) {
@@ -238,8 +235,8 @@ public class AgentMaster {
     }
 
     @Override
-    public void onReceive(Object message) throws Exception {
-      Boolean handled =
+    public void onReceive(Object message) {
+      boolean handled =
           handleAgentMessage(message)
               || handleClientMessage(message)
               || handleTerminatedMessage(message)
@@ -251,17 +248,13 @@ public class AgentMaster {
 
     private boolean handleAgentMessage(Object message) {
       if (message instanceof RegisterNewAgent) {
-        getSelf().forward(new RegisterAgent(
-            ((RegisterNewAgent) message).getId()), getContext());
-        return true;
-      } else if (message instanceof RegisterAgent) {
-        RegisterAgent register = (RegisterAgent) message;
+        RegisterNewAgent registrationMessage = (RegisterNewAgent) message;
         ActorRef agent = getSender();
         // Watch this agent to listen messages delivered from it.
         getContext().watch(agent);
-        AgentId id = register.getId();
+        AgentId id = registrationMessage.getId();
         AgentRegistered registered = new AgentRegistered(id);
-        this.agentManager.addAgent(agent, id);
+        agentManager.addAgent(agent, registrationMessage);
         agent.tell(registered, getSelf());
         LOG.info("Register SmartAgent {} from {}", id, agent);
         return true;
@@ -328,8 +321,8 @@ public class AgentMaster {
         return true;
       }
       LOG.warn("Received event: {}, details: {}",
-          associEvent.eventName(), associEvent.toString());
-      LOG.warn("Removing the disassociated agent: " + agent.path().address());
+          associEvent.eventName(), associEvent);
+      LOG.warn("Removing the disassociated agent: {}", agent.path().address());
       agentManager.removeAgent(agent);
       // Unwatch this agent to avoid trying re-association.
       this.context().unwatch(agent);

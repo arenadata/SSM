@@ -41,6 +41,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY;
+
 public class LocalCmdletExecutorService extends CmdletExecutorService implements StatusReporter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCmdletExecutorService.class);
 
@@ -71,7 +74,10 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
   @Override
   public void start() {
     ActiveServerInfo.setInstance(getActiveServerAddress());
-    EngineEventBus.post(new AddNodeMessage(ActiveServerInfo.getInstance()));
+    EngineEventBus.post(new AddNodeMessage(
+        ActiveServerInfo.getInstance(),
+        getCmdletExecutorsCount()
+    ));
 
     if (disableLocalExec) {
       return;
@@ -138,5 +144,11 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
       }
     }
     return srv;
+  }
+
+  private int getCmdletExecutorsCount() {
+    return disableLocalExec
+        ? 0
+        : conf.getInt(SMART_CMDLET_EXECUTORS_KEY, SMART_CMDLET_EXECUTORS_DEFAULT);
   }
 }
