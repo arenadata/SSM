@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smart-hadoop-support</artifactId>
-        <version>2.1.0-rc3</version>
+        <version>2.1.0</version>
         <relativePath>..</relativePath>
     </parent>
 
     <artifactId>smart-inputstream</artifactId>
-    <version>2.1.0-rc3</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
 
     <dependencies>
