@@ -43,7 +43,7 @@ public class ClusterNodesManager extends SearchableInMemoryService<
   public ClusterNodesManager(
       SmartConf conf, CmdletManager cmdletManager) throws IOException {
     this(new AgentExecutorService(conf, cmdletManager),
-        new HazelcastExecutorService(cmdletManager), cmdletManager);
+        new HazelcastExecutorService(conf, cmdletManager), cmdletManager);
     cmdletManager.registerExecutorService(agentService);
     cmdletManager.registerExecutorService(hazelcastService);
   }
@@ -70,7 +70,7 @@ public class ClusterNodesManager extends SearchableInMemoryService<
         timeIntervalPredicate(searchRequest.getRegistrationTime());
 
     return Collections.singletonList(
-        node -> timeIntervalPredicate.test(node.getRegistTime())
+        node -> timeIntervalPredicate.test(node.getRegistrationTime())
     );
   }
 
@@ -90,7 +90,7 @@ public class ClusterNodesManager extends SearchableInMemoryService<
         break;
       case REGISTRATION_TIME:
         comparator = Comparator.comparingLong(
-            NodeCmdletMetrics::getRegistTime);
+            NodeCmdletMetrics::getRegistrationTime);
     }
 
     return sorting.getOrder() == Sorting.Order.DESC

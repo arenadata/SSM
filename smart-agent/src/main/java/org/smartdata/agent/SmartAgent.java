@@ -72,6 +72,9 @@ import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY;
+
 public class SmartAgent implements StatusReporter {
   private static final String NAME = "SmartAgent";
   private static final Logger LOG = LoggerFactory.getLogger(SmartAgent.class);
@@ -81,6 +84,7 @@ public class SmartAgent implements StatusReporter {
   private final SmartConf smartConfig;
   private final String[] masters;
   private final Config akkaConfig;
+
   private ActorSystem system;
   private ActorRef agentActor;
 
@@ -94,9 +98,6 @@ public class SmartAgent implements StatusReporter {
     LOG.info("Agent address: {}", agentAddress);
     this.akkaConfig = AgentUtils.overrideRemoteAddress(
         ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), agentAddress);
-
-    RegisterNewAgent.getInstance(
-        "SSMAgent@" + agentAddress.replaceAll(":.*$", ""));
     HadoopUtil.setSmartConfByHadoop(smartConfig);
 
     this.smartConfig = smartConfig;
@@ -256,6 +257,8 @@ public class SmartAgent implements StatusReporter {
 
     private final String[] masters;
     private final SmartConf conf;
+    private final RegisterNewAgent registrationMessage;
+
     private final Deque<Object> unhandledMessages = new LinkedList<>();
     private MasterToAgent.AgentId id;
     private ActorRef master;
@@ -263,6 +266,21 @@ public class SmartAgent implements StatusReporter {
     public AgentActor(String[] masters, SmartConf conf) {
       this.masters = masters;
       this.conf = conf;
+
+      String agentAddress = getContext()
+          .system()
+          .settings()
+          .config()
+          .getString(AgentConstants.AKKA_REMOTE_HOST_KEY);
+
+      int executorsCount = conf.getInt(
+          SMART_CMDLET_EXECUTORS_KEY,
+          SMART_CMDLET_EXECUTORS_DEFAULT);
+
+      this.registrationMessage = new RegisterNewAgent(
+          "SSMAgent@" + agentAddress,
+          executorsCount
+      );
     }
 
     @Override
@@ -358,7 +376,7 @@ public class SmartAgent implements StatusReporter {
             Cancellable registerAgent =
                 AgentUtils.repeatActionUntil(getContext().system(),
                     Duration.Zero(), RETRY_INTERVAL, TIMEOUT,
-                    new SendMessage(master, RegisterNewAgent.getInstance()),
+                    new SendMessage(master, registrationMessage),
                     new Shutdown());
             LOG.info("Registering to master {}", master);
             getContext().become(new WaitForRegisterAgent(registerAgent));

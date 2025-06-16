@@ -47,14 +47,14 @@ public class SmartDaemon implements ServerDaemon {
   public void start() throws IOException, InterruptedException {
     SmartConf conf = new SmartConf();
     authentication(conf);
-    HazelcastInstance instance = HazelcastInstanceProvider.getInstance();
+    HazelcastInstance instance = HazelcastInstanceProvider.getInstance(conf);
     if (HazelcastUtil.isMaster(instance)) {
       SmartServer.main(args);
     } else {
       HadoopUtil.setSmartConfByHadoop(conf);
 
       String rpcHost = HazelcastUtil
-              .getMasterMember(HazelcastInstanceProvider.getInstance())
+              .getMasterMember(HazelcastInstanceProvider.getInstance(conf))
               .getAddress()
               .getHost();
       String rpcPort = conf

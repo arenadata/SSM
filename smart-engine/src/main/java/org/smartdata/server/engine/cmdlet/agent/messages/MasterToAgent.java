@@ -17,83 +17,23 @@
  */
 package org.smartdata.server.engine.cmdlet.agent.messages;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 public class MasterToAgent {
 
-  public static class AgentId implements scala.Serializable {
+  @Data
+  public static class AgentId implements Serializable {
+    private static final long serialVersionUID = 0L;
 
-    private static final long serialVersionUID = -4032231012646281770L;
     private final String id;
-
-    public AgentId(String id) {
-      this.id = id;
-    }
-
-    public String getId() {
-      return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      AgentId agentId = (AgentId) o;
-
-      return id.equals(agentId.id);
-    }
-
-    @Override
-    public int hashCode() {
-      return id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "AgentId{id=" + id + "}";
-    }
   }
 
+  @Data
   public static class AgentRegistered implements Serializable {
+    private static final long serialVersionUID = 0L;
 
-    private static final long serialVersionUID = -7212238600261028430L;
-    private final AgentId id;
-
-    public AgentRegistered(AgentId id) {
-      this.id = id;
-    }
-
-    public AgentId getAgentId() {
-      return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      AgentRegistered that = (AgentRegistered) o;
-
-      return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-      return id != null ? id.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-      return "AgentRegistered{id=" + id + "}";
-    }
+    private final AgentId agentId;
   }
 }
