@@ -537,31 +537,31 @@ public class TestRuleRestApi extends IntegrationTestBase {
   public void testGetRulesPaginationWithIncorrectValue() {
     apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam("limit", 0))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam("limit", -1))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam("offset", -1))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam("limit", "string"))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
 
     apiClient.rawClient()
         .getRules()
-        .reqSpec(request -> request.addQueryParam("offset", "string"))
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .execute(Response::andReturn);
   }
