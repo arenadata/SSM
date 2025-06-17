@@ -34,7 +34,7 @@ import lombok.NoArgsConstructor;
 public class NodeCmdletMetrics {
   private NodeInfo nodeInfo;
 
-  private long registTime;
+  private long registrationTime;
   private int numExecutors;
 
   private long cmdletsExecuted;

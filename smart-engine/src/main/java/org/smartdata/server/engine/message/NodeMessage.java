@@ -17,16 +17,10 @@
  */
 package org.smartdata.server.engine.message;
 
+import lombok.Data;
 import org.smartdata.server.cluster.NodeInfo;
 
+@Data
 public class NodeMessage {
-  private NodeInfo nodeInfo;
-
-  public NodeMessage(NodeInfo nodeInfo) {
-    this.nodeInfo = nodeInfo;
-  }
-
-  public NodeInfo getNodeInfo() {
-    return nodeInfo;
-  }
+  private final NodeInfo nodeInfo;
 }

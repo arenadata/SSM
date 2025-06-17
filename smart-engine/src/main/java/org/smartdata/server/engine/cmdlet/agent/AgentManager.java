@@ -21,6 +21,7 @@ import akka.actor.ActorRef;
 import akka.actor.Address;
 import org.smartdata.server.cluster.NodeInfo;
 import org.smartdata.server.engine.EngineEventBus;
+import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentId;
 import org.smartdata.server.engine.message.AddNodeMessage;
 import org.smartdata.server.engine.message.RemoveNodeMessage;
@@ -36,19 +37,18 @@ public class AgentManager {
   private final Map<ActorRef, AgentId> agents = new HashMap<>();
   private final Map<ActorRef, NodeInfo> agentNodeInfos = new HashMap<>();
   private final Map<String, ActorRef> agentActorRefs = new HashMap<>();
-  private List<ActorRef> resources = new ArrayList<>();
-  private List<NodeInfo> nodeInfos = new LinkedList<>();
-  private int dispatchIndex = 0;
+  private final List<ActorRef> resources = new ArrayList<>();
+  private final List<NodeInfo> nodeInfos = new LinkedList<>();
 
-  void addAgent(ActorRef agent, AgentId id) {
-    agents.put(agent, id);
+  void addAgent(ActorRef agent, AgentToMaster.RegisterNewAgent registrationMessage) {
+    agents.put(agent, registrationMessage.getId());
     resources.add(agent);
     String location = AgentUtils.getHostPort(agent);
-    NodeInfo info = new AgentInfo(String.valueOf(id.getId()), location);
+    NodeInfo info = new AgentInfo(String.valueOf(registrationMessage.getId().getId()), location);
     nodeInfos.add(info);
     agentNodeInfos.put(agent, info);
     agentActorRefs.put(info.getId(), agent);
-    EngineEventBus.post(new AddNodeMessage(info));
+    EngineEventBus.post(new AddNodeMessage(info, registrationMessage.getExecutorsCount()));
   }
 
   AgentId removeAgent(ActorRef agent) {

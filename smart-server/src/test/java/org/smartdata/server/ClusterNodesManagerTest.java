@@ -124,7 +124,7 @@ public class ClusterNodesManagerTest {
             .executorType(ExecutorType.LOCAL)
             .build())
         .numExecutors(13)
-        .registTime(0)
+        .registrationTime(0)
         .build();
 
     NodeCmdletMetrics node2 = NodeCmdletMetrics.builder()
@@ -133,7 +133,7 @@ public class ClusterNodesManagerTest {
             .executorType(ExecutorType.REMOTE_SSM)
             .build())
         .numExecutors(4)
-        .registTime(5)
+        .registrationTime(5)
         .build();
 
     NodeCmdletMetrics node3 = NodeCmdletMetrics.builder()
@@ -142,7 +142,7 @@ public class ClusterNodesManagerTest {
             .executorType(ExecutorType.AGENT)
             .build())
         .numExecutors(8)
-        .registTime(12)
+        .registrationTime(12)
         .build();
 
     return Arrays.asList(node1, node2, node3);

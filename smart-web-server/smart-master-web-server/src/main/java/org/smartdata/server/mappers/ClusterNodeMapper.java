@@ -31,7 +31,7 @@ import org.smartdata.server.generated.model.RegistrationTimeIntervalDto;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ClusterNodeMapper extends SmartMapper {
 
-  @Mapping(source = "registTime", target = "registrationTime")
+  @Mapping(source = "registrationTime", target = "registrationTime")
   @Mapping(source = "numExecutors", target = "executorsCount")
   @Mapping(source = "nodeInfo.port", target = "port")
   @Mapping(source = "nodeInfo.id", target = "id")

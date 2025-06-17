@@ -35,7 +35,8 @@ import org.smartdata.server.cluster.NodeCmdletMetrics;
 import org.smartdata.server.engine.ActiveServerInfo;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
-import org.smartdata.server.engine.message.NodeMessage;
+import org.smartdata.server.engine.message.AddNodeMessage;
+import org.smartdata.server.engine.message.RemoveNodeMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,24 +60,22 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   private final Map<Long, LaunchCmdlet> idToLaunchCmdlet;
   private final ListMultimap<String, ActionScheduler> schedulers;
 
-  private final ScheduledExecutorService schExecService;
+  private final ScheduledExecutorService executorService;
 
   private final CmdletExecutorService[] cmdExecServices;
-  private final int[] cmdExecSrvInsts;
-  private int cmdExecSrvTotalInsts;
-  private final AtomicInteger[] execSrvSlotsLeft;
+  private final int[] executorsByType;
+  private int totalExecutorInstances;
+  private final AtomicInteger[] slotsLeftByExecutorType;
   private final AtomicInteger totalSlotsLeft;
+  private final AtomicInteger totalSlots;
 
-  private final Map<Long, ExecutorType> dispatchedToSrvs;
+  private final Map<Long, ExecutorType> dispatchedToExecutorType;
   private final boolean disableLocalExec;
-  private final boolean logDispResult;
+  private final boolean logDispatchResult;
   private final DispatchTask[] dispatchTasks;
-  private final int outputDispMetricsInterval; // 0 means no output
+  private final int outputDispatchMetricsInterval; // 0 means no output
 
-  // TODO: to be refined
-  private final int defaultSlots;
-  private final int executorsNum;
-  private final AtomicInteger index;
+  private final AtomicInteger currentExecutorInstanceIdx;
 
   private final Map<String, AtomicInteger> regNodes;
   private final Map<String, NodeCmdletMetrics> regNodeInfos;
@@ -96,34 +95,29 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     this.idToLaunchCmdlet = idToLaunchCmdlet;
     this.schedulers = schedulers;
 
-    this.index = new AtomicInteger(0);
+    this.currentExecutorInstanceIdx = new AtomicInteger(0);
     this.regNodes = new HashMap<>();
     this.regNodeInfos = new HashMap<>();
     this.cmdExecSrvNodeIds = new ArrayList<>();
     this.completeOn = new String[ExecutorType.values().length];
+    this.totalSlots = new AtomicInteger();
     this.totalSlotsLeft = new AtomicInteger();
 
-    this.executorsNum = conf.getInt(SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY,
-        SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT);
-    int delta = conf.getInt(SmartConfKeys.SMART_DISPATCH_CMDLETS_EXTRA_NUM_KEY,
-        SmartConfKeys.SMART_DISPATCH_CMDLETS_EXTRA_NUM_DEFAULT);
-    this.defaultSlots = executorsNum + delta;
-
     this.cmdExecServices = new CmdletExecutorService[ExecutorType.values().length];
-    this.cmdExecSrvInsts = new int[ExecutorType.values().length];
-    this.execSrvSlotsLeft = new AtomicInteger[ExecutorType.values().length];
-    for (int i = 0; i < execSrvSlotsLeft.length; i++) {
-      execSrvSlotsLeft[i] = new AtomicInteger(0);
+    this.executorsByType = new int[ExecutorType.values().length];
+    this.slotsLeftByExecutorType = new AtomicInteger[ExecutorType.values().length];
+    for (int i = 0; i < slotsLeftByExecutorType.length; i++) {
+      slotsLeftByExecutorType[i] = new AtomicInteger(0);
       cmdExecSrvNodeIds.add(new ArrayList<>());
     }
-    this.cmdExecSrvTotalInsts = 0;
-    this.dispatchedToSrvs = new ConcurrentHashMap<>();
+    this.totalExecutorInstances = 0;
+    this.dispatchedToExecutorType = new ConcurrentHashMap<>();
 
     this.disableLocalExec = conf.getBoolean(
         SmartConfKeys.SMART_ACTION_LOCAL_EXECUTION_DISABLED_KEY,
         SmartConfKeys.SMART_ACTION_LOCAL_EXECUTION_DISABLED_DEFAULT);
 
-    this.logDispResult = conf.getBoolean(
+    this.logDispatchResult = conf.getBoolean(
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_RESULT_KEY,
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_RESULT_DEFAULT);
     int numDisp = conf.getInt(SmartConfKeys.SMART_CMDLET_DISPATCHERS_KEY,
@@ -133,11 +127,11 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     }
     this.dispatchTasks = new DispatchTask[numDisp];
     for (int i = 0; i < numDisp; i++) {
-      dispatchTasks[i] = new DispatchTask(this, i);
+      dispatchTasks[i] = new DispatchTask(this);
     }
-    this.schExecService = smartContext.getMetricsFactory().wrap(
+    this.executorService = smartContext.getMetricsFactory().wrap(
         Executors.newScheduledThreadPool(numDisp + 1), "cmdletDispatcherExecutor");
-    this.outputDispMetricsInterval = conf.getInt(
+    this.outputDispatchMetricsInterval = conf.getInt(
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_METRICS_INTERVAL_KEY,
         SmartConfKeys.SMART_CMDLET_DISPATCHER_LOG_DISP_METRICS_INTERVAL_DEFAULT);
   }
@@ -155,11 +149,11 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   }
 
   public void stopCmdlet(long cmdletId) {
-    ExecutorType t = dispatchedToSrvs.get(cmdletId);
+    ExecutorType t = dispatchedToExecutorType.get(cmdletId);
     if (t != null) {
       cmdExecServices[t.ordinal()].stop(cmdletId);
     }
-    synchronized (dispatchedToSrvs) {
+    synchronized (dispatchedToExecutorType) {
       NodeCmdletMetrics metrics = regNodeInfos.get(idToLaunchCmdlet.get(cmdletId).getNodeId());
       if (metrics != null) {
         metrics.finishCmdlet();
@@ -210,7 +204,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
         cmdletManager.onActionStatusUpdate(actionStatus);
       }
       CmdletStatus cmdletStatus = new CmdletStatus(cmdlet.getCmdletId(),
-              System.currentTimeMillis(), CmdletState.DISPATCHED);
+          System.currentTimeMillis(), CmdletState.DISPATCHED);
       cmdletManager.onCmdletStatusUpdate(cmdletStatus);
     } catch (IOException e) {
       LOG.info("update status failed.", e);
@@ -219,7 +213,6 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
 
   private class DispatchTask implements Runnable {
     private final CmdletDispatcher dispatcher;
-    private final int taskId;
     private int statRound = 0;
     private int statFail = 0;
     private int statDispatched = 0;
@@ -229,9 +222,8 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
 
     private final int[] dispInstIdxs = new int[ExecutorType.values().length];
 
-    public DispatchTask(CmdletDispatcher dispatcher, int taskId) {
+    public DispatchTask(CmdletDispatcher dispatcher) {
       this.dispatcher = dispatcher;
-      this.taskId = taskId;
     }
 
     public CmdletDispatcherStat getStat() {
@@ -249,7 +241,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     public void run() {
       statRound++;
 
-      if (cmdExecSrvTotalInsts == 0) {
+      if (totalExecutorInstances == 0) {
         LOG.warn("No available executor service to execute action! "
             + "This can happen when only one smart server is running and "
             + "`smart.action.local.execution.disabled` is set to true.");
@@ -280,7 +272,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
             }
             if (!dispatch(launchCmdlet)) {
               if (LOG.isDebugEnabled()) {
-                LOG.debug("Stop this round dispatch due : " + launchCmdlet);
+                LOG.debug("Stop this round dispatch due : {}", launchCmdlet);
               }
               statFail++;
               break;
@@ -301,12 +293,12 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     }
 
     private boolean dispatch(LaunchCmdlet cmdlet) {
-      int mod = index.incrementAndGet() % cmdExecSrvTotalInsts;
-      int idx = 0;
+      int mod = currentExecutorInstanceIdx.incrementAndGet() % totalExecutorInstances;
+      int executorTypeIdx = 0;
 
-      for (int nround = 0; nround < 2 && mod >= 0; nround++) {
-        for (idx = 0; idx < cmdExecSrvInsts.length; idx++) {
-          mod -= cmdExecSrvInsts[idx];
+      for (int nround = 0; nround < 2 && mod >= 0; ++nround) {
+        for (executorTypeIdx = 0; executorTypeIdx < executorsByType.length; ++executorTypeIdx) {
+          mod -= executorsByType[executorTypeIdx];
           if (mod < 0) {
             break;
           }
@@ -322,39 +314,40 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
         return false;
       }
 
-      CmdletExecutorService selected = null;
+      CmdletExecutorService selectedExecutor = null;
       for (int i = 0; i < ExecutorType.values().length; i++) {
-        idx = idx % ExecutorType.values().length;
-        int left;
+        executorTypeIdx = executorTypeIdx % ExecutorType.values().length;
+        int executorFreeSlots;
         do {
-          left = execSrvSlotsLeft[idx].get();
-          if (left > 0) {
-            if (execSrvSlotsLeft[idx].compareAndSet(left, left - 1)) {
-              selected = cmdExecServices[idx];
+          executorFreeSlots = slotsLeftByExecutorType[executorTypeIdx].get();
+          if (executorFreeSlots > 0) {
+            if (slotsLeftByExecutorType[executorTypeIdx].compareAndSet(executorFreeSlots, executorFreeSlots - 1)) {
+              selectedExecutor = cmdExecServices[executorTypeIdx];
               break;
             }
           }
-        } while (left > 0);
+        } while (executorFreeSlots > 0);
 
-        if (selected != null) {
+        if (selectedExecutor != null) {
           break;
         }
-        idx++;
+        executorTypeIdx++;
       }
 
-      if (selected == null) {
-        LOG.error("No cmdlet executor service available. " + cmdlet);
+      if (selectedExecutor == null) {
+        LOG.error("No cmdlet executor service available. {}", cmdlet);
         return false;
       }
 
-      int srvId = selected.getExecutorType().ordinal();
+      int selectedExecutorTypeIdx = selectedExecutor.getExecutorType().ordinal();
 
       boolean sFlag = true;
       String nodeId;
       AtomicInteger counter;
       do {
-        dispInstIdxs[srvId] = (dispInstIdxs[srvId] + 1) % cmdExecSrvNodeIds.get(srvId).size();
-        nodeId = cmdExecSrvNodeIds.get(srvId).get(dispInstIdxs[srvId]);
+        dispInstIdxs[selectedExecutorTypeIdx] = (dispInstIdxs[selectedExecutorTypeIdx] + 1)
+            % cmdExecSrvNodeIds.get(selectedExecutorTypeIdx).size();
+        nodeId = cmdExecSrvNodeIds.get(selectedExecutorTypeIdx).get(dispInstIdxs[selectedExecutorTypeIdx]);
         counter = regNodes.get(nodeId);
         int left = counter.get();
         if (left > 0) {
@@ -363,8 +356,9 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
           }
         }
 
-        if (sFlag && completeOn[srvId] != null) {
-          dispInstIdxs[srvId] = cmdExecSrvNodeIds.get(srvId).indexOf(completeOn[srvId]);
+        if (sFlag && completeOn[selectedExecutorTypeIdx] != null) {
+          dispInstIdxs[selectedExecutorTypeIdx] = cmdExecSrvNodeIds.get(selectedExecutorTypeIdx)
+              .indexOf(completeOn[selectedExecutorTypeIdx]);
           sFlag = false;
         }
       } while (true);
@@ -372,14 +366,14 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
 
       boolean dispSucc = false;
       try {
-        selected.execute(cmdlet);
+        selectedExecutor.execute(cmdlet);
         dispSucc = true;
       } catch (Exception e) {
         LOG.error("Error dispatching cmdlet: {}", cmdlet.getCmdletId(), e);
       } finally {
         if (!dispSucc) {
           counter.incrementAndGet();
-          execSrvSlotsLeft[idx].incrementAndGet();
+          slotsLeftByExecutorType[executorTypeIdx].incrementAndGet();
         }
       }
       if (!dispSucc) {
@@ -391,11 +385,10 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
         metrics.incCmdletsInExecution();
       }
       updateCmdActionStatus(cmdlet, nodeId);
-      dispatchedToSrvs.put(cmdlet.getCmdletId(), selected.getExecutorType());
+      dispatchedToExecutorType.put(cmdlet.getCmdletId(), selectedExecutor.getExecutorType());
 
-      if (logDispResult) {
-        LOG.info(String.format("Dispatching cmdlet->[%s] to executor: %s",
-            cmdlet.getCmdletId(), nodeId));
+      if (logDispatchResult) {
+        LOG.info("Dispatching cmdlet->[{}] to executor: {}", cmdlet.getCmdletId(), nodeId);
       }
       return true;
     }
@@ -419,12 +412,12 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
       }
 
       if (!(stat.getStatDispatched() == 0 && stat.getStatRound() == stat.getStatNoMoreCmdlet())) {
-        if (cmdExecSrvTotalInsts != 0 || stat.getStatFull() != 0) {
+        if (totalExecutorInstances != 0 || stat.getStatFull() != 0) {
           LOG.info("timeInterval={} statRound={} statFail={} statDispatched={} "
                   + "statNoMoreCmdlet={} statFull={} pendingCmdlets={} numExecutor={}",
               curr - lastInfo, stat.getStatRound(), stat.getStatFail(), stat.getStatDispatched(),
               stat.getStatNoMoreCmdlet(), stat.getStatFull(), pendingCmdlets.size(),
-              cmdExecSrvTotalInsts);
+              totalExecutorInstances);
         } else {
           if (curr - lastReportNoExecutor >= 600 * 1000L) {
             LOG.info("No cmdlet executor. pendingCmdlets={}", pendingCmdlets.size());
@@ -445,8 +438,8 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   }
 
   public void onCmdletFinished(long cmdletId) {
-    synchronized (dispatchedToSrvs) {
-      if (dispatchedToSrvs.containsKey(cmdletId)) {
+    synchronized (dispatchedToExecutorType) {
+      if (dispatchedToExecutorType.containsKey(cmdletId)) {
         LaunchCmdlet cmdlet = idToLaunchCmdlet.get(cmdletId);
         if (cmdlet == null) {
           return;
@@ -460,21 +453,14 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
           metrics.finishCmdlet();
         }
 
-        ExecutorType t = dispatchedToSrvs.remove(cmdletId);
+        ExecutorType t = dispatchedToExecutorType.remove(cmdletId);
         updateSlotsLeft(t.ordinal(), 1);
         completeOn[t.ordinal()] = cmdlet.getNodeId();
       }
     }
   }
 
-  /**
-   * Maintain SSM cluster nodes. Add the node if {@code isAdd} is true.
-   * Otherwise, remove the node.
-   * If local executor is disabled, we will not tackle the node message
-   * for active server. And the metrics for it will be set at {@link
-   * #start start}
-   */
-  public void onNodeMessage(NodeMessage msg, boolean isAdd) {
+  public void onNodeAdded(AddNodeMessage msg) {
     // New standby server can be added to an active SSM cluster by
     // executing start-standby-server.sh.
     if (msg.getNodeInfo().getExecutorType() == ExecutorType.REMOTE_SSM) {
@@ -487,33 +473,26 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
       conf.addAgentHost(msg.getNodeInfo().getHost());
     }
 
-    synchronized (cmdExecSrvInsts) {
+    int nodeExecutorsCount = msg.getCmdletExecutorsCount();
+
+    synchronized (executorsByType) {
       String nodeId = msg.getNodeInfo().getId();
-      if (isAdd) {
-        if (regNodes.containsKey(nodeId)) {
-          LOG.warn("Skip duplicate add node for {}", msg.getNodeInfo());
-          return;
-        }
-        regNodes.put(nodeId, new AtomicInteger(defaultSlots));
-        NodeCmdletMetrics metrics =
-            msg.getNodeInfo().getExecutorType() == ExecutorType.LOCAL
-                ? new ActiveServerNodeCmdletMetrics() : new NodeCmdletMetrics();
-        // Here, we consider all nodes have same configuration for executorsNum.
-        int actualExecutorsNum =
-            metrics instanceof ActiveServerNodeCmdletMetrics && disableLocalExec
-                ? 0 : executorsNum;
-        metrics.setNumExecutors(actualExecutorsNum);
-        metrics.setRegistTime(System.currentTimeMillis());
-        metrics.setNodeInfo(msg.getNodeInfo());
-        regNodeInfos.put(nodeId, metrics);
-      } else {
-        if (!regNodes.containsKey(nodeId)) {
-          LOG.warn("Skip duplicate remove node for {}", msg.getNodeInfo());
-          return;
-        }
-        regNodes.remove(nodeId);
-        regNodeInfos.remove(nodeId);
+
+      if (regNodes.containsKey(nodeId)) {
+        LOG.warn("Skip duplicate add node for {}", msg.getNodeInfo());
+        return;
       }
+
+      NodeCmdletMetrics metrics = msg.getNodeInfo().getExecutorType() == ExecutorType.LOCAL
+          ? new ActiveServerNodeCmdletMetrics()
+          : new NodeCmdletMetrics();
+
+      metrics.setNumExecutors(nodeExecutorsCount);
+      metrics.setRegistrationTime(System.currentTimeMillis());
+      metrics.setNodeInfo(msg.getNodeInfo());
+
+      regNodes.put(nodeId, new AtomicInteger(nodeExecutorsCount));
+      regNodeInfos.put(nodeId, metrics);
 
       // Ignore local executor if it is disabled.
       if (disableLocalExec && msg.getNodeInfo().getExecutorType()
@@ -521,26 +500,51 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
         return;
       }
 
-      // Maintain executor service in the below code.
-      if (isAdd) {
-        cmdExecSrvNodeIds.get(
-            msg.getNodeInfo().getExecutorType().ordinal()).add(nodeId);
-      } else {
-        cmdExecSrvNodeIds.get(
-            msg.getNodeInfo().getExecutorType().ordinal()).remove(nodeId);
-      }
-      int v = isAdd ? 1 : -1;
-      int idx = msg.getNodeInfo().getExecutorType().ordinal();
-      cmdExecSrvInsts[idx] += v;
-      cmdExecSrvTotalInsts += v;
-      updateSlotsLeft(idx, v * defaultSlots);
+      int executorTypeIdx = msg.getNodeInfo().getExecutorType().ordinal();
+      cmdExecSrvNodeIds.get(executorTypeIdx).add(nodeId);
+      ++executorsByType[executorTypeIdx];
+      ++totalExecutorInstances;
+      totalSlots.addAndGet(nodeExecutorsCount);
+      updateSlotsLeft(executorTypeIdx, nodeExecutorsCount);
     }
-    LOG.info(String.format("Node "
-        + msg.getNodeInfo() + (isAdd ? " added." : " removed.")));
+
+    LOG.info("Node {} added", msg.getNodeInfo());
   }
 
-  private void updateSlotsLeft(int idx, int delta) {
-    execSrvSlotsLeft[idx].addAndGet(delta);
+  public void onNodeRemoved(RemoveNodeMessage msg) {
+    synchronized (executorsByType) {
+      String nodeId = msg.getNodeInfo().getId();
+      NodeCmdletMetrics nodeCmdletMetrics = regNodeInfos.get(nodeId);
+
+      if (!regNodes.containsKey(nodeId) || nodeCmdletMetrics == null) {
+        LOG.warn("Skip duplicate remove node for {}", msg.getNodeInfo());
+        return;
+      }
+
+      int nodeExecutorsCount = nodeCmdletMetrics.getNumExecutors();
+
+      regNodes.remove(nodeId);
+      regNodeInfos.remove(nodeId);
+
+      // Ignore local executor if it is disabled.
+      if (disableLocalExec && msg.getNodeInfo().getExecutorType()
+          == ExecutorType.LOCAL) {
+        return;
+      }
+
+      int executorTypeIdx = msg.getNodeInfo().getExecutorType().ordinal();
+      cmdExecSrvNodeIds.get(executorTypeIdx).remove(nodeId);
+      --executorsByType[executorTypeIdx];
+      --totalExecutorInstances;
+      totalSlots.addAndGet(-nodeExecutorsCount);
+      updateSlotsLeft(executorTypeIdx, -nodeExecutorsCount);
+    }
+
+    LOG.info("Node {} removed", msg.getNodeInfo());
+  }
+
+  private void updateSlotsLeft(int executorTypeIdx, int delta) {
+    slotsLeftByExecutorType[executorTypeIdx].addAndGet(delta);
     totalSlotsLeft.addAndGet(delta);
   }
 
@@ -561,7 +565,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   }
 
   public int getTotalSlots() {
-    return cmdExecSrvTotalInsts * defaultSlots;
+    return totalSlots.get();
   }
 
   @Override
@@ -580,19 +584,19 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     CmdletDispatcherHelper.getInst().register(this);
     long idx = 0;
     for (DispatchTask task : dispatchTasks) {
-      schExecService.scheduleAtFixedRate(task, idx * 200 / dispatchTasks.length,
+      executorService.scheduleAtFixedRate(task, idx * 200 / dispatchTasks.length,
           100, TimeUnit.MILLISECONDS);
       idx++;
     }
-    if (outputDispMetricsInterval > 0) {
-      schExecService.scheduleAtFixedRate(new LogStatTask(dispatchTasks),
-          5000, outputDispMetricsInterval, TimeUnit.MILLISECONDS);
+    if (outputDispatchMetricsInterval > 0) {
+      executorService.scheduleAtFixedRate(new LogStatTask(dispatchTasks),
+          5000, outputDispatchMetricsInterval, TimeUnit.MILLISECONDS);
     }
   }
 
   public void stop() {
     CmdletDispatcherHelper.getInst().unregister();
-    schExecService.shutdownNow();
+    executorService.shutdownNow();
   }
 
   private void maybeUpdateActiveNodeMetrics() {

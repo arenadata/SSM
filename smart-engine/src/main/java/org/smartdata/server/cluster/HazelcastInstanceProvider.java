@@ -18,18 +18,21 @@
 package org.smartdata.server.cluster;
 
 import com.hazelcast.config.ClasspathXmlConfig;
+import com.hazelcast.config.Config;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_CONF_KEYS_PREFIX;
 
 public class HazelcastInstanceProvider {
   private static final String CONFIG_FILE = "hazelcast.xml";
@@ -44,12 +47,14 @@ public class HazelcastInstanceProvider {
     }
   }
 
-  private HazelcastInstanceProvider() {}
+  private HazelcastInstanceProvider() {
+  }
 
-  public static void addMemberConfig(ClasspathXmlConfig config) {
+  public static void addMemberConfig(ClasspathXmlConfig config, SmartConf smartConf) {
     NetworkConfig network = config.getNetworkConfig();
     JoinConfig join = network.getJoin();
-    String serverConfFile = new Configuration().get(SmartConfKeys.SMART_CONF_DIR_KEY,
+    String serverConfFile = smartConf.get(
+        SmartConfKeys.SMART_CONF_DIR_KEY,
         SmartConfKeys.SMART_CONF_DIR_DEFAULT) + "/servers";
     Scanner sc = null;
     try {
@@ -67,17 +72,21 @@ public class HazelcastInstanceProvider {
     }
   }
 
-  public static HazelcastInstance getInstance() {
+  public static HazelcastInstance getInstance(SmartConf smartConf) {
     if (instance == null) {
-      ClasspathXmlConfig config = new ClasspathXmlConfig(CONFIG_FILE);
-      addMemberConfig(config);
-      instance = Hazelcast.newHazelcastInstance(config);
-      Runtime.getRuntime().addShutdownHook(new Thread(){
-        @Override public void run() {
-          instance.getLifecycleService().shutdown();
-        }
-      });
+      ClasspathXmlConfig hazelcastConf = new ClasspathXmlConfig(CONFIG_FILE);
+      addMemberConfig(hazelcastConf, smartConf);
+      fillHazelcastConfigWithSsmProps(hazelcastConf, smartConf);
+      instance = Hazelcast.newHazelcastInstance(hazelcastConf);
+      Runtime.getRuntime().addShutdownHook(new Thread(
+          () -> instance.getLifecycleService().shutdown()
+      ));
     }
     return instance;
+  }
+
+  private static void fillHazelcastConfigWithSsmProps(Config config, SmartConf smartConf) {
+    smartConf.asMap(key -> key.startsWith(SMART_CONF_KEYS_PREFIX))
+        .forEach(config::setProperty);
   }
 }
