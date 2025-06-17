@@ -43,4 +43,8 @@ public class FilesApiWrapper {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .executeAs(Response::andReturn);
   }
+
+  public FilesApi rawClient() {
+    return apiClient;
+  }
 }

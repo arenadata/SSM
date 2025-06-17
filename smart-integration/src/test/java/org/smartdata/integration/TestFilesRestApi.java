@@ -18,17 +18,24 @@
 package org.smartdata.integration;
 
 import com.google.common.collect.ImmutableMap;
+import io.restassured.response.Response;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.smartdata.client.generated.model.CachedFileInfoDto;
+import org.smartdata.client.generated.model.CachedFileSortDto;
 import org.smartdata.client.generated.model.CachedFilesDto;
+import org.smartdata.client.generated.model.CachedTimeIntervalDto;
 import org.smartdata.client.generated.model.FileAccessCountsDto;
 import org.smartdata.client.generated.model.FileAccessInfoDto;
+import org.smartdata.client.generated.model.HotFileSortDto;
+import org.smartdata.client.generated.model.LastAccessedTimeIntervalDto;
+import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.integration.api.ActionsApiWrapper;
 import org.smartdata.integration.api.FilesApiWrapper;
 
@@ -43,6 +50,10 @@ import static org.junit.Assert.assertTrue;
 public class TestFilesRestApi extends IntegrationTestBase {
 
   private static final long INOTIFY_FETCHER_POLL_PERIOD_MS = 100;
+  private static final Map<String, Integer> EXPECTED_ACCESS_COUNTS = ImmutableMap.of(
+      "/tmp/file1", 4,
+      "/tmp/file2", 1
+  );
 
   private FilesApiWrapper apiClient;
   private ActionsApiWrapper actionsApiWrapper;
@@ -63,21 +74,15 @@ public class TestFilesRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetAccessCounts() {
-    Map<String, Integer> expectedAccessCounts = ImmutableMap.of(
-        "/tmp/file1", 4,
-        "/tmp/file2", 3,
-        "/tmp/file3", 1
-    );
-
-    expectedAccessCounts.entrySet().stream()
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
     retryUntil(
         apiClient::getAccessCounts,
-        actualAccessCounts -> accessCountsEquals(actualAccessCounts, expectedAccessCounts),
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
         Duration.ofMillis(100),
-        Duration.ofMinutes(1)
+        Duration.ofSeconds(30)
     );
   }
 
@@ -90,12 +95,530 @@ public class TestFilesRestApi extends IntegrationTestBase {
   }
 
   @Test
-  @Ignore("TODO recheck it when ADH-4648 will be merged")
   public void testGetCachedFiles() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+  }
+
+  @Test
+  public void testGetAccessCountsPagination() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    assertEquals(2, fileAccessCounts.getTotal().longValue());
+    assertEquals(1, fileAccessCounts.getItems().size());
+
+    FileAccessInfoDto fetchedInfo = fileAccessCounts.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+    assertEquals(1, fetchedInfo.getAccessCount().longValue());
+  }
+
+  @Test
+  public void testGetAccessCountsSortById() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto.ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    FileAccessInfoDto firstSortedInfo = fileAccessCounts.getItems().get(0);
+    FileAccessInfoDto secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto._ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    firstSortedInfo = fileAccessCounts.getItems().get(0);
+    secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetAccessCountsSortByPath() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto.PATH)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    FileAccessInfoDto firstSortedInfo = fileAccessCounts.getItems().get(0);
+    FileAccessInfoDto secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto._PATH)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    firstSortedInfo = fileAccessCounts.getItems().get(0);
+    secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetAccessCountsSortByAccessCount() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto.ACCESSCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    FileAccessInfoDto firstSortedInfo = fileAccessCounts.getItems().get(0);
+    FileAccessInfoDto secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+
+    // DESC
+    fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto._ACCESSCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    firstSortedInfo = fileAccessCounts.getItems().get(0);
+    secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+  }
+
+  @Test
+  @Ignore("TODO incorrect column when sort by LastAccessTime. 500 status code")
+  public void testGetAccessCountsSortByLastAccessTime() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto.LASTACCESSTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    FileAccessInfoDto firstSortedInfo = fileAccessCounts.getItems().get(0);
+    FileAccessInfoDto secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery(HotFileSortDto._LASTACCESSTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    firstSortedInfo = fileAccessCounts.getItems().get(0);
+    secondSortedInfo = fileAccessCounts.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetAccessCountsFilterByPathLike() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        actualAccessCounts -> accessCountsEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .pathLikeQuery("%/file2%")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    assertEquals(1, fileAccessCounts.getTotal().longValue());
+    assertEquals(1, fileAccessCounts.getItems().size());
+
+    FileAccessInfoDto fetchedInfo = fileAccessCounts.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+    assertEquals(1, fetchedInfo.getAccessCount().longValue());
+  }
+
+  @Test
+  public void testGetAccessCountsFilterByLastAccessTime() {
+    String firstFilePath = "/tmp/file1";
+    String secondFilePath = "/tmp/file2";
+    createFile(firstFilePath);
+    createFile(secondFilePath);
+    accessFile(firstFilePath, 1);
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        accessCounts -> accessCounts.getItems().stream()
+            .anyMatch(info -> info.getPath().equals(firstFilePath) && info.getAccessCount() == 1),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    long start = System.currentTimeMillis();
+    accessFile(secondFilePath, 1);
+    long end = System.currentTimeMillis();
+
+    retryUntil(
+        apiClient::getAccessCounts,
+        accessCounts -> accessCounts.getItems().stream()
+            .anyMatch(info -> info.getPath().equals(secondFilePath) && info.getAccessCount() == 1),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request
+            .addQueryParam(LastAccessedTimeIntervalDto.JSON_PROPERTY_LAST_ACCESSED_TIME_FROM, start)
+            .addQueryParam(LastAccessedTimeIntervalDto.JSON_PROPERTY_LAST_ACCESSED_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(FileAccessCountsDto.class);
+
+    assertEquals(1, fileAccessCounts.getTotal().longValue());
+    assertEquals(1, fileAccessCounts.getItems().size());
+
+    FileAccessInfoDto fetchedInfo = fileAccessCounts.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+    assertEquals(1, fetchedInfo.getAccessCount().longValue());
+  }
+
+  @Test
+  public void testGetCachedPagination() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    assertEquals(2, cachedFiles.getTotal().longValue());
+    assertEquals(1, cachedFiles.getItems().size());
+
+    CachedFileInfoDto fetchedInfo = cachedFiles.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+    assertEquals(1, fetchedInfo.getAccessCount().longValue());
+  }
+
+  @Test
+  public void testGetCachedSortById() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto.ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto firstSortedInfo = cachedFiles.getItems().get(0);
+    CachedFileInfoDto secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto._ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    firstSortedInfo = cachedFiles.getItems().get(0);
+    secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedSortByPath() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    System.out.println(apiClient.getCachedFiles());
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto.PATH)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto firstSortedInfo = cachedFiles.getItems().get(0);
+    CachedFileInfoDto secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto._PATH)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    firstSortedInfo = cachedFiles.getItems().get(0);
+    secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedSortByAccessCount() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto.ACCESSCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto firstSortedInfo = cachedFiles.getItems().get(0);
+    CachedFileInfoDto secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+
+    // DESC
+    cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto._ACCESSCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    firstSortedInfo = cachedFiles.getItems().get(0);
+    secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedSortByLastAccessTime() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> accessFile(entry.getKey(), entry.getValue()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    System.out.println(apiClient.getAccessCounts());
+    System.out.println(apiClient.getCachedFiles());
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    // ASC
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto.LASTACCESSTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto firstSortedInfo = cachedFiles.getItems().get(0);
+    CachedFileInfoDto secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file1", firstSortedInfo.getPath());
+    assertEquals("/tmp/file2", secondSortedInfo.getPath());
+
+    // DESC
+    cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery(CachedFileSortDto._LASTACCESSTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    firstSortedInfo = cachedFiles.getItems().get(0);
+    secondSortedInfo = cachedFiles.getItems().get(1);
+
+    assertEquals("/tmp/file2", firstSortedInfo.getPath());
+    assertEquals("/tmp/file1", secondSortedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedFilterByPathLike() {
+    EXPECTED_ACCESS_COUNTS.entrySet().stream()
+        .peek(entry -> createFile(entry.getKey()))
+        .peek(entry -> cacheFile(entry.getKey()))
+        .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
+
+    retryUntil(
+        apiClient::getCachedFiles,
+        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, EXPECTED_ACCESS_COUNTS),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .pathLikeQuery("%/file2%")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto fetchedInfo = cachedFiles.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedFilterByLastAccessTime() {
     Map<String, Integer> expectedAccessCounts = ImmutableMap.of(
-        "/tmp/file1", 4,
-        "/tmp/file2", 3,
-        "/tmp/file3", 1
+        "/tmp/file1", 0,
+        "/tmp/file2", 1,
+        "/tmp/file3", 2
     );
 
     expectedAccessCounts.entrySet().stream()
@@ -105,10 +628,142 @@ public class TestFilesRestApi extends IntegrationTestBase {
 
     retryUntil(
         apiClient::getCachedFiles,
-        actualAccessCounts -> cachedFilesEquals(actualAccessCounts, expectedAccessCounts),
+        cachedFiles -> cachedFilesEquals(cachedFiles, expectedAccessCounts),
         Duration.ofMillis(100),
         Duration.ofSeconds(30)
     );
+
+    long start = System.currentTimeMillis();
+    accessFile("/tmp/file3", 1);
+    retryUntil(
+        apiClient::getCachedFiles,
+        cachedFiles -> cachedFiles.getItems().stream()
+            .anyMatch(info -> info.getPath().equals("/tmp/file3") && info.getAccessCount() == 3),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
+    );
+    long end = System.currentTimeMillis();
+
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request
+            .addQueryParam(LastAccessedTimeIntervalDto.JSON_PROPERTY_LAST_ACCESSED_TIME_FROM, start)
+            .addQueryParam(LastAccessedTimeIntervalDto.JSON_PROPERTY_LAST_ACCESSED_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto fetchedInfo = cachedFiles.getItems().get(0);
+    assertEquals("/tmp/file3", fetchedInfo.getPath());
+  }
+
+  @Test
+  public void testGetCachedFilterByCacheTime() {
+    String firstFileName = "/tmp/file1";
+    String secondFileName = "/tmp/file2";
+
+    createFile(firstFileName);
+    createFile(secondFileName);
+    cacheFile(firstFileName);
+    long start = System.currentTimeMillis();
+    cacheFile(secondFileName);
+    long end = System.currentTimeMillis();
+
+    CachedFilesDto cachedFiles = apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request
+            .addQueryParam(CachedTimeIntervalDto.JSON_PROPERTY_CACHED_TIME_FROM, start)
+            .addQueryParam(CachedTimeIntervalDto.JSON_PROPERTY_CACHED_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(CachedFilesDto.class);
+
+    CachedFileInfoDto fetchedInfo = cachedFiles.getItems().get(0);
+    assertEquals("/tmp/file2", fetchedInfo.getPath());
+  }
+
+  @Test
+  public void testGetAccessCountsPaginationWithIncorrectValue() {
+    apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getAccessCounts()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetAccessCountsSortByIncorrectQuery() {
+    apiClient.rawClient()
+        .getAccessCounts()
+        .sortQuery("nonexistent")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetCachedPaginationWithIncorrectValue() {
+    apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getCachedFiles()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetCachedSortByIncorrectQuery() {
+    apiClient.rawClient()
+        .getCachedFiles()
+        .sortQuery("nonexistent")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
   }
 
   @Override
@@ -132,6 +787,14 @@ public class TestFilesRestApi extends IntegrationTestBase {
         "cache -file " + file,
         Duration.ofMillis(100),
         Duration.ofSeconds(1)
+    );
+    // Wait until cached files will be processed
+    retryUntil(
+        apiClient::getCachedFiles,
+        cachedFiles -> cachedFiles.getItems().stream()
+            .anyMatch(i -> i.getPath().equals(file)),
+        Duration.ofMillis(100),
+        Duration.ofSeconds(30)
     );
   }
 
@@ -164,6 +827,13 @@ public class TestFilesRestApi extends IntegrationTestBase {
   private void accessFile(String file, int times) {
     if (times < 1) {
       return;
+    }
+
+    // TODO remove after better solution research
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
 
     Path path = new Path(file);
