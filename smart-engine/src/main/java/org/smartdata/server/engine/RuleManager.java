@@ -93,7 +93,7 @@ public class RuleManager
   private final RuleInfoHandler ruleInfoHandler;
   private final List<RuleExecutorPlugin> executorPlugins;
 
-  private boolean isClosed = false;
+  private volatile boolean isClosed = false;
 
   private final ConcurrentHashMap<Long, RuleInfoRepo> mapRules;
 
@@ -355,9 +355,15 @@ public class RuleManager
   public void stop() throws IOException {
     LOG.info("Stopping ...");
     isClosed = true;
-    if (execScheduler != null) {
-      execScheduler.shutdown();
+
+    try {
+      if (execScheduler != null) {
+        execScheduler.shutdown();
+      }
+    } catch (Exception e) {
+      LOG.error("Error stopping execution scheduler", e);
     }
+
     LOG.info("Stopped.");
   }
 

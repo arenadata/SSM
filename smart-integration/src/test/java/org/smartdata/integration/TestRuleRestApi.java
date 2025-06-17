@@ -272,8 +272,6 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     assertEquals(firstRule.getId(), firstSortedRule.getId());
     assertEquals(secondRule.getId(), secondSortedRule.getId());
-
-    apiClient.stopRule(firstRule.getId());
   }
 
   @Test

@@ -285,9 +285,20 @@ public class SmartServer implements AutoCloseable {
       LOG.error("Error during stopping SmartServer RPC server", exception);
     }
 
-    MetaStore metaStore = context.getMetaStore();
-    if (metaStore != null) {
-      metaStore.close();
+    try {
+      if (context.getMetaStore() != null) {
+        context.getMetaStore().close();
+      }
+    } catch (Exception exception) {
+      LOG.error("Error during stopping Metastore", exception);
+    }
+
+    try {
+      if (context.getMetricsFactory() != null) {
+        context.getMetricsFactory().close();
+      }
+    } catch (Exception exception) {
+      LOG.error("Error during stopping metrics factory", exception);
     }
   }
 

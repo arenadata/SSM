@@ -23,6 +23,7 @@ import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.server.balancer.TestBalancer;
+import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hadoop.filesystem.SmartFileSystem;
@@ -79,6 +80,8 @@ public class SmartMiniCluster implements SmartCluster {
     if (fileSystem != null) {
       fileSystem.close();
     }
+    // clear registered metric systems of name- and datanodes
+    DefaultMetricsSystem.instance().shutdown();
   }
 
   @Override

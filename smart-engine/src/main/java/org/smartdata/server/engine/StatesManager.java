@@ -155,20 +155,44 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     working = false;
     LOG.info("Stopping ...");
 
-    if (fileAccessPartitionService != null) {
-      fileAccessPartitionService.stop();
+    try {
+      if (fileAccessPartitionService != null) {
+        fileAccessPartitionService.stop();
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to stop FileAccessPartitionService", e);
     }
-    if (accessEventFetcher != null) {
-      accessEventFetcher.stop();
+
+    try {
+      if (accessEventFetcher != null) {
+        accessEventFetcher.stop();
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to stop AccessEventFetcher", e);
     }
-    if (this.fileAccessEventSource != null) {
-      fileAccessEventSource.close();
+
+    try {
+      if (this.fileAccessEventSource != null) {
+        fileAccessEventSource.close();
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to close FileAccessEventSource", e);
     }
-    if (statesUpdaterService != null) {
-      statesUpdaterService.stop();
+
+    try {
+      if (statesUpdaterService != null) {
+        statesUpdaterService.stop();
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to stop StatesUpdaterService", e);
     }
-    if (executorService != null) {
-      executorService.shutdownNow();
+
+    try {
+      if (executorService != null) {
+        executorService.shutdownNow();
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to shutdown ExecutorService", e);
     }
 
     LOG.info("Stopped.");
