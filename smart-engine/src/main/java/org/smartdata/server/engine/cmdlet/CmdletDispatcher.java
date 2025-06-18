@@ -162,10 +162,14 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   }
 
   //Todo: move this function to a proper place
-  public void shutDownExcutorServices() {
+  public void shutDownExecutorServices() {
     for (CmdletExecutorService service : cmdExecServices) {
       if (service != null) {
-        service.shutdown();
+        try {
+          service.shutdown();
+        } catch (Exception e) {
+          LOG.error("Error shutting down dispatcher executor service", e);
+        }
       }
     }
   }
@@ -364,6 +368,8 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
       try {
         selectedExecutor.execute(cmdlet);
         dispSucc = true;
+      } catch (Exception e) {
+        LOG.error("Error dispatching cmdlet: {}", cmdlet.getCmdletId(), e);
       } finally {
         if (!dispSucc) {
           counter.incrementAndGet();

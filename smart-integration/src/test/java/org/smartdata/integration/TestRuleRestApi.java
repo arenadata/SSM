@@ -22,10 +22,15 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.client.generated.model.ErrorResponseDto;
+import org.smartdata.client.generated.model.LastActivationTimeIntervalDto;
+import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.client.generated.model.RuleDto;
+import org.smartdata.client.generated.model.RuleSortDto;
 import org.smartdata.client.generated.model.RuleStateDto;
 import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.RulesInfoDto;
+import org.smartdata.client.generated.model.SubmissionTimeIntervalDto;
+import org.smartdata.client.generated.model.SubmitRuleRequestDto;
 import org.smartdata.http.error.SsmErrorCode;
 import org.smartdata.integration.api.RulesApiWrapper;
 
@@ -37,6 +42,8 @@ import static org.junit.Assert.assertTrue;
 
 public class TestRuleRestApi extends IntegrationTestBase {
 
+  private static final String RULE_TEXT = "file: path matches \"/tmp/test/*\" | read";
+
   private RulesApiWrapper apiClient;
 
   @Before
@@ -45,25 +52,8 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
-  public void testSubmitGetRule() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
-    RuleDto fetchedRule = apiClient.getRule(rule.getId());
-
-    assertEquals(rule.getId(), fetchedRule.getId());
-    assertEquals(RuleStateDto.DISABLED, fetchedRule.getState());
-    assertEquals(ruleText, fetchedRule.getTextRepresentation());
-    assertEquals(0, fetchedRule.getActivationCount().longValue());
-    assertEquals(0, fetchedRule.getCmdletsGenerated().longValue());
-    assertNull(fetchedRule.getLastActivationTime());
-  }
-
-  @Test
-  public void testSubmitGetRules() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+  public void testGetRules() {
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RulesDto fetchedRules = apiClient.getRules();
 
     assertEquals(1, fetchedRules.getTotal().longValue());
@@ -71,8 +61,411 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
     RuleDto fetchedRule = fetchedRules.getItems().get(0);
     assertEquals(rule.getId(), fetchedRule.getId());
+    assertEquals(rule.getState(), fetchedRule.getState());
+    assertEquals(rule.getTextRepresentation(), fetchedRule.getTextRepresentation());
+    assertEquals(rule.getActivationCount(), fetchedRule.getActivationCount());
+    assertEquals(rule.getCmdletsGenerated(), fetchedRule.getCmdletsGenerated());
+    assertEquals(rule.getLastActivationTime(), fetchedRule.getLastActivationTime());
+  }
+
+  @Test
+  public void testGetRulesPagination() {
+    apiClient.submitRule(RULE_TEXT);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
+
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(2, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortById() {
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._ID)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortBySubmitTime() {
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.SUBMITTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._SUBMITTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortByLastActivationTime() {
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+    apiClient.startRule(firstRule.getId());
+    apiClient.startRule(secondRule.getId());
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.LASTACTIVATIONTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._LASTACTIVATIONTIME)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
+    apiClient.stopRule(secondRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortByActivationCount() {
+    RuleDto firstRule = apiClient.waitTillRuleTriggered(
+        RULE_TEXT,
+        Duration.ofMillis(250),
+        Duration.ofSeconds(5));
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.ACTIVATIONCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._ACTIVATIONCOUNT)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortByCmdletsGenerated() {
+    RuleDto firstRule = apiClient.waitTillRuleTriggered(
+        "file: at now | path matches \"/*\" | sleep -ms 100",
+        Duration.ofMillis(100),
+        Duration.ofSeconds(2));
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.CMDLETSGENERATED)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._CMDLETSGENERATED)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+  }
+
+  @Test
+  public void testGetRulesSortByState() {
+    RuleDto firstRule = apiClient.submitRule(RULE_TEXT);
+    RuleDto secondRule = apiClient.submitRule(RULE_TEXT);
+
+    apiClient.startRule(firstRule.getId());
+
+    // ASC
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto.STATE)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    RuleDto firstSortedRule = rulesDtoResponse.getItems().get(0);
+    RuleDto secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(firstRule.getId(), firstSortedRule.getId());
+    assertEquals(secondRule.getId(), secondSortedRule.getId());
+
+    // DESC
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .sortQuery(RuleSortDto._STATE)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    firstSortedRule = rulesDtoResponse.getItems().get(0);
+    secondSortedRule = rulesDtoResponse.getItems().get(1);
+
+    assertEquals(secondRule.getId(), firstSortedRule.getId());
+    assertEquals(firstRule.getId(), secondSortedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
+  }
+
+  @Test
+  public void testGetRulesFilterByTextRepresentationLike() {
+    String firstRuleText = "file: path matches \"/tmp/test1/*\" | read";
+    String secondRuleText = "file: every 5000ms | path matches \"/tmp/test2\" | read";
+
+    apiClient.submitRule(firstRuleText);
+    RuleDto secondRule = apiClient.submitRule(secondRuleText);
+
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .textRepresentationLikeQuery("file: every 5000ms%")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(1, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
+    assertEquals(secondRuleText, fetchedRule.getTextRepresentation());
+  }
+
+  @Test
+  public void testGetRulesFilterByTextSubmissionTime() {
+    long start = System.currentTimeMillis();
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
+    long end = System.currentTimeMillis();
+    apiClient.submitRule(RULE_TEXT);
+
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request
+            .addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_FROM, start)
+            .addQueryParam(SubmissionTimeIntervalDto.JSON_PROPERTY_SUBMISSION_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(1, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
+  }
+
+  @Test
+  public void testGetRulesFilterByState() {
+    String ruleText = "file: path matches \"/*\" | read";
+    RuleDto firstRule = apiClient.submitRule(ruleText);
+    apiClient.startRule(firstRule.getId());
+    RuleDto secondRule = apiClient.submitRule(ruleText);
+
+    // ACTIVE
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .ruleStatesQuery(RuleStateDto.ACTIVE)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(1, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(firstRule.getId(), fetchedRule.getId());
+
+    // DISABLED
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .ruleStatesQuery(RuleStateDto.DISABLED)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(1, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
+
+    // ACTIVE+DISABLED
+    rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .ruleStatesQuery(RuleStateDto.ACTIVE, RuleStateDto.DISABLED)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(2, rulesDtoResponse.getTotal().longValue());
+    assertEquals(2, rulesDtoResponse.getItems().size());
+
+    fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(firstRule.getId(), fetchedRule.getId());
+
+    fetchedRule = rulesDtoResponse.getItems().get(1);
+    assertEquals(secondRule.getId(), fetchedRule.getId());
+
+    apiClient.stopRule(firstRule.getId());
+  }
+
+  @Test
+  public void testGetRulesFilterByLastActivationTime() {
+    long start = System.currentTimeMillis();
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
+    apiClient.startRule(rule.getId());
+    long end = System.currentTimeMillis();
+    apiClient.submitRule(RULE_TEXT);
+
+    RulesDto rulesDtoResponse = apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request
+            .addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_FROM, start)
+            .addQueryParam(LastActivationTimeIntervalDto.JSON_PROPERTY_LAST_ACTIVATION_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(RulesDto.class);
+
+    assertEquals(1, rulesDtoResponse.getTotal().longValue());
+    assertEquals(1, rulesDtoResponse.getItems().size());
+
+    RuleDto fetchedRule = rulesDtoResponse.getItems().get(0);
+    assertEquals(rule.getId(), fetchedRule.getId());
+
+    apiClient.stopRule(rule.getId());
+  }
+
+  @Test
+  public void testAddRule() {
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
+    RulesDto fetchedRules = apiClient.getRules();
+
+    assertEquals(1, fetchedRules.getTotal().longValue());
+    assertEquals(1, fetchedRules.getItems().size());
+
+    assertEquals(1, rule.getId().longValue());
     assertEquals(RuleStateDto.DISABLED, rule.getState());
-    assertEquals(ruleText, rule.getTextRepresentation());
+    assertEquals(RULE_TEXT, rule.getTextRepresentation());
+    assertEquals(0, rule.getActivationCount().longValue());
+    assertEquals(0, rule.getCmdletsGenerated().longValue());
+    assertNull(rule.getLastActivationTime());
+  }
+
+  @Test
+  public void testGetRule() {
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
+    RuleDto fetchedRule = apiClient.getRule(rule.getId());
+
+    assertEquals(rule.getId(), fetchedRule.getId());
+    assertEquals(rule.getState(), fetchedRule.getState());
+    assertEquals(rule.getTextRepresentation(), fetchedRule.getTextRepresentation());
+    assertEquals(rule.getActivationCount(), fetchedRule.getActivationCount());
+    assertEquals(rule.getCmdletsGenerated(), fetchedRule.getCmdletsGenerated());
+    assertEquals(rule.getLastActivationTime(), fetchedRule.getLastActivationTime());
   }
 
   @Test
@@ -99,9 +492,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testDeleteRule() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-
-    RuleDto rule = apiClient.submitRule(ruleText);
+    RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RuleDto fetchedRule = apiClient.getRule(rule.getId());
 
     apiClient.deleteRule(fetchedRule.getId());
@@ -143,6 +534,102 @@ public class TestRuleRestApi extends IntegrationTestBase {
   }
 
   @Test
+  public void testGetRulesPaginationWithIncorrectValue() {
+    apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getRules()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetRulesSortByIncorrectQuery() {
+    apiClient.rawClient()
+        .getRules()
+        .sortQuery("nonexistent")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetRulesFilterByIncorrectRuleState() {
+    apiClient.rawClient()
+        .getRules()
+        .ruleStatesQuery("NONEXISTENT")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testAddIncorrectRule() {
+    apiClient.rawClient()
+        .addRule()
+        .body(new SubmitRuleRequestDto().rule("INCORRECT_RULE"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .executeAs(Response::andReturn);
+  }
+
+  @Test
+  public void testDeleteNotFoundIdRule() {
+    apiClient.rawClient()
+        .deleteRule()
+        .idPath(777)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetNotFoundIdRule() {
+    apiClient.rawClient()
+        .getRule()
+        .idPath(777)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testStartNotFoundIdRule() {
+    apiClient.rawClient()
+        .startRule()
+        .idPath(777)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testStopNotFoundIdRule() {
+    apiClient.rawClient()
+        .stopRule()
+        .idPath(777)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
+        .execute(Response::andReturn);
+  }
+
+  @Test
   public void testThrowStateTransitionError() {
     createFile("/tmp/text1.txt");
 
@@ -162,14 +649,5 @@ public class TestRuleRestApi extends IntegrationTestBase {
     assertEquals(
         "Rule state transition is not supported: FINISHED -> ACTIVE",
         errorDto.getMessage());
-  }
-
-  @Test
-  public void testReturnNotFoundOnUnknownId() {
-    apiClient.rawClient()
-        .getRule()
-        .idPath(777)
-        .respSpec(response -> response.expectStatusCode(HttpStatus.NOT_FOUND_404))
-        .execute(Response::andReturn);
   }
 }
