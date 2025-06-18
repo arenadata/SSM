@@ -82,8 +82,12 @@ public class IntegrationTestBase {
   }
 
   protected void createFile(String path) {
+    createFile(new Path(path));
+  }
+
+  protected void createFile(Path path) {
     try {
-      cluster.getFileSystem().createNewFile(new Path(path));
+      cluster.getFileSystem().createNewFile(path);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
