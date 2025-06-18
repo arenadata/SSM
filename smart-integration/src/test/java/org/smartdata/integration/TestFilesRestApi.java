@@ -266,7 +266,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
   }
 
   @Test
-  @Ignore("TODO incorrect column when sort by LastAccessTime. 500 status code")
+  @Ignore("TODO ADH-6189: incorrect column used when sort by LastAccessTime. 500 status code")
   public void testGetAccessCountsSortByLastAccessTime() {
     EXPECTED_ACCESS_COUNTS.entrySet().stream()
         .peek(entry -> createFile(entry.getKey()))
