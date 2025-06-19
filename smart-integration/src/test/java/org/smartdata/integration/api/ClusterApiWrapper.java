@@ -36,4 +36,8 @@ public class ClusterApiWrapper {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .executeAs(Response::andReturn);
   }
+
+  public ClusterApi rawClient() {
+    return apiClient;
+  }
 }
