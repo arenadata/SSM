@@ -88,12 +88,7 @@ public class TestActionRestApi extends IntegrationTestBase {
 
     // we have to wait a bit, because of async cmdlets transfer
     // from in-memory cache to metastore
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 1,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(1, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     actions = apiClient.getActions();
     assertEquals(1L, actions.getItems().size());
@@ -114,12 +109,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -140,12 +130,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -181,12 +166,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -224,12 +204,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
     apiClient.waitTillActionFinished(secondAction.getId(), Duration.ofMillis(100L), Duration.ofMillis(1000L));
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -267,12 +242,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     apiClient.waitTillActionFinished(firstAction.getId(), Duration.ofMillis(100L), Duration.ofMillis(1000L));
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -308,12 +278,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
     apiClient.submitAction("read -file /tmp/test.txt");
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -337,12 +302,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -369,12 +329,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -401,12 +356,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -430,12 +380,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
     apiClient.submitAction("read -file nonexistent.file");
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -460,12 +405,7 @@ public class TestActionRestApi extends IntegrationTestBase {
         Duration.ofMillis(100),
         Duration.ofSeconds(2));
 
-    retryUntil(
-        () -> apiClient.getActions().getTotal(),
-        total -> total == 2,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(1)
-    );
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
