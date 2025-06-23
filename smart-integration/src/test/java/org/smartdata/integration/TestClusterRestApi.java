@@ -55,7 +55,6 @@ public class TestClusterRestApi extends IntegrationTestBase {
     assertNotNull(items.get(0).getRegistrationTime());
     assertEquals(10, items.get(0).getExecutorsCount().longValue());
     assertEquals(0, items.get(0).getCmdletsExecuted().longValue());
-    // TODO test depends on config with these checks?
   }
 
   @Test
