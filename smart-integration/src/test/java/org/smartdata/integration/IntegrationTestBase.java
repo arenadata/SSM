@@ -29,15 +29,11 @@ import org.smartdata.integration.cluster.SmartMiniCluster;
 import org.smartdata.server.SmartServer;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import static org.smartdata.conf.SmartConfKeys.SMART_CLIENT_CONCURRENT_REPORT_ENABLED;
-import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY;
 
 public class IntegrationTestBase {
 
@@ -45,14 +41,17 @@ public class IntegrationTestBase {
   protected SmartConf conf;
   protected SmartServer smartServer;
 
-  protected static int findRandomFreePort() {
-    try (ServerSocket serverSocket = new ServerSocket(0)) {
-      // Allow the port to be reused quickly
-      serverSocket.setReuseAddress(true);
-      return serverSocket.getLocalPort();
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not find a free TCP/IP port.", e);
-    }
+  @Before
+  public void setup() throws Exception {
+    conf = withHdfsOptions(new SmartConf());
+    // Set up an HDFS cluster
+    cluster = new SmartMiniCluster();
+
+    cluster.setUp(conf);
+    conf.setLong(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY, 100);
+
+    smartServer = SmartServer.launchWith(withSsmServerOptions(conf));
+    waitTillSSMExitSafeMode();
   }
 
   public static <T> T retryUntil(
@@ -126,20 +125,5 @@ public class IntegrationTestBase {
             IntegrationTestBase.class.getClassLoader().getResource(relativePath))
         .map(URL::getPath)
         .orElseThrow(() -> new RuntimeException("Resource not found"));
-  }
-
-  @Before
-  public void setup() throws Exception {
-    conf = withHdfsOptions(new SmartConf());
-    conf.setBoolean(SMART_CLIENT_CONCURRENT_REPORT_ENABLED, false);
-    conf.set(SMART_SERVER_RPC_ADDRESS_KEY, "0.0.0.0:" + findRandomFreePort());
-    // Set up an HDFS cluster
-    cluster = new SmartMiniCluster();
-
-    cluster.setUp(conf);
-    conf.setLong(SmartConfKeys.SMART_STATUS_REPORT_PERIOD_KEY, 100);
-
-    smartServer = SmartServer.launchWith(withSsmServerOptions(conf));
-    waitTillSSMExitSafeMode();
   }
 }
