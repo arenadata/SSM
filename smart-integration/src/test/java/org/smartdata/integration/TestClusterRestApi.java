@@ -17,15 +17,20 @@
  */
 package org.smartdata.integration;
 
+import io.restassured.response.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.client.generated.model.ClusterNodeDto;
 import org.smartdata.client.generated.model.ClusterNodesDto;
+import org.smartdata.client.generated.model.PageRequestDto;
+import org.smartdata.client.generated.model.RegistrationTimeIntervalDto;
 import org.smartdata.integration.api.ClusterApiWrapper;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class TestClusterRestApi extends IntegrationTestBase {
 
@@ -43,6 +48,100 @@ public class TestClusterRestApi extends IntegrationTestBase {
     List<ClusterNodeDto> items = clusterNodes.getItems();
     assertEquals(1L, clusterNodes.getTotal().longValue());
     assertEquals(1, items.size());
+    assertEquals("ActiveSSMServer@127.0.0.1:7051", items.get(0).getId());
     assertEquals("127.0.0.1", items.get(0).getHost());
+    assertEquals(7051, items.get(0).getPort().longValue());
+    assertEquals("LOCAL", items.get(0).getExecutorType().getValue());
+    assertNotNull(items.get(0).getRegistrationTime());
+    assertEquals(10, items.get(0).getExecutorsCount().longValue());
+    assertEquals(0, items.get(0).getCmdletsExecuted().longValue());
+  }
+
+  @Test
+  public void testGetNodesPagination() {
+    ClusterNodesDto clusterNodes = apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
+            .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(ClusterNodesDto.class);
+
+    assertEquals(1L, clusterNodes.getTotal().longValue());
+    assertEquals(0, clusterNodes.getItems().size());
+  }
+
+  @Test
+  public void testGetNodesFilterByRegistrationTime() {
+    long end = System.currentTimeMillis();
+    long hourInMs = 3600000;
+    long start = end - hourInMs;
+
+    ClusterNodesDto clusterNodes = apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request
+            .addQueryParam(RegistrationTimeIntervalDto.JSON_PROPERTY_REGISTRATION_TIME_FROM, start)
+            .addQueryParam(RegistrationTimeIntervalDto.JSON_PROPERTY_REGISTRATION_TIME_TO, end))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(ClusterNodesDto.class);
+
+    assertEquals(1L, clusterNodes.getTotal().longValue());
+    assertEquals(1, clusterNodes.getItems().size());
+
+    clusterNodes = apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request
+            .addQueryParam(RegistrationTimeIntervalDto.JSON_PROPERTY_REGISTRATION_TIME_FROM, end)
+            .addQueryParam(RegistrationTimeIntervalDto.JSON_PROPERTY_REGISTRATION_TIME_TO, end + hourInMs))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::body)
+        .as(ClusterNodesDto.class);
+
+    assertEquals(0, clusterNodes.getTotal().longValue());
+    assertEquals(0, clusterNodes.getItems().size());
+  }
+
+  @Test
+  public void testGetNodesSortByIncorrectQuery() {
+    apiClient.rawClient()
+        .getClusterNodes()
+        .sortQuery("nonexistent")
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+  }
+
+  @Test
+  public void testGetNodesPaginationWithIncorrectValue() {
+    apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
+
+    apiClient.rawClient()
+        .getClusterNodes()
+        .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .execute(Response::andReturn);
   }
 }

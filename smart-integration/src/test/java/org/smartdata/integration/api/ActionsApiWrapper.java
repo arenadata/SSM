@@ -77,6 +77,15 @@ public class ActionsApiWrapper {
     );
   }
 
+  public void waitActionsTotalSize(long size, Duration interval, Duration timeout) {
+    retryUntil(
+        () -> getActions().getTotal(),
+        total -> total == size,
+        interval,
+        timeout
+    );
+  }
+
   public ActionsApi rawClient() {
     return apiClient;
   }
