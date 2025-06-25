@@ -21,8 +21,16 @@ import io.restassured.response.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.smartdata.client.generated.api.FilesApi;
 import org.smartdata.client.generated.invoker.ApiClient;
+import org.smartdata.client.generated.model.CachedFileInfoDto;
 import org.smartdata.client.generated.model.CachedFilesDto;
 import org.smartdata.client.generated.model.FileAccessCountsDto;
+import org.smartdata.client.generated.model.FileAccessInfoDto;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.smartdata.integration.IntegrationTestBase.retryUntil;
 
 public class FilesApiWrapper {
 
@@ -46,5 +54,51 @@ public class FilesApiWrapper {
 
   public FilesApi rawClient() {
     return apiClient;
+  }
+
+  public void waitGetAccessCountsEquals(Map<String, Integer> expectedAccessCounts, Duration interval,
+                                        Duration timeout) {
+    retryUntil(
+        this::getAccessCounts,
+        accessCounts -> accessCountsEquals(accessCounts, expectedAccessCounts),
+        interval,
+        timeout
+    );
+  }
+
+  public void waitGetCachedAccessCountsEquals(Map<String, Integer> expectedAccessCounts, Duration interval,
+                                              Duration timeout) {
+    retryUntil(
+        this::getCachedFiles,
+        cachedFiles -> cachedFilesEquals(cachedFiles, expectedAccessCounts),
+        interval,
+        timeout
+    );
+  }
+
+  private boolean cachedFilesEquals(CachedFilesDto cachedFiles,
+                                    Map<String, Integer> expectedAccessCounts) {
+    return expectedAccessCounts.size() == cachedFiles.getTotal()
+        && expectedAccessCounts.size() == cachedFiles.getItems().size()
+        && cachedFiles.getItems()
+        .stream()
+        .collect(Collectors.toMap(
+            CachedFileInfoDto::getPath,
+            CachedFileInfoDto::getAccessCount,
+            Integer::sum
+        )).equals(expectedAccessCounts);
+  }
+
+  private boolean accessCountsEquals(FileAccessCountsDto accessCounts,
+                                     Map<String, Integer> expectedAccessCounts) {
+    return expectedAccessCounts.size() == accessCounts.getTotal()
+        && expectedAccessCounts.size() == accessCounts.getItems().size()
+        && accessCounts.getItems()
+        .stream()
+        .collect(Collectors.toMap(
+            FileAccessInfoDto::getPath,
+            FileAccessInfoDto::getAccessCount,
+            Integer::sum
+        )).equals(expectedAccessCounts);
   }
 }
