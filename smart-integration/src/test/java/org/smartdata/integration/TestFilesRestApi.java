@@ -828,6 +828,14 @@ public class TestFilesRestApi extends IntegrationTestBase {
     if (times < 1) {
       return;
     }
+
+    // TODO remove after better solution research
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
     Path path = new Path(file);
 
     for (int i = 0; i < times; ++i) {
