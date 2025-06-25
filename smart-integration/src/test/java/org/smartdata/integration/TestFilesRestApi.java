@@ -484,7 +484,6 @@ public class TestFilesRestApi extends IntegrationTestBase {
   public void testGetCachedSortByLastAccessTime() {
     EXPECTED_ACCESS_COUNTS.entrySet().stream()
         .peek(entry -> createFile(entry.getKey()))
-        .peek(entry -> accessFile(entry.getKey(), entry.getValue()))
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
