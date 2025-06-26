@@ -42,6 +42,7 @@ import org.smartdata.integration.api.FilesApiWrapper;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -49,6 +50,8 @@ import static org.junit.Assert.assertTrue;
 public class TestFilesRestApi extends IntegrationTestBase {
 
   private static final long INOTIFY_FETCHER_POLL_PERIOD_MS = 100;
+  private static final Duration INTERVAL = Duration.ofMillis(100);
+  private static final Duration TIMEOUT = Duration.ofSeconds(30);
   private static final Map<String, Integer> EXPECTED_ACCESS_COUNTS = ImmutableMap.of(
       "/tmp/file1", 4,
       "/tmp/file2", 1
@@ -77,7 +80,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
   }
 
   @Test
@@ -95,7 +98,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
   }
 
   @Test
@@ -104,7 +107,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
         .getAccessCounts()
@@ -129,7 +132,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -166,7 +169,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -203,7 +206,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -241,7 +244,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -278,7 +281,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
         .getAccessCounts()
@@ -347,7 +350,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     CachedFilesDto cachedFiles = apiClient.rawClient()
         .getCachedFiles()
@@ -373,7 +376,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -411,7 +414,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -449,7 +452,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -487,7 +490,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -525,7 +528,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
+    waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     CachedFilesDto cachedFiles = apiClient.rawClient()
         .getCachedFiles()
@@ -551,7 +554,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(expectedAccessCounts);
+    waitGetCachedAccessCountsEquals(expectedAccessCounts);
 
     long start = System.currentTimeMillis();
     accessFile("/tmp/file3", 1);
@@ -731,5 +734,49 @@ public class TestFilesRestApi extends IntegrationTestBase {
         throw new RuntimeException(e);
       }
     }
+  }
+
+  private void waitGetAccessCountsEquals(Map<String, Integer> expectedAccessCounts) {
+    retryUntil(
+        apiClient::getAccessCounts,
+        accessCounts -> accessCountsEquals(accessCounts, expectedAccessCounts),
+        INTERVAL,
+        TIMEOUT
+    );
+  }
+
+  private void waitGetCachedAccessCountsEquals(Map<String, Integer> expectedAccessCounts) {
+    retryUntil(
+        apiClient::getCachedFiles,
+        cachedFiles -> cachedFilesEquals(cachedFiles, expectedAccessCounts),
+        INTERVAL,
+        TIMEOUT
+    );
+  }
+
+  private boolean cachedFilesEquals(CachedFilesDto cachedFiles,
+                                    Map<String, Integer> expectedAccessCounts) {
+    return expectedAccessCounts.size() == cachedFiles.getTotal()
+        && expectedAccessCounts.size() == cachedFiles.getItems().size()
+        && cachedFiles.getItems()
+        .stream()
+        .collect(Collectors.toMap(
+            CachedFileInfoDto::getPath,
+            CachedFileInfoDto::getAccessCount,
+            Integer::sum
+        )).equals(expectedAccessCounts);
+  }
+
+  private boolean accessCountsEquals(FileAccessCountsDto accessCounts,
+                                     Map<String, Integer> expectedAccessCounts) {
+    return expectedAccessCounts.size() == accessCounts.getTotal()
+        && expectedAccessCounts.size() == accessCounts.getItems().size()
+        && accessCounts.getItems()
+        .stream()
+        .collect(Collectors.toMap(
+            FileAccessInfoDto::getPath,
+            FileAccessInfoDto::getAccessCount,
+            Integer::sum
+        )).equals(expectedAccessCounts);
   }
 }
