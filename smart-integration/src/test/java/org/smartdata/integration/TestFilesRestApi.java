@@ -111,6 +111,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
 
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
         .getAccessCounts()
+        .sortQuery(HotFileSortDto.PATH)
         .reqSpec(request -> request
             .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
             .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
@@ -354,6 +355,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
 
     CachedFilesDto cachedFiles = apiClient.rawClient()
         .getCachedFiles()
+        .sortQuery(CachedFileSortDto.PATH)
         .reqSpec(request -> request
             .addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 1)
             .addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, 1))
