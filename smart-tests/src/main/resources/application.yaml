@@ -1,6 +1,7 @@
 general:
   # env-type: docker|remote
-  env-type: ${ENV_TYPE:docker}
+  env-type: ${ENV_TYPE:remote}
+  use-selenoid: ${CI:false}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
 docker-compose-service:
@@ -8,7 +9,6 @@ docker-compose-service:
   compose-file-name: ${COMPOSE_FILE_NAME:target/test-classes/env/multihost/docker-compose.yaml}
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
-  should-run-selenoid: ${SHOULD_RUN_SELENOID:true}
 
 selenoid:
   proxy-host: ${SELENOID_PROXY_HOST:172.17.0.1}
@@ -26,6 +26,9 @@ ssm-web:
     - role: OWNER
       login: john
       password: 1234
+    - role: KERBEROS
+      login: krb_user1@DEMO
+      password: krb_pass1
 
 remote:
   connectionTimeoutSec: 30
