@@ -77,7 +77,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
   }
 
   @Test
@@ -95,7 +95,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
   }
 
   @Test
@@ -104,7 +104,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
         .getAccessCounts()
@@ -129,7 +129,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -166,7 +166,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -203,7 +203,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -241,7 +241,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
@@ -278,7 +278,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> createFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     FileAccessCountsDto fileAccessCounts = apiClient.rawClient()
         .getAccessCounts()
@@ -347,7 +347,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     CachedFilesDto cachedFiles = apiClient.rawClient()
         .getCachedFiles()
@@ -373,7 +373,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -411,7 +411,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -449,7 +449,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -487,7 +487,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     // ASC
     CachedFilesDto cachedFiles = apiClient.rawClient()
@@ -525,7 +525,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(EXPECTED_ACCESS_COUNTS);
 
     CachedFilesDto cachedFiles = apiClient.rawClient()
         .getCachedFiles()
@@ -551,7 +551,7 @@ public class TestFilesRestApi extends IntegrationTestBase {
         .peek(entry -> cacheFile(entry.getKey()))
         .forEach(entry -> accessFile(entry.getKey(), entry.getValue()));
 
-    apiClient.waitGetCachedAccessCountsEquals(expectedAccessCounts, Duration.ofMillis(100), Duration.ofSeconds(30));
+    apiClient.waitGetCachedAccessCountsEquals(expectedAccessCounts);
 
     long start = System.currentTimeMillis();
     accessFile("/tmp/file3", 1);

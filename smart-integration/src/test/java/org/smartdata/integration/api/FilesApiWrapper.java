@@ -36,6 +36,9 @@ public class FilesApiWrapper {
 
   private final FilesApi apiClient;
 
+  private static final Duration INTERVAL = Duration.ofMillis(100);
+  private static final Duration TIMEOUT = Duration.ofSeconds(30);
+
   public FilesApiWrapper() {
     this.apiClient = ApiClient.api(ApiClient.Config.apiConfig()).files();
   }
@@ -56,23 +59,21 @@ public class FilesApiWrapper {
     return apiClient;
   }
 
-  public void waitGetAccessCountsEquals(Map<String, Integer> expectedAccessCounts, Duration interval,
-                                        Duration timeout) {
+  public void waitGetAccessCountsEquals(Map<String, Integer> expectedAccessCounts) {
     retryUntil(
         this::getAccessCounts,
         accessCounts -> accessCountsEquals(accessCounts, expectedAccessCounts),
-        interval,
-        timeout
+        INTERVAL,
+        TIMEOUT
     );
   }
 
-  public void waitGetCachedAccessCountsEquals(Map<String, Integer> expectedAccessCounts, Duration interval,
-                                              Duration timeout) {
+  public void waitGetCachedAccessCountsEquals(Map<String, Integer> expectedAccessCounts) {
     retryUntil(
         this::getCachedFiles,
         cachedFiles -> cachedFilesEquals(cachedFiles, expectedAccessCounts),
-        interval,
-        timeout
+        INTERVAL,
+        TIMEOUT
     );
   }
 
