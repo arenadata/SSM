@@ -26,5 +26,8 @@ jobs:
       - name: Build with Maven
         run: sh ./build-project.sh ${{ matrix.hdfs-version }}
 
-      - name: Run tests
+      - name: Run integration tests
         run: mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-${{ matrix.hdfs-version }}
+
+      - name: Run UI tests
+        run: mvn verify -Pweb-tests

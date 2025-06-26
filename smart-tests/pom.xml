@@ -75,15 +75,14 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven.surefire.version}</version>
                         <configuration>
                             <skipTests>false</skipTests>
                             <goal>verify</goal>
                             <parallel>none</parallel>
                             <testFailureIgnore>false</testFailureIgnore>
+                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
                             <systemPropertyVariables>
                                 <allure.results.directory>${allure.results.directory}</allure.results.directory>
-                                <COMPOSE_FILE_NAME>target/test-classes/env/docker-compose.yaml</COMPOSE_FILE_NAME>
                                 <useSystemClassLoader>true</useSystemClassLoader>
                             </systemPropertyVariables>
                             <argLine>
