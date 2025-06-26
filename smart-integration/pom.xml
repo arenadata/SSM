@@ -35,6 +35,10 @@
 
     <properties>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
+        <allure.version>2.29.1</allure.version>
+        <allure-maven.version>2.10.0</allure-maven.version>
+        <maven.surefire.version>3.5.2</maven.surefire.version>
+        <aspectj.version>1.9.22.1</aspectj.version>
     </properties>
 
     <dependencies>
@@ -185,6 +189,11 @@
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-junit4</artifactId>
+            <version>${allure.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -275,6 +284,44 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.version}</version>
+                <configuration>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <argLine>
+                        -Dfile.encoding=${project.build.sourceEncoding}
+                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+                    </argLine>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>io.qameta.allure.junit4.AllureJunit4</value>
+                        </property>
+                    </properties>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.qameta.allure</groupId>
+                        <artifactId>allure-junit4-aspect</artifactId>
+                        <version>${allure.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>${allure-maven.version}</version>
+                <configuration>
+                    <reportVersion>${allure-maven.version}</reportVersion>
+                </configuration>
             </plugin>
         </plugins>
     </build>
