@@ -30,4 +30,4 @@ jobs:
         run: mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-${{ matrix.hdfs-version }}
 
       - name: Run UI tests
-        run: mvn verify -Pweb-tests
+        run: mvn verify -Pweb-tests -pl smart-tests
