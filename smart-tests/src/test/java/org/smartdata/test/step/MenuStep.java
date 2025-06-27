@@ -23,6 +23,7 @@ import io.arenadata.test.model.UserModel;
 import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.UserProvider;
 import io.arenadata.test.step.BaseWebStep;
+import io.arenadata.test.util.Utils;
 import io.qameta.allure.Step;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.codeborne.selenide.Selenide.$x;
+import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.smartdata.test.element.LoginPageElement.*;
@@ -38,25 +40,10 @@ import static org.smartdata.test.element.MenuElement.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommonStep extends BaseWebStep {
+public class MenuStep extends BaseWebStep {
 
     @Autowired
     private UserProvider<UserRole> ssmUserProvider;
-
-    @Step("Login as user role {userRole} ")
-    public CommonStep loginAs(UserRole userRole) {
-        UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
-        submitLoginForm(userModel);
-        checkUserInfo(userModel);
-        return this;
-    }
-
-    @Step("Fill and submit login form")
-    public void submitLoginForm(UserModel<UserRole> userModel) {
-        waitAndWrite(USERNAME_FIELD, userModel.getLogin());
-        waitAndWrite(PASSWORD_FIELD, userModel.getPassword());
-        waitAndClick(SING_IN_BUTTON);
-    }
 
     @Step("Verify current user name in menu")
     public void checkUserInfo(UserModel<UserRole> userModel) {
@@ -64,7 +51,7 @@ public class CommonStep extends BaseWebStep {
     }
 
     @Step("Verify the user is still logged in after cancel logout")
-    public CommonStep checkLogoutCancel(UserRole userRole) {
+    public MenuStep checkLogoutCancel(UserRole userRole) {
         UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
         clickLogoutAndCancelWith(LOGOUT_REJECT_BUTTON);
         checkUserInfo(userModel);
@@ -83,7 +70,7 @@ public class CommonStep extends BaseWebStep {
     }
 
     @Step("Log out")
-    public CommonStep logout() {
+    public MenuStep logout() {
         waitAndClick(LOGOUT_BUTTON);
         waitAndClick(LOGOUT_ACCEPT_BUTTON);
         waitDisappear(LOGOUT_CONFIRMATION_MODAL);
@@ -91,14 +78,16 @@ public class CommonStep extends BaseWebStep {
     }
 
     @Step("Open Documentation")
-    public CommonStep openDocumentation() {
-        waitAndClick(DOCUMENTATION_BUTTON);
+    public MenuStep openDocumentation() {
+        Utils.waitUntil(() -> {
+            waitAndClick(DOCUMENTATION_BUTTON);
+            Selenide.switchTo().window(1);
+        }, SHORT_WAIT_PARAMS);
         return this;
     }
 
     @Step("Check Documentation is opened in new tab")
     public void checkDocumentationIsOpened() {
-        Selenide.switchTo().window(1);
         checkElementTextIs($x("//h1"), "SSM architecture");
     }
 }

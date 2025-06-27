@@ -21,7 +21,8 @@ import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import org.smartdata.test.step.CommonStep;
+import org.smartdata.test.step.LoginStep;
+import org.smartdata.test.step.MenuStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -29,24 +30,27 @@ import org.testng.annotations.Test;
 public class CommonSuite extends SsmBaseSuite {
 
     @Autowired
-    private CommonStep commonStep;
+    private LoginStep loginStep;
+
+    @Autowired
+    private MenuStep menuStep;
 
     @TmsLink("90211")
     @Story("Authorization")
     @Test(description = "Login and Logout")
     public void testLoginLogout() {
-        commonStep.loginAs(UserRole.OWNER)
-                .checkLogoutCancel(UserRole.OWNER)
-                .logout()
-                .loginAs(UserRole.KERBEROS);
+        loginStep.loginAs(UserRole.OWNER);
+        menuStep.checkLogoutCancel(UserRole.OWNER)
+                .logout();
+        loginStep.loginAs(UserRole.KERBEROS);
     }
 
     @TmsLink("91396")
     @Story("Main Menu")
     @Test(description = "Documentation button")
     public void testDocumentationButton() {
-        commonStep.loginAs(UserRole.OWNER)
-                .openDocumentation()
+        loginStep.loginAs(UserRole.OWNER);
+        menuStep.openDocumentation()
                 .checkDocumentationIsOpened();
     }
 }
