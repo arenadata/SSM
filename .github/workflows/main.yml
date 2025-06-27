@@ -29,5 +29,6 @@ jobs:
       - name: Run integration tests
         run: mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-${{ matrix.hdfs-version }}
 
-      - name: Run UI tests
-        run: mvn verify -Pweb-tests -pl smart-tests
+# Can't run test containers due to inaccessibility of cloud-hub.adsw.io github
+#      - name: Run UI tests
+#        run: mvn verify -Pweb-tests -pl smart-tests
