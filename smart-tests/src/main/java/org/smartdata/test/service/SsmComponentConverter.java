@@ -25,8 +25,8 @@ import org.springframework.core.convert.converter.Converter;
 @Slf4j
 public class SsmComponentConverter implements Converter<String, Component> {
 
-    @Override
-    public Component convert(String value) {
-        return SsmComponent.fromName(value);
-    }
+  @Override
+  public Component convert(String value) {
+    return SsmComponent.fromName(value);
+  }
 }

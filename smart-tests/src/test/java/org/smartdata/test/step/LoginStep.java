@@ -34,23 +34,23 @@ import static org.smartdata.test.element.LoginPageElement.*;
 @RequiredArgsConstructor
 public class LoginStep extends BaseWebStep {
 
-    @Autowired
-    private UserProvider<UserRole> ssmUserProvider;
+  @Autowired
+  private UserProvider<UserRole> ssmUserProvider;
 
-    @Autowired
-    private MenuStep menuStep;
+  @Autowired
+  private MenuStep menuStep;
 
-    @Step("Login as user role {userRole} ")
-    public void loginAs(UserRole userRole) {
-        UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
-        submitLoginForm(userModel);
-        menuStep.checkUserInfo(userModel);
-    }
+  @Step("Login as user role {userRole} ")
+  public void loginAs(UserRole userRole) {
+    UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
+    submitLoginForm(userModel);
+    menuStep.checkUserInfo(userModel);
+  }
 
-    @Step("Fill and submit login form")
-    public void submitLoginForm(UserModel<UserRole> userModel) {
-        waitAndWrite(USERNAME_FIELD, userModel.getLogin());
-        waitAndWrite(PASSWORD_FIELD, userModel.getPassword());
-        waitAndClick(SING_IN_BUTTON);
-    }
+  @Step("Fill and submit login form")
+  public void submitLoginForm(UserModel<UserRole> userModel) {
+    waitAndWrite(USERNAME_FIELD, userModel.getLogin());
+    waitAndWrite(PASSWORD_FIELD, userModel.getPassword());
+    waitAndClick(SIGN_IN_BUTTON);
+  }
 }

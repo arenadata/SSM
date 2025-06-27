@@ -50,27 +50,27 @@ import java.util.stream.Collectors;
 @Import(CommonTestConfiguration.class)
 public class SsmTestConfiguration {
 
-    @Bean
-    public List<Component> ssmComponents() {
-        return Arrays.stream(SsmComponent.values()).map(c -> (Component) c).collect(Collectors.toList());
-    }
+  @Bean
+  public List<Component> ssmComponents() {
+    return Arrays.stream(SsmComponent.values()).map(c -> (Component) c).collect(Collectors.toList());
+  }
 
-    @Bean
-    @ConfigurationPropertiesBinding
-    public Converter<String, Component> ssmComponentConverter() {
-        return new SsmComponentConverter();
-    }
+  @Bean
+  @ConfigurationPropertiesBinding
+  public Converter<String, Component> ssmComponentConverter() {
+    return new SsmComponentConverter();
+  }
 
-    @Bean("hostService")
-    @ConfigurationProperties(prefix = "docker-compose-service")
-    @ConditionalOnProperty(name = "env-type", havingValue = "docker")
-    public HostService dockerHostService(ContainerManager containerManager) {
-        return new DockerComposeService(containerManager);
-    }
+  @Bean("hostService")
+  @ConfigurationProperties(prefix = "docker-compose-service")
+  @ConditionalOnProperty(name = "env-type", havingValue = "docker")
+  public HostService dockerHostService(ContainerManager containerManager) {
+    return new DockerComposeService(containerManager);
+  }
 
-    @Bean("hostService")
-    @ConditionalOnProperty(name = "env-type", havingValue = "remote")
-    public HostService remoteHostService(SshCommandExecutor sshCommandExecutor) {
-        return new RemoteHostService(sshCommandExecutor);
-    }
+  @Bean("hostService")
+  @ConditionalOnProperty(name = "env-type", havingValue = "remote")
+  public HostService remoteHostService(SshCommandExecutor sshCommandExecutor) {
+    return new RemoteHostService(sshCommandExecutor);
+  }
 }

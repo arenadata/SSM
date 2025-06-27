@@ -29,28 +29,28 @@ import org.testng.annotations.Test;
 @Feature("Common functions")
 public class CommonSuite extends SsmBaseSuite {
 
-    @Autowired
-    private LoginStep loginStep;
+  @Autowired
+  private LoginStep loginStep;
 
-    @Autowired
-    private MenuStep menuStep;
+  @Autowired
+  private MenuStep menuStep;
 
-    @TmsLink("90211")
-    @Story("Authorization")
-    @Test(description = "Login and Logout")
-    public void testLoginLogout() {
-        loginStep.loginAs(UserRole.OWNER);
-        menuStep.checkLogoutCancel(UserRole.OWNER)
-                .logout();
-        loginStep.loginAs(UserRole.KERBEROS);
-    }
+  @TmsLink("90211")
+  @Story("Authorization")
+  @Test(description = "Login and Logout")
+  public void testLoginLogout() {
+    loginStep.loginAs(UserRole.OWNER);
+    menuStep.checkLogoutCancel(UserRole.OWNER)
+        .logout();
+    loginStep.loginAs(UserRole.KERBEROS);
+  }
 
-    @TmsLink("91396")
-    @Story("Main Menu")
-    @Test(description = "Documentation button")
-    public void testDocumentationButton() {
-        loginStep.loginAs(UserRole.OWNER);
-        menuStep.openDocumentation()
-                .checkDocumentationIsOpened();
-    }
+  @TmsLink("91396")
+  @Story("Main Menu")
+  @Test(description = "Documentation button")
+  public void testDocumentationButton() {
+    loginStep.loginAs(UserRole.OWNER);
+    menuStep.openDocumentation()
+        .checkDocumentationIsOpened();
+  }
 }

@@ -30,9 +30,9 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest(classes = {SsmQaApp.class})
 public abstract class SsmBaseSuite extends BaseWebSuite {
 
-    @Autowired
-    protected SsmTestConfiguration testConfig;
+  @Autowired
+  protected SsmTestConfiguration testConfig;
 
-    @Autowired
-    protected SsmWebConfiguration webConfig;
+  @Autowired
+  protected SsmWebConfiguration webConfig;
 }

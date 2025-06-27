@@ -42,52 +42,52 @@ import static org.smartdata.test.element.MenuElement.*;
 @RequiredArgsConstructor
 public class MenuStep extends BaseWebStep {
 
-    @Autowired
-    private UserProvider<UserRole> ssmUserProvider;
+  @Autowired
+  private UserProvider<UserRole> ssmUserProvider;
 
-    @Step("Verify current user name in menu")
-    public void checkUserInfo(UserModel<UserRole> userModel) {
-        assertThat("Username doesn't match expected one", USERNAME.getText(), is(userModel.getLogin()));
-    }
+  @Step("Verify current user name in menu")
+  public void checkUserInfo(UserModel<UserRole> userModel) {
+    assertThat("Username doesn't match expected one", USERNAME.getText(), is(userModel.getLogin()));
+  }
 
-    @Step("Verify the user is still logged in after cancel logout")
-    public MenuStep checkLogoutCancel(UserRole userRole) {
-        UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
-        clickLogoutAndCancelWith(LOGOUT_REJECT_BUTTON);
-        checkUserInfo(userModel);
-        clickLogoutAndCancelWith(LOGOUT_CONFIRMATION_MODAL_X_BUTTON);
-        checkUserInfo(userModel);
-        return this;
-    }
+  @Step("Verify the user is still logged in after cancel logout")
+  public MenuStep checkLogoutCancel(UserRole userRole) {
+    UserModel<UserRole> userModel = ssmUserProvider.getUserModel(userRole);
+    clickLogoutAndCancelWith(LOGOUT_REJECT_BUTTON);
+    checkUserInfo(userModel);
+    clickLogoutAndCancelWith(LOGOUT_CONFIRMATION_MODAL_X_BUTTON);
+    checkUserInfo(userModel);
+    return this;
+  }
 
-    @Step("Click Logout, verify confirmation modal and Cancel")
-    public void clickLogoutAndCancelWith(SelenideElement cancelElement) {
-        waitAndClick(LOGOUT_BUTTON);
-        waitAppear(LOGOUT_CONFIRMATION_MODAL);
-        checkElementTextIs(LOGOUT_CONFIRMATION_MESSAGE, "Are you sure you want to log out?");
-        waitAndClick(cancelElement);
-        waitDisappear(LOGOUT_CONFIRMATION_MODAL);
-    }
+  @Step("Click Logout, verify confirmation modal and Cancel")
+  public void clickLogoutAndCancelWith(SelenideElement cancelElement) {
+    waitAndClick(LOGOUT_BUTTON);
+    waitAppear(LOGOUT_CONFIRMATION_MODAL);
+    checkElementTextIs(LOGOUT_CONFIRMATION_MESSAGE, "Are you sure you want to log out?");
+    waitAndClick(cancelElement);
+    waitDisappear(LOGOUT_CONFIRMATION_MODAL);
+  }
 
-    @Step("Log out")
-    public MenuStep logout() {
-        waitAndClick(LOGOUT_BUTTON);
-        waitAndClick(LOGOUT_ACCEPT_BUTTON);
-        waitDisappear(LOGOUT_CONFIRMATION_MODAL);
-        return this;
-    }
+  @Step("Log out")
+  public MenuStep logout() {
+    waitAndClick(LOGOUT_BUTTON);
+    waitAndClick(LOGOUT_ACCEPT_BUTTON);
+    waitDisappear(LOGOUT_CONFIRMATION_MODAL);
+    return this;
+  }
 
-    @Step("Open Documentation")
-    public MenuStep openDocumentation() {
-        Utils.waitUntil(() -> {
-            waitAndClick(DOCUMENTATION_BUTTON);
-            Selenide.switchTo().window(1);
-        }, SHORT_WAIT_PARAMS);
-        return this;
-    }
+  @Step("Open Documentation")
+  public MenuStep openDocumentation() {
+    Utils.waitUntil(() -> {
+      waitAndClick(DOCUMENTATION_BUTTON);
+      Selenide.switchTo().window(1);
+    }, SHORT_WAIT_PARAMS);
+    return this;
+  }
 
-    @Step("Check Documentation is opened in new tab")
-    public void checkDocumentationIsOpened() {
-        checkElementTextIs($x("//h1"), "SSM architecture");
-    }
+  @Step("Check Documentation is opened in new tab")
+  public void checkDocumentationIsOpened() {
+    checkElementTextIs($x("//h1"), "SSM architecture");
+  }
 }

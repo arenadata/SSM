@@ -32,15 +32,15 @@ import java.util.List;
 @ConfigurationProperties(prefix = "ssm-web")
 @Setter
 public class SsmWebConfiguration {
-    private List<UserModel<UserRole>> credentials;
+  private List<UserModel<UserRole>> credentials;
 
-    @Bean
-    public List<UserModel<UserRole>> testCredentials() {
-        return credentials;
-    }
+  @Bean
+  public List<UserModel<UserRole>> testCredentials() {
+    return credentials;
+  }
 
-    @Bean
-    public UserProvider<UserRole> ssmUserProvider() {
-        return new UserProviderImpl<>(credentials);
-    }
+  @Bean
+  public UserProvider<UserRole> ssmUserProvider() {
+    return new UserProviderImpl<>(credentials);
+  }
 }
