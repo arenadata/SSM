@@ -28,6 +28,7 @@ import org.smartdata.client.generated.model.AuditEventsDto;
 import org.smartdata.client.generated.model.AuditObjectTypeDto;
 import org.smartdata.client.generated.model.AuditOperationDto;
 import org.smartdata.client.generated.model.AuditSortDto;
+import org.smartdata.client.generated.model.ErrorResponseDto;
 import org.smartdata.client.generated.model.EventTimeIntervalDto;
 import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.client.generated.model.RuleDto;
@@ -556,64 +557,95 @@ public class TestAuditRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetAuditEventsPaginationWithIncorrectValue() {
-    auditApiClient.rawClient()
+    ErrorResponseDto errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 
   @Test
   public void testGetAuditEventsSortByIncorrectQuery() {
-    auditApiClient.rawClient()
+    ErrorResponseDto errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Test
   public void testGetAuditEventsFilterByIncorrectQuery() {
-    auditApiClient.rawClient()
+    ErrorResponseDto errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .objectTypesQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .operationsQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    auditApiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
+
+    errorResponse = auditApiClient.rawClient()
         .getAuditEvents()
         .resultsQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 }

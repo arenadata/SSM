@@ -29,6 +29,7 @@ import org.smartdata.client.generated.model.ActionSourceDto;
 import org.smartdata.client.generated.model.ActionStateDto;
 import org.smartdata.client.generated.model.ActionsDto;
 import org.smartdata.client.generated.model.CompletionTimeIntervalDto;
+import org.smartdata.client.generated.model.ErrorResponseDto;
 import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.client.generated.model.StartTimeIntervalDto;
 import org.smartdata.client.generated.model.SubmissionTimeIntervalDto;
@@ -424,67 +425,100 @@ public class TestActionRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetActionsPaginationWithIncorrectValue() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getActions()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getActions()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getActions()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getActions()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = apiClient.rawClient()
         .getActions()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 
   @Test
   public void testGetActionsSortByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getActions()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Test
   public void testGetActionsFilterByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getActions()
         .statesQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
+
+
+    errorResponse = apiClient.rawClient()
         .getActions()
         .sourcesQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
+
   }
 
   @Test
   public void testAddIncorrectAction() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .submitAction()
         .body(new SubmitActionRequestDto().action("INCORRECT_ACTION"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .executeAs(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertEquals("Error parsing cmdlet: INCORRECT_ACTION. Unknown actions used in cmdlet: [INCORRECT_ACTION]",
+        errorResponse.getMessage());
   }
 }

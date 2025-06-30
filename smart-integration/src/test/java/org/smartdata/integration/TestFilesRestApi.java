@@ -31,6 +31,7 @@ import org.smartdata.client.generated.model.CachedFileInfoDto;
 import org.smartdata.client.generated.model.CachedFileSortDto;
 import org.smartdata.client.generated.model.CachedFilesDto;
 import org.smartdata.client.generated.model.CachedTimeIntervalDto;
+import org.smartdata.client.generated.model.ErrorResponseDto;
 import org.smartdata.client.generated.model.FileAccessCountsDto;
 import org.smartdata.client.generated.model.FileAccessInfoDto;
 import org.smartdata.client.generated.model.HotFileSortDto;
@@ -609,86 +610,124 @@ public class TestFilesRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetAccessCountsPaginationWithIncorrectValue() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 
   @Test
   public void testGetAccessCountsSortByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getAccessCounts()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Test
   public void testGetCachedPaginationWithIncorrectValue() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 
   @Test
   public void testGetCachedSortByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getCachedFiles()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Override

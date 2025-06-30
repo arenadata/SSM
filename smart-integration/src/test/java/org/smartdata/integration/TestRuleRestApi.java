@@ -535,62 +535,89 @@ public class TestRuleRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetRulesPaginationWithIncorrectValue() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getRules()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getRules()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getRules()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getRules()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = apiClient.rawClient()
         .getRules()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 
   @Test
   public void testGetRulesSortByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getRules()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Test
   public void testGetRulesFilterByIncorrectRuleState() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getRules()
         .ruleStatesQuery("NONEXISTENT")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'NONEXISTENT'"));
   }
 
   @Test
   public void testAddIncorrectRule() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .addRule()
         .body(new SubmitRuleRequestDto().rule("INCORRECT_RULE"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .executeAs(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage()
+        .contains("mismatched input 'INCORRECT_RULE' expecting {OBJECTTYPE, Linecomment}"));
   }
 
   @Test

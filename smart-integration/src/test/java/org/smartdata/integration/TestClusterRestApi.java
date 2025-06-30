@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.client.generated.model.ClusterNodeDto;
 import org.smartdata.client.generated.model.ClusterNodesDto;
+import org.smartdata.client.generated.model.ErrorResponseDto;
 import org.smartdata.client.generated.model.PageRequestDto;
 import org.smartdata.client.generated.model.RegistrationTimeIntervalDto;
 import org.smartdata.integration.api.ClusterApiWrapper;
@@ -31,6 +32,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestClusterRestApi extends IntegrationTestBase {
 
@@ -105,43 +107,62 @@ public class TestClusterRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetNodesSortByIncorrectQuery() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .sortQuery("nonexistent")
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
+    assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
   }
 
   @Test
   public void testGetNodesPaginationWithIncorrectValue() {
-    apiClient.rawClient()
+    ErrorResponseDto errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, 0))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 1", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, -1))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertEquals("must be greater than or equal to 0", errorResponse.getMessage());
+
+    errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_LIMIT, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
 
-    apiClient.rawClient()
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
+
+    errorResponse = apiClient.rawClient()
         .getClusterNodes()
         .reqSpec(request -> request.addQueryParam(PageRequestDto.JSON_PROPERTY_OFFSET, "string"))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
-        .execute(Response::andReturn);
+        .execute(Response::body)
+        .as(ErrorResponseDto.class);
+
+    assertTrue(errorResponse.getMessage().contains("Failed to convert property value of type"));
   }
 }
