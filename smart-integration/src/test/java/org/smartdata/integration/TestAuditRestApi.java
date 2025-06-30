@@ -129,6 +129,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(2, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
 
@@ -142,6 +144,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(2, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -163,6 +167,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(2, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
 
@@ -176,6 +182,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(2, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -197,6 +205,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(2, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
 
@@ -210,6 +220,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(2, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -231,6 +243,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(2, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
 
@@ -244,6 +258,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(2, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -267,6 +283,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(4, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
     AuditEventDto thirdSortedEvent = auditEvents.getItems().get(2);
@@ -284,6 +302,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(4, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -313,6 +333,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .execute(Response::body)
         .as(AuditEventsDto.class);
 
+    assertEquals(2, auditEvents.getItems().size());
+
     AuditEventDto firstSortedEvent = auditEvents.getItems().get(0);
     AuditEventDto secondSortedEvent = auditEvents.getItems().get(1);
 
@@ -326,6 +348,8 @@ public class TestAuditRestApi extends IntegrationTestBase {
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::body)
         .as(AuditEventsDto.class);
+
+    assertEquals(2, auditEvents.getItems().size());
 
     firstSortedEvent = auditEvents.getItems().get(0);
     secondSortedEvent = auditEvents.getItems().get(1);
@@ -357,7 +381,6 @@ public class TestAuditRestApi extends IntegrationTestBase {
 
     assertEquals(0, auditEvents.getTotal().longValue());
     assertEquals(0, auditEvents.getItems().size());
-
   }
 
   @Test
