@@ -69,6 +69,13 @@ public class CmdletsApiWrapper {
         .executeAs(Response::andReturn);
   }
 
+  public void stopCmdlet(long cmdletId) {
+    apiClient.stopCmdlet()
+        .idPath(cmdletId)
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::andReturn);
+  }
+
   public CmdletDto waitTillCmdletFinished(String cmdletText, Duration interval, Duration timeout) {
     CmdletDto cmdlet = submitCmdlet(cmdletText);
     return waitTillCmdletFinished(cmdlet.getId(), interval, timeout);

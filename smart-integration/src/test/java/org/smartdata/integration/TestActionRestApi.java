@@ -506,7 +506,6 @@ public class TestActionRestApi extends IntegrationTestBase {
 
     assertTrue(errorResponse.getMessage().contains("Failed to convert value of type"));
     assertTrue(errorResponse.getMessage().contains("Unexpected value 'nonexistent'"));
-
   }
 
   @Test
