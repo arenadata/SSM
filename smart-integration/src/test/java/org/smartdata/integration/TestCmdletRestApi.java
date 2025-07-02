@@ -475,7 +475,7 @@ public class TestCmdletRestApi extends IntegrationTestBase {
   }
 
   @Test
-  @Ignore("Cmdlet returns to the state before stopping")
+  @Ignore("ADH-6281: Cmdlet returns to the state before stopping")
   public void testStopCmdlet() {
     CmdletDto cmdlet = apiClient.submitCmdlet("sleep -ms 30000");
     apiClient.stopCmdlet(cmdlet.getId());
