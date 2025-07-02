@@ -48,6 +48,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
   private static final String CMDLET_TEXT = "read -file /tmp/text.txt; delete -file /tmp/text.txt";
   private static final String RULE_TEXT = "file: at now | path matches \"/*\" | sleep -ms 100";
   private static final String FILE_PATH = "/tmp/text.txt";
+  private static final Duration INTERVAL = Duration.ofMillis(100);
+  private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
   @Before
   public void createApi() {
@@ -62,7 +64,7 @@ public class TestCmdletRestApi extends IntegrationTestBase {
     CmdletDto createdCmdlet = apiClient.submitCmdlet(CMDLET_TEXT);
 
     CmdletDto fetchedCmdlet = apiClient.waitTillCmdletFinished(
-        createdCmdlet.getId(), Duration.ofMillis(100L), Duration.ofSeconds(1L));
+        createdCmdlet.getId(), INTERVAL, TIMEOUT);
 
     assertEquals(fetchedCmdlet.getId(), createdCmdlet.getId());
     assertEquals(CMDLET_TEXT, fetchedCmdlet.getTextRepresentation());
@@ -108,8 +110,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
             .idPath(createdCmdlet.getId())
             .execute(Response::andReturn),
         response -> response.getStatusCode() == HttpStatus.NOT_FOUND_404,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(30)
+        INTERVAL,
+        TIMEOUT
     );
   }
 
@@ -189,10 +191,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetCmdletsSortByRuleId() {
-    RuleDto firstRule = rulesApiClient.waitTillRuleTriggered(
-        RULE_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
-    RuleDto secondRule = rulesApiClient.waitTillRuleTriggered(
-        RULE_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+    RuleDto firstRule = rulesApiClient.waitTillRuleTriggered(RULE_TEXT, INTERVAL, TIMEOUT);
+    RuleDto secondRule = rulesApiClient.waitTillRuleTriggered(RULE_TEXT, INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -233,8 +233,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetCmdletsSortByState() {
-    apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
-    apiClient.waitTillCmdletFinished("sleep -ms 10", Duration.ofMillis(100), Duration.ofSeconds(5));
+    apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
+    apiClient.waitTillCmdletFinished("sleep -ms 10", INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -318,9 +318,9 @@ public class TestCmdletRestApi extends IntegrationTestBase {
   @Test
   public void testGetCmdletsSortByStateChangedTime() {
     CmdletDto firstCmdlet =
-        apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+        apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
     CmdletDto secondCmdlet =
-        apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+        apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -409,8 +409,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetCmdletsFilterByRulesIds() {
-    RuleDto rule = rulesApiClient.waitTillRuleTriggered(RULE_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
-    rulesApiClient.waitTillRuleTriggered(RULE_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+    RuleDto rule = rulesApiClient.waitTillRuleTriggered(RULE_TEXT, INTERVAL, TIMEOUT);
+    rulesApiClient.waitTillRuleTriggered(RULE_TEXT, INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -430,8 +430,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetCmdletsFilterByStates() {
-    CmdletDto cmdlet = apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
-    apiClient.waitTillCmdletFinished("sleep -ms 10", Duration.ofMillis(100), Duration.ofSeconds(5));
+    CmdletDto cmdlet = apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
+    apiClient.waitTillCmdletFinished("sleep -ms 10", INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -452,9 +452,9 @@ public class TestCmdletRestApi extends IntegrationTestBase {
   @Test
   public void testGetCmdletsFilterByStateChangedTime() {
     long start = System.currentTimeMillis();
-    CmdletDto cmdlet = apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+    CmdletDto cmdlet = apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
     long end = System.currentTimeMillis();
-    apiClient.waitTillCmdletFinished(CMDLET_TEXT, Duration.ofMillis(100), Duration.ofSeconds(5));
+    apiClient.waitTillCmdletFinished(CMDLET_TEXT, INTERVAL, TIMEOUT);
 
     waitCmdletsTotal(2);
 
@@ -603,8 +603,8 @@ public class TestCmdletRestApi extends IntegrationTestBase {
     retryUntil(
         () -> apiClient.getCmdlets(),
         cmdlets -> cmdlets.getTotal() == total,
-        Duration.ofMillis(100),
-        Duration.ofSeconds(5)
+        INTERVAL,
+        TIMEOUT
     );
   }
 }
