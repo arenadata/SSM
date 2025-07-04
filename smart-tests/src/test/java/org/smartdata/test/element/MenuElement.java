@@ -24,6 +24,7 @@ import static com.codeborne.selenide.Selenide.$x;
 public interface MenuElement {
   SelenideElement USERNAME = $x("//*[contains(@class, 'systemMenu')]//button[1]//*[contains(@class, 'leftBarMenuItem__label')]");
   SelenideElement DOCUMENTATION_BUTTON = $x("//*[contains(@class, 'systemMenu')]//a[.='Documentation']");
+  SelenideElement RULES_BUTTON = $x("//*[contains(@class, 'leftBarMenuItem')]//*[.='Rules']");
   SelenideElement LOGOUT_BUTTON = $x("//*[contains(@class, 'systemMenu')]//button[.='Log Out']");
   SelenideElement LOGOUT_CONFIRMATION_MODAL = $x("//*[@data-test='dialog-container']");
   SelenideElement LOGOUT_CONFIRMATION_MESSAGE = LOGOUT_CONFIRMATION_MODAL.$x(".//h2");

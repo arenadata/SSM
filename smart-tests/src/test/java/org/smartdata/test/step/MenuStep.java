@@ -34,8 +34,15 @@ import static com.codeborne.selenide.Selenide.$x;
 import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.smartdata.test.element.LoginPageElement.*;
-import static org.smartdata.test.element.MenuElement.*;
+import static org.smartdata.test.element.MenuElement.DOCUMENTATION_BUTTON;
+import static org.smartdata.test.element.MenuElement.LOGOUT_ACCEPT_BUTTON;
+import static org.smartdata.test.element.MenuElement.LOGOUT_BUTTON;
+import static org.smartdata.test.element.MenuElement.LOGOUT_CONFIRMATION_MESSAGE;
+import static org.smartdata.test.element.MenuElement.LOGOUT_CONFIRMATION_MODAL;
+import static org.smartdata.test.element.MenuElement.LOGOUT_CONFIRMATION_MODAL_X_BUTTON;
+import static org.smartdata.test.element.MenuElement.LOGOUT_REJECT_BUTTON;
+import static org.smartdata.test.element.MenuElement.RULES_BUTTON;
+import static org.smartdata.test.element.MenuElement.USERNAME;
 
 @Slf4j
 @Service
@@ -89,5 +96,11 @@ public class MenuStep extends BaseWebStep {
   @Step("Check Documentation is opened in new tab")
   public void checkDocumentationIsOpened() {
     checkElementTextIs($x("//h1"), "SSM architecture");
+  }
+
+  @Step("Open Rules page")
+  public MenuStep openRulesPage() {
+    waitAndClick(RULES_BUTTON);
+    return this;
   }
 }
