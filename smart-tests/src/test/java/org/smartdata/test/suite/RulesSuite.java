@@ -21,9 +21,12 @@ import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.element.RulesPageElement;
+import org.smartdata.test.model.RuleStatus;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.RulesStep;
+import org.smartdata.test.step.TableStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -40,22 +43,29 @@ public class RulesSuite extends SsmBaseSuite {
   @Autowired
   private RulesStep rulesStep;
 
+  @Autowired
+  private TableStep tableStep;
+
   @TmsLink("90589")
   @Story("Rules")
   @Test(description = "Check `Create rule` button")
   public void testCreateRuleButton() {
     loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
-    rulesStep.checkRulesTableIsEmpty()
-        .clickCreateRuleButton()
+    tableStep.checkTableIsEmpty(false);
+    rulesStep.clickCreateRuleButton()
         .checkEditorVisible()
         .insertRuleText(RULE_TEXT)
         .clickCancelButton()
-        .checkEditorNotVisible()
-        .checkRulesTableIsEmpty()
-        .clickCreateRuleButton()
-        .insertRuleTextWorkaround(RULE_TEXT)
-        .clickCreateButton()
-        .checkRuleRowsCount(1);
+        .checkEditorNotVisible();
+    tableStep.checkTableIsEmpty(true);
+    rulesStep.clickCreateRuleButton()
+        .insertRuleText(RULE_TEXT)
+        .clickCreateButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(
+            RulesPageElement.RulesTableColumn.RULE_TEXT.getIndex(), RULE_TEXT)
+        .checkColumnValueInFirstRow(
+            RulesPageElement.RulesTableColumn.STATUS.getIndex(), RuleStatus.DISABLED.getText());
   }
 }

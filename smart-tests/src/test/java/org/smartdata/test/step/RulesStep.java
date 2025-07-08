@@ -21,17 +21,13 @@ import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.Keys;
 import org.springframework.stereotype.Service;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CANCEL_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_INPUT;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_TITLE;
-import static org.smartdata.test.element.RulesPageElement.NO_DATA_TABLE_ROW;
-import static org.smartdata.test.element.RulesPageElement.RULE_TABLE_ROWS;
 
 @Slf4j
 @Service
@@ -42,12 +38,6 @@ public class RulesStep extends BaseWebStep {
   @Step("Click the \"Create rule\" button")
   public RulesStep clickCreateRuleButton() {
     waitAndClick(CREATE_RULE_BUTTON);
-    return this;
-  }
-
-  @Step("Check Rules table is empty")
-  public RulesStep checkRulesTableIsEmpty() {
-    waitVisibility(NO_DATA_TABLE_ROW);
     return this;
   }
 
@@ -73,15 +63,6 @@ public class RulesStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Insert rule text, TEMP STEP")
-  // TODO remove after fix UI bug
-  public RulesStep insertRuleTextWorkaround(String ruleText) {
-    waitVisibility(CREATE_RULE_DIALOG_INPUT);
-    CREATE_RULE_DIALOG_INPUT.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-    CREATE_RULE_DIALOG_INPUT.sendKeys(ruleText);
-    return this;
-  }
-
   @Step("Click the Cancel button")
   public RulesStep clickCancelButton() {
     waitAndClick(CREATE_RULE_DIALOG_CANCEL_BUTTON);
@@ -91,12 +72,6 @@ public class RulesStep extends BaseWebStep {
   @Step("Click the Create button")
   public RulesStep clickCreateButton() {
     waitAndClick(CREATE_RULE_DIALOG_CREATE_BUTTON);
-    return this;
-  }
-
-  @Step("Check row quantity in the table")
-  public RulesStep checkRuleRowsCount(int count) {
-    RULE_TABLE_ROWS.shouldHave(size(count));
     return this;
   }
 }

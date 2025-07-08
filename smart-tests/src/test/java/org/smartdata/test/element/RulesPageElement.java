@@ -17,10 +17,10 @@
  */
 package org.smartdata.test.element;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import lombok.Getter;
+import org.smartdata.test.model.TableColumn;
 
-import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface RulesPageElement {
@@ -31,7 +31,32 @@ public interface RulesPageElement {
   SelenideElement CREATE_RULE_DIALOG_INPUT = $x("//*[@data-mode-id='ssmrule']//textarea");
   SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON = $x("//*[@data-test='btn-accept']");
   SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON = $x("//*[@data-test='btn-reject']");
-  // Table
-  SelenideElement NO_DATA_TABLE_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
-  ElementsCollection RULE_TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
+
+  @Getter
+  enum RulesTableColumn implements TableColumn {
+    ID("ID"),
+    RULE_TEXT("Rule Text"),
+    SUBMISSION_TIME("Submission Time"),
+    LAST_CHECK_TIME("Last Check Time"),
+    CHECKED_NUMBER("Checked number"),
+    CMDLETS_GENERATED("Cmdlets Generated"),
+    STATUS("Status"),
+    ACTIONS("Actions");
+
+    private final String name;
+
+    RulesTableColumn(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public int getIndex() {
+      return ordinal();
+    }
+
+    @Override
+    public String toString() {
+      return getName();
+    }
+  }
 }
