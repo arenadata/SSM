@@ -17,8 +17,6 @@
  */
 package org.smartdata.test.step;
 
-import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
@@ -26,6 +24,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.test.element.TableElement;
 import org.springframework.stereotype.Service;
+
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.visible;
+import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
 
 @Slf4j
 @Service
@@ -37,20 +40,20 @@ public class TableStep extends BaseWebStep {
     if (withPageRefresh) {
       Selenide.refresh();
     }
-    TableElement.TABLE_ROWS.shouldHave(CollectionCondition.size(0));
-    TableElement.NODATA_ROW.shouldBe(Condition.visible);
+    TableElement.TABLE_ROWS.shouldHave(size(0), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    TableElement.NODATA_ROW.shouldBe(visible, DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 
   @Step("Check that page's table has {expectedRowsCount} rows")
   public TableStep checkTableRowsCountIs(int expectedRowsCount) {
-    TableElement.TABLE_ROWS.shouldHave(CollectionCondition.size(expectedRowsCount));
+    TableElement.TABLE_ROWS.shouldHave(size(expectedRowsCount), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 
   @Step("Check that page's table has \"{matchingValue}\" value in {columnIndex} column of the first row")
   public TableStep checkColumnValueInFirstRow(int columnIndex, String matchingValue) {
-    TableElement.getColumnInFirstRow(columnIndex).shouldHave(Condition.exactText(matchingValue));
+    TableElement.getColumnInFirstRow(columnIndex).shouldHave(exactText(matchingValue), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 }
