@@ -24,7 +24,6 @@ import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface TableElement {
-
   ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";

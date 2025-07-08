@@ -24,9 +24,7 @@ import org.smartdata.test.model.TableColumn;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface RulesPageElement {
-  // Page
   SelenideElement CREATE_RULE_BUTTON = $x("//button[.='Create rule']");
-  // Create rule dialog
   SelenideElement CREATE_RULE_DIALOG_TITLE = $x("//*[contains(@class, 'title') and .='Create Rule']");
   SelenideElement CREATE_RULE_DIALOG_INPUT = $x("//*[@data-mode-id='ssmrule']//textarea");
   SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON = $x("//*[@data-test='btn-accept']");

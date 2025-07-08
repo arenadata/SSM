@@ -34,7 +34,6 @@ import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_TIT
 @RequiredArgsConstructor
 public class RulesStep extends BaseWebStep {
 
-
   @Step("Click the \"Create rule\" button")
   public RulesStep clickCreateRuleButton() {
     waitAndClick(CREATE_RULE_BUTTON);
