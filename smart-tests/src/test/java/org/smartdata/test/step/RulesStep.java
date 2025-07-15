@@ -19,7 +19,6 @@ package org.smartdata.test.step;
 
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_TIT
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RulesStep extends BaseWebStep {
 
   @Step("Click the \"Create rule\" button")

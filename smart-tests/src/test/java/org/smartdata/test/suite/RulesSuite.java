@@ -21,18 +21,22 @@ import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import org.smartdata.test.element.RulesPageElement;
-import org.smartdata.test.model.RuleStatus;
+import org.smartdata.test.step.GeneralStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.RulesStep;
 import org.smartdata.test.step.TableStep;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-@Feature("Rules page tests")
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.RULE_TEXT;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.STATUS;
+import static org.smartdata.test.model.RuleStatus.DISABLED;
+
+@Feature("Rules page")
 public class RulesSuite extends SsmBaseSuite {
-  private static final String RULE_TEXT = "file : every 1h | path matches \"/test\" | list";
+  private static final String TEST_RULE_TEXT = "file : every 1h | path matches \"/test\" | list";
 
   @Autowired
   private LoginStep loginStep;
@@ -46,26 +50,32 @@ public class RulesSuite extends SsmBaseSuite {
   @Autowired
   private TableStep tableStep;
 
+  @Autowired
+  private GeneralStep generalStep;
+
+  @BeforeMethod
+  public void login() {
+    loginStep.loginAs(UserRole.OWNER);
+  }
+
   @TmsLink("90589")
   @Story("Rules")
   @Test(description = "Check `Create rule` button")
   public void testCreateRuleButton() {
-    loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
-    tableStep.checkTableIsEmpty(false);
+    tableStep.checkTableIsEmpty();
     rulesStep.clickCreateRuleButton()
         .checkEditorVisible()
-        .insertRuleText(RULE_TEXT)
+        .insertRuleText(TEST_RULE_TEXT)
         .clickCancelButton()
         .checkEditorNotVisible();
-    tableStep.checkTableIsEmpty(true);
+    generalStep.refreshPage();
+    tableStep.checkTableIsEmpty();
     rulesStep.clickCreateRuleButton()
-        .insertRuleText(RULE_TEXT)
+        .insertRuleText(TEST_RULE_TEXT)
         .clickCreateButton();
     tableStep.checkTableRowsCountIs(1)
-        .checkColumnValueInFirstRow(
-            RulesPageElement.RulesTableColumn.RULE_TEXT.getIndex(), RULE_TEXT)
-        .checkColumnValueInFirstRow(
-            RulesPageElement.RulesTableColumn.STATUS.getIndex(), RuleStatus.DISABLED.getText());
+        .checkColumnValueInFirstRow(RULE_TEXT, TEST_RULE_TEXT)
+        .checkColumnValueInFirstRow(STATUS, DISABLED.getText());
   }
 }
