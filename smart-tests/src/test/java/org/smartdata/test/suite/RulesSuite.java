@@ -54,15 +54,15 @@ public class RulesSuite extends SsmBaseSuite {
   private GeneralStep generalStep;
 
   @BeforeMethod
-  public void login() {
+  public void setUp() {
     loginStep.loginAs(UserRole.OWNER);
+    menuStep.openRulesPage();
   }
 
   @TmsLink("90589")
   @Story("Rules")
   @Test(description = "Check `Create rule` button")
   public void testCreateRuleButton() {
-    menuStep.openRulesPage();
     tableStep.checkTableIsEmpty();
     rulesStep.clickCreateRuleButton()
         .checkEditorVisible()
