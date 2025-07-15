@@ -24,9 +24,8 @@ import org.smartdata.test.element.TableElement;
 import org.smartdata.test.model.TableColumn;
 import org.springframework.stereotype.Service;
 
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.visible;
-import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
+import static org.smartdata.test.element.TableElement.NODATA_ROW;
+import static org.smartdata.test.element.TableElement.TABLE_ROWS;
 
 @Slf4j
 @Service
@@ -34,14 +33,14 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that current page's table is empty")
   public TableStep checkTableIsEmpty() {
-    TableElement.TABLE_ROWS.shouldHave(size(0), DEFAULT_WEB_ELEMENT_TIMEOUT);
-    TableElement.NODATA_ROW.shouldBe(visible, DEFAULT_WEB_ELEMENT_TIMEOUT);
+    checkSize(TABLE_ROWS, 0);
+    waitVisibility(NODATA_ROW);
     return this;
   }
 
   @Step("Check that page's table has {expectedRowsCount} rows")
   public TableStep checkTableRowsCountIs(int expectedRowsCount) {
-    TableElement.TABLE_ROWS.shouldHave(size(expectedRowsCount), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    checkSize(TABLE_ROWS, expectedRowsCount);
     return this;
   }
 

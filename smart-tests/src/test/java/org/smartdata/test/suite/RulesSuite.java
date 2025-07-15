@@ -21,7 +21,6 @@ import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import org.smartdata.test.step.GeneralStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.RulesStep;
@@ -50,11 +49,8 @@ public class RulesSuite extends SsmBaseSuite {
   @Autowired
   private TableStep tableStep;
 
-  @Autowired
-  private GeneralStep generalStep;
-
   @BeforeMethod
-  public void setUp() {
+  public void openPage() {
     loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
   }
@@ -68,8 +64,8 @@ public class RulesSuite extends SsmBaseSuite {
         .checkEditorVisible()
         .insertRuleText(TEST_RULE_TEXT)
         .clickCancelButton()
-        .checkEditorNotVisible();
-    generalStep.refreshPage();
+        .checkEditorNotVisible()
+        .refreshPage();
     tableStep.checkTableIsEmpty();
     rulesStep.clickCreateRuleButton()
         .insertRuleText(TEST_RULE_TEXT)
