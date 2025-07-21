@@ -238,7 +238,7 @@ public class CmdletManager extends AbstractService
       throw logAndBuildMetastoreException(
           LOG, "DB Connection error! Failed to get Max CmdletId!", e);
     } catch (Exception t) {
-        throw new IOException(t);
+      throw new IOException(t);
     }
   }
 
@@ -641,13 +641,15 @@ public class CmdletManager extends AbstractService
     }
   }
 
-  private boolean disableCmdletInternal(long cmdletId) throws IOException {
+  private boolean disableCmdletInternal(long cmdletId) {
     CmdletInfo info = cmdletInfoHandler.getUnfinishedCmdlet(cmdletId);
     if (info == null) {
       return false;
     }
-    onCmdletStatusUpdate(
-        new CmdletStatus(info.getId(), System.currentTimeMillis(), CmdletState.DISABLED));
+
+    if (runningCmdlets.contains(cmdletId)) {
+      dispatcher.stopCmdletOnExecutor(cmdletId);
+    }
 
     synchronized (pendingCmdlets) {
       pendingCmdlets.remove(cmdletId);
@@ -656,18 +658,13 @@ public class CmdletManager extends AbstractService
     schedulingCmdlets.remove(cmdletId);
 
     scheduledCmdlets.remove(cmdletId);
-
-    // Wait status update from status reporter, so need to update to MetaStore
-    if (runningCmdlets.contains(cmdletId)) {
-      dispatcher.stopCmdlet(cmdletId);
-    }
     return true;
   }
 
   /**
    * Drop all unfinished cmdlets.
    */
-  public void deletePendingRuleCmdlets(long ruleId) throws IOException {
+  public void deletePendingRuleCmdlets(long ruleId) {
     List<Long> cmdletIds = cmdletInfoHandler.deleteUnfinishedCmdletsByRule(ruleId);
     disableCmdlets(cmdletIds);
   }
@@ -693,7 +690,7 @@ public class CmdletManager extends AbstractService
     }
   }
 
-  private void disableCmdlets(List<Long> cmdletIds) throws IOException {
+  private void disableCmdlets(List<Long> cmdletIds) {
     for (long cmdletId : cmdletIds) {
       disableCmdletInternal(cmdletId);
     }
@@ -743,7 +740,7 @@ public class CmdletManager extends AbstractService
   public void onStatusUpdate(ActionStatus actionStatus) throws IOException {
     onActionStatusUpdate(actionStatus);
     ActionInfo actionInfo = actionInfoHandler.getUnfinishedAction(actionStatus.getActionId());
-    inferCmdletStatus(actionInfo);
+    inferCmdletStatus(actionInfo, actionStatus);
   }
 
   public void onCmdletStatusUpdate(CmdletStatus status) throws IOException {
@@ -778,7 +775,10 @@ public class CmdletManager extends AbstractService
     }
   }
 
-  private void inferCmdletStatus(ActionInfo actionInfo) throws IOException {
+  private void inferCmdletStatus(
+      ActionInfo actionInfo,
+      ActionStatus externalActionStatus
+  ) throws IOException {
     if (actionInfo == null || !actionInfo.isFinished()) {
       return;
     }
@@ -798,14 +798,26 @@ public class CmdletManager extends AbstractService
             actionInfo.getFinishTime(), actionInfo.getFinishTime());
         onActionStatusUpdate(actionStatus);
       }
-      CmdletStatus cmdletStatus =
-          new CmdletStatus(cmdletId, actionInfo.getFinishTime(), CmdletState.FAILED);
+      CmdletStatus cmdletStatus = new CmdletStatus(
+          cmdletId,
+          actionInfo.getFinishTime(),
+          inferTerminalCmdletState(externalActionStatus));
       onCmdletStatusUpdate(cmdletStatus);
     } else if (actionIndex == actionIds.size() - 1) {
       CmdletStatus cmdletStatus =
           new CmdletStatus(cmdletId, actionInfo.getFinishTime(), CmdletState.DONE);
       onCmdletStatusUpdate(cmdletStatus);
     }
+  }
+
+  private CmdletState inferTerminalCmdletState(ActionStatus actionStatus) {
+    if (actionStatus.getThrowable() == null) {
+      return CmdletState.DONE;
+    }
+
+    return actionStatus.getThrowable() instanceof InterruptedException
+        ? CmdletState.DISABLED
+        : CmdletState.FAILED;
   }
 
   private class ScheduleTask implements Runnable {

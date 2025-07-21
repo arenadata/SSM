@@ -154,15 +154,14 @@ public class InMemoryRegistry implements SmartService {
     Set<Long> cmdletIds = new HashSet<>(cmdlets.keySet());
     for (long cmdletId : cmdletIds) {
       CmdletInfo cmdletInfo = cmdlets.remove(cmdletId);
-      if (cmdletInfo.getState() != CmdletState.DISABLED) {
-        cmdletInfos.add(cmdletInfo);
+      cmdletInfos.add(cmdletInfo);
 
-        cmdletInfo.getActionIds()
-            .stream()
-            .map(actions::get)
-            .filter(Objects::nonNull)
-            .forEach(actionInfos::add);
-      }
+      cmdletInfo.getActionIds()
+          .stream()
+          .map(actions::get)
+          .filter(Objects::nonNull)
+          .forEach(actionInfos::add);
+
       if (CmdletState.isTerminalState(cmdletInfo.getState())) {
         cmdletFinished.add(cmdletInfo);
       }

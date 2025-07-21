@@ -148,17 +148,10 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     return getTotalSlotsLeft() > 0;
   }
 
-  public void stopCmdlet(long cmdletId) {
-    ExecutorType t = dispatchedToExecutorType.get(cmdletId);
-    if (t != null) {
-      cmdExecServices[t.ordinal()].stop(cmdletId);
-    }
-    synchronized (dispatchedToExecutorType) {
-      NodeCmdletMetrics metrics = regNodeInfos.get(idToLaunchCmdlet.get(cmdletId).getNodeId());
-      if (metrics != null) {
-        metrics.finishCmdlet();
-      }
-    }
+  public void stopCmdletOnExecutor(long cmdletId) {
+    Optional.ofNullable(dispatchedToExecutorType.get(cmdletId))
+        .map(executorType -> cmdExecServices[executorType.ordinal()])
+        .ifPresent(executorService -> executorService.stop(cmdletId));
   }
 
   //Todo: move this function to a proper place
