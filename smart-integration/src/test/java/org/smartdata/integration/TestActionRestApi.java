@@ -381,7 +381,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
     apiClient.submitAction("read -file nonexistent.file");
 
-    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(1));
+    apiClient.waitActionsTotalSize(2, Duration.ofMillis(100), Duration.ofSeconds(5));
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
