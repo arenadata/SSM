@@ -642,11 +642,17 @@ public class CmdletManager extends AbstractService
   }
 
   private boolean disableCmdletInternal(long cmdletId) {
-    CmdletInfo info = cmdletInfoHandler.getUnfinishedCmdlet(cmdletId);
-    if (info == null) {
+    return Optional.ofNullable(cmdletInfoHandler.getUnfinishedCmdlet(cmdletId))
+        .map(this::disableCmdletInternal)
+        .orElse(false);
+  }
+
+  private boolean disableCmdletInternal(CmdletInfo cmdletInfo) {
+    if (cmdletInfo == null) {
       return false;
     }
 
+    long cmdletId = cmdletInfo.getId();
     if (runningCmdlets.contains(cmdletId)) {
       dispatcher.stopCmdletOnExecutor(cmdletId);
     }
@@ -682,7 +688,8 @@ public class CmdletManager extends AbstractService
 
   @Audit(objectType = CMDLET, operation = DELETE)
   public void deleteCmdlet(@AuditId long cmdletId) throws IOException {
-    boolean cmdletFound = disableCmdletInternal(cmdletId);
+    CmdletInfo cmdletInfo = inMemoryRegistry.stopCmdletTracking(cmdletId);
+    boolean cmdletFound = disableCmdletInternal(cmdletInfo);
     // we don't fail if it's not found in the cache, we anyway need to check the metastore
     cmdletFound |= cmdletInfoHandler.deleteCmdlet(cmdletId);
     if (!cmdletFound) {

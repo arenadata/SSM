@@ -30,6 +30,7 @@ import org.smartdata.server.engine.ServerContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +138,14 @@ public class InMemoryRegistry implements SmartService {
     return actions;
   }
 
+  public CmdletInfo stopCmdletTracking(long cmdletId) {
+    CmdletInfo cmdletInfo = unfinishedCmdlets.get(cmdletId);
+    if (cmdletInfo != null) {
+      stopTrackingFinishedCmdlets(Collections.singletonList(cmdletInfo));
+    }
+    return cmdletInfo;
+  }
+
   private void syncWithMetastore() {
     if (cmdlets.isEmpty() && cmdletsToDelete.isEmpty()) {
       return;
@@ -170,7 +179,7 @@ public class InMemoryRegistry implements SmartService {
       }
     }
 
-    removeFinishedCmdlets(cmdletFinished);
+    stopTrackingFinishedCmdlets(cmdletFinished);
 
     storeToMetastore(cmdletInfos, actionInfos);
 
@@ -189,7 +198,7 @@ public class InMemoryRegistry implements SmartService {
     }
   }
 
-  private void removeFinishedCmdlets(List<CmdletInfo> cmdletFinished) {
+  private void stopTrackingFinishedCmdlets(List<CmdletInfo> cmdletFinished) {
     for (CmdletInfo cmdletInfo : cmdletFinished) {
       unfinishedCmdlets.remove(cmdletInfo.getId());
       ruleCmdletTracker.stopTracking(cmdletInfo.getId());
