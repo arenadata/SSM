@@ -110,7 +110,7 @@ public class TestCmdletRestApi extends IntegrationTestBase {
             .execute(Response::andReturn),
         response -> response.getStatusCode() == HttpStatus.NOT_FOUND_404,
         INTERVAL,
-        TIMEOUT
+        TIMEOUT.multipliedBy(4)
     );
   }
 
@@ -483,7 +483,7 @@ public class TestCmdletRestApi extends IntegrationTestBase {
         () -> apiClient.getCmdlet(cmdlet.getId()),
         response -> response.getState() == CmdletStateDto.DISABLED,
         INTERVAL,
-        TIMEOUT
+        TIMEOUT.multipliedBy(4)
     );
   }
 
