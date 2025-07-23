@@ -32,6 +32,10 @@ public interface TableElement {
     return getCellFromRow(TABLE_ROWS.first(), columnIndex);
   }
 
+  static SelenideElement getColumnInLastRow(int columnIndex) {
+    return getCellFromRow(TABLE_ROWS.last(), columnIndex);
+  }
+
   static SelenideElement getCellFromRow(SelenideElement row, int columnIndex) {
     return row.$x(String.format(ROW_CELL_WITH_INDEX_XPATH, columnIndex + 1));
   }

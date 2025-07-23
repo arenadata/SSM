@@ -29,6 +29,8 @@ public interface RulesPageElement {
   SelenideElement CREATE_RULE_DIALOG_INPUT = $x("//*[@data-mode-id='ssmrule']//textarea");
   SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON = $x("//*[@data-test='btn-accept']");
   SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON = $x("//*[@data-test='btn-reject']");
+  SelenideElement RULES_CARD_COUNTER =
+      $x("//*[contains(@class, 'legendCard') and not(contains(@class, 'secondary'))]//*[contains(@class, 'count')]");
 
   @Getter
   enum RulesTableColumn implements TableColumn {

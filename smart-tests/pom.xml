@@ -45,6 +45,7 @@
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
         <java-test-common.version>1.10-jdk8</java-test-common.version>
+        <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
     </properties>
 
     <dependencyManagement>
@@ -239,6 +240,59 @@
                 <configuration>
                     <reportVersion>${allure-maven.version}</reportVersion>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi.generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-api-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>
+                                ${project.basedir}/../smart-web-server/smart-master-web-server/src/main/resources/api/ssm-api.yaml
+                            </inputSpec>
+                            <generatorName>java</generatorName>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <openApiNullable>false</openApiNullable>
+                                <serializationLibrary>jackson</serializationLibrary>
+                            </configOptions>
+                            <library>rest-assured</library>
+                            <skipIfSpecIsUnchanged>false</skipIfSpecIsUnchanged>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <modelPackage>${openapi.codegen.package.base}.model</modelPackage>
+                            <apiPackage>${openapi.codegen.package.base}.api</apiPackage>
+                            <invokerPackage>${openapi.codegen.package.base}.invoker</invokerPackage>
+                            <modelNameSuffix>Dto</modelNameSuffix>
+                            <enablePostProcessFile>true</enablePostProcessFile>
+                            <skipOperationExample>true</skipOperationExample>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
