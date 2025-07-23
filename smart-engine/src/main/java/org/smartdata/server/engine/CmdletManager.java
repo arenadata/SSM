@@ -84,7 +84,6 @@ import org.smartdata.server.engine.cmdlet.RuleCmdletTracker;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -130,7 +129,7 @@ public class CmdletManager extends AbstractService
   private final List<Long> schedulingCmdlets;
   private final Queue<Long> scheduledCmdlets;
   private final Map<Long, LaunchCmdlet> idToLaunchCmdlets;
-  private final List<Long> runningCmdlets;
+  private final Queue<Long> runningCmdlets;
   // Track a CmdletDescriptor from the submission to
   // the finish.
   private final RuleCmdletTracker ruleCmdletTracker;
@@ -156,7 +155,7 @@ public class CmdletManager extends AbstractService
     this.metaStore = context.getMetaStore();
     this.executorService = context.getMetricsFactory().wrap(
         Executors.newScheduledThreadPool(4), "cmdletSchedulerExecutor");
-    this.runningCmdlets = new ArrayList<>();
+    this.runningCmdlets = new LinkedBlockingQueue<>();
     this.pendingCmdlets = new LinkedList<>();
     this.schedulingCmdlets = new LinkedList<>();
     this.scheduledCmdlets = new LinkedBlockingQueue<>();
@@ -651,11 +650,7 @@ public class CmdletManager extends AbstractService
     if (cmdletInfo == null) {
       return false;
     }
-
     long cmdletId = cmdletInfo.getId();
-    if (runningCmdlets.contains(cmdletId)) {
-      dispatcher.stopCmdletOnExecutor(cmdletId);
-    }
 
     synchronized (pendingCmdlets) {
       pendingCmdlets.remove(cmdletId);
@@ -664,6 +659,16 @@ public class CmdletManager extends AbstractService
     schedulingCmdlets.remove(cmdletId);
 
     scheduledCmdlets.remove(cmdletId);
+
+    boolean shouldDisableManually = !runningCmdlets.contains(cmdletId)
+        || !dispatcher.stopCmdletOnExecutor(cmdletId);
+
+    if (shouldDisableManually) {
+      CmdletStatus cmdletStatus = new CmdletStatus(cmdletInfo.getId(),
+          System.currentTimeMillis(), CmdletState.DISABLED);
+      cmdletInfoHandler.updateCmdletStatus(cmdletInfo, cmdletStatus);
+      onCmdletStatusUpdate(cmdletInfo, cmdletStatus);
+    }
     return true;
   }
 
@@ -750,19 +755,14 @@ public class CmdletManager extends AbstractService
     inferCmdletStatus(actionInfo, actionStatus);
   }
 
-  public void onCmdletStatusUpdate(CmdletStatus status) throws IOException {
+  public void onCmdletStatusUpdate(CmdletStatus status) {
     CmdletInfo cmdletInfo = cmdletInfoHandler
         .updateCmdletStatus(status.getCmdletId(), status);
     if (cmdletInfo == null) {
       return;
     }
 
-    CmdletState state = status.getCurrentState();
-    if (CmdletState.isTerminalState(state)) {
-      cmdletFinished(cmdletInfo);
-    } else if (state == CmdletState.DISPATCHED) {
-      cmdletInfoHandler.store(cmdletInfo);
-    }
+    onCmdletStatusUpdate(cmdletInfo, status);
   }
 
   public void onActionStatusUpdate(ActionStatus status)
@@ -779,6 +779,15 @@ public class CmdletManager extends AbstractService
       for (ActionScheduler scheduler : schedulers.get(actionInfo.getActionName())) {
         scheduler.onActionFinished(cmdletInfo, actionInfo);
       }
+    }
+  }
+
+  private void onCmdletStatusUpdate(CmdletInfo cmdletInfo, CmdletStatus status) {
+    CmdletState state = status.getCurrentState();
+    if (CmdletState.isTerminalState(state)) {
+      cmdletFinished(cmdletInfo);
+    } else if (state == CmdletState.DISPATCHED) {
+      cmdletInfoHandler.store(cmdletInfo);
     }
   }
 
