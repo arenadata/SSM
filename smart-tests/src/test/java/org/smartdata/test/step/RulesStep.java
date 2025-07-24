@@ -75,7 +75,7 @@ public class RulesStep extends BaseWebStep {
 
   @Step("Check rules counter value is {count}")
   public RulesStep checkRulesCounter(Integer count) {
-    checkElementTextIs(RULES_CARD_COUNTER, count.toString());
+    waitTextEquals(RULES_CARD_COUNTER, count.toString());
     return this;
   }
 }
