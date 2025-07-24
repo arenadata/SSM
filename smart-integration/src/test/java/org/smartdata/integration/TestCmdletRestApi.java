@@ -20,7 +20,6 @@ package org.smartdata.integration;
 import io.restassured.response.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.smartdata.client.generated.model.CmdletDto;
 import org.smartdata.client.generated.model.CmdletSortDto;
@@ -475,12 +474,17 @@ public class TestCmdletRestApi extends IntegrationTestBase {
   }
 
   @Test
-  @Ignore("ADH-6281: Cmdlet returns to the state before stopping")
   public void testStopCmdlet() {
     CmdletDto cmdlet = apiClient.submitCmdlet("sleep -ms 30000");
     apiClient.stopCmdlet(cmdlet.getId());
-    CmdletDto stopedCmdlet = apiClient.getCmdlet(cmdlet.getId());
-    assertEquals(CmdletStateDto.DISABLED, stopedCmdlet.getState());
+
+    // we have to wait a bit because of the async nature of cmdlet stopping
+    retryUntil(
+        () -> apiClient.getCmdlet(cmdlet.getId()),
+        response -> response.getState() == CmdletStateDto.DISABLED,
+        INTERVAL,
+        TIMEOUT
+    );
   }
 
   @Test

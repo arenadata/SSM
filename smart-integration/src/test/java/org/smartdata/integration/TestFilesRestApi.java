@@ -25,7 +25,6 @@ import org.apache.hadoop.io.IOUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.smartdata.client.generated.model.CachedFileInfoDto;
 import org.smartdata.client.generated.model.CachedFileSortDto;
@@ -240,7 +239,6 @@ public class TestFilesRestApi extends IntegrationTestBase {
   }
 
   @Test
-  @Ignore("TODO ADH-6189: incorrect column used when sort by LastAccessTime. 500 status code")
   public void testGetAccessCountsSortByLastAccessTime() {
     EXPECTED_ACCESS_COUNTS.entrySet().stream()
         .peek(entry -> createFile(entry.getKey()))
