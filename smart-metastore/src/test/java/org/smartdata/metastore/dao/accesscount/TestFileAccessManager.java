@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao.accesscount;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.metastore.MetaStoreException;
@@ -133,6 +134,49 @@ public class TestFileAccessManager extends
                 .build())
             .build(),
         1L, 2L);
+  }
+
+  @Test
+  public void testSortByFid() throws MetaStoreException {
+    testSortBy(FileAccessInfoSortField.FID, 1L, 2L, 3L);
+  }
+
+  @Test
+  public void testSortByAccessCount() throws MetaStoreException {
+    testSortBy(FileAccessInfoSortField.ACCESS_COUNT, 2L, 3L, 1L);
+  }
+
+  @Test
+  public void testSortByLastAccessedTime() throws MetaStoreException {
+    testSortBy(FileAccessInfoSortField.LAST_ACCESSED_TIME, 1L, 2L, 3L);
+  }
+
+  private void testSortBy(FileAccessInfoSortField sortField, Long... expectedIdsAsc) throws MetaStoreException {
+    long currentTimeMillis = System.currentTimeMillis();
+    insertFileAccessCounts(currentTimeMillis);
+
+    PageRequest<FileAccessInfoSortField> pageRequest = PageRequest.<FileAccessInfoSortField>builder()
+        .sortByAsc(sortField)
+        // to avoid undetermined results
+        .sortByAsc(FileAccessInfoSortField.FID)
+        .build();
+
+    testPagedSearch(
+        FileAccessInfoSearchRequest.noFilters(),
+        pageRequest,
+        expectedIdsAsc
+    );
+
+    ArrayUtils.reverse(expectedIdsAsc);
+    pageRequest = PageRequest.<FileAccessInfoSortField>builder()
+        .sortByDesc(sortField)
+        .build();
+
+    testPagedSearch(
+        FileAccessInfoSearchRequest.noFilters(),
+        pageRequest,
+        expectedIdsAsc
+    );
   }
 
   private void insertFileAccessCounts(long currentTimeMillis) throws MetaStoreException {
