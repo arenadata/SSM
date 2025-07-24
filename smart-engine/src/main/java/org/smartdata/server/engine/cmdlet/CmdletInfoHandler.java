@@ -170,6 +170,7 @@ public class CmdletInfoHandler
 
   public boolean deleteCmdlet(long cmdletId) throws IOException {
     try {
+      inMemoryRegistry.deleteCmdletsAsync(Collections.singletonList(cmdletId));
       boolean cmdletDeleted = metaStore.deleteCmdlet(cmdletId);
       metaStore.deleteCmdletActions(cmdletId);
       return cmdletDeleted;
@@ -219,7 +220,15 @@ public class CmdletInfoHandler
   }
 
   public CmdletInfo updateCmdletStatus(long cmdletId, CmdletStatus status) {
-    return inMemoryRegistry.updateCmdlet(cmdletId, cmdlet -> updateCmdletStatus(cmdlet, status));
+    return inMemoryRegistry.updateCmdlet(cmdletId, cmdlet -> updateCmdletStatusInternal(cmdlet, status));
+  }
+
+  public void updateCmdletStatus(CmdletInfo cmdletInfo, CmdletStatus status) {
+    if (updateCmdletStatus(cmdletInfo.getId(), status) != null) {
+      return;
+    }
+
+    updateCmdletStatusInternal(cmdletInfo, status);
   }
 
   // todo after zeppelin removal check if we really need this
@@ -247,7 +256,7 @@ public class CmdletInfoHandler
     return new ArrayList<>(results.values());
   }
 
-  private void updateCmdletStatus(CmdletInfo cmdletInfo, CmdletStatus status) {
+  private void updateCmdletStatusInternal(CmdletInfo cmdletInfo, CmdletStatus status) {
     if (CmdletState.isTerminalState(cmdletInfo.getState())) {
       return;
     }
