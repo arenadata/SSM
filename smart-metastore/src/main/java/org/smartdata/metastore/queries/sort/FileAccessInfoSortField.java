@@ -26,7 +26,7 @@ public enum FileAccessInfoSortField implements SortField {
   FID("fid"),
   PATH("path"),
   ACCESS_COUNT("count"),
-  LAST_ACCESSED_TIME("last_accessed_time");
+  LAST_ACCESSED_TIME("access_time");
 
   private final String fieldName;
 }
