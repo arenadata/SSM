@@ -56,7 +56,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
   private static final Logger LOG = LoggerFactory.getLogger(CmdletDispatcher.class);
   private final Queue<Long> pendingCmdlets;
   private final CmdletManager cmdletManager;
-  private final List<Long> runningCmdlets;
+  private final Queue<Long> runningCmdlets;
   private final Map<Long, LaunchCmdlet> idToLaunchCmdlet;
   private final ListMultimap<String, ActionScheduler> schedulers;
 
@@ -87,7 +87,7 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
 
   public CmdletDispatcher(ServerContext smartContext, CmdletManager cmdletManager,
       Queue<Long> scheduledCmdlets, Map<Long, LaunchCmdlet> idToLaunchCmdlet,
-      List<Long> runningCmdlets, ListMultimap<String, ActionScheduler> schedulers) {
+      Queue<Long> runningCmdlets, ListMultimap<String, ActionScheduler> schedulers) {
     this.conf = smartContext.getConf();
     this.cmdletManager = cmdletManager;
     this.pendingCmdlets = scheduledCmdlets;
@@ -148,17 +148,14 @@ public class CmdletDispatcher implements ClusterNodeMetricsProvider {
     return getTotalSlotsLeft() > 0;
   }
 
-  public void stopCmdlet(long cmdletId) {
-    ExecutorType t = dispatchedToExecutorType.get(cmdletId);
-    if (t != null) {
-      cmdExecServices[t.ordinal()].stop(cmdletId);
-    }
-    synchronized (dispatchedToExecutorType) {
-      NodeCmdletMetrics metrics = regNodeInfos.get(idToLaunchCmdlet.get(cmdletId).getNodeId());
-      if (metrics != null) {
-        metrics.finishCmdlet();
-      }
-    }
+  public boolean stopCmdletOnExecutor(long cmdletId) {
+    return Optional.ofNullable(dispatchedToExecutorType.get(cmdletId))
+        .map(executorType -> cmdExecServices[executorType.ordinal()])
+        .map(executorService -> {
+          executorService.stop(cmdletId);
+          return true;
+        })
+        .orElse(false);
   }
 
   //Todo: move this function to a proper place
