@@ -77,3 +77,11 @@ remote:
       commands:
         startCommand:
         stopCommand:
+
+ssm-metastore-db:
+  datasource:
+    jdbc-url: jdbc:postgresql://localhost:5432/metastore
+    username: ssm
+    password: ssm
+    schema: public
+    driver-class-name: org.postgresql.Driver

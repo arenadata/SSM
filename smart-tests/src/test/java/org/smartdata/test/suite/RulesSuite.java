@@ -64,7 +64,7 @@ public class RulesSuite extends SsmBaseSuite {
 
 
   @BeforeMethod
-  public void openPage() {
+  public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
   }

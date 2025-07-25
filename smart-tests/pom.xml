@@ -45,6 +45,8 @@
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
         <java-test-common.version>1.10-jdk8</java-test-common.version>
+        <postgresql-driver.version>42.7.7</postgresql-driver.version>
+        <hikari.version>4.0.3</hikari.version>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
     </properties>
 
@@ -62,6 +64,16 @@
         <dependency>
             <groupId>io.arenadata</groupId>
             <artifactId>java-test-common-jdk8</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql-driver.version}</version> <!-- Use the latest version available -->
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari.version}</version>
         </dependency>
     </dependencies>
 
