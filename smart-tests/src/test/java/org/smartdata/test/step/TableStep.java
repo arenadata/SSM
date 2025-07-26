@@ -50,7 +50,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("heck that page's table has '{firstRowValue}' in first row and '{lastRowValue}' in last row in {column} column")
+  @Step("Check that page's table has '{firstRowValue}' in first row and '{lastRowValue}' in last row in {column} column")
   public TableStep checkColumnValuesInFirstAndLastRow(TableColumn column, String firstRowValue, String lastRowValue) {
     checkElementTextIs(TableElement.getColumnInFirstRow(column.getIndex()), firstRowValue);
     checkElementTextIs(TableElement.getColumnInLastRow(column.getIndex()), lastRowValue);

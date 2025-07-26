@@ -27,7 +27,7 @@ import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CAN
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_INPUT;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_TITLE;
-import static org.smartdata.test.element.RulesPageElement.RULES_CARD_COUNTER;
+import static org.smartdata.test.element.RulesPageElement.RULES_COUNTER_CARD;
 
 @Slf4j
 @Service
@@ -75,7 +75,7 @@ public class RulesStep extends BaseWebStep {
 
   @Step("Check rules counter value is {count}")
   public RulesStep checkRulesCounter(Integer count) {
-    waitTextEquals(RULES_CARD_COUNTER, count.toString());
+    waitTextEquals(RULES_COUNTER_CARD, count.toString());
     return this;
   }
 }
