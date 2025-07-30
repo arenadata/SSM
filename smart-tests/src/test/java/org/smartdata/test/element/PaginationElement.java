@@ -37,8 +37,8 @@ public interface PaginationElement {
   SelenideElement SHOW_PER_PAGE_SELECT = $x("//*[contains(@class,'pagination__select')]//input");
   ElementsCollection SHOW_PER_PAGE_OPTIONS = $$x("//*[@data-test='pagination-per-page-popover']//li");
 
-  static SelenideElement getNumberedButtonByPageNum(String pageNum) {
-    return PAGINATION_NUMBERED_BUTTONS.find(exactText(pageNum));
+  static SelenideElement getNumberedButtonByPageNum(int pageNum) {
+    return PAGINATION_NUMBERED_BUTTONS.find(exactText(String.valueOf(pageNum)));
   }
 
   @Getter

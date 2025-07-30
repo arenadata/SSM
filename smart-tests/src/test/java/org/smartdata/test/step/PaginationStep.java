@@ -58,20 +58,14 @@ public class PaginationStep extends BaseWebStep {
   private TableStep tableStep;
 
   @Step("Check {pageNum} page button is selected")
-  public PaginationStep checkNumberedButtonIsSelected(String pageNum) {
+  public PaginationStep checkNumberedButtonIsSelected(int pageNum) {
     SelenideElement numberedButton = getNumberedButtonByPageNum(pageNum);
     waitVisibility(numberedButton);
     assertThat(numberedButton.getAttribute("class"), containsString("is-active"));
     return this;
   }
 
-  @Step("Check {pageNum} page button is visible")
-  public PaginationStep checkNumberedButtonIsVisible(String pageNum) {
-    waitVisibility(getNumberedButtonByPageNum(pageNum));
-    return this;
-  }
-
-  @Step("Check all page buttons are visible and selected")
+  @Step("Check all page buttons are visible and enabled")
   public PaginationStep checkAllNumberedButtonsIsEnabled() {
     PAGINATION_NUMBERED_BUTTONS.should(allMatch("All numbered buttons should be visible", WebElement::isDisplayed));
     PAGINATION_NUMBERED_BUTTONS.should(allMatch("All numbered buttons should be enabled", WebElement::isEnabled));
@@ -81,72 +75,6 @@ public class PaginationStep extends BaseWebStep {
   @Step("Check that there are {expectedAmount} numbered pagination buttons on the page")
   public PaginationStep checkNumberedButtonsAmount(int expectedAmount) {
     checkSize(PAGINATION_NUMBERED_BUTTONS, expectedAmount);
-    return this;
-  }
-
-  @Step("Check 'Next page' button is enabled")
-  public PaginationStep checkNextPageButtonIsEnabled() {
-    isEnabled(NEXT_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Check 'Next page' button is disabled")
-  public PaginationStep checkNextPageButtonIsDisabled() {
-    isDisabled(NEXT_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Check 'Previous page' button is enabled")
-  public PaginationStep checkPreviousPageButtonIsEnabled() {
-    isEnabled(PREV_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Check 'Previous page' button is disabled")
-  public PaginationStep checkPreviousPageButtonIsDisabled() {
-    isDisabled(PREV_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Check 'Last page' button is enabled")
-  public PaginationStep checkLastPageButtonIsEnabled() {
-    isEnabled(LAST_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Check 'Last page' button is disabled")
-  public PaginationStep checkLastPageButtonIsDisabled() {
-    isDisabled(LAST_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Click on 'Next page' button")
-  public PaginationStep clickOnNextPageButton() {
-    waitAndClick(NEXT_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Click on 'Previous page' button")
-  public PaginationStep clickOnPreviousPageButton() {
-    waitAndClick(PREV_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Click on 'Last page' button")
-  public PaginationStep clickOnLastPageButton() {
-    waitAndClick(LAST_PAGE_BUTTON);
-    return this;
-  }
-
-  @Step("Click on 'Extend pages' button")
-  public PaginationStep clickOnExtendPagesButton() {
-    waitAndClick(EXTEND_PAGES_BUTTON);
-    return this;
-  }
-
-  @Step("Click on {pageNum} page button")
-  public PaginationStep clickOnNumberedPageButton(String pageNum) {
-    waitAndClick(getNumberedButtonByPageNum(pageNum));
     return this;
   }
 
@@ -163,70 +91,75 @@ public class PaginationStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check first page buttons")
+  public PaginationStep checkFirstPageButtonsState() {
+    checkAllNumberedButtonsIsEnabled();
+    isEnabled(NEXT_PAGE_BUTTON);
+    isDisabled(PREV_PAGE_BUTTON);
+    isEnabled(LAST_PAGE_BUTTON);
+    return this;
+  }
+
+  @Step("Check middle page buttons")
+  public PaginationStep checkMiddlePageButtonsState() {
+    checkAllNumberedButtonsIsEnabled();
+    isEnabled(NEXT_PAGE_BUTTON);
+    isEnabled(PREV_PAGE_BUTTON);
+    isEnabled(LAST_PAGE_BUTTON);
+    return this;
+  }
+
+  @Step("Check last page buttons")
+  public PaginationStep checkLastPageButtonsState() {
+    checkAllNumberedButtonsIsEnabled();
+    isDisabled(NEXT_PAGE_BUTTON);
+    isEnabled(PREV_PAGE_BUTTON);
+    isDisabled(LAST_PAGE_BUTTON);
+    return this;
+  }
+
+  @Step("Check pagination on '{pageNum}' page")
+  public PaginationStep checkPagination(int pageNum, PaginationElement.PageSize pageSize, TableColumn tableColumn,
+                                        List<String> testColumnValues) {
+    checkNumberedButtonIsSelected(pageNum)
+        .checkNumberedButtonsAmount(getNumberedButtonsQuantity(testColumnValues.size(), pageSize.getSize()))
+        .checkShowPerPageValue(pageSize);
+    tableStep.checkColumnValues(tableColumn, getExpectedValues(testColumnValues, pageNum, pageSize.getSize()));
+    return this;
+  }
+
   @Step("Check pagination table of the page")
   public void checkPaginationFixture(TableColumn tableColumn, List<String> testColumnValues) {
     // testColumnValues must be ordered as UI shown
     assertThat("testColumnValues size must be 101", testColumnValues.size(), is(101));
-    // First page check
-    checkNumberedButtonIsSelected("1")
-        .checkNumberedButtonIsVisible("11")
-        .checkNumberedButtonsAmount(9)
-        .checkAllNumberedButtonsIsEnabled()
-        .checkPreviousPageButtonIsDisabled()
-        .checkNextPageButtonIsEnabled()
-        .checkLastPageButtonIsEnabled()
-        .checkShowPerPageValue(TEN);
-    tableStep.checkTableRowsCountIs(TEN.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 1, TEN.getSize()));
-    // 'Next page' button check
-    clickOnNextPageButton()
-        .checkNumberedButtonIsSelected("2")
-        .checkAllNumberedButtonsIsEnabled()
-        .checkNextPageButtonIsEnabled()
-        .checkLastPageButtonIsEnabled()
-        .checkPreviousPageButtonIsEnabled();
-    tableStep.checkTableRowsCountIs(TEN.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 2, TEN.getSize()));
-    // 'Previous page' button check
-    clickOnPreviousPageButton()
-        .checkNumberedButtonIsSelected("1");
-    tableStep.checkTableRowsCountIs(TEN.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 1, TEN.getSize()));
-    // 'Last page' button check
-    clickOnLastPageButton()
-        .checkNumberedButtonIsSelected("11")
-        .checkAllNumberedButtonsIsEnabled()
-        .checkNextPageButtonIsDisabled()
-        .checkLastPageButtonIsDisabled()
-        .checkPreviousPageButtonIsEnabled();
-    tableStep.checkTableRowsCountIs(1)
-        .checkColumnValueInFirstRow(tableColumn, "1");
-    // 'Extend pages' button check
-    clickOnExtendPagesButton()
-        .checkNumberedButtonIsSelected("6");
-    tableStep.checkTableRowsCountIs(TEN.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 6, TEN.getSize()));
-    // Numbered button check
-    clickOnNumberedPageButton("4")
-        .checkNumberedButtonIsSelected("4");
-    tableStep.checkTableRowsCountIs(TEN.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 4, TEN.getSize()));
-    // 'Show per page' options check
+
+    waitVisibility(getNumberedButtonByPageNum(11));
+    checkPagination(1, TEN, tableColumn, testColumnValues)
+        .checkFirstPageButtonsState();
+
+    waitAndClick(NEXT_PAGE_BUTTON);
+    checkPagination(2, TEN, tableColumn, testColumnValues)
+        .checkMiddlePageButtonsState();
+
+    waitAndClick(PREV_PAGE_BUTTON);
+    checkPagination(1, TEN, tableColumn, testColumnValues);
+
+    waitAndClick(LAST_PAGE_BUTTON);
+    checkPagination(11, TEN, tableColumn, testColumnValues)
+        .checkLastPageButtonsState();
+
+    waitAndClick(EXTEND_PAGES_BUTTON);
+    checkPagination(6, TEN, tableColumn, testColumnValues);
+
+    waitAndClick(getNumberedButtonByPageNum(4));
+    checkPagination(4, TEN, tableColumn, testColumnValues);
+
     setShowPerPageOption(THIRTY)
-        .checkNumberedButtonsAmount(4)
-        .checkShowPerPageValue(THIRTY);
-    tableStep.checkTableRowsCountIs(THIRTY.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 1, THIRTY.getSize()));
+        .checkPagination(1, THIRTY, tableColumn, testColumnValues);
     setShowPerPageOption(FIFTY)
-        .checkNumberedButtonsAmount(3)
-        .checkShowPerPageValue(FIFTY);
-    tableStep.checkTableRowsCountIs(FIFTY.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 1, FIFTY.getSize()));
+        .checkPagination(1, FIFTY, tableColumn, testColumnValues);
     setShowPerPageOption(HUNDRED)
-        .checkNumberedButtonsAmount(2)
-        .checkShowPerPageValue(HUNDRED);
-    tableStep.checkTableRowsCountIs(HUNDRED.getSize())
-        .checkColumnValues(tableColumn, getExpectedValues(testColumnValues, 1, HUNDRED.getSize()));
+        .checkPagination(1, HUNDRED, tableColumn, testColumnValues);
   }
 
   private List<String> getExpectedValues(List<String> testColumnValues, int pageNumber, int pageSize) {
@@ -239,5 +172,10 @@ public class PaginationStep extends BaseWebStep {
     }
     int toIndex = Math.min(fromIndex + pageSize, testColumnValues.size());
     return testColumnValues.subList(fromIndex, toIndex);
+  }
+
+  private int getNumberedButtonsQuantity(int testColumnValuesSize, int pageSize) {
+    int pages = (testColumnValuesSize + pageSize - 1) / pageSize;
+    return Math.min(pages, 9);
   }
 }
