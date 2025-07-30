@@ -26,7 +26,7 @@ import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface PaginationElement {
-  SelenideElement PAGINATION_PER_PAGE_OPTION =
+  SelenideElement PAGINATION_PER_PAGE_INPUT =
       $x("//*[contains(@class, 'pagination') and contains(@class, 'commonSelectField')]//input");
   ElementsCollection PAGINATION_NUMBERED_BUTTONS =
       $$x("//*[contains(@class, 'paginationButton') and not(contains(@class, 'Arrow'))]");
@@ -36,7 +36,6 @@ public interface PaginationElement {
   SelenideElement EXTEND_PAGES_BUTTON = $x("//*[contains(@class, 'paginationButton') and .='...']");
   SelenideElement SHOW_PER_PAGE_SELECT = $x("//*[contains(@class,'pagination__select')]//input");
   ElementsCollection SHOW_PER_PAGE_OPTIONS = $$x("//*[@data-test='pagination-per-page-popover']//li");
-
 
   static SelenideElement getNumberedButtonByPageNum(String pageNum) {
     return PAGINATION_NUMBERED_BUTTONS.find(exactText(pageNum));

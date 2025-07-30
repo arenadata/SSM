@@ -19,6 +19,7 @@ package org.smartdata.test.element;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.smartdata.test.model.TableColumn;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
@@ -27,16 +28,17 @@ public interface TableElement {
   ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
+  String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
 
-  static SelenideElement getColumnInFirstRow(int columnIndex) {
-    return getCellFromRow(TABLE_ROWS.first(), columnIndex);
+  static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
+    return getCellFromRow(TABLE_ROWS.first(), tableColumn);
   }
 
-  static SelenideElement getColumnInLastRow(int columnIndex) {
-    return getCellFromRow(TABLE_ROWS.last(), columnIndex);
+  static SelenideElement getCellFromRow(SelenideElement row, TableColumn tableColumn) {
+    return row.$x(String.format(ROW_CELL_WITH_INDEX_XPATH, tableColumn.getIndex() + 1));
   }
 
-  static SelenideElement getCellFromRow(SelenideElement row, int columnIndex) {
-    return row.$x(String.format(ROW_CELL_WITH_INDEX_XPATH, columnIndex + 1));
+  static ElementsCollection getAllColumnCells(TableColumn tableColumn) {
+    return $$x(String.format(ALL_COLUMN_CELL_BY_INDEX_XPATH, tableColumn.getIndex() + 1));
   }
 }
