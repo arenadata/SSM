@@ -71,8 +71,8 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Set sorting on {column} column")
-  public TableStep setSortingColumn(TableColumn column) {
+  @Step("Click sorting on {column} column")
+  public TableStep clickOnSortingColumn(TableColumn column) {
     waitAndClick(getSortingColumnHeader(column));
     return this;
   }
@@ -91,7 +91,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check that values in {column} column are sorted in ascending = {asc} order")
+  @Step("Check that values in {column} column are sorted in order ascending = {asc}")
   public TableStep checkColumnValuesIsSorted(TableColumn column, boolean asc) {
     Utils.waitUntil(() -> {
       List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
@@ -116,18 +116,18 @@ public class TableStep extends BaseWebStep {
   public TableStep checkDefaultSorting(TableColumn tableColumn) {
     checkSelectedSorting(tableColumn, false)
         .checkColumnValuesIsSorted(tableColumn, false)
-        .setSortingColumn(tableColumn)
+        .clickOnSortingColumn(tableColumn)
         .checkSelectedSorting(tableColumn, true)
         .checkColumnValuesIsSorted(tableColumn, true);
     return this;
   }
 
-  @Step("Check sorting toggling on {tableColumn} column")
+  @Step("Check sorting on {tableColumn} column")
   public TableStep checkSorting(TableColumn tableColumn) {
-    setSortingColumn(tableColumn)
+    clickOnSortingColumn(tableColumn)
         .checkSelectedSorting(tableColumn, true)
         .checkColumnValuesIsSorted(tableColumn, true)
-        .setSortingColumn(tableColumn)
+        .clickOnSortingColumn(tableColumn)
         .checkSelectedSorting(tableColumn, false)
         .checkColumnValuesIsSorted(tableColumn, false);
     return this;
