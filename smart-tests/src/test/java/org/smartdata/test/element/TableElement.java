@@ -21,14 +21,17 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.smartdata.test.model.TableColumn;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface TableElement {
   ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
+  ElementsCollection SORTING_COLUMN_HEADERS = $$x("//*[@data-test='sorting']");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
   String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
+  String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
     return getCellFromRow(TABLE_ROWS.first(), tableColumn);
@@ -40,5 +43,9 @@ public interface TableElement {
 
   static ElementsCollection getAllColumnCells(TableColumn tableColumn) {
     return $$x(String.format(ALL_COLUMN_CELL_BY_INDEX_XPATH, tableColumn.getIndex() + 1));
+  }
+
+  static SelenideElement getSortingColumnHeader(TableColumn tableColumn) {
+    return SORTING_COLUMN_HEADERS.findBy(text(tableColumn.getName()));
   }
 }

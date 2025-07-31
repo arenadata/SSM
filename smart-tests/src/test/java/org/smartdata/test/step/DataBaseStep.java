@@ -18,6 +18,7 @@
 package org.smartdata.test.step;
 
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.test.repository.MetastoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,17 @@ public class DataBaseStep {
 
   private static final String TRUNCATE_RULE_TABLE = "TRUNCATE TABLE rule;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
+  private static final String RULES_FOR_SORT_TEST_SQL = "src/test/resources/data/sql/insert_rules_for_sort_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
     metastoreRepository.executeSql(RESET_RULE_SEQUENCE);
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForRulesSortTest() {
+    metastoreRepository.executeSqlFile(RULES_FOR_SORT_TEST_SQL);
     return this;
   }
 }

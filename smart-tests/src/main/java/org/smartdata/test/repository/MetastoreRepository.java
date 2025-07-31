@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.repository;
 
+import io.arenadata.test.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -37,5 +38,10 @@ public class MetastoreRepository {
          Statement statement = connection.createStatement()) {
       statement.execute(sql);
     }
+  }
+
+  public void executeSqlFile(String path) throws SQLException {
+    String sql = FileUtils.readFile(path);
+    executeSql(sql);
   }
 }
