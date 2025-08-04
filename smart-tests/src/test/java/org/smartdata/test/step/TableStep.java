@@ -80,7 +80,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check sorting indicator on {column} column is ascending = {asc}")
+  @Step("Check sorting indicator on {column} column is {sortOrder}")
   public TableStep checkSelectedSorting(TableColumn column, SortOrder sortOrder) {
     SelenideElement columnHeader = getSortingColumnHeader(column);
     columnHeader.shouldHave(attributeMatching("class", ".*is-sorted.*"), DEFAULT_WEB_ELEMENT_TIMEOUT);
@@ -94,7 +94,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check that values in {column} column are sorted in order ascending = {asc}")
+  @Step("Check that values in {column} column are sorted in {sortOrder} order")
   public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder) {
     Utils.waitUntil(() -> {
       List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
