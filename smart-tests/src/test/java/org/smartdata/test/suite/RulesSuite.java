@@ -71,7 +71,6 @@ public class RulesSuite extends SsmBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
 
-
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
@@ -111,7 +110,6 @@ public class RulesSuite extends SsmBaseSuite {
   @Test(description = "Check sorting")
   public void testSorting() {
     prepareDataForSortingTest();
-
     tableStep.checkDefaultSorting(ID)
         .checkSorting(SUBMISSION_TIME)
         .checkSorting(LAST_CHECK_TIME)
@@ -124,7 +122,6 @@ public class RulesSuite extends SsmBaseSuite {
   private List<String> prepareDataForPaginationTest() {
     List<String> rulesIds = new ArrayList<>();
     int rulesQuantity = 101;
-
     tableStep.checkTableIsEmpty();
     for (int i = 1; i <= rulesQuantity; i++) {
       apiStep.createRule(TEST_RULE_TEXT);
