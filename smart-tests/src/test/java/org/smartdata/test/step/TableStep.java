@@ -25,6 +25,7 @@ import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.smartdata.test.element.TableElement;
+import org.smartdata.test.model.SortOrder;
 import org.smartdata.test.model.TableColumn;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,8 @@ import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
 import static org.smartdata.test.element.TableElement.TABLE_ROWS;
 import static org.smartdata.test.element.TableElement.getAllColumnCells;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
+import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.model.SortOrder.DESC;
 
 @Slf4j
 @Service
@@ -78,10 +81,10 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check sorting indicator on {column} column is ascending = {asc}")
-  public TableStep checkSelectedSorting(TableColumn column, boolean asc) {
+  public TableStep checkSelectedSorting(TableColumn column, SortOrder sortOrder) {
     SelenideElement columnHeader = getSortingColumnHeader(column);
     columnHeader.shouldHave(attributeMatching("class", ".*is-sorted.*"), DEFAULT_WEB_ELEMENT_TIMEOUT);
-    if (asc) {
+    if (sortOrder == ASC) {
       columnHeader.$x(SORTING_ARROW_XPATH)
           .shouldNotHave(attributeMatching("class", ".*arrow_desc.*"), DEFAULT_WEB_ELEMENT_TIMEOUT);
     } else {
@@ -92,7 +95,7 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check that values in {column} column are sorted in order ascending = {asc}")
-  public TableStep checkColumnValuesIsSorted(TableColumn column, boolean asc) {
+  public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder) {
     Utils.waitUntil(() -> {
       List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
           .map(SelenideElement::getText)
@@ -100,7 +103,7 @@ public class TableStep extends BaseWebStep {
           .map(String::toLowerCase)
           .collect(Collectors.toList());
 
-      Comparator<?> comparator = asc ? Comparator.naturalOrder() : Comparator.reverseOrder();
+      Comparator<?> comparator = sortOrder == ASC ? Comparator.naturalOrder() : Comparator.reverseOrder();
 
       if (cellTexts.stream().allMatch(NumberUtils::isCreatable)) {
         List<Double> numbers = cellTexts.stream().map(Double::parseDouble).collect(Collectors.toList());
@@ -114,22 +117,22 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check default sorting on {tableColumn} column")
   public TableStep checkDefaultSorting(TableColumn tableColumn) {
-    checkSelectedSorting(tableColumn, false)
-        .checkColumnValuesIsSorted(tableColumn, false)
+    checkSelectedSorting(tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableColumn, DESC)
         .clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, true)
-        .checkColumnValuesIsSorted(tableColumn, true);
+        .checkSelectedSorting(tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableColumn, ASC);
     return this;
   }
 
   @Step("Check sorting on {tableColumn} column")
   public TableStep checkSorting(TableColumn tableColumn) {
     clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, true)
-        .checkColumnValuesIsSorted(tableColumn, true)
+        .checkSelectedSorting(tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableColumn, ASC)
         .clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, false)
-        .checkColumnValuesIsSorted(tableColumn, false);
+        .checkSelectedSorting(tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableColumn, DESC);
     return this;
   }
 }
