@@ -98,8 +98,7 @@ public class RulesStep extends BaseWebStep {
   public RulesStep checkRuleTextFiltration() {
     tableStep.clickFilterButton(RULE_TEXT);
     tableFilterPopupStep.setTextPopupInput("sleep");
-    tableStep.clickFilterButton(RULE_TEXT)
-        .checkTableRowsCountIs(1)
+    tableStep.checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(ID, "1")
         .clickResetFilterButton()
         .checkTableRowsCountIs(2);

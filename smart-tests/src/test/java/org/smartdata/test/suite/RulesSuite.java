@@ -154,5 +154,6 @@ public class RulesSuite extends SsmBaseSuite {
   private void prepareDataForFilterTest() {
     dataBaseStep.insertDataForRulesFilterTest();
     rulesStep.refreshPage();
+    tableStep.checkTableRowsCountIs(2);
   }
 }

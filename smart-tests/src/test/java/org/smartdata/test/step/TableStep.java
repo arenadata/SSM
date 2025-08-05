@@ -66,7 +66,7 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that page's table has '{matchingValue}' value in {column} column of the first row")
   public TableStep checkColumnValueInFirstRow(TableColumn column, String matchingValue) {
-    checkElementTextIs(TableElement.getColumnInFirstRow(column), matchingValue);
+    waitTextEquals(TableElement.getColumnInFirstRow(column), matchingValue);
     return this;
   }
 
