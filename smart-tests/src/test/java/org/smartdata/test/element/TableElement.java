@@ -33,8 +33,8 @@ public interface TableElement {
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
   String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
-  String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
   String COLUMN_HEADER_XPATH = "//*[@data-test='table']//th[@data-test='%s']";
+  String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
     return getCellFromRow(TABLE_ROWS.first(), tableColumn);
