@@ -20,6 +20,5 @@ package org.smartdata.test.model;
 public interface TableColumn {
   int getIndex();
   String getName();
-
   String getHeaderId();
 }
