@@ -118,6 +118,17 @@ public class RulesSuite extends SsmBaseSuite {
         .checkSorting(STATUS);
   }
 
+  @TmsLink("90212")
+  @Story("Rules")
+  @Test(description = "Check filtration")
+  public void testFiltration() {
+    prepareDataForFilterTest();
+    rulesStep.checkRuleTextFiltration()
+        .checkSubmissionTimeFiltration()
+        .checkLastCheckTimeFiltration()
+        .checkStatusFiltration();
+  }
+
   @Step("Create rules for pagination test")
   private List<String> prepareDataForPaginationTest() {
     List<String> rulesIds = new ArrayList<>();
@@ -136,6 +147,12 @@ public class RulesSuite extends SsmBaseSuite {
   @Step("Create rules for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForRulesSortTest();
+    rulesStep.refreshPage();
+  }
+
+  @Step("Create rules for filter test")
+  private void prepareDataForFilterTest() {
+    dataBaseStep.insertDataForRulesFilterTest();
     rulesStep.refreshPage();
   }
 }

@@ -29,9 +29,12 @@ public interface TableElement {
   ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
   ElementsCollection SORTING_COLUMN_HEADERS = $$x("//*[@data-test='sorting']");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
+  SelenideElement RESET_FILTER_BUTTON = $x("//*[text()='Reset filter']");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
   String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
+  String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
+  String COLUMN_HEADER_XPATH = "//*[@data-test='table']//th[@data-test='%s']";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
     return getCellFromRow(TABLE_ROWS.first(), tableColumn);
@@ -47,5 +50,13 @@ public interface TableElement {
 
   static SelenideElement getSortingColumnHeader(TableColumn tableColumn) {
     return SORTING_COLUMN_HEADERS.findBy(text(tableColumn.getName()));
+  }
+
+  static SelenideElement getColumnHeader(TableColumn tableColumn) {
+    return $x(String.format(COLUMN_HEADER_XPATH, tableColumn.getHeaderId()));
+  }
+
+  static SelenideElement getFilterButton(TableColumn tableColumn) {
+    return getColumnHeader(tableColumn).$x(FILTER_BUTTON_XPATH);
   }
 }

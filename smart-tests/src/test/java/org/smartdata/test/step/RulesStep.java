@@ -20,18 +20,33 @@ package org.smartdata.test.step;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
+import static java.time.ZoneOffset.UTC;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CANCEL_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_INPUT;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_TITLE;
 import static org.smartdata.test.element.RulesPageElement.RULES_COUNTER_CARD;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.ID;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.LAST_CHECK_TIME;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.RULE_TEXT;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.STATUS;
+import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.SUBMISSION_TIME;
 
 @Slf4j
 @Service
 public class RulesStep extends BaseWebStep {
+
+  @Autowired
+  private TableStep tableStep;
+
+  @Autowired
+  private TableFilterPopupStep tableFilterPopupStep;
 
   @Step("Click the \"Create rule\" button")
   public RulesStep clickCreateRuleButton() {
@@ -76,6 +91,70 @@ public class RulesStep extends BaseWebStep {
   @Step("Check rules counter value is {count}")
   public RulesStep checkRulesCounter(Integer count) {
     waitTextEquals(RULES_COUNTER_CARD, count.toString());
+    return this;
+  }
+
+  @Step("Check filtration by 'Rule Text'")
+  public RulesStep checkRuleTextFiltration() {
+    tableStep.clickFilterButton(RULE_TEXT);
+    tableFilterPopupStep.setTextPopupInput("sleep");
+    tableStep.clickFilterButton(RULE_TEXT)
+        .checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "1")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Submission Time'")
+  public RulesStep checkSubmissionTimeFiltration() {
+    tableStep.clickFilterButton(SUBMISSION_TIME);
+    tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "1")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2)
+        .clickFilterButton(SUBMISSION_TIME);
+    tableFilterPopupStep.clickOnCalendarTabButton()
+        .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(1), LocalDateTime.now(UTC))
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "1")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Last Check Time'")
+  public RulesStep checkLastCheckTimeFiltration() {
+    tableStep.clickFilterButton(LAST_CHECK_TIME);
+    tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "1")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2)
+        .clickFilterButton(LAST_CHECK_TIME);
+    tableFilterPopupStep.clickOnCalendarTabButton()
+        .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(3), LocalDateTime.now(UTC).minusHours(1))
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "2")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Status'")
+  public RulesStep checkStatusFiltration() {
+    tableStep.clickFilterButton(STATUS);
+    tableFilterPopupStep.clickMultiselectPopupCheckbox("Active");
+    tableStep.clickFilterButton(STATUS)
+        .checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ID, "1")
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
     return this;
   }
 }

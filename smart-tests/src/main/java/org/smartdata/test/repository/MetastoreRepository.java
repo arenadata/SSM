@@ -33,6 +33,10 @@ public class MetastoreRepository {
   @Autowired
   private DataSource dataSource;
 
+  public Connection getConnection() throws SQLException {
+    return dataSource.getConnection();
+  }
+
   public void executeSql(String sql) throws SQLException {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement()) {
