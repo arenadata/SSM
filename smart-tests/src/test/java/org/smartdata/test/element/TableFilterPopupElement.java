@@ -27,7 +27,7 @@ public interface TableFilterPopupElement {
   SelenideElement TEXT_FILTER_INPUT = $x("//*[contains(@class, 'tableSearchFilter')]//input");
   SelenideElement DATA_PICKER_APPLY_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Apply']");
   SelenideElement DATA_PICKER_CALENDAR_TAB_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Calendar']");
-  String MULTISELECT_CHECKBOX_XPATH = "//*[@data-test='options-container']//label[*[.='%s']]//input[@type='checkbox']";
+  String MULTISELECT_CHECKBOX_XPATH = "//*[@data-test='options-container']//label[.='%s']//input[@type='checkbox']";
   String DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH = ".//*[contains(@class, 'formField') and .//label='%s']//input";
   String DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH =
       ".//*[contains(@class, 'formField') and .//label='%s']//input[@data-input-id='%s']";
