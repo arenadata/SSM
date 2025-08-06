@@ -23,20 +23,20 @@ import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
 public interface TableFilterPopupElement {
+  SelenideElement DATA_PICKER_PANEL = $x("//*[@data-test='data-picker-panel']");
   SelenideElement TEXT_FILTER_INPUT = $x("//*[contains(@class, 'tableSearchFilter')]//input");
-  SelenideElement DATA_PICKER_APPLY_BUTTON = $x("//*[@data-test='data-picker-panel']//button[.='Apply']");
-  SelenideElement DATA_PICKER_CALENDAR_TAB_BUTTON = $x("//*[@data-test='data-picker-panel']//button[.='Calendar']");
-  String MULTISELECT_CHECKBOX_XPATH =
-      "//div[@data-test='options-container']//label[span[text()='%s']]/input[@type='checkbox']";
-  String DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH = "//div[div/label[text()='%s']]//input[@data-input-id='%s']";
-  String DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH = "//div[div/label[text()='%s']]//input";
+  SelenideElement DATA_PICKER_APPLY_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Apply']");
+  SelenideElement DATA_PICKER_CALENDAR_TAB_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Calendar']");
+  String MULTISELECT_CHECKBOX_XPATH = "//*[@data-test='options-container']//label[*[.='%s']]//input[@type='checkbox']";
+  String DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH = ".//*[*/label[.='%s']]//input[@data-input-id='%s']";
+  String DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH = ".//*[*/label[.='%s']]//input";
 
   static SelenideElement getDatePickerCalendarInput(String inputName, String timeUnitName) {
-    return $x(format(DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH, inputName, timeUnitName));
+    return DATA_PICKER_PANEL.$x(format(DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH, inputName, timeUnitName));
   }
 
   static SelenideElement getDatePickerRangeInput(String inputName) {
-    return $x(format(DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH, inputName));
+    return DATA_PICKER_PANEL.$x(format(DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH, inputName));
   }
 
   static SelenideElement getMultiselectCheckbox(String value) {

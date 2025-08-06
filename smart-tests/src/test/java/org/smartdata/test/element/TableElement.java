@@ -29,7 +29,7 @@ public interface TableElement {
   ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
   ElementsCollection SORTING_COLUMN_HEADERS = $$x("//*[@data-test='sorting']");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
-  SelenideElement RESET_FILTER_BUTTON = $x("//*[text()='Reset filter']");
+  SelenideElement RESET_FILTER_BUTTON = $x("//*[.='Reset filter']");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
   String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
