@@ -27,10 +27,18 @@ public interface RulesPageElement {
   SelenideElement CREATE_RULE_BUTTON = $x("//button[.='Create rule']");
   SelenideElement CREATE_RULE_DIALOG_TITLE = $x("//*[contains(@class, 'title') and .='Create Rule']");
   SelenideElement CREATE_RULE_DIALOG_INPUT = $x("//*[@data-mode-id='ssmrule']//textarea");
-  SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON = $x("//*[@data-test='btn-accept']");
-  SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON = $x("//*[@data-test='btn-reject']");
+  SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON =
+      $x("//*[@data-test='footer-dialog-control']//*[@data-test='btn-accept']");
+  SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON =
+      $x("//*[@data-test='footer-dialog-control']//*[@data-test='btn-reject']");
   SelenideElement RULES_COUNTER_CARD =
       $x("//*[contains(@class, 'legendCard') and not(contains(@class, 'secondary'))]//*[contains(@class, 'count')]");
+  SelenideElement RULE_MODAL_DIALOG = $x("//*[@data-test='dialog-container']");
+  SelenideElement RULE_MODAL_DIALOG_ACCEPT_BUTTON = RULE_MODAL_DIALOG.$x(".//*[@data-test='btn-accept']");
+  SelenideElement RULE_MODAL_DIALOG_CANCEL_BUTTON = RULE_MODAL_DIALOG.$x(".//*[@data-test='btn-reject']");
+  SelenideElement START_RULE_BUTTON = $x("//*[@data-qa='action-start']");
+  SelenideElement STOP_RULE_BUTTON = $x("//*[@data-qa='action-stop']");
+  SelenideElement DELETE_RULE_BUTTON = $x("//*[@data-qa='action-delete']");
 
   @Getter
   enum RulesTableColumn implements TableColumn {

@@ -42,6 +42,7 @@ import static org.smartdata.test.element.TableElement.RESET_FILTER_BUTTON;
 import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
 import static org.smartdata.test.element.TableElement.TABLE_ROWS;
 import static org.smartdata.test.element.TableElement.getAllColumnCells;
+import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
 import static org.smartdata.test.element.TableElement.getFilterButton;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
 import static org.smartdata.test.model.SortOrder.ASC;
@@ -147,6 +148,12 @@ public class TableStep extends BaseWebStep {
   @Step("Click on 'Reset filter' button")
   public TableStep clickResetFilterButton() {
     waitAndClick(RESET_FILTER_BUTTON);
+    return this;
+  }
+
+  @Step("Check color marker in first row is visible")
+  public TableStep checkColorStatusMarkerInFirstRow(TableColumn tableColumn, String statusMarkerXpath) {
+    waitVisibility(getColumnInFirstRow(tableColumn).$x(statusMarkerXpath));
     return this;
   }
 }

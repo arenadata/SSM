@@ -35,6 +35,8 @@ public interface TableElement {
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
   String COLUMN_HEADER_XPATH = "//*[@data-test='table']//th[@data-test='%s']";
   String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
+  String GREEN_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_green')]";
+  String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
     return getCellFromRow(TABLE_ROWS.first(), tableColumn);

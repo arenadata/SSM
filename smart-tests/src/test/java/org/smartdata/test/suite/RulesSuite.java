@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.smartdata.test.element.RulesPageElement.DELETE_RULE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.CHECKED_NUMBER;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.CMDLETS_GENERATED;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.ID;
@@ -44,6 +45,10 @@ import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.LAST_
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.RULE_TEXT;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.STATUS;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.SUBMISSION_TIME;
+import static org.smartdata.test.element.RulesPageElement.START_RULE_BUTTON;
+import static org.smartdata.test.element.RulesPageElement.STOP_RULE_BUTTON;
+import static org.smartdata.test.element.TableElement.GRAY_STATUS_MARKER_XPATH;
+import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
 import static org.smartdata.test.model.RuleStatus.DISABLED;
 
 @Feature("Rules page")
@@ -127,6 +132,25 @@ public class RulesSuite extends SsmBaseSuite {
         .checkSubmissionTimeFiltration()
         .checkLastCheckTimeFiltration()
         .checkStatusFiltration();
+  }
+
+  @TmsLink("90541")
+  @Story("Rules")
+  @Test(description = "Check actions")
+  public void testActions() {
+    apiStep.createRule(TEST_RULE_TEXT);
+    rulesStep.refreshPage();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(STATUS, "Disabled")
+        .checkColorStatusMarkerInFirstRow(STATUS, GRAY_STATUS_MARKER_XPATH);
+    rulesStep.checkRuleActionButtonFixture(START_RULE_BUTTON);
+    tableStep.checkColumnValueInFirstRow(STATUS, "Active")
+        .checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH);
+    rulesStep.checkRuleActionButtonFixture(STOP_RULE_BUTTON);
+    tableStep.checkColumnValueInFirstRow(STATUS, "Disabled")
+        .checkColorStatusMarkerInFirstRow(STATUS, GRAY_STATUS_MARKER_XPATH);
+    rulesStep.checkRuleActionButtonFixture(DELETE_RULE_BUTTON);
+    tableStep.checkTableRowsCountIs(0);
   }
 
   @Step("Create rules for pagination test")
