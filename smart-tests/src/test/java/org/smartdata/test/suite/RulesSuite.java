@@ -49,6 +49,7 @@ import static org.smartdata.test.element.RulesPageElement.START_RULE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.STOP_RULE_BUTTON;
 import static org.smartdata.test.element.TableElement.GRAY_STATUS_MARKER_XPATH;
 import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
+import static org.smartdata.test.model.RuleStatus.ACTIVE;
 import static org.smartdata.test.model.RuleStatus.DISABLED;
 
 @Feature("Rules page")
@@ -141,13 +142,13 @@ public class RulesSuite extends SsmBaseSuite {
     apiStep.createRule(TEST_RULE_TEXT);
     rulesStep.refreshPage();
     tableStep.checkTableRowsCountIs(1)
-        .checkColumnValueInFirstRow(STATUS, "Disabled")
+        .checkColumnValueInFirstRow(STATUS, DISABLED.getText())
         .checkColorStatusMarkerInFirstRow(STATUS, GRAY_STATUS_MARKER_XPATH);
     rulesStep.checkRuleActionButtonFixture(START_RULE_BUTTON);
-    tableStep.checkColumnValueInFirstRow(STATUS, "Active")
+    tableStep.checkColumnValueInFirstRow(STATUS, ACTIVE.getText())
         .checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH);
     rulesStep.checkRuleActionButtonFixture(STOP_RULE_BUTTON);
-    tableStep.checkColumnValueInFirstRow(STATUS, "Disabled")
+    tableStep.checkColumnValueInFirstRow(STATUS, DISABLED.getText())
         .checkColorStatusMarkerInFirstRow(STATUS, GRAY_STATUS_MARKER_XPATH);
     rulesStep.checkRuleActionButtonFixture(DELETE_RULE_BUTTON);
     tableStep.checkTableRowsCountIs(0);

@@ -41,6 +41,7 @@ import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.LAST_
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.RULE_TEXT;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.STATUS;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.SUBMISSION_TIME;
+import static org.smartdata.test.model.RuleStatus.ACTIVE;
 
 @Slf4j
 @Service
@@ -152,7 +153,7 @@ public class RulesStep extends BaseWebStep {
   @Step("Check filtration by 'Status'")
   public RulesStep checkStatusFiltration() {
     tableStep.clickFilterButton(STATUS);
-    tableFilterPopupStep.clickMultiselectPopupCheckbox("Active");
+    tableFilterPopupStep.clickMultiselectPopupCheckbox(ACTIVE.getText());
     tableStep.clickFilterButton(STATUS)
         .checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(ID, "1")
