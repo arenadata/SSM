@@ -43,10 +43,16 @@ public class DataBaseStep {
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
       "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
+  private static final String TRUNCATE_ACTION_TABLE = "TRUNCATE TABLE action;";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
     metastoreRepository.executeSql(RESET_RULE_SEQUENCE);
+    return this;
+  }
+
+  public DataBaseStep cleanActionTable() throws SQLException {
+    metastoreRepository.executeSql(TRUNCATE_ACTION_TABLE);
     return this;
   }
 
