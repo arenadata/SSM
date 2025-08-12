@@ -20,6 +20,8 @@ package org.smartdata.integration.cluster;
 import org.apache.hadoop.fs.FileSystem;
 import org.smartdata.conf.SmartConf;
 
+import java.io.IOException;
+
 /**
  * Interface for a Smart cluster.
  */
@@ -34,5 +36,5 @@ public interface SmartCluster {
    */
   void cleanUp() throws Exception;
 
-  FileSystem getFileSystem();
+  FileSystem getFileSystem() throws IOException;
 }

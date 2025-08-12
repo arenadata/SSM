@@ -43,6 +43,7 @@ import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY
 public class SmartMiniCluster implements SmartCluster {
   private MiniDFSCluster cluster;
   private FileSystem fileSystem;
+  private SmartConf conf;
 
   private static final int DEFAULT_BLOCK_SIZE = 100;
 
@@ -61,6 +62,7 @@ public class SmartMiniCluster implements SmartCluster {
   @Override
   public void setUp(SmartConf smartConf) throws Exception {
     initConf(smartConf);
+    conf = smartConf;
     cluster = MiniClusterFactory.get().createWithStorages(3, smartConf);
     cluster.waitActive();
     Collection<URI> namenodes = DFSUtil.getInternalNsRpcUris(smartConf);
@@ -68,8 +70,6 @@ public class SmartMiniCluster implements SmartCluster {
     smartConf.set(DFS_NAMENODE_HTTP_ADDRESS_KEY, uriList.get(0).toString());
     smartConf.set(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY,
         uriList.get(0).toString());
-    fileSystem = new SmartFileSystem();
-    fileSystem.initialize(cluster.getURI(), smartConf);
   }
 
   @Override
@@ -85,7 +85,12 @@ public class SmartMiniCluster implements SmartCluster {
   }
 
   @Override
-  public FileSystem getFileSystem() {
+  public FileSystem getFileSystem() throws IOException {
+    if (fileSystem == null) {
+      fileSystem = new SmartFileSystem();
+      fileSystem.initialize(cluster.getURI(), conf);
+    }
+
     return fileSystem;
   }
 }

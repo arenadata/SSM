@@ -35,6 +35,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_CLIENT_CONCURRENT_REPORT_ENABLED;
+import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY;
+
 public class IntegrationTestBase {
 
   protected SmartCluster cluster;
@@ -44,6 +47,8 @@ public class IntegrationTestBase {
   @Before
   public void setup() throws Exception {
     conf = withHdfsOptions(new SmartConf());
+    conf.setBoolean(SMART_CLIENT_CONCURRENT_REPORT_ENABLED, false);
+    conf.set(SMART_SERVER_RPC_ADDRESS_KEY, "0.0.0.0:0");
     // Set up an HDFS cluster
     cluster = new SmartMiniCluster();
 
