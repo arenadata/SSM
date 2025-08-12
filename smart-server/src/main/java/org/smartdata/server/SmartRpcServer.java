@@ -17,6 +17,7 @@
  */
 package org.smartdata.server;
 
+import lombok.Getter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
@@ -51,6 +52,7 @@ public class SmartRpcServer implements SmartServerProtocols {
 
   protected SmartServer ssm;
   protected Configuration conf;
+  @Getter
   protected final InetSocketAddress clientRpcAddress;
   protected int serviceHandlerCount;
   protected final RPC.Server clientRpcServer;
