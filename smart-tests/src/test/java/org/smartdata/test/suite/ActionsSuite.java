@@ -94,7 +94,7 @@ public class ActionsSuite extends SsmBaseSuite {
         .checkSorting(TYPE);
   }
 
-  @Step("Create rules for sorting test")
+  @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();
     actionsStep.refreshPage();
