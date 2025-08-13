@@ -21,15 +21,20 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.smartdata.test.model.ActionStatus.FAILED;
+import static org.smartdata.test.model.ActionStatus.RUNNING;
+import static org.smartdata.test.model.ActionStatus.SCHEDULED;
+import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
+
 public class ActionStatusComparator implements Comparator<String> {
 
   private static final Map<String, Integer> PRIORITY_MAP = new HashMap<>();
 
   public ActionStatusComparator() {
-    PRIORITY_MAP.put("Scheduled", 1);
-    PRIORITY_MAP.put("Running", 2);
-    PRIORITY_MAP.put("Failed", 3);
-    PRIORITY_MAP.put("Successful", 4);
+    PRIORITY_MAP.put(SCHEDULED.getText(), 1);
+    PRIORITY_MAP.put(RUNNING.getText(), 2);
+    PRIORITY_MAP.put(FAILED.getText(), 3);
+    PRIORITY_MAP.put(SUCCESSFUL.getText(), 4);
   }
 
   @Override
