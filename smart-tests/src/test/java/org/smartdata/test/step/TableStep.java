@@ -118,6 +118,21 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check that values in {column} column are sorted in {sortOrder} order using custom comparator")
+  public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder, Comparator customComparator) {
+    Utils.waitUntil(() -> {
+      List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
+          .map(SelenideElement::getText)
+          .filter(s -> !s.isEmpty())
+          .collect(Collectors.toList());
+
+      Comparator comparator = sortOrder == ASC ? customComparator : customComparator.reversed();
+
+      assertThat(cellTexts).isSortedAccordingTo(comparator);
+    }, TimeoutConstants.SHORT_WAIT_PARAMS);
+    return this;
+  }
+
   @Step("Check default sorting on {tableColumn} column")
   public TableStep checkDefaultSorting(TableColumn tableColumn) {
     checkSelectedSorting(tableColumn, DESC)
@@ -136,6 +151,17 @@ public class TableStep extends BaseWebStep {
         .clickOnSortingColumn(tableColumn)
         .checkSelectedSorting(tableColumn, DESC)
         .checkColumnValuesIsSorted(tableColumn, DESC);
+    return this;
+  }
+
+  @Step("Check sorting on {tableColumn} column using custom comparator")
+  public TableStep checkSorting(TableColumn tableColumn, Comparator customComparator) {
+    clickOnSortingColumn(tableColumn)
+        .checkSelectedSorting(tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableColumn, ASC, customComparator)
+        .clickOnSortingColumn(tableColumn)
+        .checkSelectedSorting(tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableColumn, DESC, customComparator);
     return this;
   }
 

@@ -19,18 +19,27 @@ package org.smartdata.test.suite;
 
 import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.ActionsStep;
+import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.util.comparator.ActionStatusComparator;
+import org.smartdata.test.util.comparator.DashIsMaxComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.HOST;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ID;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.TYPE;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 @Feature("Actions page")
@@ -48,6 +57,9 @@ public class ActionsSuite extends SsmBaseSuite {
 
   @Autowired
   private ActionsStep actionsStep;
+
+  @Autowired
+  private DataBaseStep dataBaseStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -67,5 +79,24 @@ public class ActionsSuite extends SsmBaseSuite {
     tableStep.checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
         .checkColumnValueInFirstRow(STATUS, SUCCESSFUL.getText());
+  }
+
+  @TmsLink("90538")
+  @Story("Actions")
+  @Test(description = "Check sorting")
+  public void testSorting() {
+    prepareDataForSortingTest();
+    tableStep.checkDefaultSorting(ID)
+        .checkSorting(HOST, new DashIsMaxComparator())
+        .checkSorting(CREATE_TIME)
+        .checkSorting(FINISH_TIME, new DashIsMaxComparator())
+        .checkSorting(STATUS, new ActionStatusComparator())
+        .checkSorting(TYPE);
+  }
+
+  @Step("Create rules for sorting test")
+  private void prepareDataForSortingTest() {
+    dataBaseStep.insertDataForActionSortTest();
+    actionsStep.refreshPage();
   }
 }
