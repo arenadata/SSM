@@ -30,7 +30,7 @@ public class ActionStatusComparator implements Comparator<String> {
 
   private static final Map<String, Integer> PRIORITY_MAP = new HashMap<>();
 
-  public ActionStatusComparator() {
+  static {
     PRIORITY_MAP.put(SCHEDULED.getText(), 1);
     PRIORITY_MAP.put(RUNNING.getText(), 2);
     PRIORITY_MAP.put(FAILED.getText(), 3);
