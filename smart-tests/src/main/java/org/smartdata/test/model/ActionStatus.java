@@ -29,4 +29,13 @@ public enum ActionStatus {
   FAILED("Failed");
 
   private final String text;
+
+  public static ActionStatus fromText(String text) {
+    for (ActionStatus status : values()) {
+      if (status.text.equals(text)) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("Unknown status text: " + text);
+  }
 }

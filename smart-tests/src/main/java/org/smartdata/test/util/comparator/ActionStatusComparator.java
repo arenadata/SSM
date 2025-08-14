@@ -17,6 +17,8 @@
  */
 package org.smartdata.test.util.comparator;
 
+import org.smartdata.test.model.ActionStatus;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,19 +30,22 @@ import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 public class ActionStatusComparator implements Comparator<String> {
 
-  private static final Map<String, Integer> PRIORITY_MAP = new HashMap<>();
+  private static final Map<ActionStatus, Integer> PRIORITY_MAP = new HashMap<>();
 
   static {
-    PRIORITY_MAP.put(SCHEDULED.getText(), 1);
-    PRIORITY_MAP.put(RUNNING.getText(), 2);
-    PRIORITY_MAP.put(FAILED.getText(), 3);
-    PRIORITY_MAP.put(SUCCESSFUL.getText(), 4);
+    PRIORITY_MAP.put(SCHEDULED, 1);
+    PRIORITY_MAP.put(RUNNING, 2);
+    PRIORITY_MAP.put(FAILED, 3);
+    PRIORITY_MAP.put(SUCCESSFUL, 4);
   }
 
   @Override
   public int compare(String o1, String o2) {
-    Integer priority1 = PRIORITY_MAP.get(o1);
-    Integer priority2 = PRIORITY_MAP.get(o2);
+    if (o1 == null || o2 == null) {
+      throw new IllegalArgumentException("Arguments must not be null");
+    }
+    Integer priority1 = PRIORITY_MAP.get(ActionStatus.fromText(o1));
+    Integer priority2 = PRIORITY_MAP.get(ActionStatus.fromText(o2));
     return priority1.compareTo(priority2);
   }
 }
