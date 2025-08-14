@@ -23,15 +23,21 @@ import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.ActionsStep;
+import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
+import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.util.comparator.ActionStatusComparator;
 import org.smartdata.test.util.comparator.DashIsMaxComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
@@ -60,6 +66,12 @@ public class ActionsSuite extends SsmBaseSuite {
 
   @Autowired
   private DataBaseStep dataBaseStep;
+
+  @Autowired
+  private ApiStep apiStep;
+
+  @Autowired
+  private PaginationStep paginationStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -94,9 +106,32 @@ public class ActionsSuite extends SsmBaseSuite {
         .checkSorting(TYPE);
   }
 
+  @TmsLink("90209")
+  @Story("Actions")
+  @Test(description = "Check pagination")
+  public void testPagination() {
+    List<String> actionList = prepareDataForPaginationTest();
+    paginationStep.checkPaginationFixture(ACTION, actionList);
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();
     actionsStep.refreshPage();
+  }
+
+  @Step("Create actions for pagination test")
+  private List<String> prepareDataForPaginationTest() {
+    int actionsQuantity = 101;
+    List<String> actionsTextList = new ArrayList<>();
+    tableStep.checkTableIsEmpty();
+    for (int i = 1; i <= actionsQuantity; i++) {
+      String ruleText = "sleep -ms " + i;
+      apiStep.createAction(ruleText);
+      actionsTextList.add(ruleText);
+    }
+    actionsStep.refreshPage();
+    Collections.reverse(actionsTextList);
+    return actionsTextList;
   }
 }
