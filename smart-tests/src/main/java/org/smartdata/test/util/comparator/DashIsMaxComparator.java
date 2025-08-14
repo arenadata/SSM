@@ -23,13 +23,16 @@ public class DashIsMaxComparator implements Comparator<String> {
 
   @Override
   public int compare(String o1, String o2) {
-    if (o1.equals("-") && o2.equals("-")) {
+    if (o1 == null || o2 == null) {
+      throw new IllegalArgumentException("Arguments must not be null");
+    }
+    if ("-".equals(o1) && "-".equals(o2)) {
       return 0;
     }
-    if (o1.equals("-")) {
+    if ("-".equals(o1)) {
       return 1;
     }
-    if (o2.equals("-")) {
+    if ("-".equals(o2)) {
       return -1;
     }
     return o1.compareTo(o2);
