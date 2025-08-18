@@ -20,17 +20,35 @@ package org.smartdata.test.step;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
+import static java.time.ZoneOffset.UTC;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.HOST;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.TYPE;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CANCEL_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_INPUT;
+import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 @Slf4j
 @Service
 public class ActionsStep extends BaseWebStep {
+  private static final String TEST_ACTION_TEXT = "sleep -ms 100";
+
+  @Autowired
+  private TableStep tableStep;
+
+  @Autowired
+  private TableFilterPopupStep tableFilterPopupStep;
 
   @Step("Check 'Run' button on submit action dialog")
   public ActionsStep checkSubmitDialogRunButton(String actionText) {
@@ -52,4 +70,91 @@ public class ActionsStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check filtration by 'Action Text'")
+  public ActionsStep checkActionTextFiltration() {
+    tableStep.clickFilterButton(ACTION);
+    tableFilterPopupStep.setTextPopupInput("sleep");
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Host'")
+  public ActionsStep checkHostFiltration() {
+    tableStep.clickFilterButton(HOST);
+    tableFilterPopupStep.clickMultiselectPopupCheckbox("SSMAgent@hadoop-datanode.demo");
+    tableFilterPopupStep.clickMultiselectPopupCheckbox("ActiveSSMServer@ssm-server.demo");
+    tableStep.clickFilterButton(HOST)
+        .checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Create Time'")
+  public ActionsStep checkCreateTimeFiltration() {
+    tableStep.clickFilterButton(CREATE_TIME);
+    tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2)
+        .clickFilterButton(CREATE_TIME);
+    tableFilterPopupStep.clickOnCalendarTabButton()
+        .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(1), LocalDateTime.now(UTC))
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Finish Time'")
+  public ActionsStep checkFinishTimeFiltration() {
+    tableStep.clickFilterButton(FINISH_TIME);
+    tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2)
+        .clickFilterButton(FINISH_TIME);
+    tableFilterPopupStep.clickOnCalendarTabButton()
+        .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(1), LocalDateTime.now(UTC))
+        .clickOnDataPickerApplyButton();
+    tableStep.checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Status'")
+  public ActionsStep checkStatusFiltration() {
+    tableStep.clickFilterButton(STATUS);
+    tableFilterPopupStep.clickMultiselectPopupCheckbox(SUCCESSFUL.getText());
+    tableStep.clickFilterButton(STATUS)
+        .checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check filtration by 'Type'")
+  public ActionsStep checkTypeFiltration() {
+    tableStep.clickFilterButton(TYPE);
+    tableFilterPopupStep.clickMultiselectPopupCheckbox("User action");
+    tableStep.clickFilterButton(TYPE)
+        .checkTableRowsCountIs(1)
+        .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
+        .clickResetFilterButton()
+        .checkTableRowsCountIs(2);
+    return this;
+  }
 }

@@ -23,6 +23,7 @@ import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.ActionsStep;
+import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
@@ -61,6 +62,9 @@ public class ActionsSuite extends SsmBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
 
+  @Autowired
+  private ApiStep apiStep;
+
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
@@ -94,9 +98,29 @@ public class ActionsSuite extends SsmBaseSuite {
         .checkSorting(TYPE);
   }
 
+  @TmsLink("90210")
+  @Story("Actions")
+  @Test(description = "Check filtration")
+  public void testFiltration() {
+    prepareDataForFilterTest();
+    actionsStep.checkActionTextFiltration()
+        .checkHostFiltration()
+        .checkCreateTimeFiltration()
+        .checkFinishTimeFiltration()
+        .checkStatusFiltration()
+        .checkTypeFiltration();
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();
+    actionsStep.refreshPage();
+  }
+
+  @Step("Create actions for filter test")
+  private void prepareDataForFilterTest() {
+    apiStep.createAction(TEST_ACTION_TEXT);
+    dataBaseStep.insertDataForActionFilterTest();
     actionsStep.refreshPage();
   }
 }

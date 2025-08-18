@@ -41,6 +41,7 @@ public class DataBaseStep {
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
   private static final String RULES_FOR_SORT_TEST_SQL = "src/test/resources/data/sql/insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "src/test/resources/data/sql/insert_actions_for_sort_test.sql";
+  private static final String ACTION_FOR_FILTER_TEST_SQL = "src/test/resources/data/sql/insert_action_for_filter_test.sql";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
       "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
@@ -85,6 +86,12 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertDataForActionSortTest() {
     metastoreRepository.executeSqlFile(ACTIONS_FOR_SORT_TEST_SQL);
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForActionFilterTest() {
+    metastoreRepository.executeSqlFile(ACTION_FOR_FILTER_TEST_SQL);
     return this;
   }
 }
