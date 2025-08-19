@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attributeMatching;
+import static com.codeborne.selenide.Selenide.$x;
 import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.smartdata.test.element.TableElement.NODATA_ROW;
@@ -180,6 +181,14 @@ public class TableStep extends BaseWebStep {
   @Step("Check color marker in first row is visible")
   public TableStep checkColorStatusMarkerInFirstRow(TableColumn tableColumn, String statusMarkerXpath) {
     waitVisibility(getColumnInFirstRow(tableColumn).$x(statusMarkerXpath));
+    return this;
+  }
+
+  @Step("")
+  public TableStep setFrequency(String text) {
+    waitAndClick($x("//*[contains(@class, 'frequencySelect')]//input"));
+    String xpath = "//*[@data-test='options']//li[.='%s']";
+    waitAndClick($x(String.format(xpath, text)));
     return this;
   }
 }

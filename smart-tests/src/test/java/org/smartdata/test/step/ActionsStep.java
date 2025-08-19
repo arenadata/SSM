@@ -17,15 +17,24 @@
  */
 package org.smartdata.test.step;
 
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.devtools.DevTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static com.codeborne.selenide.Condition.visible;
+import static java.time.Duration.ofMillis;
 import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.byLessThan;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
@@ -157,4 +166,17 @@ public class ActionsStep extends BaseWebStep {
         .checkTableRowsCountIs(2);
     return this;
   }
+
+  public ActionsStep checkFrequency(SelenideElement element, long timeout) {
+    LocalDateTime start = LocalDateTime.now();
+    element.shouldBe(visible, ofMillis(timeout));
+    LocalDateTime end = LocalDateTime.now();
+    assertThat(start).isCloseTo(end, byLessThan(timeout, MILLIS));
+    ChromeDriver driver = (ChromeDriver) WebDriverRunner.getWebDriver();
+    DevTools devTools = driver.getDevTools();
+    devTools.createSession();
+    return this;
+  }
+
+
 }

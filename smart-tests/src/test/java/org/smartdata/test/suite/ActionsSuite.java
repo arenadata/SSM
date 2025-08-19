@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static com.codeborne.selenide.Selenide.$x;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
@@ -109,6 +110,18 @@ public class ActionsSuite extends SsmBaseSuite {
         .checkFinishTimeFiltration()
         .checkStatusFiltration()
         .checkTypeFiltration();
+  }
+
+  @TmsLink("")
+  @Story("")
+  @Test(description = "Check ")
+  public void testFrequency() {
+    tableStep.setFrequency("10 sec");
+    apiStep.createAction("list -file /1");
+    actionsStep.checkFrequency($x("//*[.='list -file /1']"), 10000);
+    tableStep.setFrequency("1 sec");
+    apiStep.createAction("list -file /2");
+    actionsStep.checkFrequency($x("//*[.='list -file /1']"), 1000);
   }
 
   @Step("Create actions for sorting test")
