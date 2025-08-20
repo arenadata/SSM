@@ -29,6 +29,11 @@ public interface ActionsPageElement {
   SelenideElement SUBMIT_ACTION_DIALOG_INPUT = SUBMIT_ACTION_DIALOG.$x(".//textarea");
   SelenideElement SUBMIT_ACTION_DIALOG_CREATE_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-test='btn-accept']");
   SelenideElement SUBMIT_ACTION_DIALOG_CANCEL_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-test='btn-reject']");
+  SelenideElement REPEAT_ACTION_DIALOG = $x("//*[.='Repeat action']//ancestor::*[contains(@class, 'dialog')]");
+  SelenideElement REPEAT_ACTION_DIALOG_INPUT = REPEAT_ACTION_DIALOG.$x(".//textarea");
+  SelenideElement REPEAT_ACTION_DIALOG_RUN_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-test='btn-accept']");
+  SelenideElement REPEAT_ACTION_DIALOG_CANCEL_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-test='btn-reject']");
+  String REPEAT_ACTION_BUTTON_XPATH = ".//*[@data-qa='action-refresh']";
 
   @Getter
   enum ActionsTableColumn implements TableColumn {

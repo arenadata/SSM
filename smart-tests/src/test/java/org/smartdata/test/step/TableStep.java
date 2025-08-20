@@ -29,11 +29,12 @@ import org.smartdata.test.model.SortOrder;
 import org.smartdata.test.model.TableColumn;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.attributeMatching;
 import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +74,7 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check table has row values in {column} column with table order")
   public TableStep checkColumnValues(TableColumn column, List<String> expectedValues) {
-    getAllColumnCells(column).shouldHave(texts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    getAllColumnCells(column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 
@@ -180,6 +181,14 @@ public class TableStep extends BaseWebStep {
   @Step("Check color marker in first row is visible")
   public TableStep checkColorStatusMarkerInFirstRow(TableColumn tableColumn, String statusMarkerXpath) {
     waitVisibility(getColumnInFirstRow(tableColumn).$x(statusMarkerXpath));
+    return this;
+  }
+
+  @Step("Check all column values equal same expected value")
+  public TableStep checkAllColumnCellsTextEqual(int expectedRowsCount, TableColumn tableColumn, String value) {
+    String[] expectedValues = new String[expectedRowsCount];
+    Arrays.fill(expectedValues, value);
+    getAllColumnCells(tableColumn).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 }

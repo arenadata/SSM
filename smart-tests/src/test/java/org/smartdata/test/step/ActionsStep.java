@@ -32,11 +32,17 @@ import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.F
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.HOST;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.TYPE;
+import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_BUTTON_XPATH;
+import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG;
+import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG_CANCEL_BUTTON;
+import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG_INPUT;
+import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG_RUN_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CANCEL_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_INPUT;
+import static org.smartdata.test.element.TableElement.TABLE_ROWS;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 @Slf4j
@@ -155,6 +161,25 @@ public class ActionsStep extends BaseWebStep {
         .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
         .clickResetFilterButton()
         .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Check 'Repeat Action' button")
+  public ActionsStep checkRepeatActionButton() {
+    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitVisibility(REPEAT_ACTION_DIALOG);
+    waitTextEquals(REPEAT_ACTION_DIALOG_INPUT, TEST_ACTION_TEXT);
+    waitAndClick(REPEAT_ACTION_DIALOG_CANCEL_BUTTON);
+    waitDisappear(REPEAT_ACTION_DIALOG);
+    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
+    tableStep.checkTableRowsCountIs(2);
+    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndReWrite(REPEAT_ACTION_DIALOG_INPUT, TEST_ACTION_TEXT);
+    waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
+    tableStep.checkTableRowsCountIs(3)
+        .checkAllColumnCellsTextEqual(3, ACTION, TEST_ACTION_TEXT)
+        .checkAllColumnCellsTextEqual(3, STATUS, SUCCESSFUL.getText());
     return this;
   }
 }
