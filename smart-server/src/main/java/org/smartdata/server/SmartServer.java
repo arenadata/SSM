@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -89,9 +90,15 @@ public class SmartServer implements AutoCloseable {
     context = new ServerContext(conf, metaStore, metricsFactory);
     engine = new SmartEngine(context);
     rpcServer = new SmartRpcServer(this, conf, metricsFactory);
+    setRpcServerAddress(rpcServer.getClientRpcAddress());
     restServer = new SmartMasterRestServer(conf, engine);
 
     LOG.info("Finish Init Smart Server");
+  }
+
+  private void setRpcServerAddress(InetSocketAddress address) {
+    conf.set(SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY,
+        address.getHostString() + ":" + address.getPort());
   }
 
   public StatesManager getStatesManager() {
