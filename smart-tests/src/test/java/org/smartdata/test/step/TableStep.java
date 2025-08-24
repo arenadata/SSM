@@ -72,7 +72,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check table has row values in {column} column with table order")
+  @Step("Check table has row values {expectedValues} in {column} column with table order")
   public TableStep checkColumnValues(TableColumn column, List<String> expectedValues) {
     getAllColumnCells(column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;

@@ -113,8 +113,8 @@ public class ActionsSuite extends SsmBaseSuite {
 
   @TmsLink("90540")
   @Story("Actions")
-  @Test(description = "Check actions")
-  public void testActions() {
+  @Test(description = "Check 'Repeat action' button")
+  public void testRepeatActionButton() {
     apiStep.createAction(TEST_ACTION_TEXT);
     actionsStep.refreshPage();
     tableStep.checkTableRowsCountIs(1);
