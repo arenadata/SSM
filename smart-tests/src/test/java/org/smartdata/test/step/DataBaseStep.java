@@ -39,13 +39,15 @@ public class DataBaseStep {
 
   private static final String TRUNCATE_RULE_TABLE = "TRUNCATE TABLE rule;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
-  private static final String RULES_FOR_SORT_TEST_SQL = "src/test/resources/data/sql/insert_rules_for_sort_test.sql";
-  private static final String ACTIONS_FOR_SORT_TEST_SQL = "src/test/resources/data/sql/insert_actions_for_sort_test.sql";
-  private static final String ACTION_FOR_FILTER_TEST_SQL = "src/test/resources/data/sql/insert_action_for_filter_test.sql";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
       "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   private static final String TRUNCATE_ACTION_TABLE = "TRUNCATE TABLE action;";
+  private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
+  private static final String RULES_FOR_SORT_TEST_SQL = SQL_FOLDER_PATH + "insert_rules_for_sort_test.sql";
+  private static final String ACTIONS_FOR_SORT_TEST_SQL = SQL_FOLDER_PATH + "insert_actions_for_sort_test.sql";
+  private static final String ACTION_FOR_FILTER_TEST_SQL = SQL_FOLDER_PATH + "insert_action_for_filter_test.sql";
+  private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = SQL_FOLDER_PATH + "insert_action_for_action_details_page_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -92,6 +94,12 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertDataForActionFilterTest() {
     metastoreRepository.executeSqlFile(ACTION_FOR_FILTER_TEST_SQL);
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForActionDetailsPageTest() {
+    metastoreRepository.executeSqlFile(ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL);
     return this;
   }
 }

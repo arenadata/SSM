@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import static java.time.ZoneOffset.UTC;
+import static org.smartdata.test.element.ActionsPageElement.ACTION_DETAILS_LINK_XPATH;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
@@ -43,6 +44,7 @@ import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_INPUT;
 import static org.smartdata.test.element.TableElement.TABLE_ROWS;
+import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 @Slf4j
@@ -180,6 +182,12 @@ public class ActionsStep extends BaseWebStep {
     tableStep.checkTableRowsCountIs(3)
         .checkAllColumnCellsTextEqual(3, ACTION, TEST_ACTION_TEXT)
         .checkAllColumnCellsTextEqual(3, STATUS, SUCCESSFUL.getText());
+    return this;
+  }
+
+  @Step("Open 'Action Details' page for first action in table")
+  public ActionsStep openFirstActionDetails() {
+    waitAndClick(getColumnInFirstRow(ACTION).$x(ACTION_DETAILS_LINK_XPATH));
     return this;
   }
 }

@@ -22,16 +22,16 @@ import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.UserProvider;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static org.smartdata.test.element.LoginPageElement.*;
+import static org.smartdata.test.element.LoginPageElement.PASSWORD_FIELD;
+import static org.smartdata.test.element.LoginPageElement.SIGN_IN_BUTTON;
+import static org.smartdata.test.element.LoginPageElement.USERNAME_FIELD;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class LoginStep extends BaseWebStep {
 
   @Autowired

@@ -22,6 +22,7 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.step.ActionsDetailsStep;
 import org.smartdata.test.step.ActionsStep;
 import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_SUCCESSFUL_ICON;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
@@ -64,6 +66,9 @@ public class ActionsSuite extends SsmBaseSuite {
 
   @Autowired
   private ApiStep apiStep;
+
+  @Autowired
+  private ActionsDetailsStep actionsDetailsStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -121,10 +126,36 @@ public class ActionsSuite extends SsmBaseSuite {
     actionsStep.checkRepeatActionButton();
   }
 
+  @TmsLink("90251")
+  @Story("Actions")
+  @Test(description = "Check action details page")
+  public void testActionDetailsPage() {
+    prepareDataForActionDetailsPageTest();
+    actionsStep.openFirstActionDetails();
+    tableStep.checkTableRowsCountIs(1);
+    actionsDetailsStep.checkFakeActionDetailsTableRow()
+        .checkActionDetailsHeaderInfo("sleep", "-ms 10", HEADER_SUCCESSFUL_ICON)
+        .checkActionDetailsLogViewValues("FAKE RESULT", "FAKE LOG");
+  }
+
+  @TmsLink("90251")
+  @Story("Actions")
+  @Test(description = "Check action details 'Repeat action' button")
+  public void testActionDetailsRepeatActionButton() {
+    apiStep.createAction(TEST_ACTION_TEXT);
+    actionsStep.refreshPage();
+    tableStep.checkTableRowsCountIs(1);
+    actionsStep.openFirstActionDetails();
+    actionsDetailsStep.repeatAction();
+    menuStep.openActionsPage();
+    tableStep.checkTableRowsCountIs(2);
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();
     actionsStep.refreshPage();
+    tableStep.checkTableRowsCountIs(4);
   }
 
   @Step("Create actions for filter test")
@@ -132,5 +163,13 @@ public class ActionsSuite extends SsmBaseSuite {
     apiStep.createAction(TEST_ACTION_TEXT);
     dataBaseStep.insertDataForActionFilterTest();
     actionsStep.refreshPage();
+    tableStep.checkTableRowsCountIs(2);
+  }
+
+  @Step("Create action for action details page test")
+  private void prepareDataForActionDetailsPageTest() {
+    dataBaseStep.insertDataForActionDetailsPageTest();
+    actionsStep.refreshPage();
+    tableStep.checkTableRowsCountIs(1);
   }
 }

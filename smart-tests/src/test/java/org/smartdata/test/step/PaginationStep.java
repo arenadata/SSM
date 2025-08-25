@@ -31,9 +31,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.codeborne.selenide.CollectionCondition.allMatch;
+import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exactValue;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.smartdata.test.element.PaginationElement.EXTEND_PAGES_BUTTON;
@@ -61,7 +61,7 @@ public class PaginationStep extends BaseWebStep {
   public PaginationStep checkNumberedButtonIsSelected(int pageNum) {
     SelenideElement numberedButton = getNumberedButtonByPageNum(pageNum);
     waitVisibility(numberedButton);
-    assertThat(numberedButton.getAttribute("class"), containsString("is-active"));
+    numberedButton.should(attributeMatching("class", ".*active.*"));
     return this;
   }
 
