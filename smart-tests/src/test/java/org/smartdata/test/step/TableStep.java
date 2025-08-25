@@ -184,7 +184,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check all column values equal same expected value")
+  @Step("Check all {tableColumn} column values equal same expected value '{value}'")
   public TableStep checkAllColumnCellsTextEqual(int expectedRowsCount, TableColumn tableColumn, String value) {
     String[] expectedValues = new String[expectedRowsCount];
     Arrays.fill(expectedValues, value);
