@@ -61,7 +61,7 @@ public class PaginationStep extends BaseWebStep {
   public PaginationStep checkNumberedButtonIsSelected(int pageNum) {
     SelenideElement numberedButton = getNumberedButtonByPageNum(pageNum);
     waitVisibility(numberedButton);
-    numberedButton.should(attributeMatching("class", ".*active.*"));
+    numberedButton.should(attributeMatching("class", ".*is-active.*"));
     return this;
   }
 
