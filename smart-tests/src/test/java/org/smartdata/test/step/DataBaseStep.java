@@ -24,6 +24,7 @@ import org.smartdata.test.repository.MetastoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -44,10 +45,10 @@ public class DataBaseStep {
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   private static final String TRUNCATE_ACTION_TABLE = "TRUNCATE TABLE action;";
   private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
-  private static final String RULES_FOR_SORT_TEST_SQL = SQL_FOLDER_PATH + "insert_rules_for_sort_test.sql";
-  private static final String ACTIONS_FOR_SORT_TEST_SQL = SQL_FOLDER_PATH + "insert_actions_for_sort_test.sql";
-  private static final String ACTION_FOR_FILTER_TEST_SQL = SQL_FOLDER_PATH + "insert_action_for_filter_test.sql";
-  private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = SQL_FOLDER_PATH + "insert_action_for_action_details_page_test.sql";
+  private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
+  private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
+  private static final String ACTION_FOR_FILTER_TEST_SQL = "insert_action_for_filter_test.sql";
+  private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = "insert_action_for_action_details_page_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -62,7 +63,7 @@ public class DataBaseStep {
 
   @SneakyThrows
   public DataBaseStep insertDataForRulesSortTest() {
-    metastoreRepository.executeSqlFile(RULES_FOR_SORT_TEST_SQL);
+    metastoreRepository.executeSqlFile(getSqlFilePath(RULES_FOR_SORT_TEST_SQL));
     return this;
   }
 
@@ -87,19 +88,23 @@ public class DataBaseStep {
 
   @SneakyThrows
   public DataBaseStep insertDataForActionSortTest() {
-    metastoreRepository.executeSqlFile(ACTIONS_FOR_SORT_TEST_SQL);
+    metastoreRepository.executeSqlFile(getSqlFilePath(ACTIONS_FOR_SORT_TEST_SQL));
     return this;
   }
 
   @SneakyThrows
   public DataBaseStep insertDataForActionFilterTest() {
-    metastoreRepository.executeSqlFile(ACTION_FOR_FILTER_TEST_SQL);
+    metastoreRepository.executeSqlFile(getSqlFilePath(ACTION_FOR_FILTER_TEST_SQL));
     return this;
   }
 
   @SneakyThrows
   public DataBaseStep insertDataForActionDetailsPageTest() {
-    metastoreRepository.executeSqlFile(ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL);
+    metastoreRepository.executeSqlFile(getSqlFilePath(ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL));
     return this;
+  }
+
+  private String getSqlFilePath(String fileName) {
+    return Paths.get(SQL_FOLDER_PATH, fileName).toString();
   }
 }
