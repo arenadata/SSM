@@ -174,6 +174,17 @@ public class ActionsSuite extends SsmBaseSuite {
     scheduler.shutdown();
   }
 
+  @TmsLink("85966")
+  @Story("Actions")
+  @Test(description = "Check action execution time, action finish time")
+  public void testExecutionAndFinishTime() {
+    apiStep.createAction("sleep -ms 7500");
+    actionsStep.refreshPage();
+    tableStep.checkTableRowsCountIs(1);
+    actionsStep.openFirstActionDetails();
+    actionsDetailsStep.checkExecutionAndFinishTimeForRunningAction();
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();

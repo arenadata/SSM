@@ -30,6 +30,7 @@ public interface ActionsDetailsPageElement {
   SelenideElement HEADER_TITLE_ACTION = $x("//*[contains(@class, 'actionHeader')]//h1");
   SelenideElement HEADER_TITLE_PARAMS = $x("//*[contains(@class, 'actionHeader') and contains(@class, 'text')]");
   SelenideElement HEADER_SUCCESSFUL_ICON = $x("//*[name()='use' and @*='#status-ok']");
+  SelenideElement HEADER_RUNNING_ICON = $x("//*[name()='use' and @*='#status-running']");
 
   @Getter
   enum ActionsDetailsTableColumn implements TableColumn {

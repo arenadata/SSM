@@ -38,6 +38,7 @@ public interface TableElement {
   String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
   String GREEN_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_green')]";
   String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
+  String BLUE_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_blue')]";
   String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {

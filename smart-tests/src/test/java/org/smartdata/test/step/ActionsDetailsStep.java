@@ -35,14 +35,21 @@ import static org.smartdata.test.element.ActionsDetailsPageElement.ActionsDetail
 import static org.smartdata.test.element.ActionsDetailsPageElement.ActionsDetailsTableColumn.RUNNING_TIME;
 import static org.smartdata.test.element.ActionsDetailsPageElement.ActionsDetailsTableColumn.STATUS;
 import static org.smartdata.test.element.ActionsDetailsPageElement.ActionsDetailsTableColumn.TYPE;
+import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_RUNNING_ICON;
+import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_SUCCESSFUL_ICON;
 import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_TITLE_ACTION;
 import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_TITLE_PARAMS;
 import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_BUTTON_XPATH;
 import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG;
 import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG_RUN_BUTTON;
+import static org.smartdata.test.element.TableElement.BLUE_STATUS_MARKER_XPATH;
 import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
 import static org.smartdata.test.element.TableElement.TABLE_ROWS;
+import static org.smartdata.test.model.ActionStatus.RUNNING;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
+import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_UI_PATTERN;
+import static org.smartdata.test.util.constant.CommonConstants.RUNNING_TIME_PATTERN;
+import static org.smartdata.test.util.constant.CommonConstants.TABLE_EMPTY_VALUE;
 
 
 @Slf4j
@@ -54,14 +61,14 @@ public class ActionsDetailsStep extends BaseWebStep {
 
   @Step("Check 'Action Details' table row with prepared values")
   public ActionsDetailsStep checkFakeActionDetailsTableRow() {
-    tableStep.checkColumnValueInFirstRow(ID, "888");
-    tableStep.checkColumnValueInFirstRow(CREATE_TIME, "11/08/2025 13:46:40");
-    tableStep.checkColumnValueInFirstRow(FINISH_TIME, "11/08/2025 13:46:40");
-    tableStep.checkColumnValueInFirstRow(RUNNING_TIME, "888ms");
-    tableStep.checkColumnValueInFirstRow(STATUS, SUCCESSFUL.getText());
-    tableStep.checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH);
-    tableStep.checkColumnValueInFirstRow(TYPE, "User action");
-    tableStep.checkColumnValueInFirstRow(HOST, "FAKE HOST");
+    tableStep.checkColumnValueInFirstRow(ID, "888")
+        .checkColumnValueInFirstRow(CREATE_TIME, "11/08/2025 13:46:40")
+        .checkColumnValueInFirstRow(FINISH_TIME, "11/08/2025 13:46:40")
+        .checkColumnValueInFirstRow(RUNNING_TIME, "888ms")
+        .checkColumnValueInFirstRow(STATUS, SUCCESSFUL.getText())
+        .checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH)
+        .checkColumnValueInFirstRow(TYPE, "User action")
+        .checkColumnValueInFirstRow(HOST, "FAKE HOST");
     return this;
   }
 
@@ -89,6 +96,21 @@ public class ActionsDetailsStep extends BaseWebStep {
     waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
     waitVisibility(REPEAT_ACTION_DIALOG);
     waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
+    return this;
+  }
+
+  @Step("Check execution and finish time for running action")
+  public ActionsDetailsStep checkExecutionAndFinishTimeForRunningAction() {
+    waitVisibility(HEADER_RUNNING_ICON);
+    tableStep.checkColumnValueInFirstRow(STATUS, RUNNING.getText())
+        .checkColorStatusMarkerInFirstRow(STATUS, BLUE_STATUS_MARKER_XPATH)
+        .checkColumnValueInFirstRow(FINISH_TIME, TABLE_EMPTY_VALUE)
+        .checkColumnValueInFirstRowMatchPattern(RUNNING_TIME, RUNNING_TIME_PATTERN)
+        .checkColumnValueInFirstRow(STATUS, SUCCESSFUL.getText())
+        .checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH)
+        .checkColumnValueInFirstRowMatchPattern(FINISH_TIME, DATE_TIME_UI_PATTERN)
+        .checkColumnValueInFirstRowMatchPattern(RUNNING_TIME, RUNNING_TIME_PATTERN);
+    waitVisibility(HEADER_SUCCESSFUL_ICON);
     return this;
   }
 }

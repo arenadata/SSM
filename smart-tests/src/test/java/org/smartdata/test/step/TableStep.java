@@ -80,6 +80,13 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check that page's table match '{pattern}' pattern in {column} column of the first row")
+  public TableStep checkColumnValueInFirstRowMatchPattern(TableColumn column, String pattern) {
+    String value = waitVisibility(getColumnInFirstRow(column)).getText();
+    assertThat(value).matches(pattern);
+    return this;
+  }
+
   @Step("Check table has row values {expectedValues} in {column} column with table order")
   public TableStep checkColumnValues(TableColumn column, List<String> expectedValues) {
     getAllColumnCells(column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
