@@ -19,8 +19,6 @@ package org.smartdata.test.step;
 
 import com.codeborne.selenide.SelenideElement;
 import io.arenadata.test.step.BaseWebStep;
-import io.arenadata.test.util.Utils;
-import io.arenadata.test.util.constant.TimeoutConstants;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -29,15 +27,23 @@ import org.smartdata.test.model.SortOrder;
 import org.smartdata.test.model.TableColumn;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.attributeMatching;
+import static com.codeborne.selenide.Condition.not;
+import static com.codeborne.selenide.Condition.text;
+import static io.arenadata.test.util.Utils.waitUntil;
 import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
+import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.smartdata.test.element.TableElement.CHANGE_FREQUENCY_SELECT;
 import static org.smartdata.test.element.TableElement.NODATA_ROW;
 import static org.smartdata.test.element.TableElement.RESET_FILTER_BUTTON;
 import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
@@ -45,9 +51,11 @@ import static org.smartdata.test.element.TableElement.TABLE_ROWS;
 import static org.smartdata.test.element.TableElement.getAllColumnCells;
 import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
 import static org.smartdata.test.element.TableElement.getFilterButton;
+import static org.smartdata.test.element.TableElement.getFrequencyOption;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
+import static org.smartdata.test.util.constant.DateConstants.DATE_TIME_FORMATTER_UI;
 
 @Slf4j
 @Service
@@ -100,7 +108,7 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that values in {column} column are sorted in {sortOrder} order")
   public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder) {
-    Utils.waitUntil(() -> {
+    waitUntil(() -> {
       List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
@@ -115,13 +123,13 @@ public class TableStep extends BaseWebStep {
       } else {
         assertThat(cellTexts).isSortedAccordingTo((Comparator<String>) comparator);
       }
-    }, TimeoutConstants.SHORT_WAIT_PARAMS);
+    }, SHORT_WAIT_PARAMS);
     return this;
   }
 
   @Step("Check that values in {column} column are sorted in {sortOrder} order using custom comparator")
   public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder, Comparator customComparator) {
-    Utils.waitUntil(() -> {
+    waitUntil(() -> {
       List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
@@ -130,7 +138,7 @@ public class TableStep extends BaseWebStep {
       Comparator comparator = sortOrder == ASC ? customComparator : customComparator.reversed();
 
       assertThat(cellTexts).isSortedAccordingTo(comparator);
-    }, TimeoutConstants.SHORT_WAIT_PARAMS);
+    }, SHORT_WAIT_PARAMS);
     return this;
   }
 
@@ -190,5 +198,29 @@ public class TableStep extends BaseWebStep {
     Arrays.fill(expectedValues, value);
     getAllColumnCells(tableColumn).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
+  }
+
+  @Step("Check refreshing frequency for column with index {column}")
+  public TableStep checkRefreshingFrequency(TableColumn column) {
+    IntStream.of(10, 5, 2, 1).forEachOrdered(refreshPeriod -> {
+      changeRefreshingFrequencyTo(refreshPeriod);
+      waitUntil(() -> {
+        SelenideElement firstTimeCell = getColumnInFirstRow(column);
+        String dateBeforeRefreshStr = firstTimeCell.getText();
+        String dateAfterRefreshStr =
+            firstTimeCell.shouldHave(not(text(dateBeforeRefreshStr)), DEFAULT_WEB_ELEMENT_TIMEOUT).getText();
+        LocalDateTime dateBeforeRefresh = LocalDateTime.parse(dateBeforeRefreshStr, DATE_TIME_FORMATTER_UI);
+        LocalDateTime dateAfterRefresh = LocalDateTime.parse(dateAfterRefreshStr, DATE_TIME_FORMATTER_UI);
+        long diff = dateAfterRefresh.toEpochSecond(UTC) - dateBeforeRefresh.toEpochSecond(UTC);
+        assertThat(diff).as("Actual refreshing period is not equal to the chosen one").isEqualTo(refreshPeriod);
+      }, SHORT_WAIT_PARAMS);
+    });
+    return this;
+  }
+
+  @Step("Set refreshing frequency value to {value} sec")
+  private void changeRefreshingFrequencyTo(int value) {
+    waitAndClick(CHANGE_FREQUENCY_SELECT);
+    waitAndClick(getFrequencyOption(value));
   }
 }

@@ -30,6 +30,7 @@ public interface TableElement {
   ElementsCollection SORTING_COLUMN_HEADERS = $$x("//*[@data-test='sorting']");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
   SelenideElement RESET_FILTER_BUTTON = $x("//*[.='Reset filter']");
+  SelenideElement CHANGE_FREQUENCY_SELECT = $x("//*[contains(@class, 'frequencySelect')]//input");
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
   String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
@@ -37,6 +38,7 @@ public interface TableElement {
   String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
   String GREEN_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_green')]";
   String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
+  String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
 
   static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
     return getCellFromRow(TABLE_ROWS.first(), tableColumn);
@@ -60,5 +62,9 @@ public interface TableElement {
 
   static SelenideElement getFilterButton(TableColumn tableColumn) {
     return getColumnHeader(tableColumn).$x(FILTER_BUTTON_XPATH);
+  }
+
+  static SelenideElement getFrequencyOption(int sec) {
+    return $x(String.format(CHANGE_FREQUENCY_OPTION_XPATH, sec));
   }
 }

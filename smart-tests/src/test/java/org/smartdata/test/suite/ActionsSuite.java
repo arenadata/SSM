@@ -35,6 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_SUCCESSFUL_ICON;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
@@ -44,6 +49,8 @@ import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.I
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.TYPE;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
+import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.model.SortOrder.DESC;
 
 @Feature("Actions page")
 public class ActionsSuite extends SsmBaseSuite {
@@ -149,6 +156,22 @@ public class ActionsSuite extends SsmBaseSuite {
     actionsDetailsStep.repeatAction();
     menuStep.openActionsPage();
     tableStep.checkTableRowsCountIs(2);
+  }
+
+  @TmsLink("90537")
+  @Story("Actions")
+  @Test(description = "Check frequency")
+  public void testFrequency() {
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    ScheduledFuture<?> scheduledFuture =
+        scheduler.scheduleAtFixedRate(() -> apiStep.createAction(TEST_ACTION_TEXT), 0, 1, SECONDS);
+    tableStep.clickOnSortingColumn(CREATE_TIME)
+        .checkSelectedSorting(CREATE_TIME, ASC)
+        .clickOnSortingColumn(CREATE_TIME)
+        .checkSelectedSorting(CREATE_TIME, DESC);
+    tableStep.checkRefreshingFrequency(CREATE_TIME);
+    scheduledFuture.cancel(true);
+    scheduler.shutdown();
   }
 
   @Step("Create actions for sorting test")
