@@ -55,7 +55,7 @@ import static org.smartdata.test.element.TableElement.getFrequencyOption;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
-import static org.smartdata.test.util.constant.DateConstants.DATE_TIME_FORMATTER_UI;
+import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_FORMATTER_UI;
 
 @Slf4j
 @Service
