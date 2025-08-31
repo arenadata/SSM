@@ -185,6 +185,18 @@ public class ActionsSuite extends SsmBaseSuite {
     actionsDetailsStep.checkExecutionAndFinishTimeForRunningAction();
   }
 
+  @TmsLink("85966")
+  @Story("Actions")
+  @Test(description = "Check hosts assignment after Scheduled status")
+  public void testHostAssignment() {
+    int actionsQuantity = 20;
+    for (int i = 0; i < actionsQuantity; i++) {
+      apiStep.createAction("sleep -ms 10000");
+    }
+    actionsStep.refreshPage();
+    actionsStep.checkHostAssignment();
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();

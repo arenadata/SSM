@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.step;
 
+import com.codeborne.selenide.SelenideElement;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +26,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.or;
 import static java.time.ZoneOffset.UTC;
 import static org.smartdata.test.element.ActionsPageElement.ACTION_DETAILS_LINK_XPATH;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.FINISH_TIME;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.HOST;
+import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ID;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.TYPE;
 import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_BUTTON_XPATH;
@@ -44,8 +48,15 @@ import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_INPUT;
 import static org.smartdata.test.element.TableElement.TABLE_ROWS;
+import static org.smartdata.test.element.TableElement.getCellFromRow;
 import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
+import static org.smartdata.test.model.ActionStatus.RUNNING;
+import static org.smartdata.test.model.ActionStatus.SCHEDULED;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
+import static org.smartdata.test.model.SortOrder.DESC;
+import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
+import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_NAME;
+import static org.smartdata.test.util.constant.CommonConstants.TABLE_EMPTY_VALUE;
 
 @Slf4j
 @Service
@@ -92,8 +103,8 @@ public class ActionsStep extends BaseWebStep {
   @Step("Check filtration by 'Host'")
   public ActionsStep checkHostFiltration() {
     tableStep.clickFilterButton(HOST);
-    tableFilterPopupStep.clickMultiselectPopupCheckbox("SSMAgent@hadoop-datanode.demo");
-    tableFilterPopupStep.clickMultiselectPopupCheckbox("ActiveSSMServer@ssm-server.demo");
+    tableFilterPopupStep.clickMultiselectPopupCheckbox(SSM_SERVER_HOST_NAME);
+    tableFilterPopupStep.clickMultiselectPopupCheckbox(DATANODE_HOST_NAME);
     tableStep.clickFilterButton(HOST)
         .checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(ACTION, TEST_ACTION_TEXT)
@@ -188,6 +199,22 @@ public class ActionsStep extends BaseWebStep {
   @Step("Open 'Action Details' page for first action in table")
   public ActionsStep openFirstActionDetails() {
     waitAndClick(getColumnInFirstRow(ACTION).$x(ACTION_DETAILS_LINK_XPATH));
+    return this;
+  }
+
+  @Step("Check hosts assignment")
+  public ActionsStep checkHostAssignment() {
+    tableStep.checkSelectedSorting(ID, DESC);
+    SelenideElement firstRow = TABLE_ROWS.first();
+    waitTextEquals(getCellFromRow(firstRow, STATUS), SCHEDULED.getText());
+    waitTextEquals(getCellFromRow(firstRow, HOST), TABLE_EMPTY_VALUE);
+    getCellFromRow(firstRow, HOST).shouldHave(exactText(TABLE_EMPTY_VALUE));
+    waitTextEquals(getCellFromRow(firstRow, STATUS), RUNNING.getText());
+    getCellFromRow(firstRow, HOST).shouldHave(
+        or("Check host name", exactText(SSM_SERVER_HOST_NAME), exactText(DATANODE_HOST_NAME)));
+    waitTextEquals(getCellFromRow(firstRow, STATUS), SUCCESSFUL.getText());
+    getCellFromRow(firstRow, HOST).shouldHave(
+        or("Check host name", exactText(SSM_SERVER_HOST_NAME), exactText(DATANODE_HOST_NAME)));
     return this;
   }
 }

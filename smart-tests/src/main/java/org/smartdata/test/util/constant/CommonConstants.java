@@ -24,6 +24,8 @@ import java.time.format.DateTimeFormatter;
 @UtilityClass
 public class CommonConstants {
   public static final String TABLE_EMPTY_VALUE = "-";
+  public static final String SSM_SERVER_HOST_NAME = "ActiveSSMServer@ssm-server.demo";
+  public static final String DATANODE_HOST_NAME = "SSMAgent@hadoop-datanode.demo";
   public static final String RUNNING_TIME_PATTERN = "^(?:\\d+s\\s*)?\\d+ms$";
   public static final String DATE_TIME_UI_PATTERN =
       "^(?:0[1-9]|[12][0-9]|3[01])/(?:0[1-9]|1[0-2])/\\d{4}\\s(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$";
