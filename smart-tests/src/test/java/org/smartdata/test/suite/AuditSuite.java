@@ -22,6 +22,10 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import io.restassured.response.Response;
+import org.smartdata.client.generated.model.SubmitActionRequestDto;
+import org.smartdata.test.step.ApiStep;
+import org.smartdata.test.step.AuditStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
@@ -52,6 +56,12 @@ public class AuditSuite extends SsmBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
 
+  @Autowired
+  private AuditStep auditStep;
+
+  @Autowired
+  private ApiStep apiStep;
+
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
@@ -71,10 +81,33 @@ public class AuditSuite extends SsmBaseSuite {
         .checkSorting(OPERATION);
   }
 
+  @TmsLink("90593")
+  @Story("Audit")
+  @Test(description = "Check filtration")
+  public void testFiltration() {
+    prepareDataForFiltrationTest();
+    auditStep.checkAuditUserFiltration()
+        .checkAuditDateFiltration()
+        .checkAuditObjectTypeFiltration()
+        .checkAuditOperationFiltration()
+        .checkAuditResultFiltration();
+  }
+
   @Step("Create audit events for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForAuditSortTest();
     tableStep.refreshPage();
     tableStep.checkTableRowsCountIs(4);
+  }
+
+  @Step("Create audit events for filtration test")
+  private void prepareDataForFiltrationTest() {
+    apiStep.getRawClient().actions().submitAction()
+        .body(new SubmitActionRequestDto().action("NONEXISTENT"))
+        .respSpec(response -> response.expectStatusCode(400))
+        .executeAs(Response::andReturn);
+    dataBaseStep.insertDataForAuditFilterTest();
+    tableStep.refreshPage();
+    tableStep.checkTableRowsCountIs(2);
   }
 }

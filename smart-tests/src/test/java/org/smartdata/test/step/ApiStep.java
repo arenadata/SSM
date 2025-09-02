@@ -49,4 +49,8 @@ public class ApiStep extends BaseApiStep {
         .executeAs(Response::andReturn);
     return this;
   }
+
+  public ApiClient getRawClient() {
+    return apiClient;
+  }
 }

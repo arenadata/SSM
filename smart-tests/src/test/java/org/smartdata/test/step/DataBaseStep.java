@@ -51,6 +51,7 @@ public class DataBaseStep {
   private static final String ACTION_FOR_FILTER_TEST_SQL = "insert_action_for_filter_test.sql";
   private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = "insert_action_for_action_details_page_test.sql";
   private static final String AUDIT_FOR_SORT_TEST_SQL = "insert_audit_for_sort_test.sql";
+  private static final String AUDIT_FOR_FILTER_TEST_SQL = "insert_audit_for_filter_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -114,6 +115,12 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertDataForAuditSortTest() {
     metastoreRepository.executeSqlFile(getSqlFilePath(AUDIT_FOR_SORT_TEST_SQL));
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForAuditFilterTest() {
+    metastoreRepository.executeSqlFile(getSqlFilePath(AUDIT_FOR_FILTER_TEST_SQL));
     return this;
   }
 
