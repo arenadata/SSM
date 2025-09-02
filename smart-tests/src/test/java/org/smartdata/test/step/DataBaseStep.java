@@ -44,11 +44,13 @@ public class DataBaseStep {
       "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   private static final String TRUNCATE_ACTION_TABLE = "TRUNCATE TABLE action;";
+  private static final String TRUNCATE_AUDIT_TABLE = "TRUNCATE TABLE user_activity_event;";
   private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
   private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
   private static final String ACTION_FOR_FILTER_TEST_SQL = "insert_action_for_filter_test.sql";
   private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = "insert_action_for_action_details_page_test.sql";
+  private static final String AUDIT_FOR_SORT_TEST_SQL = "insert_audit_for_sort_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -58,6 +60,11 @@ public class DataBaseStep {
 
   public DataBaseStep cleanActionTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_ACTION_TABLE);
+    return this;
+  }
+
+  public DataBaseStep cleanAuditTable() throws SQLException {
+    metastoreRepository.executeSql(TRUNCATE_AUDIT_TABLE);
     return this;
   }
 
@@ -101,6 +108,12 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertDataForActionDetailsPageTest() {
     metastoreRepository.executeSqlFile(getSqlFilePath(ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL));
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForAuditSortTest() {
+    metastoreRepository.executeSqlFile(getSqlFilePath(AUDIT_FOR_SORT_TEST_SQL));
     return this;
   }
 

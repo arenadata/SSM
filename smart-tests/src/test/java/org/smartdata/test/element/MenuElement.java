@@ -27,6 +27,7 @@ public interface MenuElement {
   SelenideElement LEFT_BAR_MENU = $x("//*[contains(@class, 'mainLeftSideBar')]");
   SelenideElement RULES_BUTTON = LEFT_BAR_MENU.$x(".//*[.='Rules']");
   SelenideElement ACTIONS_BUTTON = LEFT_BAR_MENU.$x(".//*[.='Actions']");
+  SelenideElement AUDIT_BUTTON = LEFT_BAR_MENU.$x(".//*[.='Audit']");
   SelenideElement LOGOUT_BUTTON = $x("//*[contains(@class, 'systemMenu')]//button[.='Log Out']");
   SelenideElement LOGOUT_CONFIRMATION_MODAL = $x("//*[@data-test='dialog-container']");
   SelenideElement LOGOUT_CONFIRMATION_MESSAGE = LOGOUT_CONFIRMATION_MODAL.$x(".//h2");

@@ -47,5 +47,6 @@ public abstract class SsmBaseSuite extends BaseWebSuite {
   public void cleanUp() throws SQLException {
     dataBaseStep.cleanRuleTable();
     dataBaseStep.cleanActionTable();
+    dataBaseStep.cleanAuditTable();
   }
 }

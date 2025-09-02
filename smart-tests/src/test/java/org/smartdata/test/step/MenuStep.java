@@ -35,6 +35,7 @@ import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.smartdata.test.element.MenuElement.ACTIONS_BUTTON;
+import static org.smartdata.test.element.MenuElement.AUDIT_BUTTON;
 import static org.smartdata.test.element.MenuElement.DOCUMENTATION_BUTTON;
 import static org.smartdata.test.element.MenuElement.LOGOUT_ACCEPT_BUTTON;
 import static org.smartdata.test.element.MenuElement.LOGOUT_BUTTON;
@@ -108,6 +109,12 @@ public class MenuStep extends BaseWebStep {
   @Step("Open Actions page")
   public MenuStep openActionsPage() {
     waitAndClick(ACTIONS_BUTTON);
+    return this;
+  }
+
+  @Step("Open Audit page")
+  public MenuStep openAuditPage() {
+    waitAndClick(AUDIT_BUTTON);
     return this;
   }
 }
