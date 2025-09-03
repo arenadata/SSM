@@ -34,12 +34,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.DATE;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.ID;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.OBJECT_ID;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.OBJECT_TYPE;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.OPERATION;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.USER;
+import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.model.SortOrder.DESC;
 
 @Feature("Audit page")
 public class AuditSuite extends SsmBaseSuite {
@@ -91,6 +98,23 @@ public class AuditSuite extends SsmBaseSuite {
         .checkAuditObjectTypeFiltration()
         .checkAuditOperationFiltration()
         .checkAuditResultFiltration();
+  }
+
+  @TmsLink("91398")
+  @Story("Audit")
+  @Test(description = "Check frequency")
+  public void testFrequency() {
+    String ruleText = "file: path matches \"/tmp/test/*\" | read";
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    ScheduledFuture<?> scheduledFuture =
+        scheduler.scheduleAtFixedRate(() -> apiStep.createRule(ruleText), 0, 1, SECONDS);
+    tableStep.clickOnSortingColumn(DATE)
+        .checkSelectedSorting(DATE, ASC)
+        .clickOnSortingColumn(DATE)
+        .checkSelectedSorting(DATE, DESC);
+    tableStep.checkRefreshingFrequency(DATE);
+    scheduledFuture.cancel(true);
+    scheduler.shutdown();
   }
 
   @Step("Create audit events for sorting test")
