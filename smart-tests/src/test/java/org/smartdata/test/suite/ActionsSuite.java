@@ -22,6 +22,7 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.service.FrequencyTestScheduledService;
 import org.smartdata.test.step.ActionsDetailsStep;
 import org.smartdata.test.step.ActionsStep;
 import org.smartdata.test.step.ApiStep;
@@ -35,11 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_SUCCESSFUL_ICON;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.CREATE_TIME;
@@ -162,16 +158,17 @@ public class ActionsSuite extends SsmBaseSuite {
   @Story("Actions")
   @Test(description = "Check frequency")
   public void testFrequency() {
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    ScheduledFuture<?> scheduledFuture =
-        scheduler.scheduleAtFixedRate(() -> apiStep.createAction(TEST_ACTION_TEXT), 0, 1, SECONDS);
-    tableStep.clickOnSortingColumn(CREATE_TIME)
-        .checkSelectedSorting(CREATE_TIME, ASC)
-        .clickOnSortingColumn(CREATE_TIME)
-        .checkSelectedSorting(CREATE_TIME, DESC);
-    tableStep.checkRefreshingFrequency(CREATE_TIME);
-    scheduledFuture.cancel(true);
-    scheduler.shutdown();
+    FrequencyTestScheduledService frequencyTestScheduledService = new FrequencyTestScheduledService();
+    try {
+      frequencyTestScheduledService.run(() -> apiStep.createAction(TEST_ACTION_TEXT));
+      tableStep.clickOnSortingColumn(CREATE_TIME)
+          .checkSelectedSorting(CREATE_TIME, ASC)
+          .clickOnSortingColumn(CREATE_TIME)
+          .checkSelectedSorting(CREATE_TIME, DESC);
+      tableStep.checkRefreshingFrequency(CREATE_TIME);
+    } finally {
+      frequencyTestScheduledService.shutdownAndAwaitTermination();
+    }
   }
 
   @TmsLink("85966")

@@ -24,6 +24,7 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import io.restassured.response.Response;
 import org.smartdata.client.generated.model.SubmitActionRequestDto;
+import org.smartdata.test.service.FrequencyTestScheduledService;
 import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.AuditStep;
 import org.smartdata.test.step.DataBaseStep;
@@ -34,11 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.DATE;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.ID;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.OBJECT_ID;
@@ -104,17 +100,18 @@ public class AuditSuite extends SsmBaseSuite {
   @Story("Audit")
   @Test(description = "Check frequency")
   public void testFrequency() {
-    String ruleText = "file: path matches \"/tmp/test/*\" | read";
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    ScheduledFuture<?> scheduledFuture =
-        scheduler.scheduleAtFixedRate(() -> apiStep.createRule(ruleText), 0, 1, SECONDS);
-    tableStep.clickOnSortingColumn(DATE)
-        .checkSelectedSorting(DATE, ASC)
-        .clickOnSortingColumn(DATE)
-        .checkSelectedSorting(DATE, DESC);
-    tableStep.checkRefreshingFrequency(DATE);
-    scheduledFuture.cancel(true);
-    scheduler.shutdown();
+    FrequencyTestScheduledService frequencyTestScheduledService = new FrequencyTestScheduledService();
+    try {
+      String ruleText = "file: path matches \"/tmp/test/*\" | read";
+      frequencyTestScheduledService.run(() -> apiStep.createRule(ruleText));
+      tableStep.clickOnSortingColumn(DATE)
+          .checkSelectedSorting(DATE, ASC)
+          .clickOnSortingColumn(DATE)
+          .checkSelectedSorting(DATE, DESC);
+      tableStep.checkRefreshingFrequency(DATE);
+    } finally {
+      frequencyTestScheduledService.shutdownAndAwaitTermination();
+    }
   }
 
   @Step("Create audit events for sorting test")
