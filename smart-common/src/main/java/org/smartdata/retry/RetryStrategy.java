@@ -15,30 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.smartdata.conf.SmartConf;
+package org.smartdata.retry;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
-
-  public AbstractService() {
-    this(null);
-  }
-
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public boolean inSafeMode() {
-    return false;
-  }
-
-  protected SmartConf getConf() {
-    return context.getConf();
-  }
+public enum RetryStrategy {
+  FAIL,
+  FIXED_SLEEP,
+  EXPONENTIAL
 }

@@ -15,30 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
+package org.smartdata.hive.fetch;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.smartdata.conf.SmartConf;
+public interface HmsEventStreamRecord {
+  HmsEventStreamRecord END_OF_STREAM_RECORD = new HmsEventStreamRecord() {
+  };
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
-
-  public AbstractService() {
-    this(null);
+  static HmsEventStreamRecord endOfStreamRecord() {
+    return END_OF_STREAM_RECORD;
   }
 
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public boolean inSafeMode() {
-    return false;
-  }
-
-  protected SmartConf getConf() {
-    return context.getConf();
+  default boolean isLastRecord() {
+    return this == END_OF_STREAM_RECORD;
   }
 }

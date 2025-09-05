@@ -56,6 +56,7 @@
     <module>smart-web-server</module>
     <module>smart-hadoop-support</module>
     <module>smart-tests</module>
+    <module>smart-hive-support</module>
   </modules>
 
   <properties>
@@ -116,6 +117,7 @@
     <hadoop-thirdparty-shaded.protobuf.prefix>${hadoop-thirdparty-shaded.prefix}.protobuf</hadoop-thirdparty-shaded.protobuf.prefix>
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
+    <hive.version>4.0.1</hive.version>
   </properties>
 
   <profiles>

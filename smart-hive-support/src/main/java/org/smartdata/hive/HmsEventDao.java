@@ -15,30 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
+package org.smartdata.hive;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.smartdata.conf.SmartConf;
+import org.smartdata.hive.fetch.HiveNotificationEvent;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
+import java.util.Optional;
 
-  public AbstractService() {
-    this(null);
-  }
+public interface HmsEventDao {
+  void insert(HiveNotificationEvent event);
 
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
+  void deleteAll();
 
-  public boolean inSafeMode() {
-    return false;
-  }
-
-  protected SmartConf getConf() {
-    return context.getConf();
-  }
+  Optional<Long> getLatestExternalEventId();
 }
