@@ -119,6 +119,11 @@
             <type>test-jar</type>
         </dependency>
         <dependency>
+            <groupId>org.apache.hadoop.thirdparty</groupId>
+            <artifactId>hadoop-shaded-protobuf_3_7</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
@@ -165,6 +170,7 @@
                                     <include>com.google.thirdparty</include>
                                     <include>com.fasterxml</include>
                                     <include>commons-*</include>
+                                    <include>org.apache.hadoop.thirdparty:hadoop-shaded-protobuf_3_7</include>
                                 </includes>
                             </artifactSet>
                             <filters>
@@ -189,6 +195,10 @@
                                 <relocation>
                                     <pattern>com.fasterxml</pattern>
                                     <shadedPattern>${shaded.dependencies.prefix}.com.fasterxml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.hadoop.thirdparty.protobuf</pattern>
+                                    <shadedPattern>${shaded.dependencies.prefix}.org.apache.hadoop.thirdparty.protobuf</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
