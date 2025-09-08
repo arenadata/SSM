@@ -21,6 +21,7 @@ import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.step.ClusterInfoStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.TableStep;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Autowired
   private TableStep tableStep;
 
+  @Autowired
+  ClusterInfoStep clusterInfoStep;
+
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
@@ -56,5 +60,13 @@ public class ClusterInfoSuite extends SsmBaseSuite {
         .checkSorting(EXECUTORS)
         .checkSorting(REGISTER_TIME)
         .checkSorting(ID);
+  }
+
+  @TmsLink("91393")
+  @Story("Cluster info. Hosts")
+  @Test(description = "Check 'Hosts' filtration")
+  public void testHostsFiltration() {
+    tableStep.checkTableRowsCountIs(2);
+    clusterInfoStep.checkAuditDateFiltration();
   }
 }
