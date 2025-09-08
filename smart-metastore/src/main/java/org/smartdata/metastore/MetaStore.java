@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
+import org.smartdata.hive.HmsEventDao;
 import org.smartdata.metaservice.BackupMetaService;
 import org.smartdata.metaservice.CmdletMetaService;
 import org.smartdata.metaservice.CopyMetaService;
@@ -110,6 +111,8 @@ public class MetaStore implements CopyMetaService,
   private final StorageDao storageDao;
   private final FileDiffDao fileDiffDao;
   private final FileAccessDao fileAccessDao;
+  private final HmsEventDao hmsEventDao;
+  private final HmsEventDao hmsIgnoredEventDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
@@ -157,6 +160,8 @@ public class MetaStore implements CopyMetaService,
     userActivityDao = daoProvider.userActivityDao();
     fileAccessPartitionDao = daoProvider.fileAccessPartitionDao();
     fileAccessDao = daoProvider.fileAccessDao();
+    hmsEventDao =  daoProvider.hmsEventDao();
+    hmsIgnoredEventDao = daoProvider.hmsIgnoredEventDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -195,6 +200,13 @@ public class MetaStore implements CopyMetaService,
     return fileAccessPartitionDao;
   }
 
+  public HmsEventDao hmsEventDao() {
+    return hmsEventDao;
+  }
+
+  public HmsEventDao hmsIgnoredEventDao() {
+    return hmsIgnoredEventDao;
+  }
 
   public PlatformTransactionManager transactionManager() {
     return defaultTransactionRunner.getTransactionManager();

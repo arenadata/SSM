@@ -156,7 +156,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
       EventOperation eventOperation) throws InterruptedException {
     HiveNotificationEvent ssmEvent = HiveNotificationEvent.fromMetastoreEvent(event)
         .fullName(fullResourceName(event))
-        .eventEntity(eventOperation.getEntity().toString())
+        .entityType(eventOperation.getEntity().toString())
         .eventType(eventOperation.getOperation().toString())
         .build();
 
@@ -166,7 +166,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
   private void handleIgnoredEvent(NotificationEvent event) throws InterruptedException {
     HiveNotificationEvent ignoredEvent = HiveNotificationEvent.fromMetastoreEvent(event)
         .fullName(fullResourceName(event))
-        .eventEntity(HiveEntity.UNKNOWN.toString())
+        .entityType(HiveEntity.UNKNOWN.toString())
         .eventType(event.getEventType())
         .build();
 

@@ -26,14 +26,14 @@ import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 public class HiveNotificationEvent implements HmsEventStreamRecord {
   // fields from Hive event
   private final long externalId;
-  private final int eventTime;
+  private final long eventTime;
   private final String eventType;
-  private final String eventEntity;
+  private final String entityType;
+  private final String catalogName;
   private final String dbName;
   private final String tableName;
   private final String message;
   private final String messageFormat;
-  private final String catName;
 
   // computed fields on SSM side
   private final String fullName;
@@ -43,7 +43,7 @@ public class HiveNotificationEvent implements HmsEventStreamRecord {
     return HiveNotificationEvent.builder()
         .externalId(event.getEventId())
         .eventTime(event.getEventTime())
-        .catName(event.getCatName())
+        .catalogName(event.getCatName())
         .dbName(event.getDbName())
         .tableName(event.getTableName())
         .message(event.getMessage())

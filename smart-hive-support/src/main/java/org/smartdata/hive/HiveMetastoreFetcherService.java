@@ -38,27 +38,9 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_MAX_RETRIES;
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_MAX_RETRIES_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_RETRY_INTERVAL_MS;
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_RETRY_INTERVAL_MS_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_RETRY_STRATEGY;
-import static org.smartdata.hive.config.ConfigurationKeys.EVENT_APPLIER_RETRY_STRATEGY_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FETCH_BATCH_SIZE;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FETCH_BATCH_SIZE_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FETCH_PERIOD_MS;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FETCH_PERIOD_MS_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FULL_SYNC;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_FULL_SYNC_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_MAX_RETRIES;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_MAX_RETRIES_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_RETRY_INTERVAL_MS;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_RETRY_INTERVAL_MS_DEFAULT;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_RETRY_STRATEGY;
-import static org.smartdata.hive.config.ConfigurationKeys.HMS_RETRY_STRATEGY_DEFAULT;
-
 @Slf4j
 public class HiveMetastoreFetcherService extends AbstractService {
+  private final HiveSmartConf hiveSmartConf;
   private final HmsEventDao hiveEventDao;
   private final HmsEventDao unprocessedHiveEventDao;
 
@@ -72,6 +54,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
       HmsEventDao unprocessedHiveEventDao
   ) {
     super(context);
+    this.hiveSmartConf = new HiveSmartConf(context.getConf());
     this.hiveEventDao = hiveEventDao;
     this.unprocessedHiveEventDao = unprocessedHiveEventDao;
   }
@@ -81,7 +64,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
     try {
       scheduledExecutorService = Executors.newScheduledThreadPool(5);
 
-      HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(getContext().getConf());
+      HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveSmartConf);
 
       resourceSource = buildResourceSource(hiveMetaStoreClient, buildFetcherRetrySupport());
       eventStreamHandler = buildStreamHandler();
@@ -96,8 +79,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
     HmsEventStream eventStream;
 
-    boolean fullSync = getConf().getBoolean(HMS_FULL_SYNC, HMS_FULL_SYNC_DEFAULT);
-    if (fullSync) {
+    if (hiveSmartConf.isFullMetastoreSync()) {
       log.info("Running full resync of resource diffs");
       // if the full resync is required, then restart fetcher from scratch
       hiveEventDao.deleteAll();
@@ -137,20 +119,12 @@ public class HiveMetastoreFetcherService extends AbstractService {
       HiveMetaStoreClient hiveMetaStoreClient,
       RetrySupport retrySupport
   ) {
-    long fetchPeriod = getConf().getLong(
-        HMS_FETCH_PERIOD_MS,
-        HMS_FETCH_PERIOD_MS_DEFAULT);
-
-    int batchSize = getConf().getInt(
-        HMS_FETCH_BATCH_SIZE,
-        HMS_FETCH_BATCH_SIZE_DEFAULT);
-
     return new HmsInFlightEventSource(
         hiveMetaStoreClient,
         scheduledExecutorService,
         retrySupport,
-        fetchPeriod,
-        batchSize,
+        hiveSmartConf.getFetchPeriodMs(),
+        hiveSmartConf.getFetchBatchSize(),
         null
     );
   }
@@ -159,9 +133,9 @@ public class HiveMetastoreFetcherService extends AbstractService {
     RetryPolicyFactory retryPolicyFactory = new RetryPolicyFactory();
 
     ResourceMapperRetryPolicy retryPolicy = retryPolicyFactory.provide(
-        getConf().getEnum(HMS_RETRY_STRATEGY, HMS_RETRY_STRATEGY_DEFAULT),
-        getConf().getInt(HMS_MAX_RETRIES, HMS_MAX_RETRIES_DEFAULT),
-        getConf().getLong(HMS_RETRY_INTERVAL_MS, HMS_RETRY_INTERVAL_MS_DEFAULT)
+        hiveSmartConf.getHiveListenerRetryStrategy(),
+        hiveSmartConf.getHiveListenerMaxRetries(),
+        hiveSmartConf.getHiveListenerRetryIntervalMs()
     );
     return new PolicyBasedRetrySupport(retryPolicy, Thread::sleep);
   }
@@ -170,9 +144,9 @@ public class HiveMetastoreFetcherService extends AbstractService {
     RetryPolicyFactory retryPolicyFactory = new RetryPolicyFactory();
 
     ResourceMapperRetryPolicy retryPolicy = retryPolicyFactory.provide(
-        getConf().getEnum(EVENT_APPLIER_RETRY_STRATEGY, EVENT_APPLIER_RETRY_STRATEGY_DEFAULT),
-        getConf().getInt(EVENT_APPLIER_MAX_RETRIES, EVENT_APPLIER_MAX_RETRIES_DEFAULT),
-        getConf().getLong(EVENT_APPLIER_RETRY_INTERVAL_MS, EVENT_APPLIER_RETRY_INTERVAL_MS_DEFAULT)
+        hiveSmartConf.getEventApplierRetryStrategy(),
+        hiveSmartConf.getEventApplierMaxRetries(),
+        hiveSmartConf.getEventApplierRetryIntervalMs()
     );
     return new PolicyBasedRetrySupport(retryPolicy, Thread::sleep);
   }
