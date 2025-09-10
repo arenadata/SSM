@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import com.google.common.collect.ImmutableMap;
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.metastore.dao.AbstractDao;
@@ -25,12 +24,13 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import javax.sql.DataSource;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
-  private static final String EVENTS_TABLE_NAME = "hm_event";
-  private static final String IGNORED_EVENTS_TABLE_NAME = "hm_event";
+  private static final String EVENTS_TABLE_NAME = "hive_metastore_event";
+  private static final String IGNORED_EVENTS_TABLE_NAME = "ignored_hive_metastore_event";
 
   private static final String ID_FIELD = "id";
   private static final String EXTERNAL_ID_FIELD = "external_id";
@@ -74,17 +74,17 @@ public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
   }
 
   private Map<String, Object> toMap(HiveNotificationEvent event) {
-    return ImmutableMap.of(
-        EXTERNAL_ID_FIELD, event.getExternalId(),
-        EVENT_TIME_FIELD, event.getEventTime(),
-        EVENT_TYPE_FIELD, event.getEventType(),
-        ENTITY_TYPE_FIELD, event.getEntityType(),
-        CATALOG_NAME_FIELD, event.getCatalogName(),
-        DB_NAME_FIELD, event.getDbName(),
-        TABLE_NAME_FIELD, event.getTableName(),
-        MESSAGE_FIELD, event.getMessage(),
-        MESSAGE_FORMAT_FIELD, event.getMessageFormat()
-    );
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put(EXTERNAL_ID_FIELD, event.getExternalId());
+    parameters.put(EVENT_TIME_FIELD, event.getEventTime());
+    parameters.put(EVENT_TYPE_FIELD, event.getEventType());
+    parameters.put(ENTITY_TYPE_FIELD, event.getEntityType());
+    parameters.put(CATALOG_NAME_FIELD, event.getCatalogName());
+    parameters.put(DB_NAME_FIELD, event.getDbName());
+    parameters.put(TABLE_NAME_FIELD, event.getTableName());
+    parameters.put(MESSAGE_FIELD, event.getMessage());
+    parameters.put(MESSAGE_FORMAT_FIELD, event.getMessageFormat());
+    return parameters;
   }
 
   public static DefaultHmsEventDao defaultEventsDao(DataSource dataSource) {

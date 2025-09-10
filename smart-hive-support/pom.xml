@@ -80,7 +80,7 @@
                     <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
+                    <groupId>com.zaxxer</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
@@ -115,7 +115,7 @@
                     <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
+                    <groupId>com.zaxxer</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>

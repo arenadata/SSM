@@ -39,7 +39,7 @@ public class HiveSmartConf extends Configuration {
   public static final int HMS_FETCH_BATCH_SIZE_DEFAULT = 8192;
 
   public static final String HMS_FETCHER_RETRY_STRATEGY = "smart.hive.event.fetcher.retry.strategy";
-  public static final RetryStrategy HMS_FETCHER_RETRY_STRATEGY_DEFAULT = RetryStrategy.FIXED_SLEEP;
+  public static final RetryStrategy HMS_FETCHER_RETRY_STRATEGY_DEFAULT = RetryStrategy.EXPONENTIAL;
 
   public static final String HMS_FETCHER_RETRY_INTERVAL_MS = "smart.hive.event.fetcher.retry.interval.ms";
   public static final long HMS_FETCHER_RETRY_INTERVAL_MS_DEFAULT = 1000L;

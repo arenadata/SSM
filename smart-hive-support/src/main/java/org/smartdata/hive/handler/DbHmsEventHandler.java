@@ -32,6 +32,7 @@ public class DbHmsEventHandler implements HmsEventHandler {
 
   @Override
   public void handle(HmsEventStreamRecord record) throws Exception {
+    log.debug("Handler Hive event stream record: {}", record);
     retrySupport.withRetries(() -> handleEventAction(record));
   }
 

@@ -19,6 +19,7 @@ package org.smartdata.hive;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
@@ -37,6 +38,8 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
 
 @Slf4j
 public class HiveMetastoreFetcherService extends AbstractService {
@@ -64,11 +67,11 @@ public class HiveMetastoreFetcherService extends AbstractService {
     try {
       scheduledExecutorService = Executors.newScheduledThreadPool(5);
 
-      HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(hiveSmartConf);
-
-      resourceSource = buildResourceSource(hiveMetaStoreClient, buildFetcherRetrySupport());
+      resourceSource = buildEventSource(
+          buildMetastoreClient(),
+          buildFetcherRetrySupport());
       eventStreamHandler = buildStreamHandler();
-    } catch (MetaException metaException) {
+    } catch (Exception metaException) {
       throw new IOException("Error initializing Hive Metastore client", metaException);
     }
   }
@@ -115,8 +118,8 @@ public class HiveMetastoreFetcherService extends AbstractService {
     );
   }
 
-  private HmsEventSource buildResourceSource(
-      HiveMetaStoreClient hiveMetaStoreClient,
+  private HmsEventSource buildEventSource(
+      IMetaStoreClient hiveMetaStoreClient,
       RetrySupport retrySupport
   ) {
     return new HmsInFlightEventSource(
@@ -149,5 +152,18 @@ public class HiveMetastoreFetcherService extends AbstractService {
         hiveSmartConf.getEventApplierRetryIntervalMs()
     );
     return new PolicyBasedRetrySupport(retryPolicy, Thread::sleep);
+  }
+
+  private IMetaStoreClient buildMetastoreClient() {
+    try {
+      return doAsCurrentUser(this::buildMetastoreClientAction);
+    } catch (IOException e) {
+      log.error("Failed to build metastore client", e);
+      throw new RuntimeException(e);
+    }
+  }
+
+  private IMetaStoreClient buildMetastoreClientAction() throws MetaException {
+    return new HiveMetaStoreClient(hiveSmartConf);
   }
 }

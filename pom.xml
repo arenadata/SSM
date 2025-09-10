@@ -117,6 +117,7 @@
     <hadoop-thirdparty-shaded.protobuf.prefix>${hadoop-thirdparty-shaded.prefix}.protobuf</hadoop-thirdparty-shaded.protobuf.prefix>
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
+    <liquibase.version>4.23.2</liquibase.version>
     <hive.version>4.0.1</hive.version>
   </properties>
 
@@ -478,6 +479,12 @@
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>${lombok.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.liquibase</groupId>
+        <artifactId>liquibase-core</artifactId>
+        <version>${liquibase.version}</version>
       </dependency>
 
       <dependency>

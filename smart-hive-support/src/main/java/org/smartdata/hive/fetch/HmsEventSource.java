@@ -23,4 +23,7 @@ public interface HmsEventSource extends Closeable {
   HmsEventStream eventStream();
 
   HmsEventStream eventStreamFrom(long eventId);
+
+  @Override
+  void close();
 }

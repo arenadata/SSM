@@ -19,7 +19,6 @@ package org.smartdata;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.smartdata.conf.SmartConf;
 
 @Getter
 @Setter
@@ -36,9 +35,5 @@ public abstract class AbstractService implements SmartService {
 
   public boolean inSafeMode() {
     return false;
-  }
-
-  protected SmartConf getConf() {
-    return context.getConf();
   }
 }

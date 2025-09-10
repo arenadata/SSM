@@ -86,6 +86,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
   @Override
   public HmsEventStream eventStreamFrom(long eventId) {
     if (pollStarted.compareAndSet(false, true)) {
+      log.info("Start polling from eventId {}", eventId);
       lastHandledEventId = eventId;
       executor.scheduleAtFixedRate(this::pollRecordsBatch,
           0L, fetchPeriodMs, TimeUnit.MILLISECONDS);
@@ -95,6 +96,8 @@ public class HmsInFlightEventSource implements HmsEventSource {
 
   void pollRecordsBatch() {
     try {
+      log.debug("Polling records batch from eventId {}", lastHandledEventId);
+
       retrySupport.withRetries(
           () -> doAsCurrentUser(this::pollRecordsBatchAction)
       );
@@ -106,6 +109,25 @@ public class HmsInFlightEventSource implements HmsEventSource {
       log.error("Exiting HiveMetastoreEventFetcher due to error", exception);
       close();
     }
+  }
+
+  public HmsInFlightEventSource toFiniteFetcher(long endEventId) {
+    return toBuilder().endEventId(endEventId).build();
+  }
+
+  @Override
+  public void close() {
+    if (executor != null) {
+      executor.shutdown();
+    }
+
+    try {
+      metaStoreClient.close();
+    } catch (Exception e) {
+      log.error("Error closing Hive Metastore client", e);
+    }
+
+    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
 
   private void pollRecordsBatchAction() {
@@ -137,6 +159,9 @@ public class HmsInFlightEventSource implements HmsEventSource {
 
   private void handle(NotificationEvent event) {
     try {
+      log.debug("Handling event {} with type {} and name: {}",
+          event.getEventId(), event.getEventType(), fullResourceName(event));
+
       EventOperation eventOperation = eventOperationBuilder.from(event);
 
       if (eventOperation.shouldBeProcessed()) {
@@ -179,24 +204,5 @@ public class HmsInFlightEventSource implements HmsEventSource {
     Optional.ofNullable(event.getDbName()).ifPresent(nameBuilder::add);
     Optional.ofNullable(event.getTableName()).ifPresent(nameBuilder::add);
     return nameBuilder.toString();
-  }
-
-  public HmsInFlightEventSource toFiniteFetcher(long endEventId) {
-    return toBuilder().endEventId(endEventId).build();
-  }
-
-  @Override
-  public void close() {
-    if (executor != null) {
-      executor.shutdown();
-    }
-
-    try {
-      metaStoreClient.close();
-    } catch (Exception e) {
-      log.error("Error closing Hive Metastore client", e);
-    }
-
-    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
 }
