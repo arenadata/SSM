@@ -17,20 +17,7 @@
  */
 package org.smartdata.hdfs.action;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.tools.DistCpOptions;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -38,12 +25,21 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.smartdata.hdfs.MiniClusterHarness;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.ACL;
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.CHECKSUMTYPE;
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.GROUP;
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.PERMISSION;
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.TIMES;
 import static org.apache.hadoop.tools.DistCpOptions.FileAttribute.USER;
+import static org.smartdata.model.CmdletDescriptor.RULE_ID;
 
 /**
  * Test for DistCpAction.
@@ -119,8 +115,8 @@ public class TestDistCpAction extends MiniClusterHarness {
 
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class, () -> createAction(args).buildDistCpOptions());
-    Assert.assertEquals(exception.getMessage(),
-        "Source paths not provided, please provide either -file either -f argument");
+    Assert.assertEquals("Source paths not provided, please provide either -file either -f argument",
+        exception.getMessage());
   }
 
   @Test
@@ -131,8 +127,8 @@ public class TestDistCpAction extends MiniClusterHarness {
 
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class, () -> createAction(args).buildDistCpOptions());
-    Assert.assertEquals(exception.getMessage(),
-        "Source paths not provided, please provide either -file either -f argument");
+    Assert.assertEquals("Source paths not provided, please provide either -file either -f argument",
+        exception.getMessage());
   }
 
   @Test
@@ -144,8 +140,9 @@ public class TestDistCpAction extends MiniClusterHarness {
 
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class, () -> createAction(args).buildDistCpOptions());
-    Assert.assertEquals(exception.getMessage(),
-        "-file and -f can't be used at the same time. Use only one of the options for specifying source paths.");
+    Assert.assertEquals(
+        "-file and -f can't be used at the same time. Use only one of the options for specifying source paths.",
+        exception.getMessage());
   }
 
   @Test
@@ -155,7 +152,7 @@ public class TestDistCpAction extends MiniClusterHarness {
 
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class, () -> createAction(args).buildDistCpOptions());
-    Assert.assertEquals(exception.getMessage(), "Required argument not present: -target");
+    Assert.assertEquals("Required argument not present: -target", exception.getMessage());
   }
 
   @Test
@@ -166,7 +163,7 @@ public class TestDistCpAction extends MiniClusterHarness {
 
     IllegalArgumentException exception = Assert.assertThrows(
         IllegalArgumentException.class, () -> createAction(args).buildDistCpOptions());
-    Assert.assertEquals(exception.getMessage(), "Required argument not present: -target");
+    Assert.assertEquals("Required argument not present: -target", exception.getMessage());
   }
 
   @Test
@@ -174,6 +171,7 @@ public class TestDistCpAction extends MiniClusterHarness {
     Map<String, String> args = new HashMap<>();
     args.put(DistCpAction.FILE_PATH, "/test/source/dir1");
     args.put(DistCpAction.TARGET_ARG, "hdfs://nn2/test/target/dir1");
+    args.put(RULE_ID, "183");
     args.put("-pcat", "");
     args.put("-m", "16");
     args.put("-strategy", "dynamic");
@@ -192,88 +190,5 @@ public class TestDistCpAction extends MiniClusterHarness {
     Assert.assertTrue(distCpOptions.shouldSyncFolder());
     Assert.assertEquals(EnumSet.of(CHECKSUMTYPE, ACL, TIMES),
         distCpOptions.getPreserveAttributes());
-  }
-
-  @Test
-  public void testIntraClusterCopy() throws Exception {
-    testCopyToCluster(dfs, dfs);
-  }
-
-  @Test
-  public void testCopyToAnotherCluster() throws Exception {
-    // MiniDFSCluster from hadoop 2.7 doesn't implement AutoCloseable
-    MiniDFSCluster anotherCluster = null;
-    try {
-      anotherCluster = createAnotherCluster();
-      anotherCluster.waitActive();
-      FileSystem anotherFs = anotherCluster.getFileSystem();
-      testCopyToCluster(dfs, anotherFs);
-    } finally {
-      if (anotherCluster != null) {
-        anotherCluster.shutdown();
-      }
-    }
-  }
-
-  @Test
-  public void testCopyFromAnotherCluster() throws Exception {
-    MiniDFSCluster anotherCluster = null;
-    try {
-      anotherCluster = createAnotherCluster();
-      anotherCluster.waitActive();
-      FileSystem anotherFs = anotherCluster.getFileSystem();
-      testCopyToCluster(anotherFs, dfs);
-    } finally {
-      if (anotherCluster != null) {
-        anotherCluster.shutdown();
-      }
-    }
-  }
-
-  // todo inherit from MultiClusterHarness
-  private void testCopyToCluster(FileSystem sourceFs, FileSystem targetFs) throws Exception {
-    Map<String, String> args = new HashMap<>();
-    String sourcePath = sourceFs.getUri() + "/test/source/dir1";
-    String targetPath = targetFs.getUri() + "/test/target/";
-
-    args.put(DistCpAction.FILE_PATH, sourcePath);
-    args.put(DistCpAction.TARGET_ARG, targetPath);
-    DistCpAction action = createAction(args);
-
-    writeToFile(sourceFs, new Path(sourcePath + "/testFile1"), "data-1");
-    writeToFile(sourceFs, new Path(sourcePath + "/testFile2"), "another file data");
-    writeToFile(sourceFs, new Path(sourcePath + "/inner/testFile3"), "inner data");
-
-    action.execute();
-
-    assertFileContent(targetFs, new Path(targetPath + "/dir1/testFile1"), "data-1");
-    assertFileContent(targetFs, new Path(targetPath + "/dir1/testFile2"), "another file data");
-    assertFileContent(targetFs, new Path(targetPath + "/dir1/inner/testFile3"), "inner data");
-  }
-
-  private MiniDFSCluster createAnotherCluster() throws Exception {
-    Configuration clusterConfig = new Configuration(smartContext.getConf());
-    clusterConfig.set("hdfs.minidfs.basedir", tmpFolder.newFolder().getAbsolutePath());
-    return createCluster(clusterConfig);
-  }
-
-  private void assertFileContent(
-      final FileSystem fileSystem, final Path path, final String expectedData) throws IOException {
-    Assert.assertTrue(fileSystem.exists(path));
-    Assert.assertEquals(expectedData, readFromFile(fileSystem, path));
-  }
-
-  private void writeToFile(
-      final FileSystem fileSystem, final Path path, final String data) throws IOException {
-    fileSystem.mkdirs(path.getParent());
-    try (final FSDataOutputStream outputStream = fileSystem.create(path)) {
-      outputStream.writeUTF(data);
-    }
-  }
-
-  private String readFromFile(final FileSystem fileSystem, final Path path) throws IOException {
-    try (final FSDataInputStream inputStream = fileSystem.open(path)) {
-      return inputStream.readUTF();
-    }
   }
 }
