@@ -17,6 +17,8 @@
  */
 package org.smartdata.hive.fetch;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -46,11 +48,14 @@ public class HmsInFlightEventSource implements HmsEventSource {
   private final long fetchPeriodMs;
   private final Long endEventId;
 
+  @Getter(AccessLevel.PACKAGE)
   private final BlockingQueue<HmsEventStreamRecord> outputQueue;
+  @Getter(AccessLevel.PACKAGE)
   private final BlockingQueue<HmsEventStreamRecord> ignoredEventsQueue;
   private final AtomicBoolean pollStarted;
   private final AtomicBoolean pollFinished;
 
+  @Getter(AccessLevel.PACKAGE)
   private volatile long lastHandledEventId;
 
   @lombok.Builder(
@@ -198,7 +203,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
     ignoredEventsQueue.put(ignoredEvent);
   }
 
-  private String fullResourceName(NotificationEvent event) {
+  static String fullResourceName(NotificationEvent event) {
     StringJoiner nameBuilder = new StringJoiner(".");
     Optional.ofNullable(event.getCatName()).ifPresent(nameBuilder::add);
     Optional.ofNullable(event.getDbName()).ifPresent(nameBuilder::add);
