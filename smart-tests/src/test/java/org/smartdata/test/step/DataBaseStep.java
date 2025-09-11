@@ -18,6 +18,7 @@
 package org.smartdata.test.step;
 
 
+import io.arenadata.test.util.FileUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.test.repository.MetastoreRepository;
@@ -52,6 +53,8 @@ public class DataBaseStep {
   private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = "insert_action_for_action_details_page_test.sql";
   private static final String AUDIT_FOR_SORT_TEST_SQL = "insert_audit_for_sort_test.sql";
   private static final String AUDIT_FOR_FILTER_TEST_SQL = "insert_audit_for_filter_test.sql";
+  private static final String HOTTEST_FILES_FOR_SORT_TEST_SQL = "insert_hottest_files_for_sort_test.sql";
+  private static final String DELETE_HOTTEST_FILES_FOR_SORT_TEST_SQL = "delete_hottest_files_for_sort_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -66,6 +69,11 @@ public class DataBaseStep {
 
   public DataBaseStep cleanAuditTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_AUDIT_TABLE);
+    return this;
+  }
+
+  public DataBaseStep cleanHottestFilesTable() throws SQLException {
+    metastoreRepository.executeSqlFile(getSqlFilePath(DELETE_HOTTEST_FILES_FOR_SORT_TEST_SQL));
     return this;
   }
 
@@ -121,6 +129,14 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertDataForAuditFilterTest() {
     metastoreRepository.executeSqlFile(getSqlFilePath(AUDIT_FOR_FILTER_TEST_SQL));
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForHottestFilesSortTest() {
+    String sql = FileUtils.readFile(getSqlFilePath(HOTTEST_FILES_FOR_SORT_TEST_SQL));
+    sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
+    metastoreRepository.executeSql(sql);
     return this;
   }
 

@@ -1,0 +1,6 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+    <aspects>
+        <include within="io.qameta.allure..*" />
+    </aspects>
+</aspectj>

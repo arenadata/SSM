@@ -17,7 +17,6 @@
  */
 package org.smartdata.test.step;
 
-import com.codeborne.selenide.SelenideElement;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
@@ -47,9 +46,8 @@ import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CANCEL_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_CREATE_BUTTON;
 import static org.smartdata.test.element.ActionsPageElement.SUBMIT_ACTION_DIALOG_INPUT;
-import static org.smartdata.test.element.TableElement.TABLE_ROWS;
-import static org.smartdata.test.element.TableElement.getCellFromRow;
-import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
+import static org.smartdata.test.element.TableElement.getCellInFirstRow;
+import static org.smartdata.test.element.TableElement.getTableRows;
 import static org.smartdata.test.model.ActionStatus.RUNNING;
 import static org.smartdata.test.model.ActionStatus.SCHEDULED;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
@@ -179,15 +177,15 @@ public class ActionsStep extends BaseWebStep {
 
   @Step("Check 'Repeat Action' button")
   public ActionsStep checkRepeatActionButton() {
-    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndClick(getTableRows().first().$x(REPEAT_ACTION_BUTTON_XPATH));
     waitVisibility(REPEAT_ACTION_DIALOG);
     waitTextEquals(REPEAT_ACTION_DIALOG_INPUT, TEST_ACTION_TEXT);
     waitAndClick(REPEAT_ACTION_DIALOG_CANCEL_BUTTON);
     waitDisappear(REPEAT_ACTION_DIALOG);
-    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndClick(getTableRows().first().$x(REPEAT_ACTION_BUTTON_XPATH));
     waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
     tableStep.checkTableRowsCountIs(2);
-    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndClick(getTableRows().first().$x(REPEAT_ACTION_BUTTON_XPATH));
     waitAndReWrite(REPEAT_ACTION_DIALOG_INPUT, TEST_ACTION_TEXT);
     waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
     tableStep.checkTableRowsCountIs(3)
@@ -198,22 +196,21 @@ public class ActionsStep extends BaseWebStep {
 
   @Step("Open 'Action Details' page for first action in table")
   public ActionsStep openFirstActionDetails() {
-    waitAndClick(getColumnInFirstRow(ACTION).$x(ACTION_DETAILS_LINK_XPATH));
+    waitAndClick(getCellInFirstRow(ACTION).$x(ACTION_DETAILS_LINK_XPATH));
     return this;
   }
 
   @Step("Check hosts assignment")
   public ActionsStep checkHostAssignment() {
     tableStep.checkSelectedSorting(ID, DESC);
-    SelenideElement firstRow = TABLE_ROWS.first();
-    waitTextEquals(getCellFromRow(firstRow, STATUS), SCHEDULED.getText());
-    waitTextEquals(getCellFromRow(firstRow, HOST), TABLE_EMPTY_VALUE);
-    getCellFromRow(firstRow, HOST).shouldHave(exactText(TABLE_EMPTY_VALUE));
-    waitTextEquals(getCellFromRow(firstRow, STATUS), RUNNING.getText());
-    getCellFromRow(firstRow, HOST).shouldHave(
+    waitTextEquals(getCellInFirstRow(STATUS), SCHEDULED.getText());
+    waitTextEquals(getCellInFirstRow(HOST), TABLE_EMPTY_VALUE);
+    getCellInFirstRow(HOST).shouldHave(exactText(TABLE_EMPTY_VALUE));
+    waitTextEquals(getCellInFirstRow(STATUS), RUNNING.getText());
+    getCellInFirstRow(HOST).shouldHave(
         or("Check host name", exactText(SSM_SERVER_HOST_NAME), exactText(DATANODE_HOST_NAME)));
-    waitTextEquals(getCellFromRow(firstRow, STATUS), SUCCESSFUL.getText());
-    getCellFromRow(firstRow, HOST).shouldHave(
+    waitTextEquals(getCellInFirstRow(STATUS), SUCCESSFUL.getText());
+    getCellInFirstRow(HOST).shouldHave(
         or("Check host name", exactText(SSM_SERVER_HOST_NAME), exactText(DATANODE_HOST_NAME)));
     return this;
   }

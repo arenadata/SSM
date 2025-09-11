@@ -47,12 +47,14 @@ import static org.smartdata.test.element.TableElement.CHANGE_FREQUENCY_SELECT;
 import static org.smartdata.test.element.TableElement.NODATA_ROW;
 import static org.smartdata.test.element.TableElement.RESET_FILTER_BUTTON;
 import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
-import static org.smartdata.test.element.TableElement.TABLE_ROWS;
+import static org.smartdata.test.element.TableElement.TableType;
+import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
 import static org.smartdata.test.element.TableElement.getAllColumnCells;
-import static org.smartdata.test.element.TableElement.getColumnInFirstRow;
+import static org.smartdata.test.element.TableElement.getCellInFirstRow;
 import static org.smartdata.test.element.TableElement.getFilterButton;
 import static org.smartdata.test.element.TableElement.getFrequencyOption;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
+import static org.smartdata.test.element.TableElement.getTableRows;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
 import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_FORMATTER_UI;
@@ -63,26 +65,32 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that current page's table is empty")
   public TableStep checkTableIsEmpty() {
-    checkSize(TABLE_ROWS, 0);
+    checkSize(getTableRows(), 0);
     waitVisibility(NODATA_ROW);
     return this;
   }
 
   @Step("Check that page's table has {expectedRowsCount} rows")
   public TableStep checkTableRowsCountIs(int expectedRowsCount) {
-    checkSize(TABLE_ROWS, expectedRowsCount);
+    checkTableRowsCountIs(PRIMARY, expectedRowsCount);
+    return this;
+  }
+
+  @Step("Check that page's {tableType} table has {expectedRowsCount} rows")
+  public TableStep checkTableRowsCountIs(TableType tableType, int expectedRowsCount) {
+    checkSize(getTableRows(tableType), expectedRowsCount);
     return this;
   }
 
   @Step("Check that page's table has '{matchingValue}' value in {column} column of the first row")
   public TableStep checkColumnValueInFirstRow(TableColumn column, String matchingValue) {
-    waitTextEquals(TableElement.getColumnInFirstRow(column), matchingValue);
+    waitTextEquals(TableElement.getCellInFirstRow(column), matchingValue);
     return this;
   }
 
   @Step("Check that page's table match '{pattern}' pattern in {column} column of the first row")
   public TableStep checkColumnValueInFirstRowMatchPattern(TableColumn column, String pattern) {
-    String value = waitVisibility(getColumnInFirstRow(column)).getText();
+    String value = waitVisibility(getCellInFirstRow(column)).getText();
     assertThat(value).matches(pattern);
     return this;
   }
@@ -99,9 +107,21 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Click sorting on {tableType} table {column} column")
+  public TableStep clickOnSortingColumn(TableType tableType, TableColumn column) {
+    waitAndClick(getSortingColumnHeader(tableType, column));
+    return this;
+  }
+
   @Step("Check sorting indicator on {column} column is {sortOrder}")
   public TableStep checkSelectedSorting(TableColumn column, SortOrder sortOrder) {
-    SelenideElement columnHeader = getSortingColumnHeader(column);
+    checkSelectedSorting(PRIMARY, column, sortOrder);
+    return this;
+  }
+
+  @Step("Check sorting indicator on {tableType} table {column} column is {sortOrder}")
+  public TableStep checkSelectedSorting(TableType tableType, TableColumn column, SortOrder sortOrder) {
+    SelenideElement columnHeader = getSortingColumnHeader(tableType, column);
     columnHeader.shouldHave(attributeMatching("class", ".*is-sorted.*"), DEFAULT_WEB_ELEMENT_TIMEOUT);
     if (sortOrder == ASC) {
       columnHeader.$x(SORTING_ARROW_XPATH)
@@ -115,8 +135,14 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that values in {column} column are sorted in {sortOrder} order")
   public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder) {
+    checkColumnValuesIsSorted(PRIMARY, column, sortOrder);
+    return this;
+  }
+
+  @Step("Check that values in {tableType} table {column} column are sorted in {sortOrder} order")
+  public TableStep checkColumnValuesIsSorted(TableType tableType, TableColumn column, SortOrder sortOrder) {
     waitUntil(() -> {
-      List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
+      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable().stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
           .map(String::toLowerCase)
@@ -151,22 +177,34 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check default sorting on {tableColumn} column")
   public TableStep checkDefaultSorting(TableColumn tableColumn) {
-    checkSelectedSorting(tableColumn, DESC)
-        .checkColumnValuesIsSorted(tableColumn, DESC)
-        .clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, ASC)
-        .checkColumnValuesIsSorted(tableColumn, ASC);
+    checkDefaultSorting(PRIMARY, tableColumn);
+    return this;
+  }
+
+  @Step("Check default sorting on {tableType} table {tableColumn} column")
+  public TableStep checkDefaultSorting(TableType tableType, TableColumn tableColumn) {
+    checkSelectedSorting(tableType, tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, DESC)
+        .clickOnSortingColumn(tableType, tableColumn)
+        .checkSelectedSorting(tableType, tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, ASC);
     return this;
   }
 
   @Step("Check sorting on {tableColumn} column")
   public TableStep checkSorting(TableColumn tableColumn) {
-    clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, ASC)
-        .checkColumnValuesIsSorted(tableColumn, ASC)
-        .clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, DESC)
-        .checkColumnValuesIsSorted(tableColumn, DESC);
+    checkSorting(PRIMARY, tableColumn);
+    return this;
+  }
+
+  @Step("Check sorting on {tableType} table {tableColumn} column")
+  public TableStep checkSorting(TableType tableType, TableColumn tableColumn) {
+    clickOnSortingColumn(tableType, tableColumn)
+        .checkSelectedSorting(tableType, tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, ASC)
+        .clickOnSortingColumn(tableType, tableColumn)
+        .checkSelectedSorting(tableType, tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, DESC);
     return this;
   }
 
@@ -195,7 +233,7 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check color marker in first row is visible")
   public TableStep checkColorStatusMarkerInFirstRow(TableColumn tableColumn, String statusMarkerXpath) {
-    waitVisibility(getColumnInFirstRow(tableColumn).$x(statusMarkerXpath));
+    waitVisibility(getCellInFirstRow(tableColumn).$x(statusMarkerXpath));
     return this;
   }
 
@@ -212,7 +250,7 @@ public class TableStep extends BaseWebStep {
     IntStream.of(10, 5, 2, 1).forEachOrdered(refreshPeriod -> {
       changeRefreshingFrequencyTo(refreshPeriod);
       waitUntil(() -> {
-        SelenideElement firstTimeCell = getColumnInFirstRow(column);
+        SelenideElement firstTimeCell = getCellInFirstRow(column);
         String dateBeforeRefreshStr = firstTimeCell.getText();
         String dateAfterRefreshStr =
             firstTimeCell.shouldHave(not(text(dateBeforeRefreshStr)), DEFAULT_WEB_ELEMENT_TIMEOUT).getText();

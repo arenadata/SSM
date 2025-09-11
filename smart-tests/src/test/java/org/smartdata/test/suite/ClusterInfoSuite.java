@@ -19,9 +19,12 @@ package org.smartdata.test.suite;
 
 import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.ClusterInfoStep;
+import org.smartdata.test.step.DataBaseStep;
+import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.TableStep;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,7 @@ import org.testng.annotations.Test;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
+import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
 import static org.smartdata.test.model.SortOrder.ASC;
 
 
@@ -44,7 +48,13 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   private TableStep tableStep;
 
   @Autowired
-  ClusterInfoStep clusterInfoStep;
+  private DataBaseStep dataBaseStep;
+
+  @Autowired
+  private ClusterInfoStep clusterInfoStep;
+
+  @Autowired
+  private HottestFilesStep hottestFilesStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -67,6 +77,20 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Test(description = "Check 'Hosts' filtration")
   public void testHostsFiltration() {
     tableStep.checkTableRowsCountIs(2);
-    clusterInfoStep.checkAuditDateFiltration();
+    clusterInfoStep.checkClusterInfoRegisterTimeFiltration();
   }
-}
+
+  @TmsLink("91460")
+  @Story("Cluster info. Hottest files")
+  @Test(description = "Check 'Hottest files' sorting")
+  public void testHottestFilesSorting() {
+    prepareDataForHottestFilesSortingTest();
+    hottestFilesStep.checkSorting();
+  }
+
+  @Step("Create hottest files rows for sorting test")
+  private void prepareDataForHottestFilesSortingTest() {
+    dataBaseStep.insertDataForHottestFilesSortTest();
+    tableStep.refreshPage();
+    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+  }}

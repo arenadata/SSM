@@ -19,30 +19,43 @@ package org.smartdata.test.element;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.smartdata.test.model.TableColumn;
 
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public interface TableElement {
-  ElementsCollection TABLE_ROWS = $$x("//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]");
-  ElementsCollection SORTING_COLUMN_HEADERS = $$x("//*[@data-test='sorting']");
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
   SelenideElement RESET_FILTER_BUTTON = $x("//*[.='Reset filter']");
   SelenideElement CHANGE_FREQUENCY_SELECT = $x("//*[contains(@class, 'frequencySelect')]//input");
+  String TABLE_ROWS_XPATH = ".//tbody//tr[not(@data-test='no-data')]";
+  String SORTING_COLUMN_HEADERS = ".//*[@data-test='sorting']";
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
-  String ALL_COLUMN_CELL_BY_INDEX_XPATH = "//*[@data-test='table']//tbody//tr[not(@data-test='no-data')]//td[%d]";
+  String ALL_COLUMN_CELL_BY_INDEX_XPATH = ".//tbody//tr[not(@data-test='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
-  String COLUMN_HEADER_XPATH = "//*[@data-test='table']//th[@data-test='%s']";
+  String COLUMN_HEADER_XPATH = ".//th[@data-test='%s']";
   String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
   String GREEN_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_green')]";
   String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
   String BLUE_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_blue')]";
   String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
 
-  static SelenideElement getColumnInFirstRow(TableColumn tableColumn) {
-    return getCellFromRow(TABLE_ROWS.first(), tableColumn);
+  static ElementsCollection getTableRows() {
+    return getTableRows(TableType.PRIMARY);
+  }
+
+  static ElementsCollection getTableRows(TableType tableType) {
+    return tableType.getTableRows();
+  }
+
+  static SelenideElement getCellInFirstRow(TableColumn tableColumn) {
+    return getCellInFirstRow(TableType.PRIMARY, tableColumn);
+  }
+
+  static SelenideElement getCellInFirstRow(TableType tableType, TableColumn tableColumn) {
+    return getCellFromRow(tableType.getTableRows().first(), tableColumn);
   }
 
   static SelenideElement getCellFromRow(SelenideElement row, TableColumn tableColumn) {
@@ -50,15 +63,27 @@ public interface TableElement {
   }
 
   static ElementsCollection getAllColumnCells(TableColumn tableColumn) {
-    return $$x(String.format(ALL_COLUMN_CELL_BY_INDEX_XPATH, tableColumn.getIndex() + 1));
+    return getAllColumnCells(TableType.PRIMARY, tableColumn);
+  }
+
+  static ElementsCollection getAllColumnCells(TableType tableType, TableColumn tableColumn) {
+    return $x(tableType.tableXpath).$$x(String.format(ALL_COLUMN_CELL_BY_INDEX_XPATH, tableColumn.getIndex() + 1));
   }
 
   static SelenideElement getSortingColumnHeader(TableColumn tableColumn) {
-    return SORTING_COLUMN_HEADERS.findBy(text(tableColumn.getName()));
+    return getSortingColumnHeader(TableType.PRIMARY, tableColumn);
+  }
+
+  static SelenideElement getSortingColumnHeader(TableType tableType, TableColumn tableColumn) {
+    return $x(tableType.getTableXpath()).$$x(SORTING_COLUMN_HEADERS).findBy(text(tableColumn.getName()));
   }
 
   static SelenideElement getColumnHeader(TableColumn tableColumn) {
-    return $x(String.format(COLUMN_HEADER_XPATH, tableColumn.getHeaderId()));
+    return getColumnHeader(TableType.PRIMARY, tableColumn);
+  }
+
+  static SelenideElement getColumnHeader(TableType tableType, TableColumn tableColumn) {
+    return $x(tableType.getTableXpath()).$x(String.format(COLUMN_HEADER_XPATH, tableColumn.getHeaderId()));
   }
 
   static SelenideElement getFilterButton(TableColumn tableColumn) {
@@ -67,5 +92,18 @@ public interface TableElement {
 
   static SelenideElement getFrequencyOption(int sec) {
     return $x(String.format(CHANGE_FREQUENCY_OPTION_XPATH, sec));
+  }
+
+  @Getter
+  @RequiredArgsConstructor
+  enum TableType {
+    PRIMARY("//*[@data-test='table'][1]"),
+    SECONDARY("//*[@data-test='table'][2]");
+
+    private final String tableXpath;
+
+    public ElementsCollection getTableRows() {
+      return $x(tableXpath).$$x(TABLE_ROWS_XPATH);
+    }
   }
 }

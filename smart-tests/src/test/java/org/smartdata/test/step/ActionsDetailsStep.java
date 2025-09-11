@@ -44,7 +44,7 @@ import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG
 import static org.smartdata.test.element.ActionsPageElement.REPEAT_ACTION_DIALOG_RUN_BUTTON;
 import static org.smartdata.test.element.TableElement.BLUE_STATUS_MARKER_XPATH;
 import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
-import static org.smartdata.test.element.TableElement.TABLE_ROWS;
+import static org.smartdata.test.element.TableElement.getTableRows;
 import static org.smartdata.test.model.ActionStatus.RUNNING;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_UI_PATTERN;
@@ -93,7 +93,7 @@ public class ActionsDetailsStep extends BaseWebStep {
 
   @Step("Repeat action on 'Action Details' page")
   public ActionsDetailsStep repeatAction() {
-    waitAndClick(TABLE_ROWS.first().$x(REPEAT_ACTION_BUTTON_XPATH));
+    waitAndClick(getTableRows().first().$x(REPEAT_ACTION_BUTTON_XPATH));
     waitVisibility(REPEAT_ACTION_DIALOG);
     waitAndClick(REPEAT_ACTION_DIALOG_RUN_BUTTON);
     return this;

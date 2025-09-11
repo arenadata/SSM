@@ -20,40 +20,29 @@ package org.smartdata.test.step;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+import org.smartdata.test.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
-import static java.time.ZoneOffset.UTC;
-import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
-
+import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ACCESS_COUNT;
+import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.FILE_PATH;
+import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ID;
+import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
 
 @Slf4j
 @Service
-public class ClusterInfoStep extends BaseWebStep {
+public class HottestFilesStep extends BaseWebStep {
 
   @Autowired
   private TableStep tableStep;
 
-  @Autowired
-  private TableFilterPopupStep tableFilterPopupStep;
-
-  @Step("Check filtration by 'Register Time'")
-  public ClusterInfoStep checkClusterInfoRegisterTimeFiltration() {
-    tableStep.clickFilterButton(REGISTER_TIME);
-    tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
-        .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(2)
-        .clickResetFilterButton()
-        .checkTableRowsCountIs(2)
-        .clickFilterButton(REGISTER_TIME);
-    tableFilterPopupStep.clickOnCalendarTabButton()
-        .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusDays(2), LocalDateTime.now(UTC).minusDays(1))
-        .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(0)
-        .clickResetFilterButton()
-        .checkTableRowsCountIs(2);
+  @Step("Check 'Hottest files' sorting")
+  public HottestFilesStep checkSorting() {
+    tableStep.checkSelectedSorting(SECONDARY, ACCESS_COUNT, SortOrder.ASC)
+        .checkColumnValuesIsSorted(SECONDARY, ACCESS_COUNT, SortOrder.ASC)
+        .checkSorting(SECONDARY, ID)
+        .checkSorting(SECONDARY, FILE_PATH)
+        .checkSorting(SECONDARY, ACCESS_COUNT);
     return this;
   }
 }
