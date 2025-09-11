@@ -17,6 +17,7 @@
  */
 package org.smartdata.hdfs.action;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.tools.DistCp;
@@ -28,8 +29,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.smartdata.model.CmdletDescriptor.RULE_ID;
 
 @ActionSignature(
     actionId = "distcp",
@@ -49,6 +53,12 @@ public class DistCpAction extends HdfsAction {
   private static final String SOURCE_PATHS_DELIMITER = ",";
   private static final String PRESERVE_DISTCP_OPTION_PREFIX = "-p";
 
+  private static final Set<String> SSM_ARGS = Sets.newHashSet(
+      FILE_PATH,
+      TARGET_ARG,
+      RULE_ID
+  );
+
   private String sourcePaths;
 
   private String targetPath;
@@ -63,8 +73,7 @@ public class DistCpAction extends HdfsAction {
     targetPath = args.get(TARGET_ARG);
 
     distCpArgs = new HashMap<>(args);
-    distCpArgs.remove(FILE_PATH);
-    distCpArgs.remove(TARGET_ARG);
+    SSM_ARGS.forEach(distCpArgs::remove);
 
     if (!containsPreserveOption(args)) {
       distCpArgs.put(PRESERVE_DISTCP_OPTION_DEFAULT, "");
