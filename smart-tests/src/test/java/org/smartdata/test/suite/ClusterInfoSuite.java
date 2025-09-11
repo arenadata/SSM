@@ -84,13 +84,21 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Story("Cluster info. Hottest files")
   @Test(description = "Check 'Hottest files' sorting")
   public void testHottestFilesSorting() {
-    prepareDataForHottestFilesSortingTest();
+    prepareDataForHottestFilesTest();
     hottestFilesStep.checkSorting();
   }
 
+  @TmsLink("91459")
+  @Story("Cluster info. Hottest files")
+  @Test(description = "Check 'Hottest files' filtration")
+  public void testHottestFilesFiltration() {
+    prepareDataForHottestFilesTest();
+    hottestFilesStep.checkFilePathFiltration();
+  }
+
   @Step("Create hottest files rows for sorting test")
-  private void prepareDataForHottestFilesSortingTest() {
-    dataBaseStep.insertDataForHottestFilesSortTest();
+  private void prepareDataForHottestFilesTest() {
+    dataBaseStep.insertFakeDataForHottestFilesTest();
     tableStep.refreshPage();
     tableStep.checkTableRowsCountIs(SECONDARY, 2);
   }}

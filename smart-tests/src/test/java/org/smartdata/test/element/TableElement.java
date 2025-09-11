@@ -25,6 +25,7 @@ import org.smartdata.test.model.TableColumn;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$x;
+import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
 
 public interface TableElement {
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
@@ -43,7 +44,7 @@ public interface TableElement {
   String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
 
   static ElementsCollection getTableRows() {
-    return getTableRows(TableType.PRIMARY);
+    return getTableRows(PRIMARY);
   }
 
   static ElementsCollection getTableRows(TableType tableType) {
@@ -51,7 +52,7 @@ public interface TableElement {
   }
 
   static SelenideElement getCellInFirstRow(TableColumn tableColumn) {
-    return getCellInFirstRow(TableType.PRIMARY, tableColumn);
+    return getCellInFirstRow(PRIMARY, tableColumn);
   }
 
   static SelenideElement getCellInFirstRow(TableType tableType, TableColumn tableColumn) {
@@ -63,7 +64,7 @@ public interface TableElement {
   }
 
   static ElementsCollection getAllColumnCells(TableColumn tableColumn) {
-    return getAllColumnCells(TableType.PRIMARY, tableColumn);
+    return getAllColumnCells(PRIMARY, tableColumn);
   }
 
   static ElementsCollection getAllColumnCells(TableType tableType, TableColumn tableColumn) {
@@ -71,7 +72,7 @@ public interface TableElement {
   }
 
   static SelenideElement getSortingColumnHeader(TableColumn tableColumn) {
-    return getSortingColumnHeader(TableType.PRIMARY, tableColumn);
+    return getSortingColumnHeader(PRIMARY, tableColumn);
   }
 
   static SelenideElement getSortingColumnHeader(TableType tableType, TableColumn tableColumn) {
@@ -79,7 +80,7 @@ public interface TableElement {
   }
 
   static SelenideElement getColumnHeader(TableColumn tableColumn) {
-    return getColumnHeader(TableType.PRIMARY, tableColumn);
+    return getColumnHeader(PRIMARY, tableColumn);
   }
 
   static SelenideElement getColumnHeader(TableType tableType, TableColumn tableColumn) {
@@ -87,7 +88,11 @@ public interface TableElement {
   }
 
   static SelenideElement getFilterButton(TableColumn tableColumn) {
-    return getColumnHeader(tableColumn).$x(FILTER_BUTTON_XPATH);
+    return getFilterButton(PRIMARY, tableColumn);
+  }
+
+  static SelenideElement getFilterButton(TableType tableType, TableColumn tableColumn) {
+    return getColumnHeader(tableType, tableColumn).$x(FILTER_BUTTON_XPATH);
   }
 
   static SelenideElement getFrequencyOption(int sec) {

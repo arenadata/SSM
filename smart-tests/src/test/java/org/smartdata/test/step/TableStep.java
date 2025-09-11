@@ -22,7 +22,6 @@ import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.smartdata.test.element.TableElement;
 import org.smartdata.test.model.SortOrder;
 import org.smartdata.test.model.TableColumn;
 import org.springframework.stereotype.Service;
@@ -84,7 +83,13 @@ public class TableStep extends BaseWebStep {
 
   @Step("Check that page's table has '{matchingValue}' value in {column} column of the first row")
   public TableStep checkColumnValueInFirstRow(TableColumn column, String matchingValue) {
-    waitTextEquals(TableElement.getCellInFirstRow(column), matchingValue);
+    checkColumnValueInFirstRow(PRIMARY, column, matchingValue);
+    return this;
+  }
+
+  @Step("Check that page's table has '{matchingValue}' value in {column} column of the first row")
+  public TableStep checkColumnValueInFirstRow(TableType tableType, TableColumn column, String matchingValue) {
+    waitTextEquals(getCellInFirstRow(tableType, column), matchingValue);
     return this;
   }
 
@@ -221,7 +226,13 @@ public class TableStep extends BaseWebStep {
 
   @Step("Click on {tableColumn} column filter button")
   public TableStep clickFilterButton(TableColumn tableColumn) {
-    waitAndClick(getFilterButton(tableColumn));
+    clickFilterButton(PRIMARY, tableColumn);
+    return this;
+  }
+
+  @Step("Click on {tableColumn} column filter button")
+  public TableStep clickFilterButton(TableType tableType, TableColumn tableColumn) {
+    waitAndClick(getFilterButton(tableType, tableColumn));
     return this;
   }
 

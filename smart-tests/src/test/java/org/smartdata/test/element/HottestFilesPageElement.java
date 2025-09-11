@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,16 @@
  */
 package org.smartdata.test.element;
 
+import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 import org.smartdata.test.model.TableColumn;
 
+import static com.codeborne.selenide.Selenide.$x;
+
 public interface HottestFilesPageElement {
+
+  SelenideElement HOTTEST_FILES_RESET_FILTER_BUTTON =
+      $x("//*[contains(@class, 'hottestFilesToolbar')]//*[.='Reset filter']");
 
   @Getter
   enum ClusterInfoHottestFilesTableColumn implements TableColumn {
