@@ -87,7 +87,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check that page's table has '{matchingValue}' value in {column} column of the first row")
+  @Step("Check that page's table has '{matchingValue}' value in {tableType} table {column} column of the first row")
   public TableStep checkColumnValueInFirstRow(TableType tableType, TableColumn column, String matchingValue) {
     waitTextEquals(getCellInFirstRow(tableType, column), matchingValue);
     return this;
@@ -230,7 +230,7 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Click on {tableColumn} column filter button")
+  @Step("Click on {tableType} table {tableColumn} column filter button")
   public TableStep clickFilterButton(TableType tableType, TableColumn tableColumn) {
     waitAndClick(getFilterButton(tableType, tableColumn));
     return this;
