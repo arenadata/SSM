@@ -15,25 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
+package org.smartdata.hive.fetch;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.io.Closeable;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
+public interface HmsEventSource extends Closeable {
+  HmsEventStream eventStream();
 
-  public AbstractService() {
-    this(null);
-  }
+  HmsEventStream eventStreamFrom(long eventId);
 
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public boolean inSafeMode() {
-    return false;
-  }
+  @Override
+  void close();
 }

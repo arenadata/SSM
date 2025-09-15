@@ -15,25 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
+package org.smartdata.hive;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
-
-  public AbstractService() {
-    this(null);
-  }
-
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public boolean inSafeMode() {
-    return false;
-  }
+@Builder
+@Data
+@RequiredArgsConstructor
+public class EntityInfo {
+    private final String name;
+    private final String location;
 }

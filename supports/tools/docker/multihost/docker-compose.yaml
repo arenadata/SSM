@@ -125,6 +125,8 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
+    volumes:
+      - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:
       - demo
 
@@ -167,6 +169,63 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      - demo
+
+  hive-metastore:
+    image: apache/hive:4.0.1
+    container_name: hive-metastore
+    hostname: hive-metastore.demo
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db/hive
+        -Djavax.jdo.option.ConnectionUserName=ssm
+        -Djavax.jdo.option.ConnectionPassword=ssm
+        -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
+        -Dhive.metastore.event.db.listener.timetolive=86400s
+        -Dhive.metastore.warehouse.dir=hdfs://hadoop-namenode.demo:8020/user/hive/warehouse
+    volumes:
+      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - secrets:/etc/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+    ports:
+      - "9083:9083"
+    networks:
+      - demo
+
+  hive-server2:
+    image: apache/hive:4.0.1
+    container_name: hive-server2
+    hostname: hive-server2.demo
+    depends_on:
+      hive-metastore:
+        condition: service_started
+      hadoop-namenode:
+        condition: service_healthy
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: true
+      SERVICE_OPTS: >-
+        -Dhive.metastore.uris=thrift://hive-metastore.demo:9083
+        -Dhive.metastore.warehouse.dir=hdfs://hadoop-namenode.demo:8020/user/hive/warehouse
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - secrets:/etc/secrets
+      - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+    ports:
+      - "10000:10000"
+      - "10002:10002"
     networks:
       - demo
 

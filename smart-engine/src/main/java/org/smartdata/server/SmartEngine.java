@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.hive.HiveMetastoreFetcherService;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
@@ -35,6 +36,9 @@ import org.smartdata.server.engine.audit.AuditService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_HMS_EVENT_FETCH_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_HMS_EVENT_FETCH_ENABLED;
 
 public class SmartEngine extends AbstractService {
   public static final Logger LOG = LoggerFactory.getLogger(SmartEngine.class);
@@ -54,6 +58,7 @@ public class SmartEngine extends AbstractService {
   private ClusterNodesManager clusterNodesManager;
   @Getter
   private SmartPrincipalManager smartPrincipalManager;
+
   private final List<AbstractService> services;
 
   public SmartEngine(ServerContext context) {
@@ -76,6 +81,7 @@ public class SmartEngine extends AbstractService {
     ruleManager = new RuleManager(
         serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
     services.add(ruleManager);
+    maybeEnableHiveEventsFetcher();
 
     for (AbstractService s : services) {
       s.init();
@@ -119,7 +125,18 @@ public class SmartEngine extends AbstractService {
     }
   }
 
-  public SmartConf getConf() {
-    return serverContext.getConf();
+  private void maybeEnableHiveEventsFetcher() {
+    if (!serverContext.getConf().getBoolean(
+        SMART_HMS_EVENT_FETCH_ENABLED,
+        SMART_HMS_EVENT_FETCH_DEFAULT)) {
+      return;
+    }
+
+    HiveMetastoreFetcherService hiveMetastoreFetcherService = new HiveMetastoreFetcherService(
+        serverContext,
+        serverContext.getMetaStore().hmsEventDao(),
+        serverContext.getMetaStore().hmsIgnoredEventDao()
+    );
+    services.add(hiveMetastoreFetcherService);
   }
 }

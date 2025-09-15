@@ -107,6 +107,9 @@ public class SmartConfKeys {
   public static final String SMART_PROXY_USERS_CACHE_SIZE_KEY = "smart.proxy.users.cache.size";
   public static final int SMART_PROXY_USERS_CACHE_SIZE_DEFAULT = 20;
 
+  public static final String SMART_HMS_EVENT_FETCH_ENABLED = "smart.hive.event.fetch.enabled";
+  public static final boolean SMART_HMS_EVENT_FETCH_DEFAULT = false;
+
   // File access partitions
   public static final String SMART_FILE_ACCESS_PARTITIONS_RETENTION_COUNT_KEY =
       "smart.file.access.partition.retention.count";
