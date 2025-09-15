@@ -15,25 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
 
-import lombok.Getter;
-import lombok.Setter;
+package org.smartdata.hive.fetch;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
+import lombok.Data;
 
-  public AbstractService() {
-    this(null);
+@Data
+public class EventOperation {
+  private static final EventOperation UNKNOWN_OPERATION = new EventOperation(HiveEntity.UNKNOWN, HiveOperation.UNKNOWN);
+  private static final EventOperation IGNORED_OPERATION = new EventOperation(HiveEntity.UNKNOWN, HiveOperation.UNKNOWN);
+
+  private final HiveEntity entity;
+  private final HiveOperation operation;
+
+  public static EventOperation unknown() {
+    return UNKNOWN_OPERATION;
   }
 
-  public AbstractService(SmartContext context) {
-    this.context = context;
+  public static EventOperation ignored() {
+    return IGNORED_OPERATION;
   }
 
-  public boolean inSafeMode() {
-    return false;
+  public boolean shouldBeProcessed() {
+    return this != EventOperation.unknown() && this != EventOperation.ignored();
   }
 }

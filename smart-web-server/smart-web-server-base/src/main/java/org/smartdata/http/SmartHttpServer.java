@@ -24,6 +24,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.hazelcast.HazelcastAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -107,7 +108,9 @@ public class SmartHttpServer {
       HazelcastAutoConfiguration.class,
       // we configure metrics registry by ourselves in
       // MetricsFactory#from(SmartConf) before Spring context initialization
-      MetricsAutoConfiguration.class
+      MetricsAutoConfiguration.class,
+      // prevent embedded datasource to be injected to context
+      DataSourceAutoConfiguration.class
   })
   public static class RestServerApplication {
     // empty class just to enable auto configs

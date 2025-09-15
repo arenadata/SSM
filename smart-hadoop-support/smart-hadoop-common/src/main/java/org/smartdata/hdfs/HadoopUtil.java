@@ -43,6 +43,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Optional;
@@ -276,6 +277,13 @@ public class HadoopUtil {
         .setStoragePolicy(status.getStoragePolicy())
         .setErasureCodingPolicy(CompatibilityHelperLoader.getHelper().getErasureCodingPolicy(status))
         .build();
+  }
+
+  public static <T> T doAsCurrentUser(Runnable runnable) throws IOException {
+    return UserGroupInformation.getCurrentUser().doAs((PrivilegedAction<? extends T>) () -> {
+      runnable.run();
+      return null;
+    });
   }
 
   public static <T> T doAsCurrentUser(PrivilegedExceptionAction<T> action) throws IOException {

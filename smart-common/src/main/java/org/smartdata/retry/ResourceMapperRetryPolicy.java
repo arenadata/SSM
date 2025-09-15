@@ -15,25 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata;
 
-import lombok.Getter;
-import lombok.Setter;
+package org.smartdata.retry;
 
-@Getter
-@Setter
-public abstract class AbstractService implements SmartService {
-  private SmartContext context;
+import org.apache.hadoop.io.retry.RetryPolicy;
 
-  public AbstractService() {
-    this(null);
-  }
+public interface ResourceMapperRetryPolicy {
+  RetryPolicy.RetryAction shouldRetry(Exception e, int retries) throws Exception;
 
-  public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public boolean inSafeMode() {
-    return false;
+  static ResourceMapperRetryPolicy fromHadoopPolicy(RetryPolicy policy) {
+    // we don't use last failovers num and isIdempotent flag
+    return (exc, retries) -> policy.shouldRetry(exc, retries, 0, false);
   }
 }

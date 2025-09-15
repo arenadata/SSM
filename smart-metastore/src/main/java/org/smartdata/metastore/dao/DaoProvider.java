@@ -17,6 +17,8 @@
  */
 package org.smartdata.metastore.dao;
 
+import org.smartdata.hive.HmsEventDao;
+
 public interface DaoProvider {
   RuleDao ruleDao();
 
@@ -61,4 +63,8 @@ public interface DaoProvider {
   UserActivityDao userActivityDao();
 
   FileAccessPartitionDao fileAccessPartitionDao();
+
+  HmsEventDao hmsEventDao();
+
+  HmsEventDao hmsIgnoredEventDao();
 }
