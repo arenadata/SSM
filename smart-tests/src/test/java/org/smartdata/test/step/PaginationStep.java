@@ -36,19 +36,20 @@ import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exactValue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.smartdata.test.element.PaginationElement.EXTEND_PAGES_BUTTON;
-import static org.smartdata.test.element.PaginationElement.LAST_PAGE_BUTTON;
-import static org.smartdata.test.element.PaginationElement.NEXT_PAGE_BUTTON;
-import static org.smartdata.test.element.PaginationElement.PAGINATION_NUMBERED_BUTTONS;
-import static org.smartdata.test.element.PaginationElement.PAGINATION_PER_PAGE_INPUT;
-import static org.smartdata.test.element.PaginationElement.PREV_PAGE_BUTTON;
 import static org.smartdata.test.element.PaginationElement.PageSize.FIFTY;
 import static org.smartdata.test.element.PaginationElement.PageSize.HUNDRED;
 import static org.smartdata.test.element.PaginationElement.PageSize.TEN;
 import static org.smartdata.test.element.PaginationElement.PageSize.THIRTY;
 import static org.smartdata.test.element.PaginationElement.SHOW_PER_PAGE_OPTIONS;
-import static org.smartdata.test.element.PaginationElement.SHOW_PER_PAGE_SELECT;
+import static org.smartdata.test.element.PaginationElement.getExtendPageButton;
+import static org.smartdata.test.element.PaginationElement.getLastPageButton;
+import static org.smartdata.test.element.PaginationElement.getNextPageButton;
 import static org.smartdata.test.element.PaginationElement.getNumberedButtonByPageNum;
+import static org.smartdata.test.element.PaginationElement.getNumberedButtons;
+import static org.smartdata.test.element.PaginationElement.getPerPageInput;
+import static org.smartdata.test.element.PaginationElement.getPreviousPageButton;
+import static org.smartdata.test.element.TableElement.TableType;
+import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
 
 @Slf4j
 @Service
@@ -58,108 +59,117 @@ public class PaginationStep extends BaseWebStep {
   private TableStep tableStep;
 
   @Step("Check {pageNum} page button is selected")
-  public PaginationStep checkNumberedButtonIsSelected(int pageNum) {
-    SelenideElement numberedButton = getNumberedButtonByPageNum(pageNum);
+  public PaginationStep checkNumberedButtonIsSelected(int pageNum, SelenideElement baseElement) {
+    SelenideElement numberedButton = getNumberedButtonByPageNum(pageNum, baseElement);
     waitVisibility(numberedButton);
     numberedButton.should(attributeMatching("class", ".*is-active.*"));
     return this;
   }
 
   @Step("Check all page buttons are visible and enabled")
-  public PaginationStep checkAllNumberedButtonsIsEnabled() {
-    PAGINATION_NUMBERED_BUTTONS.should(allMatch("All numbered buttons should be visible", WebElement::isDisplayed));
-    PAGINATION_NUMBERED_BUTTONS.should(allMatch("All numbered buttons should be enabled", WebElement::isEnabled));
+  public PaginationStep checkAllNumberedButtonsIsEnabled(SelenideElement baseElement) {
+    getNumberedButtons(baseElement).should(allMatch("All numbered buttons should be visible", WebElement::isDisplayed));
+    getNumberedButtons(baseElement).should(allMatch("All numbered buttons should be enabled", WebElement::isEnabled));
     return this;
   }
 
   @Step("Check that there are {expectedAmount} numbered pagination buttons on the page")
-  public PaginationStep checkNumberedButtonsAmount(int expectedAmount) {
-    checkSize(PAGINATION_NUMBERED_BUTTONS, expectedAmount);
+  public PaginationStep checkNumberedButtonsAmount(int expectedAmount, SelenideElement baseElement) {
+    checkSize(getNumberedButtons(baseElement), expectedAmount);
     return this;
   }
 
   @Step("Check selected 'Show per page' value")
-  public PaginationStep checkShowPerPageValue(PaginationElement.PageSize pageSize) {
-    PAGINATION_PER_PAGE_INPUT.shouldHave(exactValue(pageSize.getOptionName()));
+  public PaginationStep checkShowPerPageValue(PaginationElement.PageSize pageSize, SelenideElement baseElement) {
+    getPerPageInput(baseElement).shouldHave(exactValue(pageSize.getOptionName()));
     return this;
   }
 
   @Step("Set 'Show per page' value")
-  public PaginationStep setShowPerPageOption(PaginationElement.PageSize pageSize) {
-    waitAndClick(SHOW_PER_PAGE_SELECT);
+  public PaginationStep setShowPerPageOption(PaginationElement.PageSize pageSize, SelenideElement baseElement) {
+    waitAndClick(getPerPageInput(baseElement));
     waitAndClick(SHOW_PER_PAGE_OPTIONS.find(exactText(pageSize.getOptionName())));
     return this;
   }
 
   @Step("Check first page buttons")
-  public PaginationStep checkFirstPageButtonsState() {
-    checkAllNumberedButtonsIsEnabled();
-    isEnabled(NEXT_PAGE_BUTTON);
-    isDisabled(PREV_PAGE_BUTTON);
-    isEnabled(LAST_PAGE_BUTTON);
+  public PaginationStep checkFirstPageButtonsState(SelenideElement baseElement) {
+    checkAllNumberedButtonsIsEnabled(baseElement);
+    isEnabled(getNextPageButton(baseElement));
+    isDisabled(getPreviousPageButton(baseElement));
+    isEnabled(getLastPageButton(baseElement));
     return this;
   }
 
   @Step("Check middle page buttons")
-  public PaginationStep checkMiddlePageButtonsState() {
-    checkAllNumberedButtonsIsEnabled();
-    isEnabled(NEXT_PAGE_BUTTON);
-    isEnabled(PREV_PAGE_BUTTON);
-    isEnabled(LAST_PAGE_BUTTON);
+  public PaginationStep checkMiddlePageButtonsState(SelenideElement baseElement) {
+    checkAllNumberedButtonsIsEnabled(baseElement);
+    isEnabled(getNextPageButton(baseElement));
+    isEnabled(getPreviousPageButton(baseElement));
+    isEnabled(getLastPageButton(baseElement));
     return this;
   }
 
   @Step("Check last page buttons")
-  public PaginationStep checkLastPageButtonsState() {
-    checkAllNumberedButtonsIsEnabled();
-    isDisabled(NEXT_PAGE_BUTTON);
-    isEnabled(PREV_PAGE_BUTTON);
-    isDisabled(LAST_PAGE_BUTTON);
+  public PaginationStep checkLastPageButtonsState(SelenideElement baseElement) {
+    checkAllNumberedButtonsIsEnabled(baseElement);
+    isDisabled(getNextPageButton(baseElement));
+    isEnabled(getPreviousPageButton(baseElement));
+    isDisabled(getLastPageButton(baseElement));
     return this;
   }
 
   @Step("Check pagination on '{pageNum}' page")
-  public PaginationStep checkPagination(int pageNum, PaginationElement.PageSize pageSize, TableColumn tableColumn,
-                                        List<String> testColumnValues) {
-    checkNumberedButtonIsSelected(pageNum)
-        .checkNumberedButtonsAmount(getNumberedButtonsQuantity(testColumnValues.size(), pageSize.getSize()))
-        .checkShowPerPageValue(pageSize);
-    tableStep.checkColumnValues(tableColumn, getExpectedValues(testColumnValues, pageNum, pageSize.getSize()));
+  public PaginationStep checkPagination(int pageNum, PaginationElement.PageSize pageSize,
+                                        TableType tableType, TableColumn tableColumn,
+                                        List<String> testColumnValues, SelenideElement baseElement) {
+    checkNumberedButtonIsSelected(pageNum, baseElement)
+        .checkNumberedButtonsAmount(getNumberedButtonsQuantity(testColumnValues.size(), pageSize.getSize()),
+            baseElement)
+        .checkShowPerPageValue(pageSize, baseElement);
+    tableStep.checkColumnValues(tableType, tableColumn,
+        getExpectedValues(testColumnValues, pageNum, pageSize.getSize()));
     return this;
   }
 
   @Step("Check pagination table of the page")
   public void checkPaginationFixture(TableColumn tableColumn, List<String> testColumnValues) {
+    checkPaginationFixture(PRIMARY, tableColumn, testColumnValues, null);
+  }
+
+  @Step("Check pagination table of the page")
+  public void checkPaginationFixture(TableType tableType, TableColumn tableColumn, List<String> testColumnValues,
+                                     SelenideElement baseElement) {
     // testColumnValues must be ordered as UI shown
     assertThat("testColumnValues size must be 101", testColumnValues.size(), is(101));
 
-    waitVisibility(getNumberedButtonByPageNum(11));
-    checkPagination(1, TEN, tableColumn, testColumnValues)
-        .checkFirstPageButtonsState();
+    waitVisibility(getNumberedButtonByPageNum(11, baseElement));
+    checkPagination(1, TEN, tableType, tableColumn, testColumnValues, baseElement)
+        .checkFirstPageButtonsState(baseElement);
 
-    waitAndClick(NEXT_PAGE_BUTTON);
-    checkPagination(2, TEN, tableColumn, testColumnValues)
-        .checkMiddlePageButtonsState();
+    waitAndClick(getNextPageButton(baseElement));
+    checkPagination(2, TEN, tableType, tableColumn, testColumnValues, baseElement)
+        .checkMiddlePageButtonsState(baseElement);
 
-    waitAndClick(PREV_PAGE_BUTTON);
-    checkPagination(1, TEN, tableColumn, testColumnValues);
+    waitAndClick(getPreviousPageButton(baseElement));
+    checkPagination(1, TEN, tableType, tableColumn, testColumnValues, baseElement);
 
-    waitAndClick(LAST_PAGE_BUTTON);
-    checkPagination(11, TEN, tableColumn, testColumnValues)
-        .checkLastPageButtonsState();
+    waitAndClick(getLastPageButton(baseElement));
+    checkPagination(11, TEN, tableType, tableColumn, testColumnValues, baseElement)
+        .checkLastPageButtonsState(baseElement);
 
-    waitAndClick(EXTEND_PAGES_BUTTON);
-    checkPagination(6, TEN, tableColumn, testColumnValues);
+    waitAndClick(getExtendPageButton(baseElement));
+    checkPagination(6, TEN, tableType, tableColumn, testColumnValues, baseElement);
 
-    waitAndClick(getNumberedButtonByPageNum(4));
-    checkPagination(4, TEN, tableColumn, testColumnValues);
+    waitAndClick(getNumberedButtonByPageNum(4, baseElement));
+    checkPagination(4, TEN, tableType, tableColumn, testColumnValues, baseElement);
 
-    setShowPerPageOption(THIRTY)
-        .checkPagination(1, THIRTY, tableColumn, testColumnValues);
-    setShowPerPageOption(FIFTY)
-        .checkPagination(1, FIFTY, tableColumn, testColumnValues);
-    setShowPerPageOption(HUNDRED)
-        .checkPagination(1, HUNDRED, tableColumn, testColumnValues);
+    setShowPerPageOption(THIRTY, baseElement)
+        .checkPagination(1, THIRTY, tableType, tableColumn, testColumnValues, baseElement);
+    setShowPerPageOption(FIFTY, baseElement)
+        .checkPagination(1, FIFTY, tableType, tableColumn, testColumnValues, baseElement);
+    setShowPerPageOption(HUNDRED, baseElement)
+        .checkPagination(1, HUNDRED, tableType, tableColumn, testColumnValues, baseElement);
   }
 
   private List<String> getExpectedValues(List<String> testColumnValues, int pageNumber, int pageSize) {

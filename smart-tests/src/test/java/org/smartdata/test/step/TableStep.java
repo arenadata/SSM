@@ -44,7 +44,6 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.smartdata.test.element.TableElement.CHANGE_FREQUENCY_SELECT;
 import static org.smartdata.test.element.TableElement.NODATA_ROW;
-import static org.smartdata.test.element.TableElement.RESET_FILTER_BUTTON;
 import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
 import static org.smartdata.test.element.TableElement.TableType;
 import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
@@ -52,6 +51,7 @@ import static org.smartdata.test.element.TableElement.getAllColumnCells;
 import static org.smartdata.test.element.TableElement.getCellInFirstRow;
 import static org.smartdata.test.element.TableElement.getFilterButton;
 import static org.smartdata.test.element.TableElement.getFrequencyOption;
+import static org.smartdata.test.element.TableElement.getResetFilterButton;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
 import static org.smartdata.test.element.TableElement.getTableRows;
 import static org.smartdata.test.model.SortOrder.ASC;
@@ -100,9 +100,9 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check table has row values {expectedValues} in {column} column with table order")
-  public TableStep checkColumnValues(TableColumn column, List<String> expectedValues) {
-    getAllColumnCells(column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
+  @Step("Check table has row values {expectedValues} in {tableType} table {column} column with table order")
+  public TableStep checkColumnValues(TableType tableType, TableColumn column, List<String> expectedValues) {
+    getAllColumnCells(tableType, column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 
@@ -238,7 +238,13 @@ public class TableStep extends BaseWebStep {
 
   @Step("Click on 'Reset filter' button")
   public TableStep clickResetFilterButton() {
-    waitAndClick(RESET_FILTER_BUTTON);
+    clickResetFilterButton(null);
+    return this;
+  }
+
+  @Step("Click on 'Reset filter' button")
+  public TableStep clickResetFilterButton(SelenideElement baseElement) {
+    waitAndClick(getResetFilterButton(baseElement));
     return this;
   }
 

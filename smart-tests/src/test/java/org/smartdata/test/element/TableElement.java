@@ -26,11 +26,12 @@ import org.smartdata.test.model.TableColumn;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$x;
 import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
+import static org.smartdata.test.util.WebElementUtil.findFromBaseElement;
 
 public interface TableElement {
   SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
-  SelenideElement RESET_FILTER_BUTTON = $x("//*[.='Reset filter']");
   SelenideElement CHANGE_FREQUENCY_SELECT = $x("//*[contains(@class, 'frequencySelect')]//input");
+  String RESET_FILTER_BUTTON_XPATH = ".//*[.='Reset filter']";
   String TABLE_ROWS_XPATH = ".//tbody//tr[not(@data-test='no-data')]";
   String SORTING_COLUMN_HEADERS = ".//*[@data-test='sorting']";
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
@@ -79,10 +80,6 @@ public interface TableElement {
     return $x(tableType.getTableXpath()).$$x(SORTING_COLUMN_HEADERS).findBy(text(tableColumn.getName()));
   }
 
-  static SelenideElement getColumnHeader(TableColumn tableColumn) {
-    return getColumnHeader(PRIMARY, tableColumn);
-  }
-
   static SelenideElement getColumnHeader(TableType tableType, TableColumn tableColumn) {
     return $x(tableType.getTableXpath()).$x(String.format(COLUMN_HEADER_XPATH, tableColumn.getHeaderId()));
   }
@@ -97,6 +94,10 @@ public interface TableElement {
 
   static SelenideElement getFrequencyOption(int sec) {
     return $x(String.format(CHANGE_FREQUENCY_OPTION_XPATH, sec));
+  }
+
+  static SelenideElement getResetFilterButton(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, RESET_FILTER_BUTTON_XPATH);
   }
 
   @Getter

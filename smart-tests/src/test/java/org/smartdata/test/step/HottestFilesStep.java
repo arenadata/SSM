@@ -24,10 +24,12 @@ import org.smartdata.test.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ACCESS_COUNT;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.FILE_PATH;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ID;
-import static org.smartdata.test.element.HottestFilesPageElement.HOTTEST_FILES_RESET_FILTER_BUTTON;
+import static org.smartdata.test.element.HottestFilesPageElement.HOTTEST_FILES_TOOLBAR;
 import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
 
 @Slf4j
@@ -38,7 +40,10 @@ public class HottestFilesStep extends BaseWebStep {
   private TableStep tableStep;
 
   @Autowired
-  TableFilterPopupStep tableFilterPopupStep;
+  private TableFilterPopupStep tableFilterPopupStep;
+
+  @Autowired
+  private PaginationStep paginationStep;
 
   @Step("Check 'Hottest files' sorting")
   public HottestFilesStep checkSorting() {
@@ -55,9 +60,16 @@ public class HottestFilesStep extends BaseWebStep {
     tableStep.clickFilterButton(SECONDARY, FILE_PATH);
     tableFilterPopupStep.setTextPopupInput("file2");
     tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "file2.txt");
-    waitAndClick(HOTTEST_FILES_RESET_FILTER_BUTTON);
-    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "file2.txt")
+        .clickResetFilterButton(HOTTEST_FILES_TOOLBAR)
+        .checkTableRowsCountIs(SECONDARY, 2);
+    return this;
+  }
+
+  @Step("Check pagination")
+  public HottestFilesStep checkPagination(List<String> expectedFilePathList) {
+    tableStep.clickOnSortingColumn(SECONDARY, ID);
+    paginationStep.checkPaginationFixture(SECONDARY, FILE_PATH, expectedFilePathList, HOTTEST_FILES_TOOLBAR);
     return this;
   }
 }

@@ -50,11 +50,13 @@ public class DataBaseStep {
   private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
   private static final String ACTION_FOR_FILTER_TEST_SQL = "insert_action_for_filter_test.sql";
-  private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL = "insert_action_for_action_details_page_test.sql";
+  private static final String ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL =
+      "insert_action_for_action_details_page_test.sql";
   private static final String AUDIT_FOR_SORT_TEST_SQL = "insert_audit_for_sort_test.sql";
   private static final String AUDIT_FOR_FILTER_TEST_SQL = "insert_audit_for_filter_test.sql";
   private static final String INSERT_HOTTEST_FILES_SQL = "insert_fake_hottest_files.sql";
   private static final String DELETE_HOTTEST_FILES_SQL = "delete_hottest_files_table.sql";
+  private static final String HOTTEST_FILES_FOR_PAGINATION_TEST_SQL = "insert_hottest_files_for_pagination_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
@@ -135,6 +137,15 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertFakeDataForHottestFilesTest() {
     String sql = FileUtils.readFile(getSqlFilePath(INSERT_HOTTEST_FILES_SQL));
+    sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
+    metastoreRepository.executeSql(sql);
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForHottestFilesPaginationTest(String filePath) {
+    String sql = FileUtils.readFile(getSqlFilePath(HOTTEST_FILES_FOR_PAGINATION_TEST_SQL));
+    sql = sql.replace("${filePath}", filePath);
     sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
     metastoreRepository.executeSql(sql);
     return this;

@@ -26,11 +26,16 @@ import org.smartdata.test.step.ClusterInfoStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
+import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
@@ -55,6 +60,9 @@ public class ClusterInfoSuite extends SsmBaseSuite {
 
   @Autowired
   private HottestFilesStep hottestFilesStep;
+
+  @Autowired
+  private PaginationStep paginationStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -96,9 +104,31 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     hottestFilesStep.checkFilePathFiltration();
   }
 
-  @Step("Create hottest files rows for sorting test")
+  @TmsLink("91458")
+  @Story("Cluster info. Hottest files")
+  @Test(description = "Check 'Hottest files' pagination")
+  public void testHottestFilesPagination() {
+    List<String> filePathList = prepareDataForHottestFilesPaginationTest();
+    hottestFilesStep.checkPagination(filePathList);
+  }
+
+  @Step("Create fake hottest files rows")
   private void prepareDataForHottestFilesTest() {
     dataBaseStep.insertFakeDataForHottestFilesTest();
     tableStep.refreshPage();
     tableStep.checkTableRowsCountIs(SECONDARY, 2);
-  }}
+  }
+
+  @Step("Create hottest files rows for pagination test")
+  private List<String> prepareDataForHottestFilesPaginationTest() {
+    List<String> filePathList = new ArrayList<>();
+    int filesQuantity = 101;
+    for (int i = 0; i < filesQuantity; i++) {
+      String filePath = format("test%s.txt", i);
+      dataBaseStep.insertDataForHottestFilesPaginationTest(filePath);
+      filePathList.add(filePath);
+    }
+    clusterInfoStep.refreshPage();
+    return filePathList;
+  }
+}

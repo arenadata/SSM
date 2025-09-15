@@ -15,40 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.element;
+package org.smartdata.test.util;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import lombok.Getter;
-import org.smartdata.test.model.TableColumn;
+import lombok.experimental.UtilityClass;
 
+import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
-public interface HottestFilesPageElement {
+@UtilityClass
+public class WebElementUtil {
 
-  SelenideElement HOTTEST_FILES_TOOLBAR = $x("//*[contains(@class, 'hottestFilesToolbar')]");
+  public static SelenideElement findFromBaseElement(SelenideElement baseElement, String xpath) {
+    return baseElement == null ? $x(xpath) : baseElement.$x(xpath);
+  }
 
-  @Getter
-  enum ClusterInfoHottestFilesTableColumn implements TableColumn {
-    ID("ID", "id"),
-    FILE_PATH("File path", "path"),
-    ACCESS_COUNT("Access count", "accessCount");
-
-    private final String name;
-    private final String headerId;
-
-    ClusterInfoHottestFilesTableColumn(String name, String headerId) {
-      this.name = name;
-      this.headerId = headerId;
-    }
-
-    @Override
-    public int getIndex() {
-      return ordinal();
-    }
-
-    @Override
-    public String toString() {
-      return getName();
-    }
+  public static ElementsCollection findAllFromBaseElement(SelenideElement baseElement, String xpath) {
+    return baseElement == null ? $$x(xpath) : baseElement.$$x(xpath);
   }
 }
+

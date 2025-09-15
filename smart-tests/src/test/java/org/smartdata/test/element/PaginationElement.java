@@ -23,22 +23,44 @@ import lombok.Getter;
 
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Selenide.$$x;
-import static com.codeborne.selenide.Selenide.$x;
+import static org.smartdata.test.util.WebElementUtil.findAllFromBaseElement;
+import static org.smartdata.test.util.WebElementUtil.findFromBaseElement;
 
 public interface PaginationElement {
-  SelenideElement PAGINATION_PER_PAGE_INPUT =
-      $x("//*[contains(@class, 'pagination') and contains(@class, 'commonSelectField')]//input");
-  ElementsCollection PAGINATION_NUMBERED_BUTTONS =
-      $$x("//*[contains(@class, 'paginationButton') and not(contains(@class, 'Arrow'))]");
-  SelenideElement NEXT_PAGE_BUTTON = $x("//*[@data-test='pagination-next-page']");
-  SelenideElement PREV_PAGE_BUTTON = $x("//*[@data-test='pagination-prev-page']");
-  SelenideElement LAST_PAGE_BUTTON = $x("//*[@data-test='pagination-last-page']");
-  SelenideElement EXTEND_PAGES_BUTTON = $x("//*[contains(@class, 'paginationButton') and .='...']");
-  SelenideElement SHOW_PER_PAGE_SELECT = $x("//*[contains(@class,'pagination__select')]//input");
-  ElementsCollection SHOW_PER_PAGE_OPTIONS = $$x("//*[@data-test='pagination-per-page-popover']//li");
+  String PAGINATION_NUMBERED_BUTTONS = ".//*[contains(@class, 'paginationButton') and not(contains(@class, 'Arrow'))]";
+  String NEXT_PAGE_BUTTON = ".//*[@data-test='pagination-next-page']";
+  String PREV_PAGE_BUTTON = ".//*[@data-test='pagination-prev-page']";
+  String LAST_PAGE_BUTTON = ".//*[@data-test='pagination-last-page']";
+  String EXTEND_PAGES_BUTTON = ".//*[contains(@class, 'paginationButton') and .='...']";
+  String SHOW_PER_PAGE_INPUT = ".//*[contains(@class, 'pagination') and contains(@class, 'commonSelectField')]//input";
+  ElementsCollection SHOW_PER_PAGE_OPTIONS = $$x(".//*[@data-test='pagination-per-page-popover']//li");
 
-  static SelenideElement getNumberedButtonByPageNum(int pageNum) {
-    return PAGINATION_NUMBERED_BUTTONS.find(exactText(String.valueOf(pageNum)));
+  static SelenideElement getNumberedButtonByPageNum(int pageNum, SelenideElement baseElement) {
+    return getNumberedButtons(baseElement).find(exactText(String.valueOf(pageNum)));
+  }
+
+  static ElementsCollection getNumberedButtons(SelenideElement baseElement) {
+    return findAllFromBaseElement(baseElement, PAGINATION_NUMBERED_BUTTONS);
+  }
+
+  static SelenideElement getPerPageInput(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, SHOW_PER_PAGE_INPUT);
+  }
+
+  static SelenideElement getNextPageButton(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, NEXT_PAGE_BUTTON);
+  }
+
+  static SelenideElement getPreviousPageButton(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, PREV_PAGE_BUTTON);
+  }
+
+  static SelenideElement getLastPageButton(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, LAST_PAGE_BUTTON);
+  }
+
+  static SelenideElement getExtendPageButton(SelenideElement baseElement) {
+    return findFromBaseElement(baseElement, EXTEND_PAGES_BUTTON);
   }
 
   @Getter
