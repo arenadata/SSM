@@ -25,8 +25,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static com.codeborne.selenide.Condition.attributeMatching;
+import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
 import static java.time.ZoneOffset.UTC;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
+import static org.smartdata.test.element.ClusterInfoPageElement.FILES_IN_CACHE_TAB;
 
 
 @Slf4j
@@ -54,6 +57,13 @@ public class ClusterInfoStep extends BaseWebStep {
     tableStep.checkTableRowsCountIs(0)
         .clickResetFilterButton()
         .checkTableRowsCountIs(2);
+    return this;
+  }
+
+  @Step("Open 'Files in cache' tab")
+  public ClusterInfoStep openFilesInCacheTab() {
+    waitAndClick(FILES_IN_CACHE_TAB);
+    FILES_IN_CACHE_TAB.should(attributeMatching("class", ".*active.*"), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 }

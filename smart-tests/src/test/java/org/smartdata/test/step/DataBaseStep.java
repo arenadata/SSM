@@ -30,6 +30,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Instant;
 
+import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.HOURS;
 
 @Slf4j
@@ -39,13 +40,11 @@ public class DataBaseStep {
   @Autowired
   private MetastoreRepository metastoreRepository;
 
-  private static final String TRUNCATE_RULE_TABLE = "TRUNCATE TABLE rule;";
+  private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
       "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
       "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
-  private static final String TRUNCATE_ACTION_TABLE = "TRUNCATE TABLE action;";
-  private static final String TRUNCATE_AUDIT_TABLE = "TRUNCATE TABLE user_activity_event;";
   private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
   private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
@@ -57,25 +56,31 @@ public class DataBaseStep {
   private static final String INSERT_HOTTEST_FILES_SQL = "insert_fake_hottest_files.sql";
   private static final String DELETE_HOTTEST_FILES_SQL = "delete_hottest_files_table.sql";
   private static final String HOTTEST_FILES_FOR_PAGINATION_TEST_SQL = "insert_hottest_files_for_pagination_test.sql";
+  private static final String INSERT_FILES_IN_CACHE_SQL = "insert_fake_files_in_cache.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
-    metastoreRepository.executeSql(TRUNCATE_RULE_TABLE);
+    metastoreRepository.executeSql(format(TRUNCATE_TABLE_TEMPLATE, "rule"));
     metastoreRepository.executeSql(RESET_RULE_SEQUENCE);
     return this;
   }
 
   public DataBaseStep cleanActionTable() throws SQLException {
-    metastoreRepository.executeSql(TRUNCATE_ACTION_TABLE);
+    metastoreRepository.executeSql(format(TRUNCATE_TABLE_TEMPLATE, "action"));
     return this;
   }
 
   public DataBaseStep cleanAuditTable() throws SQLException {
-    metastoreRepository.executeSql(TRUNCATE_AUDIT_TABLE);
+    metastoreRepository.executeSql(format(TRUNCATE_TABLE_TEMPLATE, "user_activity_event"));
     return this;
   }
 
   public DataBaseStep cleanHottestFilesTable() throws SQLException {
     metastoreRepository.executeSqlFile(getSqlFilePath(DELETE_HOTTEST_FILES_SQL));
+    return this;
+  }
+
+  public DataBaseStep cleanFilesInCacheTable() throws SQLException {
+    metastoreRepository.executeSql(format(TRUNCATE_TABLE_TEMPLATE, "cached_file"));
     return this;
   }
 
@@ -148,6 +153,12 @@ public class DataBaseStep {
     sql = sql.replace("${filePath}", filePath);
     sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
     metastoreRepository.executeSql(sql);
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertFakeDataForFilesInCacheTest() {
+    metastoreRepository.executeSqlFile(getSqlFilePath(INSERT_FILES_IN_CACHE_SQL));
     return this;
   }
 

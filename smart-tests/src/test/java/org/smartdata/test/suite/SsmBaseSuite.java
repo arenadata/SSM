@@ -49,5 +49,6 @@ public abstract class SsmBaseSuite extends BaseWebSuite {
     dataBaseStep.cleanActionTable();
     dataBaseStep.cleanAuditTable();
     dataBaseStep.cleanHottestFilesTable();
+    dataBaseStep.cleanFilesInCacheTable();
   }
 }

@@ -24,6 +24,7 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.ClusterInfoStep;
 import org.smartdata.test.step.DataBaseStep;
+import org.smartdata.test.step.FilesInCacheStep;
 import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.PaginationStep;
@@ -60,6 +61,9 @@ public class ClusterInfoSuite extends SsmBaseSuite {
 
   @Autowired
   private HottestFilesStep hottestFilesStep;
+
+  @Autowired
+  private FilesInCacheStep filesInCacheStep;
 
   @Autowired
   private PaginationStep paginationStep;
@@ -112,14 +116,22 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     hottestFilesStep.checkPagination(filePathList);
   }
 
-  @Step("Create fake hottest files rows")
+  @TmsLink("91462")
+  @Story("Cluster info. Files in cache")
+  @Test(description = "Check 'Files in cache' sorting")
+  public void testFilesInCacheSorting() {
+    prepareDataForFilesInCacheTest();
+    filesInCacheStep.checkSorting();
+  }
+
+  @Step("Create fake 'Hottest files' rows")
   private void prepareDataForHottestFilesTest() {
     dataBaseStep.insertFakeDataForHottestFilesTest();
     tableStep.refreshPage();
     tableStep.checkTableRowsCountIs(SECONDARY, 2);
   }
 
-  @Step("Create hottest files rows for pagination test")
+  @Step("Create 'Hottest files' rows for pagination test")
   private List<String> prepareDataForHottestFilesPaginationTest() {
     List<String> filePathList = new ArrayList<>();
     int filesQuantity = 101;
@@ -130,5 +142,13 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     }
     clusterInfoStep.refreshPage();
     return filePathList;
+  }
+
+  @Step("Create fake 'Files in cache' rows")
+  private void prepareDataForFilesInCacheTest() {
+    dataBaseStep.insertFakeDataForFilesInCacheTest();
+    clusterInfoStep.refreshPage();
+    clusterInfoStep.openFilesInCacheTab();
+    tableStep.checkTableRowsCountIs(SECONDARY, 2);
   }
 }

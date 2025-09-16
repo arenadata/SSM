@@ -17,26 +17,23 @@
  */
 package org.smartdata.test.element;
 
-import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 import org.smartdata.test.model.TableColumn;
 
-import static com.codeborne.selenide.Selenide.$x;
-
-public interface ClusterInfoPageElement {
-
-  SelenideElement FILES_IN_CACHE_TAB = $x("//*[contains(@class, 'tab') and .='Files in cache']");
+public interface FilesInCachePageElement {
 
   @Getter
-  enum ClusterInfoTableColumn implements TableColumn {
+  enum ClusterInfoFilesInCachTableColumn implements TableColumn {
     ID("ID", "id"),
-    REGISTER_TIME("Register Time", "registrationTime"),
-    EXECUTORS("Executors", "executorsCount");
+    FILE_PATH("File path", "path"),
+    CACHED_TIME("Cached Time", "cachedTime"),
+    LAST_ACCESSED_TIME("Last Accessed Time", "lastAccessTime"),
+    ACCESS_COUNT("Access count", "accessCount");
 
     private final String name;
     private final String headerId;
 
-    ClusterInfoTableColumn(String name, String headerId) {
+    ClusterInfoFilesInCachTableColumn(String name, String headerId) {
       this.name = name;
       this.headerId = headerId;
     }

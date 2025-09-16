@@ -23,53 +23,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ACCESS_COUNT;
-import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.FILE_PATH;
-import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ID;
-import static org.smartdata.test.element.HottestFilesPageElement.HOTTEST_FILES_TOOLBAR;
+import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCachTableColumn.ACCESS_COUNT;
+import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCachTableColumn.CACHED_TIME;
+import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCachTableColumn.FILE_PATH;
+import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCachTableColumn.ID;
+import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCachTableColumn.LAST_ACCESSED_TIME;
 import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
 import static org.smartdata.test.model.SortOrder.ASC;
 
 @Slf4j
 @Service
-public class HottestFilesStep extends BaseWebStep {
+public class FilesInCacheStep extends BaseWebStep {
 
   @Autowired
   private TableStep tableStep;
 
-  @Autowired
-  private TableFilterPopupStep tableFilterPopupStep;
-
-  @Autowired
-  private PaginationStep paginationStep;
-
-  @Step("Check 'Hottest files' sorting")
-  public HottestFilesStep checkSorting() {
+  @Step("Check 'Files in cache' sorting")
+  public FilesInCacheStep checkSorting() {
     tableStep.checkSelectedSorting(SECONDARY, ACCESS_COUNT, ASC)
         .checkColumnValuesIsSorted(SECONDARY, ACCESS_COUNT, ASC)
         .checkSorting(SECONDARY, ID)
         .checkSorting(SECONDARY, FILE_PATH)
+        .checkSorting(SECONDARY, CACHED_TIME)
+        .checkSorting(SECONDARY, LAST_ACCESSED_TIME)
         .checkSorting(SECONDARY, ACCESS_COUNT);
-    return this;
-  }
-
-  @Step("Check filtration by 'File path'")
-  public HottestFilesStep checkFilePathFiltration() {
-    tableStep.clickFilterButton(SECONDARY, FILE_PATH);
-    tableFilterPopupStep.setTextPopupInput("file2");
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "file2.txt")
-        .clickResetFilterButton(HOTTEST_FILES_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2);
-    return this;
-  }
-
-  @Step("Check 'Hottest files' pagination")
-  public HottestFilesStep checkPagination(List<String> expectedFilePathList) {
-    tableStep.clickOnSortingColumn(SECONDARY, ID);
-    paginationStep.checkPaginationFixture(SECONDARY, FILE_PATH, expectedFilePathList, HOTTEST_FILES_TOOLBAR);
     return this;
   }
 }
