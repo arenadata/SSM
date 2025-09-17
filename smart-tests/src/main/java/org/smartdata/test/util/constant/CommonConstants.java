@@ -30,4 +30,5 @@ public class CommonConstants {
   public static final String DATE_TIME_UI_PATTERN =
       "^(?:0[1-9]|[12][0-9]|3[01])/(?:0[1-9]|1[0-2])/\\d{4}\\s(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$";
   public static final DateTimeFormatter DATE_TIME_FORMATTER_UI = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+  public static final int PAGINATION_QUANTITY = 101;
 }

@@ -57,6 +57,7 @@ public class DataBaseStep {
   private static final String DELETE_HOTTEST_FILES_SQL = "delete_hottest_files_table.sql";
   private static final String HOTTEST_FILES_FOR_PAGINATION_TEST_SQL = "insert_hottest_files_for_pagination_test.sql";
   private static final String INSERT_FILES_IN_CACHE_SQL = "insert_fake_files_in_cache.sql";
+  private static final String FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL = "insert_files_in_cache_for_pagination_test.sql";
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     metastoreRepository.executeSql(format(TRUNCATE_TABLE_TEMPLATE, "rule"));
@@ -159,6 +160,14 @@ public class DataBaseStep {
   @SneakyThrows
   public DataBaseStep insertFakeDataForFilesInCacheTest() {
     metastoreRepository.executeSqlFile(getSqlFilePath(INSERT_FILES_IN_CACHE_SQL));
+    return this;
+  }
+
+  @SneakyThrows
+  public DataBaseStep insertDataForFilesInCachePaginationTest(String fileId) {
+    String sql = FileUtils.readFile(getSqlFilePath(FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL));
+    sql = sql.replace("${fileId}", fileId);
+    metastoreRepository.executeSql(sql);
     return this;
   }
 

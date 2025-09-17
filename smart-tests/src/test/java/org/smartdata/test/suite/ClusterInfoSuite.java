@@ -37,11 +37,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
+import static java.lang.String.valueOf;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
 import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
 import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 
 @Feature("Cluster info page")
@@ -124,6 +126,14 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     filesInCacheStep.checkSorting();
   }
 
+  @TmsLink("91461")
+  @Story("Cluster info. Files in cache")
+  @Test(description = "Check 'Files in cache' pagination")
+  public void testFilesInCachePagination() {
+    List<String> fileIdList = prepareDataForFilesInCachePaginationTest();
+    filesInCacheStep.checkPagination(fileIdList);
+  }
+
   @Step("Create fake 'Hottest files' rows")
   private void prepareDataForHottestFilesTest() {
     dataBaseStep.insertFakeDataForHottestFilesTest();
@@ -134,8 +144,7 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Step("Create 'Hottest files' rows for pagination test")
   private List<String> prepareDataForHottestFilesPaginationTest() {
     List<String> filePathList = new ArrayList<>();
-    int filesQuantity = 101;
-    for (int i = 0; i < filesQuantity; i++) {
+    for (int i = 0; i < PAGINATION_QUANTITY; i++) {
       String filePath = format("test%s.txt", i);
       dataBaseStep.insertDataForHottestFilesPaginationTest(filePath);
       filePathList.add(filePath);
@@ -150,5 +159,17 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     clusterInfoStep.refreshPage();
     clusterInfoStep.openFilesInCacheTab();
     tableStep.checkTableRowsCountIs(SECONDARY, 2);
+  }
+
+  @Step("Create 'Files in cache' rows for pagination test")
+  private List<String> prepareDataForFilesInCachePaginationTest() {
+    List<String> fileIdList = new ArrayList<>();
+    for (int i = 0; i < PAGINATION_QUANTITY; i++) {
+      dataBaseStep.insertDataForFilesInCachePaginationTest(valueOf(i));
+      fileIdList.add(valueOf(i));
+    }
+    clusterInfoStep.refreshPage();
+    clusterInfoStep.openFilesInCacheTab();
+    return fileIdList;
   }
 }

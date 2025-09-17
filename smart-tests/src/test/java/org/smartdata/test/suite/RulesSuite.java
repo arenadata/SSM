@@ -51,6 +51,7 @@ import static org.smartdata.test.element.TableElement.GRAY_STATUS_MARKER_XPATH;
 import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
 import static org.smartdata.test.model.RuleStatus.ACTIVE;
 import static org.smartdata.test.model.RuleStatus.DISABLED;
+import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 @Feature("Rules page")
 public class RulesSuite extends SsmBaseSuite {
@@ -157,14 +158,13 @@ public class RulesSuite extends SsmBaseSuite {
   @Step("Create rules for pagination test")
   private List<String> prepareDataForPaginationTest() {
     List<String> rulesIds = new ArrayList<>();
-    int rulesQuantity = 101;
     tableStep.checkTableIsEmpty();
-    for (int i = 1; i <= rulesQuantity; i++) {
+    for (int i = 1; i <= PAGINATION_QUANTITY; i++) {
       apiStep.createRule(TEST_RULE_TEXT);
       rulesIds.add(String.valueOf(i));
     }
     rulesStep.refreshPage();
-    rulesStep.checkRulesCounter(rulesQuantity);
+    rulesStep.checkRulesCounter(PAGINATION_QUANTITY);
     Collections.reverse(rulesIds);
     return rulesIds;
   }

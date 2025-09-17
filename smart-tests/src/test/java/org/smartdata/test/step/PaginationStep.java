@@ -34,6 +34,7 @@ import static com.codeborne.selenide.CollectionCondition.allMatch;
 import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exactValue;
+import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.smartdata.test.element.PaginationElement.PageSize.FIFTY;
@@ -50,6 +51,7 @@ import static org.smartdata.test.element.PaginationElement.getPerPageInput;
 import static org.smartdata.test.element.PaginationElement.getPreviousPageButton;
 import static org.smartdata.test.element.TableElement.TableType;
 import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
+import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 @Slf4j
 @Service
@@ -141,7 +143,8 @@ public class PaginationStep extends BaseWebStep {
   public void checkPaginationFixture(TableType tableType, TableColumn tableColumn, List<String> testColumnValues,
                                      SelenideElement baseElement) {
     // testColumnValues must be ordered as UI shown
-    assertThat("testColumnValues size must be 101", testColumnValues.size(), is(101));
+    assertThat(format("testColumnValues size must be %s", PAGINATION_QUANTITY),
+        testColumnValues.size(), is(PAGINATION_QUANTITY));
 
     waitVisibility(getNumberedButtonByPageNum(11, baseElement));
     checkPagination(1, TEN, tableType, tableColumn, testColumnValues, baseElement)

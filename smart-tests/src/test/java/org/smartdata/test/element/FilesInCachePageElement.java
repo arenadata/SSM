@@ -17,10 +17,15 @@
  */
 package org.smartdata.test.element;
 
+import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 import org.smartdata.test.model.TableColumn;
 
+import static com.codeborne.selenide.Selenide.$x;
+
 public interface FilesInCachePageElement {
+
+  SelenideElement FILES_IN_CACHE_TOOLBAR = $x("//*[contains(@class, 'cachedFilesToolbar')]");
 
   @Getter
   enum ClusterInfoFilesInCachTableColumn implements TableColumn {
