@@ -126,6 +126,16 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     filesInCacheStep.checkSorting();
   }
 
+  @TmsLink("91463")
+  @Story("Cluster info. Files in cache")
+  @Test(description = "Check 'Files in cache' filtration")
+  public void testFilesInCacheFiltration() {
+    prepareDataForFilesInCacheTest();
+    filesInCacheStep.checkFilePathFiltration()
+        .checkCachedTimeFiltration()
+        .checkLastAccessedTimeFiltration();
+  }
+
   @TmsLink("91461")
   @Story("Cluster info. Files in cache")
   @Test(description = "Check 'Files in cache' pagination")

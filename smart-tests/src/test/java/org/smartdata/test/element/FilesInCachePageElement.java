@@ -28,7 +28,7 @@ public interface FilesInCachePageElement {
   SelenideElement FILES_IN_CACHE_TOOLBAR = $x("//*[contains(@class, 'cachedFilesToolbar')]");
 
   @Getter
-  enum ClusterInfoFilesInCachTableColumn implements TableColumn {
+  enum ClusterInfoFilesInCacheTableColumn implements TableColumn {
     ID("ID", "id"),
     FILE_PATH("File path", "path"),
     CACHED_TIME("Cached Time", "cachedTime"),
@@ -38,7 +38,7 @@ public interface FilesInCachePageElement {
     private final String name;
     private final String headerId;
 
-    ClusterInfoFilesInCachTableColumn(String name, String headerId) {
+    ClusterInfoFilesInCacheTableColumn(String name, String headerId) {
       this.name = name;
       this.headerId = headerId;
     }

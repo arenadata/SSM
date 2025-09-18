@@ -1,6 +1,6 @@
 INSERT INTO cached_file
 (fid, "path", from_time, last_access_time, accessed_num)
-VALUES(111, '/file1.txt', 1758026980000, 1758026980000, 111);
+VALUES(111, '/file1.txt', ${currentTime}, ${currentTime}, 111);
 
 INSERT INTO cached_file
 (fid, "path", from_time, last_access_time, accessed_num)

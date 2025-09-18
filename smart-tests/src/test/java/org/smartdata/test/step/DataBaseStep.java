@@ -159,7 +159,9 @@ public class DataBaseStep {
 
   @SneakyThrows
   public DataBaseStep insertFakeDataForFilesInCacheTest() {
-    metastoreRepository.executeSqlFile(getSqlFilePath(INSERT_FILES_IN_CACHE_SQL));
+    String sql = FileUtils.readFile(getSqlFilePath(INSERT_FILES_IN_CACHE_SQL));
+    sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
+    metastoreRepository.executeSql(sql);
     return this;
   }
 
