@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-package org.smartdata.retry;
+package org.smartdata.hive.handler;
 
-public interface ThrowingRunnable<T extends Exception> {
-  void run() throws T;
+public interface HmsBufferingEventHandler extends HmsEventHandler {
+  void flush();
 }

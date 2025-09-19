@@ -19,6 +19,7 @@
 package org.smartdata.retry;
 
 import org.apache.hadoop.io.retry.RetryPolicy;
+import org.smartdata.utils.ThrowingRunnable;
 
 public class PolicyBasedRetrySupport implements RetrySupport {
   private final ResourceMapperRetryPolicy retryPolicy;

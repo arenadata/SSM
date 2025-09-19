@@ -15,22 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
 
-public enum HiveEntity {
-  CATALOG,
-  DATABASE,
-  TABLE,
-  PRIMARY_KEY,
-  FOREIGN_KEY,
-  UNIQUE_CONSTRAINT,
-  NOT_NULL_CONSTRAINT,
-  DEFAULT_CONSTRAINT,
-  CHECK_CONSTRAINT,
-  CONNECTOR,
-  PARTITION,
-  FUNCTION,
-  ROLES,
-  PRIVILEGES,
-  UNKNOWN
+package org.smartdata.hive.fetch.composite;
+
+import lombok.Data;
+import org.smartdata.hive.fetch.HmsEventStreamRecord;
+
+@Data
+public class NewHiveSourceStateRecord implements HmsEventStreamRecord {
+  private final HiveDiffSourceState newState;
+
+  public static HmsEventStreamRecord newStateRecord(HiveDiffSourceState state) {
+    return new NewHiveSourceStateRecord(state);
+  }
 }

@@ -17,22 +17,32 @@
  */
 package org.smartdata.hive;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncoder;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
 import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
+import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
+import org.smartdata.hive.fetch.composite.CompositeHmsEventSource;
 import org.smartdata.hive.handler.AsyncHmsEventStreamHandler;
+import org.smartdata.hive.handler.CompositeHmsEventHandler;
 import org.smartdata.hive.handler.DbHmsEventHandler;
+import org.smartdata.hive.handler.HmsBufferingEventHandler;
+import org.smartdata.hive.handler.HmsEventHandler;
 import org.smartdata.hive.handler.HmsEventStreamHandler;
+import org.smartdata.hive.snapshot.HiveNotificationEventFactory;
+import org.smartdata.hive.snapshot.HmsSnapshotEventSource;
 import org.smartdata.retry.PolicyBasedRetrySupport;
 import org.smartdata.retry.ResourceMapperRetryPolicy;
 import org.smartdata.retry.RetryPolicyFactory;
 import org.smartdata.retry.RetrySupport;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -46,6 +56,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
   private final HiveSmartConf hiveSmartConf;
   private final HmsEventDao hiveEventDao;
   private final HmsEventDao unprocessedHiveEventDao;
+  private final PlatformTransactionManager transactionManager;
 
   private HmsEventSource resourceSource;
   private HmsEventStreamHandler eventStreamHandler;
@@ -54,18 +65,20 @@ public class HiveMetastoreFetcherService extends AbstractService {
   public HiveMetastoreFetcherService(
       SmartContext context,
       HmsEventDao hiveEventDao,
-      HmsEventDao unprocessedHiveEventDao
+      HmsEventDao unprocessedHiveEventDao,
+      PlatformTransactionManager transactionManager
   ) {
     super(context);
     this.hiveSmartConf = new HiveSmartConf(context.getConf());
     this.hiveEventDao = hiveEventDao;
     this.unprocessedHiveEventDao = unprocessedHiveEventDao;
+    this.transactionManager = transactionManager;
   }
 
   @Override
   public void init() throws IOException {
     try {
-      scheduledExecutorService = Executors.newScheduledThreadPool(5);
+      scheduledExecutorService = Executors.newScheduledThreadPool(16);
 
       resourceSource = buildEventSource(
           buildMetastoreClient(),
@@ -112,13 +125,53 @@ public class HiveMetastoreFetcherService extends AbstractService {
     RetrySupport handlerRetrySupport = buildHandlerRetrySupport();
 
     return new AsyncHmsEventStreamHandler(
-        new DbHmsEventHandler(hiveEventDao, handlerRetrySupport),
+        buildCompositeEventHandler(handlerRetrySupport),
         new DbHmsEventHandler(unprocessedHiveEventDao, handlerRetrySupport),
         scheduledExecutorService
     );
   }
 
+  private HmsEventHandler buildCompositeEventHandler(RetrySupport retrySupport) {
+    DbHmsEventHandler delegate = new DbHmsEventHandler(hiveEventDao, retrySupport);
+
+    return new CompositeHmsEventHandler(
+        retrySupport,
+        transactionManager,
+        // todo: replace with proper snapshot to event transition handler
+        new DelegatingBufferingEventHandler(delegate),
+        delegate
+    );
+  }
+
   private HmsEventSource buildEventSource(
+      IMetaStoreClient hiveMetaStoreClient,
+      RetrySupport retrySupport
+  ) {
+    return new CompositeHmsEventSource(
+        hiveMetaStoreClient,
+        buildSnapshotEventSource(hiveMetaStoreClient, retrySupport),
+        buildInFlightEventSource(hiveMetaStoreClient, retrySupport),
+        scheduledExecutorService,
+        hiveSmartConf.getFetchBatchSize()
+    );
+  }
+
+  private HmsSnapshotEventSource buildSnapshotEventSource(
+      IMetaStoreClient hiveMetaStoreClient,
+      RetrySupport retrySupport
+  ) {
+    return new HmsSnapshotEventSource(
+        hiveMetaStoreClient,
+        scheduledExecutorService,
+        retrySupport,
+        hiveSmartConf.getFetchBatchSize(),
+        new HiveNotificationEventFactory(
+            GzipJSONMessageEncoder.getInstance()
+        )
+    );
+  }
+
+  private HmsInFlightEventSource buildInFlightEventSource(
       IMetaStoreClient hiveMetaStoreClient,
       RetrySupport retrySupport
   ) {
@@ -165,5 +218,21 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
   private IMetaStoreClient buildMetastoreClientAction() throws MetaException {
     return new HiveMetaStoreClient(hiveSmartConf);
+  }
+
+  // todo: remove when we add proper snapshot to event transition
+  @RequiredArgsConstructor
+  private static class DelegatingBufferingEventHandler implements HmsBufferingEventHandler {
+    private final HmsEventHandler delegate;
+
+    @Override
+    public void flush() {
+      // do nothing
+    }
+
+    @Override
+    public void handle(HmsEventStreamRecord record) throws Exception {
+      delegate.handle(record);
+    }
   }
 }

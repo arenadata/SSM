@@ -22,12 +22,16 @@ import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 
 import java.util.Optional;
 
-import static org.smartdata.hive.fetch.HiveEntity.CATALOG;
-import static org.smartdata.hive.fetch.HiveEntity.CONNECTOR;
+import static org.smartdata.hive.fetch.HiveEntity.CHECK_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
+import static org.smartdata.hive.fetch.HiveEntity.DEFAULT_CONSTRAINT;
+import static org.smartdata.hive.fetch.HiveEntity.FOREIGN_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
+import static org.smartdata.hive.fetch.HiveEntity.NOT_NULL_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
+import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveOperation.ALTER;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 import static org.smartdata.hive.fetch.HiveOperation.DROP;
@@ -56,40 +60,44 @@ public class EventOperationBuilder {
       case ALTER_DATABASE:
         return new EventOperation(DATABASE, ALTER);
       case ALTER_TABLE:
-      case ADD_PRIMARYKEY:
-      case ADD_FOREIGNKEY:
-      case ADD_UNIQUECONSTRAINT:
-      case ADD_NOTNULLCONSTRAINT:
-      case ADD_DEFAULTCONSTRAINT:
-      case ADD_CHECKCONSTRAINT:
-      case DROP_CONSTRAINT:
         return new EventOperation(TABLE, ALTER);
+      case ADD_PRIMARYKEY:
+        return new EventOperation(PRIMARY_KEY, CREATE);
+      case ADD_FOREIGNKEY:
+        return new EventOperation(FOREIGN_KEY, CREATE);
+      case ADD_UNIQUECONSTRAINT:
+        return new EventOperation(UNIQUE_CONSTRAINT, CREATE);
+      case ADD_NOTNULLCONSTRAINT:
+        return new EventOperation(NOT_NULL_CONSTRAINT, CREATE);
+      case ADD_DEFAULTCONSTRAINT:
+        return new EventOperation(DEFAULT_CONSTRAINT, CREATE);
+      case ADD_CHECKCONSTRAINT:
+        return new EventOperation(CHECK_CONSTRAINT, CREATE);
+      case DROP_CONSTRAINT:
+        return new EventOperation(DEFAULT_CONSTRAINT, DROP);
       case ALTER_PARTITION:
         return new EventOperation(PARTITION, ALTER);
       case CREATE_FUNCTION:
         return new EventOperation(FUNCTION, CREATE);
       case DROP_FUNCTION:
         return new EventOperation(FUNCTION, DROP);
-      case CREATE_CATALOG:
-        return new EventOperation(CATALOG, CREATE);
-      case DROP_CATALOG:
-        return new EventOperation(CATALOG, DROP);
-      case ALTER_CATALOG:
-        return new EventOperation(CATALOG, ALTER);
-      case CREATE_DATACONNECTOR:
-        return new EventOperation(CONNECTOR, CREATE);
+      // the event types below are not produced by the Hive DbNotificationListener
       case DROP_DATACONNECTOR:
-        return new EventOperation(CONNECTOR, DROP);
+      case CREATE_DATACONNECTOR:
       case ALTER_DATACONNECTOR:
-        return new EventOperation(CONNECTOR, ALTER);
-      case INSERT:
-      case ALLOC_WRITE_ID:
       case CREATE_ISCHEMA:
       case ALTER_ISCHEMA:
       case DROP_ISCHEMA:
       case ADD_SCHEMA_VERSION:
       case ALTER_SCHEMA_VERSION:
       case DROP_SCHEMA_VERSION:
+      case CREATE_CATALOG:
+      case ALTER_CATALOG:
+      case DROP_CATALOG:
+        // the event types below are not handled intentionally,
+        // we don't collapse them into a single branch just to explicitly show this
+      case INSERT:
+      case ALLOC_WRITE_ID:
       case OPEN_TXN:
       case COMMIT_TXN:
       case ABORT_TXN:

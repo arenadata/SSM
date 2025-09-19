@@ -15,22 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.smartdata.hive.fetch;
 
-public enum HiveEntity {
-  CATALOG,
-  DATABASE,
-  TABLE,
-  PRIMARY_KEY,
-  FOREIGN_KEY,
-  UNIQUE_CONSTRAINT,
-  NOT_NULL_CONSTRAINT,
-  DEFAULT_CONSTRAINT,
-  CHECK_CONSTRAINT,
-  CONNECTOR,
-  PARTITION,
-  FUNCTION,
-  ROLES,
-  PRIVILEGES,
-  UNKNOWN
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public abstract class BaseHmsEventSource implements HmsEventSource {
+  private final AtomicBoolean isClosed = new AtomicBoolean(false);
+
+  @Override
+  public void close() {
+    if (isClosed.compareAndSet(false, true)) {
+      closeAction();
+    }
+  }
+
+  protected abstract void closeAction();
+
+  protected void closeQueue(BlockingQueue<HmsEventStreamRecord> outputQueue) {
+    if (!isClosed.get()) {
+      outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    }
+  }
+
+  protected boolean isClosed() {
+    return isClosed.get();
+  }
 }

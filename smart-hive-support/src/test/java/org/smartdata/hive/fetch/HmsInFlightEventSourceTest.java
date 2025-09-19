@@ -69,9 +69,9 @@ import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 import static org.smartdata.hive.fetch.HiveOperation.DROP;
-import static org.smartdata.hive.fetch.HmsInFlightEventSource.fullResourceName;
 
 public class HmsInFlightEventSourceTest {
 

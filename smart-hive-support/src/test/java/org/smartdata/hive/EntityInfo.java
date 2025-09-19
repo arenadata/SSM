@@ -25,6 +25,6 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class EntityInfo {
-    private final String name;
-    private final String location;
+  private final String name;
+  private final String location;
 }

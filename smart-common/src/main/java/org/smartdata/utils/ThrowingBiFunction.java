@@ -15,22 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
 
-public enum HiveEntity {
-  CATALOG,
-  DATABASE,
-  TABLE,
-  PRIMARY_KEY,
-  FOREIGN_KEY,
-  UNIQUE_CONSTRAINT,
-  NOT_NULL_CONSTRAINT,
-  DEFAULT_CONSTRAINT,
-  CHECK_CONSTRAINT,
-  CONNECTOR,
-  PARTITION,
-  FUNCTION,
-  ROLES,
-  PRIVILEGES,
-  UNKNOWN
+package org.smartdata.utils;
+
+public interface ThrowingBiFunction<T, K, V> {
+  V apply(T arg0, K arg1) throws Exception;
 }

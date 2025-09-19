@@ -21,6 +21,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @Builder
 @Data
 public class HiveNotificationEvent implements HmsEventStreamRecord {
@@ -47,6 +51,20 @@ public class HiveNotificationEvent implements HmsEventStreamRecord {
         .dbName(event.getDbName())
         .tableName(event.getTableName())
         .message(event.getMessage())
-        .messageFormat(event.getMessageFormat());
+        .messageFormat(event.getMessageFormat())
+        .fullName(fullResourceName(event));
+  }
+
+  public static String fullResourceName(NotificationEvent event) {
+    return fullResourceName(
+        event.getCatName(),
+        event.getDbName(),
+        event.getTableName());
+  }
+
+  public static String fullResourceName(String... nameParts) {
+    return Arrays.stream(nameParts)
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining("."));
   }
 }
