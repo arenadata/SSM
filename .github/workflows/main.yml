@@ -2,9 +2,16 @@ name: PR and master push checks
 
 on:
   push:
-    branches: [ "develop" ]
+    branches:
+      - "develop"
+      - "release/*"
   pull_request:
-    branches: [ "develop" ]
+    branches:
+      - "develop"
+      - "feature/*"
+      - "bugfix/*"
+      - "ADH-*"
+      - "release/*"
 
 jobs:
   build:
