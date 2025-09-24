@@ -87,6 +87,7 @@ public class HiveNotificationEventFactory {
         .fullName(fullResourceName(table.getCatName(), table.getDbName(), table.getTableName()))
         .entityType(HiveEntity.TABLE.toString())
         .dbName(table.getDbName())
+        .tableName(table.getTableName())
         .build();
   }
 
@@ -105,6 +106,7 @@ public class HiveNotificationEventFactory {
         .fullName(partitionKey)
         .entityType(HiveEntity.PARTITION.toString())
         .dbName(partition.getDbName())
+        .tableName(partition.getTableName())
         .build();
   }
 
@@ -133,6 +135,7 @@ public class HiveNotificationEventFactory {
         .fullName(pKeyName)
         .entityType(HiveEntity.PRIMARY_KEY.toString())
         .dbName(constraint.getTable_db())
+        .tableName(constraint.getTable_name())
         .build();
   }
 
@@ -148,6 +151,7 @@ public class HiveNotificationEventFactory {
         .fullName(fKeyName)
         .entityType(HiveEntity.FOREIGN_KEY.toString())
         .dbName(constraint.getFktable_db())
+        .tableName(constraint.getFktable_name())
         .build();
   }
 
@@ -163,6 +167,7 @@ public class HiveNotificationEventFactory {
         .fullName(constraintName)
         .entityType(HiveEntity.UNIQUE_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
+        .tableName(constraint.getTable_name())
         .build();
   }
 
@@ -178,6 +183,7 @@ public class HiveNotificationEventFactory {
         .fullName(constraintName)
         .entityType(HiveEntity.NOT_NULL_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
+        .tableName(constraint.getTable_name())
         .build();
   }
 
@@ -193,6 +199,7 @@ public class HiveNotificationEventFactory {
         .fullName(constraintName)
         .entityType(HiveEntity.DEFAULT_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
+        .tableName(constraint.getTable_name())
         .build();
   }
 
@@ -208,6 +215,7 @@ public class HiveNotificationEventFactory {
         .fullName(constraintName)
         .entityType(HiveEntity.CHECK_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
+        .tableName(constraint.getTable_name())
         .build();
   }
 

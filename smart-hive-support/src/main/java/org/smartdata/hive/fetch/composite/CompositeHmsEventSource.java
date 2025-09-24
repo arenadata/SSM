@@ -18,6 +18,7 @@
 
 package org.smartdata.hive.fetch.composite;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -48,8 +49,9 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
   private final HmsInFlightEventSource eventFetcher;
   private final ExecutorService executor;
 
-  @Getter
+  @Getter(AccessLevel.PACKAGE)
   private final BlockingQueue<HmsEventStreamRecord> outputQueue;
+  @Getter(AccessLevel.PACKAGE)
   private final BlockingQueue<HmsEventStreamRecord> unhandledOutputQueue;
   private final AtomicBoolean pollStarted;
 
@@ -173,7 +175,7 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
       log.warn("Error polling records", e);
     } finally {
-      ignoredEventsFuture.cancel(true);
+      ignoredEventsFuture.cancel(false);
       fetcher.close();
     }
   }
@@ -198,8 +200,6 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
     HmsEventStreamRecord event;
     do {
       event = source.take();
-      // if we encounter the last record marker
-      // in the ignored events queue for some reason
       if (!event.isLastRecord()) {
         destination.put(event);
       }

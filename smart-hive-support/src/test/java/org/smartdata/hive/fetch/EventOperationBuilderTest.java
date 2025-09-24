@@ -72,12 +72,16 @@ import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.UPDATE_PARTITION_COLUMN_STAT_BATCH;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.UPDATE_TABLE_COLUMN_STAT;
 import static org.junit.Assert.assertEquals;
-import static org.smartdata.hive.fetch.HiveEntity.CATALOG;
-import static org.smartdata.hive.fetch.HiveEntity.CONNECTOR;
+import static org.smartdata.hive.fetch.HiveEntity.CHECK_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
+import static org.smartdata.hive.fetch.HiveEntity.DEFAULT_CONSTRAINT;
+import static org.smartdata.hive.fetch.HiveEntity.FOREIGN_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
+import static org.smartdata.hive.fetch.HiveEntity.NOT_NULL_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
+import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveOperation.ALTER;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 import static org.smartdata.hive.fetch.HiveOperation.DROP;
@@ -109,13 +113,15 @@ public class EventOperationBuilderTest {
         {CREATE_TABLE, new EventOperation(TABLE, CREATE)},
         {DROP_TABLE, new EventOperation(TABLE, DROP)},
         {ALTER_TABLE, new EventOperation(TABLE, ALTER)},
-        {ADD_PRIMARYKEY, new EventOperation(TABLE, ALTER)},
-        {ADD_FOREIGNKEY, new EventOperation(TABLE, ALTER)},
-        {ADD_UNIQUECONSTRAINT, new EventOperation(TABLE, ALTER)},
-        {ADD_NOTNULLCONSTRAINT, new EventOperation(TABLE, ALTER)},
-        {ADD_DEFAULTCONSTRAINT, new EventOperation(TABLE, ALTER)},
-        {ADD_CHECKCONSTRAINT, new EventOperation(TABLE, ALTER)},
-        {DROP_CONSTRAINT, new EventOperation(TABLE, ALTER)},
+
+        // Constraint operations
+        {ADD_PRIMARYKEY, new EventOperation(PRIMARY_KEY, CREATE)},
+        {ADD_FOREIGNKEY, new EventOperation(FOREIGN_KEY, CREATE)},
+        {ADD_UNIQUECONSTRAINT, new EventOperation(UNIQUE_CONSTRAINT, CREATE)},
+        {ADD_NOTNULLCONSTRAINT, new EventOperation(NOT_NULL_CONSTRAINT, CREATE)},
+        {ADD_DEFAULTCONSTRAINT, new EventOperation(DEFAULT_CONSTRAINT, CREATE)},
+        {ADD_CHECKCONSTRAINT, new EventOperation(CHECK_CONSTRAINT, CREATE)},
+        {DROP_CONSTRAINT, new EventOperation(DEFAULT_CONSTRAINT, DROP)},
 
         // Partition operations
         {ADD_PARTITION, new EventOperation(PARTITION, CREATE)},
@@ -127,14 +133,14 @@ public class EventOperationBuilderTest {
         {DROP_FUNCTION, new EventOperation(FUNCTION, DROP)},
 
         // Catalog operations
-        {CREATE_CATALOG, new EventOperation(CATALOG, CREATE)},
-        {DROP_CATALOG, new EventOperation(CATALOG, DROP)},
-        {ALTER_CATALOG, new EventOperation(CATALOG, ALTER)},
+        {CREATE_CATALOG, EventOperation.ignored()},
+        {DROP_CATALOG, EventOperation.ignored()},
+        {ALTER_CATALOG, EventOperation.ignored()},
 
         // DataConnector operations
-        {CREATE_DATACONNECTOR, new EventOperation(CONNECTOR, CREATE)},
-        {DROP_DATACONNECTOR, new EventOperation(CONNECTOR, DROP)},
-        {ALTER_DATACONNECTOR, new EventOperation(CONNECTOR, ALTER)},
+        {CREATE_DATACONNECTOR, EventOperation.ignored()},
+        {DROP_DATACONNECTOR, EventOperation.ignored()},
+        {ALTER_DATACONNECTOR, EventOperation.ignored()},
 
         // Ignored operations
         {INSERT, EventOperation.ignored()},

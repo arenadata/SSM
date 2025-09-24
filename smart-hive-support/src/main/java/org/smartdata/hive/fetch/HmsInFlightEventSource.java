@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static lombok.AccessLevel.PROTECTED;
 import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 
@@ -45,6 +46,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
   private final EventOperationBuilder eventOperationBuilder;
   private final int eventBatchSize;
   private final long fetchPeriodMs;
+  @Getter(PROTECTED)
   private final Long endEventId;
 
   @Getter(AccessLevel.PACKAGE)
@@ -121,10 +123,6 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
   @Override
   protected void closeAction() {
-    if (executor != null) {
-      executor.shutdown();
-    }
-
     try {
       metaStoreClient.close();
     } catch (Exception e) {

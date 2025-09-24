@@ -18,7 +18,6 @@
 package org.smartdata.hive.fetch;
 
 public enum HiveEntity {
-  CATALOG,
   DATABASE,
   TABLE,
   PRIMARY_KEY,

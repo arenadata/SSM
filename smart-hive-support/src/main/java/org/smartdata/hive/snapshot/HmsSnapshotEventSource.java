@@ -216,10 +216,6 @@ public class HmsSnapshotEventSource implements HmsEventSource {
 
   @Override
   public void close() {
-    if (executor != null) {
-      executor.shutdown();
-    }
-
     outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
 }
