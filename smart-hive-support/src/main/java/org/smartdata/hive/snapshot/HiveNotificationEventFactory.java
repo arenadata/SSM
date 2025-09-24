@@ -20,7 +20,6 @@ package org.smartdata.hive.snapshot;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.Warehouse;
-import org.apache.hadoop.hive.metastore.api.Catalog;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -31,6 +30,17 @@ import org.apache.hadoop.hive.metastore.api.SQLNotNullConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLPrimaryKey;
 import org.apache.hadoop.hive.metastore.api.SQLUniqueConstraint;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.messaging.AddCheckConstraintMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddDefaultConstraintMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddForeignKeyMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddNotNullConstraintMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddPartitionMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddPrimaryKeyMessage;
+import org.apache.hadoop.hive.metastore.messaging.AddUniqueConstraintMessage;
+import org.apache.hadoop.hive.metastore.messaging.CreateDatabaseMessage;
+import org.apache.hadoop.hive.metastore.messaging.CreateFunctionMessage;
+import org.apache.hadoop.hive.metastore.messaging.CreateTableMessage;
+import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageBuilder;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.apache.hadoop.hive.metastore.messaging.MessageSerializer;
@@ -39,47 +49,44 @@ import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
 
+import java.util.Collections;
+
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 
 @Slf4j
 public class HiveNotificationEventFactory {
-  private final MessageSerializer hmsEntitySerializerWrapper;
+  private final MessageSerializer serializer;
   private final String messageFormat;
 
   public HiveNotificationEventFactory(MessageEncoder messageEncoder) {
-    this.hmsEntitySerializerWrapper = messageEncoder.getSerializer();
+    this.serializer = messageEncoder.getSerializer();
     this.messageFormat = messageEncoder.getMessageFormat();
   }
 
-  public HiveNotificationEvent createCatalogEvent(Catalog catalog, long diffId) throws TException {
-    log.debug("Saving a new catalog from metastore: {}", catalog.getName());
-
-    return eventBuilder(catalog.getName(), diffId)
-        .fullName(fullResourceName(catalog.getName()))
-        .entityType(HiveEntity.CATALOG.toString())
-        .message(wrap(MessageBuilder.createCatalogObjJson(catalog)))
-        .build();
-  }
-
-  public HiveNotificationEvent createDbEvent(String catalog, Database database, long diffId) throws TException {
+  public HiveNotificationEvent createDbEvent(String catalog, Database database, long diffId) {
     log.debug("Saving a new db from metastore: {}", database.getName());
 
-    return eventBuilder(catalog, diffId)
+    CreateDatabaseMessage message = MessageBuilder.getInstance()
+        .buildCreateDatabaseMessage(database);
+
+    return eventBuilder(catalog, message, diffId)
         .fullName(fullResourceName(catalog, database.getName()))
         .entityType(HiveEntity.DATABASE.toString())
         .dbName(database.getName())
-        .message(wrap(MessageBuilder.createDatabaseObjJson(database)))
         .build();
   }
 
-  public HiveNotificationEvent createTableEvent(Table table, long diffId) throws TException {
+  public HiveNotificationEvent createTableEvent(Table table, long diffId) {
     log.debug("Saving a new table from metastore: {}", table.getTableName());
 
-    return eventBuilder(table.getCatName(), diffId)
+    // we don't use filenames in the handler
+    CreateTableMessage message = MessageBuilder.getInstance()
+        .buildCreateTableMessage(table, Collections.emptyIterator());
+
+    return eventBuilder(table.getCatName(), message, diffId)
         .fullName(fullResourceName(table.getCatName(), table.getDbName(), table.getTableName()))
         .entityType(HiveEntity.TABLE.toString())
         .dbName(table.getDbName())
-        .message(wrap(MessageBuilder.createTableObjJson(table)))
         .build();
   }
 
@@ -88,100 +95,119 @@ public class HiveNotificationEventFactory {
         Warehouse.makePartName(table.getPartitionKeys(), partition.getValues()));
     log.debug("Saving a new partition from metastore: {}", partitionKey);
 
-    return eventBuilder(partition.getCatName(), diffId)
+    // we don't use filenames in the handler
+    AddPartitionMessage message = MessageBuilder.getInstance()
+        .buildAddPartitionMessage(table,
+            Collections.singletonList(partition).iterator(),
+            Collections.emptyIterator());
+
+    return eventBuilder(partition.getCatName(), message, diffId)
         .fullName(partitionKey)
         .entityType(HiveEntity.PARTITION.toString())
         .dbName(partition.getDbName())
-        .message(wrap(MessageBuilder.createPartitionObjJson(partition)))
         .build();
   }
 
-  public HiveNotificationEvent createFunctionEvent(Function function, long diffId) throws TException {
+  public HiveNotificationEvent createFunctionEvent(Function function, long diffId) {
     String resourceName = fullResourceName(function.getCatName(), function.getDbName(), function.getFunctionName());
     log.debug("Saving a new function from metastore: {}", resourceName);
 
-    return eventBuilder(function.getCatName(), diffId)
+    CreateFunctionMessage message = MessageBuilder.getInstance()
+        .buildCreateFunctionMessage(function);
+
+    return eventBuilder(function.getCatName(), message, diffId)
         .fullName(resourceName)
         .entityType(HiveEntity.FUNCTION.toString())
         .dbName(function.getDbName())
-        .message(wrap(MessageBuilder.createFunctionObjJson(function)))
         .build();
   }
 
-  public HiveNotificationEvent createPrimaryKeyEvent(SQLPrimaryKey constraint, long diffId) throws TException {
+  public HiveNotificationEvent createPrimaryKeyEvent(SQLPrimaryKey constraint, long diffId) {
     String pKeyName = fullName(constraint);
     log.debug("Saving a new primary key from metastore: {}", pKeyName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddPrimaryKeyMessage message = MessageBuilder.getInstance()
+        .buildAddPrimaryKeyMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(pKeyName)
         .entityType(HiveEntity.PRIMARY_KEY.toString())
         .dbName(constraint.getTable_db())
-        .message(wrap(MessageBuilder.createPrimaryKeyObjJson(constraint)))
         .build();
   }
 
   public HiveNotificationEvent createForeignKeyEvent(
-      SQLForeignKey constraint, long diffId) throws TException {
+      SQLForeignKey constraint, long diffId) {
     String fKeyName = fullName(constraint);
     log.debug("Saving a new foreign key from metastore: {}", fKeyName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddForeignKeyMessage message = MessageBuilder.getInstance()
+        .buildAddForeignKeyMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(fKeyName)
         .entityType(HiveEntity.FOREIGN_KEY.toString())
         .dbName(constraint.getFktable_db())
-        .message(wrap(MessageBuilder.createForeignKeyObjJson(constraint)))
         .build();
   }
 
   public HiveNotificationEvent createUniqueConstraintEvent(
-      SQLUniqueConstraint constraint, long diffId) throws TException {
+      SQLUniqueConstraint constraint, long diffId) {
     String constraintName = fullName(constraint);
     log.debug("Saving a new unique constraint from metastore: {}", constraintName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddUniqueConstraintMessage message = MessageBuilder.getInstance()
+        .buildAddUniqueConstraintMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(constraintName)
         .entityType(HiveEntity.UNIQUE_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
-        .message(wrap(MessageBuilder.createUniqueConstraintObjJson(constraint)))
         .build();
   }
 
   public HiveNotificationEvent createNotNullConstraintEvent(
-      SQLNotNullConstraint constraint, long diffId) throws TException {
+      SQLNotNullConstraint constraint, long diffId) {
     String constraintName = fullName(constraint);
     log.debug("Saving a new not null constraint from metastore: {}", constraintName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddNotNullConstraintMessage message = MessageBuilder.getInstance()
+        .buildAddNotNullConstraintMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(constraintName)
         .entityType(HiveEntity.NOT_NULL_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
-        .message(wrap(MessageBuilder.createNotNullConstraintObjJson(constraint)))
         .build();
   }
 
   public HiveNotificationEvent createDefaultConstraintEvent(
-      SQLDefaultConstraint constraint, long diffId) throws TException {
+      SQLDefaultConstraint constraint, long diffId) {
     String constraintName = fullName(constraint);
     log.debug("Saving a new default constraint from metastore: {}", constraintName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddDefaultConstraintMessage message = MessageBuilder.getInstance()
+        .buildAddDefaultConstraintMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(constraintName)
         .entityType(HiveEntity.DEFAULT_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
-        .message(wrap(MessageBuilder.createDefaultConstraintObjJson(constraint)))
         .build();
   }
 
   public HiveNotificationEvent createCheckConstraintEvent(
-      SQLCheckConstraint constraint, long diffId) throws TException {
+      SQLCheckConstraint constraint, long diffId) {
     String constraintName = fullName(constraint);
     log.debug("Saving a new check constraint from metastore: {}", constraintName);
 
-    return eventBuilder(constraint.getCatName(), diffId)
+    AddCheckConstraintMessage message = MessageBuilder.getInstance()
+        .buildAddCheckConstraintMessage(Collections.singletonList(constraint));
+
+    return eventBuilder(constraint.getCatName(), message, diffId)
         .fullName(constraintName)
         .entityType(HiveEntity.CHECK_CONSTRAINT.toString())
         .dbName(constraint.getTable_db())
-        .message(wrap(MessageBuilder.createCheckConstraintObjJson(constraint)))
         .build();
   }
 
@@ -239,15 +265,12 @@ public class HiveNotificationEventFactory {
     );
   }
 
-  private HiveNotificationEvent.Builder eventBuilder(String catalog, long diffId) {
+  private HiveNotificationEvent.Builder eventBuilder(String catalog, EventMessage message, long diffId) {
     return HiveNotificationEvent.builder()
         .externalId(diffId)
         .eventType(HiveOperation.CREATE.toString())
         .catalogName(catalog)
+        .message(serializer.serialize(message))
         .messageFormat(messageFormat);
-  }
-
-  private String wrap(String rawMessage) {
-    return hmsEntitySerializerWrapper.serialize(rawMessage);
   }
 }

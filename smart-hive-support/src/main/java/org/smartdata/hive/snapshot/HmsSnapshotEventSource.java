@@ -28,21 +28,23 @@ import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SQLAllTableConstraints;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
 import org.apache.hadoop.thirdparty.com.google.common.collect.Iterables;
 import org.apache.thrift.TException;
+import org.smartdata.hive.HiveSmartConf;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.retry.RetryException;
 import org.smartdata.retry.RetrySupport;
-import org.smartdata.utils.ThrowingBiFunction;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 
 import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
 
@@ -54,6 +56,7 @@ public class HmsSnapshotEventSource implements HmsEventSource {
   private final ExecutorService executor;
   private final RetrySupport retrySupport;
   private final int eventBatchSize;
+  private final String defaultCatalog;
 
   @Getter
   private final BlockingQueue<HmsEventStreamRecord> outputQueue;
@@ -66,16 +69,17 @@ public class HmsSnapshotEventSource implements HmsEventSource {
       IMetaStoreClient metaStoreClient,
       ExecutorService executor,
       RetrySupport retrySupport,
-      int eventBatchSize,
-      HiveNotificationEventFactory eventFactory
+      HiveNotificationEventFactory eventFactory,
+      HiveSmartConf hiveSmartConf
   ) {
     this.metaStoreClient = metaStoreClient;
     this.executor = executor;
-    this.eventBatchSize = eventBatchSize;
+    this.eventBatchSize = hiveSmartConf.getFetchBatchSize();
     this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.retrySupport = retrySupport;
     this.eventFactory = eventFactory;
     this.pollStarted = new AtomicBoolean(false);
+    this.defaultCatalog = MetaStoreUtils.getDefaultCatalog(hiveSmartConf);
   }
 
   @Override
@@ -111,11 +115,8 @@ public class HmsSnapshotEventSource implements HmsEventSource {
   }
 
   private void snapshotMetastore(long diffId) throws Exception {
-    // todo what should we do with external catalogs? with default?
-    for (String catalog : metaStoreClient.getCatalogs()) {
-      for (String dbName : metaStoreClient.getAllDatabases(catalog)) {
-        handleDb(dbName, diffId);
-      }
+    for (String dbName : metaStoreClient.getAllDatabases(defaultCatalog)) {
+      handleDb(dbName, diffId);
     }
 
     for (Function function : metaStoreClient.getAllFunctions().getFunctions()) {
@@ -206,7 +207,7 @@ public class HmsSnapshotEventSource implements HmsEventSource {
   private <T> void handleConstraint(
       long diffId,
       List<T> constraints,
-      ThrowingBiFunction<T, Long, HiveNotificationEvent> handler) throws Exception {
+      BiFunction<T, Long, HiveNotificationEvent> handler) {
 
     for (T constraint : CollectionUtils.emptyIfNull(constraints)) {
       send(handler.apply(constraint, diffId));

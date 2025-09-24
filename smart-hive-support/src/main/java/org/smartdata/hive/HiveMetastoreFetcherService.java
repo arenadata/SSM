@@ -164,10 +164,10 @@ public class HiveMetastoreFetcherService extends AbstractService {
         hiveMetaStoreClient,
         scheduledExecutorService,
         retrySupport,
-        hiveSmartConf.getFetchBatchSize(),
         new HiveNotificationEventFactory(
             GzipJSONMessageEncoder.getInstance()
-        )
+        ),
+        hiveSmartConf
     );
   }
 
