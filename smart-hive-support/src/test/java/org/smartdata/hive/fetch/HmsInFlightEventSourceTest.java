@@ -63,15 +63,12 @@ import static org.smartdata.hive.NotificationEventFactory.newCreateTableEvent;
 import static org.smartdata.hive.NotificationEventFactory.newDropDbEvent;
 import static org.smartdata.hive.NotificationEventFactory.newDropTableEvent;
 import static org.smartdata.hive.NotificationEventFactory.newEvent;
-import static org.smartdata.hive.fetch.HiveEntity.CATALOG;
-import static org.smartdata.hive.fetch.HiveEntity.CONNECTOR;
 import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
-import static org.smartdata.hive.fetch.HiveOperation.DROP;
-import static org.smartdata.hive.fetch.HmsInFlightEventSource.fullResourceName;
 
 public class HmsInFlightEventSourceTest {
 
@@ -116,7 +113,9 @@ public class HmsInFlightEventSourceTest {
         ssmIgnoredEvent(newEvent(9, "default.db", COMMIT_COMPACTION)),
         ssmIgnoredEvent(newEvent(12, "default.db.table78", "unknown_event_type")),
         ssmIgnoredEvent(newEvent(15, "default.db.table78", UPDATE_PARTITION_COLUMN_STAT_BATCH)),
-        ssmIgnoredEvent(newEvent(19, "default.db_schema", DROP_SCHEMA_VERSION))
+        ssmIgnoredEvent(newEvent(18, "catalog1", DROP_CATALOG)),
+        ssmIgnoredEvent(newEvent(19, "default.db_schema", DROP_SCHEMA_VERSION)),
+        ssmIgnoredEvent(newEvent(20, "default.db_conn", CREATE_DATACONNECTOR))
     );
     assertEquals(expectedIgnoredRecords, new ArrayList<>(eventFetcher.getIgnoredEventsQueue()));
 
@@ -175,11 +174,7 @@ public class HmsInFlightEventSourceTest {
         ssmEvent(newEvent(16, "default.db.partitioned_table", ALTER_PARTITION),
             new EventOperation(PARTITION, HiveOperation.ALTER)),
         ssmEvent(newEvent(17, "default.db2", CREATE_FUNCTION),
-            new EventOperation(FUNCTION, CREATE)),
-        ssmEvent(newEvent(18, "catalog1", DROP_CATALOG),
-            new EventOperation(CATALOG, DROP)),
-        ssmEvent(newEvent(20, "default.db_conn", CREATE_DATACONNECTOR),
-            new EventOperation(CONNECTOR, CREATE))
+            new EventOperation(FUNCTION, CREATE))
     );
   }
 

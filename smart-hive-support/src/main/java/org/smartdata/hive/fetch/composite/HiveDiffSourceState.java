@@ -15,16 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+package org.smartdata.hive.fetch.composite;
 
-@Builder
-@Data
-@RequiredArgsConstructor
-public class EntityInfo {
-  private final String name;
-  private final String location;
+public enum HiveDiffSourceState {
+  SNAPSHOT_STARTED,
+  INTERMEDIATE_EVENTS_STARTED,
+  EVENTS_STARTED
 }

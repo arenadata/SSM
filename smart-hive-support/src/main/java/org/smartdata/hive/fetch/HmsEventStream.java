@@ -19,10 +19,17 @@ package org.smartdata.hive.fetch;
 
 import lombok.Data;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 @Data
 public class HmsEventStream {
   private final BlockingQueue<HmsEventStreamRecord> events;
   private final BlockingQueue<HmsEventStreamRecord> ignoredEvents;
+
+  public static HmsEventStream withoutIgnoredEvents(BlockingQueue<HmsEventStreamRecord> events) {
+    BlockingQueue<HmsEventStreamRecord> ignoredEvents = new ArrayBlockingQueue<>(1);
+    ignoredEvents.add(HmsEventStreamRecord.endOfStreamRecord());
+    return new HmsEventStream(events, ignoredEvents);
+  }
 }

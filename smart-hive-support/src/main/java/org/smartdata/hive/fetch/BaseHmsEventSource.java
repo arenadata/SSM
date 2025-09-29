@@ -15,16 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+package org.smartdata.hive.fetch;
 
-@Builder
-@Data
-@RequiredArgsConstructor
-public class EntityInfo {
-  private final String name;
-  private final String location;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public abstract class BaseHmsEventSource implements HmsEventSource {
+  private final AtomicBoolean isClosed = new AtomicBoolean(false);
+
+  @Override
+  public void close() {
+    if (isClosed.compareAndSet(false, true)) {
+      closeAction();
+    }
+  }
+
+  protected abstract void closeAction();
+
+  protected void closeQueue(BlockingQueue<HmsEventStreamRecord> outputQueue) {
+    if (!isClosed.get()) {
+      outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    }
+  }
+
+  protected boolean isClosed() {
+    return isClosed.get();
+  }
 }

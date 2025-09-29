@@ -135,7 +135,8 @@ public class SmartEngine extends AbstractService {
     HiveMetastoreFetcherService hiveMetastoreFetcherService = new HiveMetastoreFetcherService(
         serverContext,
         serverContext.getMetaStore().hmsEventDao(),
-        serverContext.getMetaStore().hmsIgnoredEventDao()
+        serverContext.getMetaStore().hmsIgnoredEventDao(),
+        serverContext.getMetaStore().transactionManager()
     );
     services.add(hiveMetastoreFetcherService);
   }

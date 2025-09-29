@@ -26,18 +26,18 @@ import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 import org.smartdata.retry.RetrySupport;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static lombok.AccessLevel.PROTECTED;
 import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
+import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 
 @Slf4j
-public class HmsInFlightEventSource implements HmsEventSource {
+public class HmsInFlightEventSource extends BaseHmsEventSource {
   public static final long INITIAL_DIFF_ID = 0L;
 
   private final IMetaStoreClient metaStoreClient;
@@ -46,6 +46,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
   private final EventOperationBuilder eventOperationBuilder;
   private final int eventBatchSize;
   private final long fetchPeriodMs;
+  @Getter(PROTECTED)
   private final Long endEventId;
 
   @Getter(AccessLevel.PACKAGE)
@@ -121,11 +122,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
   }
 
   @Override
-  public void close() {
-    if (executor != null) {
-      executor.shutdown();
-    }
-
+  protected void closeAction() {
     try {
       metaStoreClient.close();
     } catch (Exception e) {
@@ -133,6 +130,7 @@ public class HmsInFlightEventSource implements HmsEventSource {
     }
 
     outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    ignoredEventsQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
 
   private void pollRecordsBatchAction() {
@@ -185,7 +183,6 @@ public class HmsInFlightEventSource implements HmsEventSource {
   private void handleEvent(NotificationEvent event,
       EventOperation eventOperation) throws InterruptedException {
     HiveNotificationEvent ssmEvent = HiveNotificationEvent.fromMetastoreEvent(event)
-        .fullName(fullResourceName(event))
         .entityType(eventOperation.getEntity().toString())
         .eventType(eventOperation.getOperation().toString())
         .build();
@@ -195,19 +192,10 @@ public class HmsInFlightEventSource implements HmsEventSource {
 
   private void handleIgnoredEvent(NotificationEvent event) throws InterruptedException {
     HiveNotificationEvent ignoredEvent = HiveNotificationEvent.fromMetastoreEvent(event)
-        .fullName(fullResourceName(event))
         .entityType(HiveEntity.UNKNOWN.toString())
         .eventType(event.getEventType())
         .build();
 
     ignoredEventsQueue.put(ignoredEvent);
-  }
-
-  static String fullResourceName(NotificationEvent event) {
-    StringJoiner nameBuilder = new StringJoiner(".");
-    Optional.ofNullable(event.getCatName()).ifPresent(nameBuilder::add);
-    Optional.ofNullable(event.getDbName()).ifPresent(nameBuilder::add);
-    Optional.ofNullable(event.getTableName()).ifPresent(nameBuilder::add);
-    return nameBuilder.toString();
   }
 }

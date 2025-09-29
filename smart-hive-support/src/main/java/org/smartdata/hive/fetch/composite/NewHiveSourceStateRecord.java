@@ -15,16 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive;
 
-import lombok.Builder;
+package org.smartdata.hive.fetch.composite;
+
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import org.smartdata.hive.fetch.HmsEventStreamRecord;
 
-@Builder
 @Data
-@RequiredArgsConstructor
-public class EntityInfo {
-  private final String name;
-  private final String location;
+public class NewHiveSourceStateRecord implements HmsEventStreamRecord {
+  private final HiveDiffSourceState newState;
+
+  public static HmsEventStreamRecord newStateRecord(HiveDiffSourceState state) {
+    return new NewHiveSourceStateRecord(state);
+  }
 }

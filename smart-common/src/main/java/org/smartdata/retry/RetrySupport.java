@@ -18,6 +18,8 @@
 
 package org.smartdata.retry;
 
+import org.smartdata.utils.ThrowingRunnable;
+
 public interface RetrySupport {
   void withRetries(ThrowingRunnable<?> action) throws RetryException;
 }
