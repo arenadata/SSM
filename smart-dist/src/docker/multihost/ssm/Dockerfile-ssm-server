@@ -20,12 +20,12 @@ RUN mkdir /opt/ssm/lib
 RUN mkdir /opt/ssm/conf
 
 # Copy ssm client jar to $HADOOP_HOME/share/hadoop/common/lib
-COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/clients/smart-hadoop-client-shaded-${SSM_APP_VERSION}.jar $HADOOP_HOME/share/hadoop/common/lib/
-COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
-COPY ./smart-dist/target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
+COPY target/smart-data-${SSM_APP_VERSION}/clients/smart-hadoop-client-shaded-${SSM_APP_VERSION}.jar $HADOOP_HOME/share/hadoop/common/lib/
+COPY target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
+COPY target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
 
-ADD ./supports/tools/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
-ADD ./supports/tools/docker/multihost/common.sh /common.sh
+ADD src/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
+ADD src/docker/multihost/common.sh /common.sh
 RUN chmod a+x /ssm-server-entrypoint.sh
 RUN chmod a+x /common.sh
 

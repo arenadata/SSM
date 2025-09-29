@@ -1,31 +1,12 @@
 # Run Hadoop cluster with SSM in docker containers
 
-There are two cluster types:
-
-* singlehost
-* multihost
-
-And one currently supported HDFS version:
+There are one currently supported HDFS version:
 
 * 3.3.*
 
 ## Singlehost configuration
 
-* Hadoop + SSM in one container
-* SSM metastore as postgres container
-
-Command to build docker images in singlehost cluster mode (from project root dir)
-
-```shell
-./build-images.sh --cluster=singlehost --hadoop=3.3
-```
-
-Command to start docker containers
-
-```shell
-cd ./supports/tools/docker
-./start-demo.sh --cluster=singlehost --hadoop=3.3
-```
+Not supported currently
 
 ## Multihost configuration
 
@@ -37,17 +18,16 @@ cd ./supports/tools/docker
 * Samba LDAP server
 * Prometheus server
 
-Command to build docker images in multihost cluster mode (from project root dir)
+Command to build project with docker images (from project root dir)
 
 ```shell
-./build-images.sh --cluster=multihost --hadoop=3.3
+mvn clean install -Pdist,web-ui,hadoop-3.3,with-docker -DskipTests
 ```
 
 Command to start docker containers
 
 ```shell
-cd ./supports/tools/docker
-./start-demo.sh --cluster=multihost --hadoop=3.3
+docker-compose -f smart-dist/src/docker/multihost/docker-compose.yaml up -d
 ```
 
 Use one of the following credentials to log in to the Web UI
@@ -74,7 +54,7 @@ Debugger then can be attached to the `localhost:8009`.
 
 In order to test SPNEGO authentication provider, you need to:
 
-1. Move the `supports/tools/docker/multihost/kerberos/krb5.conf` Kerberos configuration file to the `/etc` directory
+1. Move the `smart-dist/src/docker/multihost/kerberos/krb5.conf` Kerberos configuration file to the `/etc` directory
    (after backing up your old config file)
 2. Log in to the KDC server with one of the Kerberos principals
 
@@ -93,4 +73,17 @@ kinit krb_user1
 
 ```shell
 curl --negotiate http://ssm-server.demo:8081/api/v2/audit/events
+```
+
+# Run tests
+
+Run integration tests:
+
+```shell
+mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
+```
+
+Run UI tests:
+```shell
+mvn verify -Pweb-tests -pl smart-tests
 ```

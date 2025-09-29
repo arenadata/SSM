@@ -191,7 +191,7 @@
                             <outputDirectory>target/test-classes/env/multihost</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../supports/tools/docker/multihost/</directory>
+                                    <directory>../smart-dist/src/docker/multihost/</directory>
                                 </resource>
                             </resources>
                         </configuration>

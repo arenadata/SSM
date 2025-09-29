@@ -33,6 +33,22 @@
     <version>2.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <properties>
+        <docker-maven-plugin.version>0.46.0</docker-maven-plugin.version>
+        <!--        Image properties:-->
+        <!--        ssm-hadoop-base image-->
+        <hadoop.ssm.image.name>hub.adsw.io/ssm/ssm-hadoop-base</hadoop.ssm.image.name>
+        <hadoop.ssm.image.tag>3.3.6</hadoop.ssm.image.tag>
+        <hadoop.ssm.image.file>src/docker/multihost/Dockerfile-hadoop-base</hadoop.ssm.image.file>
+        <hadoop.base.image.name>hub.adsw.io/java/hadoop-openjdk8</hadoop.base.image.name>
+        <hadoop.base.image.tag>3.3.6</hadoop.base.image.tag>
+        <!--        ssm-server image-->
+        <ssm.server.image.name>hub.adsw.io/ssm/ssm-server</ssm.server.image.name>
+        <ssm.server.image.tag>${version}</ssm.server.image.tag>
+        <ssm.server.image.file>src/docker/multihost/ssm/Dockerfile-ssm-server</ssm.server.image.file>
+    </properties>
+
+
     <dependencies>
         <dependency>
             <groupId>org.smartdata</groupId>
@@ -123,6 +139,57 @@
                                     </descriptors>
                                     <attach>false</attach>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>with-docker</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <images>
+                                <image>
+                                    <name>${hadoop.ssm.image.name}:${hadoop.ssm.image.tag}</name>
+                                    <build>
+                                        <contextDir>${basedir}</contextDir>
+                                        <dockerFile>${hadoop.ssm.image.file}</dockerFile>
+                                        <args>
+                                            <HADOOP_IMAGE>${hadoop.base.image.name}:${hadoop.base.image.tag}
+                                            </HADOOP_IMAGE>
+                                            <SSM_APP_VERSION>${version}</SSM_APP_VERSION>
+                                        </args>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>${ssm.server.image.name}:${ssm.server.image.tag}</name>
+                                    <build>
+                                        <contextDir>${basedir}</contextDir>
+                                        <dockerFile>${ssm.server.image.file}</dockerFile>
+                                        <args>
+                                            <SSM_APP_VERSION>${version}</SSM_APP_VERSION>
+                                        </args>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build SSM docker images</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
