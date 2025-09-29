@@ -70,7 +70,7 @@ public class HiveNotificationEventFactory {
         .buildCreateDatabaseMessage(database);
 
     return eventBuilder(catalog, message, diffId)
-        .fullName(fullResourceName(catalog, database.getName()))
+        .fullName(fullResourceName(database.getName()))
         .entityType(HiveEntity.DATABASE.toString())
         .dbName(database.getName())
         .build();
@@ -84,7 +84,7 @@ public class HiveNotificationEventFactory {
         .buildCreateTableMessage(table, Collections.emptyIterator());
 
     return eventBuilder(table.getCatName(), message, diffId)
-        .fullName(fullResourceName(table.getCatName(), table.getDbName(), table.getTableName()))
+        .fullName(fullResourceName(table.getDbName(), table.getTableName()))
         .entityType(HiveEntity.TABLE.toString())
         .dbName(table.getDbName())
         .tableName(table.getTableName())
@@ -92,7 +92,7 @@ public class HiveNotificationEventFactory {
   }
 
   public HiveNotificationEvent createPartitionEvent(Table table, Partition partition, long diffId) throws TException {
-    String partitionKey = fullResourceName(partition.getCatName(), partition.getDbName(), partition.getTableName(),
+    String partitionKey = fullResourceName(partition.getDbName(), partition.getTableName(),
         Warehouse.makePartName(table.getPartitionKeys(), partition.getValues()));
     log.debug("Saving a new partition from metastore: {}", partitionKey);
 
@@ -111,7 +111,7 @@ public class HiveNotificationEventFactory {
   }
 
   public HiveNotificationEvent createFunctionEvent(Function function, long diffId) {
-    String resourceName = fullResourceName(function.getCatName(), function.getDbName(), function.getFunctionName());
+    String resourceName = fullResourceName(function.getDbName(), function.getFunctionName());
     log.debug("Saving a new function from metastore: {}", resourceName);
 
     CreateFunctionMessage message = MessageBuilder.getInstance()
@@ -221,7 +221,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLPrimaryKey constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getTable_db(),
         constraint.getTable_name(),
         constraint.getPk_name()
@@ -230,7 +229,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLForeignKey constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getFktable_db(),
         constraint.getFktable_name(),
         constraint.getFk_name()
@@ -239,7 +237,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLUniqueConstraint constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getTable_db(),
         constraint.getTable_name(),
         constraint.getUk_name()
@@ -248,7 +245,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLNotNullConstraint constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getTable_db(),
         constraint.getTable_name(),
         constraint.getNn_name()
@@ -257,7 +253,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLDefaultConstraint constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getTable_db(),
         constraint.getTable_name(),
         constraint.getDc_name()
@@ -266,7 +261,6 @@ public class HiveNotificationEventFactory {
 
   public static String fullName(SQLCheckConstraint constraint) {
     return fullResourceName(
-        constraint.getCatName(),
         constraint.getTable_db(),
         constraint.getTable_name(),
         constraint.getDc_name()

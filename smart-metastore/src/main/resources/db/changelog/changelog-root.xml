@@ -18,4 +18,5 @@
     <include file="/db/changelog/changelog-8.add-action-start-time.xml"/>
     <include file="/db/changelog/changelog-9.add-cmdlet-rule-owner.xml"/>
     <include file="/db/changelog/changelog-10.add-hive-event-tables.xml"/>
+    <include file="/db/changelog/changelog-11.add-hive-sync-progress-table.xml"/>
 </databaseChangeLog>

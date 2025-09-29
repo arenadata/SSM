@@ -38,6 +38,7 @@ import org.smartdata.model.FileInfo;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -70,7 +71,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
   private DFSClient dfsClient;
 
   public ErasureCodingScheduler(SmartContext context, MetaStore metaStore) {
-    super(context, metaStore);
+    super(context);
     this.conf = context.getConf();
     this.metaStore = metaStore;
     this.throttleInMb = conf.getLong(SmartConfKeys.SMART_ACTION_EC_THROTTLE_MB_KEY,

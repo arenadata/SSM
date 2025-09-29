@@ -24,6 +24,7 @@ import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.SsmParseException;
+import org.smartdata.hive.rule.HmsSyncRulePlugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.dao.RuleDao;
@@ -130,6 +131,7 @@ public class RuleManager
             context.getMetaStore(), FileCopyScheduleStrategy.ordered()),
         new FileCopy2S3Plugin(),
         new SmallFilePlugin(context, cmdletManager),
+        new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao()),
         new ErasureCodingPlugin(context));
   }
 

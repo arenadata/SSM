@@ -18,6 +18,7 @@
 package org.smartdata.metastore.dao;
 
 import org.smartdata.hive.HmsEventDao;
+import org.smartdata.hive.rule.HmsSyncProgressDao;
 
 public interface DaoProvider {
   RuleDao ruleDao();
@@ -67,4 +68,6 @@ public interface DaoProvider {
   HmsEventDao hmsEventDao();
 
   HmsEventDao hmsIgnoredEventDao();
+
+  HmsSyncProgressDao hmsSyncProgressDao();
 }

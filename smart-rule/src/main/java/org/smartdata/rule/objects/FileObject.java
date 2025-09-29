@@ -21,6 +21,7 @@ package org.smartdata.rule.objects;
 import org.smartdata.rule.parser.ValueType;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,77 +35,77 @@ public class FileObject extends SmartObject {
   static {
     PROPERTIES = new HashMap<>();
     PROPERTIES.put("path",
-        new Property("path", ValueType.STRING, null, "file", "path", false));
+        new Property("path", ValueType.STRING, null, "file", "path"));
     PROPERTIES.put("accessCount",
         new Property("accessCount", ValueType.LONG,
-            Arrays.asList(ValueType.TIMEINTVAL),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            Collections.singletonList(ValueType.TIMEINTVAL),
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("ac",
         new Property("ac", ValueType.LONG,
-            Arrays.asList(ValueType.TIMEINTVAL),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            Collections.singletonList(ValueType.TIMEINTVAL),
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("accessCountTop",
         new Property("accessCountTop", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("acTop",
         new Property("acTop", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("accessCountBottom",
         new Property("accessCountBottom", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("acBot",
         new Property("acBot", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("acTopSp",
         new Property("acTopSp", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG, ValueType.STRING),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("acBotSp",
         new Property("acBotSp", ValueType.LONG,
             Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG, ValueType.STRING),
-            "VIRTUAL_ACCESS_COUNT_TABLE", "", false, "count"));
+            "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"));
     PROPERTIES.put("length",
         new Property("length", ValueType.LONG,
-            null, "file", "length", false));
+            null, "file", "length"));
     PROPERTIES.put("blocksize",
         new Property("blocksize", ValueType.LONG,
-            null, "file", "block_size", false));
+            null, "file", "block_size"));
     PROPERTIES.put("inCache",
         new Property("inCache", ValueType.BOOLEAN,
-            null, "cached_file", null, false));
+            null, "cached_file", null));
     PROPERTIES.put("age",
         new Property("age", ValueType.TIMEINTVAL,
-            null, "file", null, false,
+            null, "file", null,
             "($NOW - modification_time)"));
     PROPERTIES.put("mtime",
         new Property("mtime", ValueType.TIMEPOINT,
-            null, "file", "modification_time", false));
+            null, "file", "modification_time"));
     PROPERTIES.put("atime",
         new Property("atime", ValueType.TIMEPOINT,
-            null, "file", "access_time", false));
+            null, "file", "access_time"));
     PROPERTIES.put("storagePolicy",
         new Property("storagePolicy", ValueType.STRING,
-            null, "file", null, false,
+            null, "file", null,
             "(SELECT policy_name FROM storage_policy WHERE sid = file.sid)"));
     PROPERTIES.put("unsynced",
         new Property("unsynced", ValueType.BOOLEAN,
-            null, "file_diff", null, false,
+            null, "file_diff", null,
             "state = 0"));
     PROPERTIES.put("isDir",
         new Property("isDir", ValueType.BOOLEAN,
-            null, "file", "is_dir", false));
+            null, "file", "is_dir"));
     PROPERTIES.put("ecPolicy",
         new Property("ecPolicy", ValueType.STRING,
-            null, "file", null, false,
+            null, "file", null,
             "(SELECT policy_name FROM ec_policy WHERE id = file.ec_policy_id)"));
   }
 
   public FileObject() {
-    super(ObjectType.FILE);
+    super(ObjectType.FILE, "file");
   }
 
   public Map<String, Property> getProperties() {

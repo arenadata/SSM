@@ -15,25 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.metastore.dao.postgres;
+package org.smartdata.hive.rule;
 
-import org.smartdata.metastore.dao.impl.DefaultCompressionFileDao;
-import org.smartdata.model.CompressionFileState;
-
-import javax.sql.DataSource;
-
-public class PostgresCompressionFileDao extends DefaultCompressionFileDao {
-  private static final String PRIMARY_KEY_FIELD = "path";
-
-  private final PostgresInsertSupport upsertSupport;
-
-  public PostgresCompressionFileDao(DataSource dataSource) {
-    super(dataSource);
-    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
-  }
+public class RuleProgressHmsEntityQueryWrapper implements HmsEntityQueryWrapper {
 
   @Override
-  public void insertUpdate(CompressionFileState compressionInfo) {
-    upsertSupport.upsert(toMap(compressionInfo), PRIMARY_KEY_FIELD);
+  public String wrap(String query) {
+    return "SELECT q.id as event_id "
+        + "FROM " + HmsSyncProgressDao.TABLE_NAME
+        + " JOIN (" + query + ") as q "
+        + "ON q.id > " + HmsSyncProgressDao.TABLE_NAME + ".event_id "
+        + "ORDER BY event_id;";
   }
 }

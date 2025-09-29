@@ -35,7 +35,6 @@ import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.exception.SsmParseException;
-import org.smartdata.hdfs.scheduler.ActionSchedulerService;
 import org.smartdata.hdfs.scheduler.CacheScheduler;
 import org.smartdata.hdfs.scheduler.CompressionScheduler;
 import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
@@ -43,6 +42,7 @@ import org.smartdata.hdfs.scheduler.CopyScheduler;
 import org.smartdata.hdfs.scheduler.ErasureCodingScheduler;
 import org.smartdata.hdfs.scheduler.MoverScheduler;
 import org.smartdata.hdfs.scheduler.SmallFileScheduler;
+import org.smartdata.hive.action.HmsSyncScheduler;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -53,6 +53,7 @@ import org.smartdata.model.LaunchAction;
 import org.smartdata.model.PathChecker;
 import org.smartdata.model.WhitelistHelper;
 import org.smartdata.model.action.ActionScheduler;
+import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.model.request.CmdletSearchRequest;
 import org.smartdata.protocol.message.ActionStatus;
@@ -161,17 +162,7 @@ public class CmdletManager extends AbstractService
     this.scheduledCmdlets = new LinkedBlockingQueue<>();
     this.idToLaunchCmdlets = new ConcurrentHashMap<>();
     this.schedulers = ArrayListMultimap.create();
-    //because we have to ignore exceptions while creating services,
-    //the better way to init them is reflection
-    this.schedulerServices = AbstractServiceFactory.createSchedulerServices(Arrays.asList(
-        MoverScheduler.class,
-        CopyScheduler.class,
-        Copy2S3Scheduler.class,
-        SmallFileScheduler.class,
-        CompressionScheduler.class,
-        ErasureCodingScheduler.class,
-        CacheScheduler.class
-    ), context, metaStore);
+    this.schedulerServices = createSchedulerServices(context);
     this.ruleCmdletTracker = new RuleCmdletTracker();
     this.dispatcher = new CmdletDispatcher(context, this,
         scheduledCmdlets, idToLaunchCmdlets, runningCmdlets, schedulers);
@@ -192,6 +183,25 @@ public class CmdletManager extends AbstractService
     this.actionInfoHandler = new ActionInfoHandler(cmdletManagerContext);
     this.cmdletInfoHandler = new CmdletInfoHandler(cmdletManagerContext, actionInfoHandler);
     this.cmdletParser = new CmdletParser();
+  }
+
+  private List<ActionSchedulerService> createSchedulerServices(ServerContext context) {
+    try {
+      return Arrays.asList(
+          new MoverScheduler(context),
+          new CopyScheduler(context, context.getMetaStore()),
+          new Copy2S3Scheduler(context, context.getMetaStore()),
+          new SmallFileScheduler(context, context.getMetaStore()),
+          new CompressionScheduler(context, context.getMetaStore()),
+          new ErasureCodingScheduler(context, context.getMetaStore()),
+          new CacheScheduler(context),
+          new HmsSyncScheduler(context,
+              context.getMetaStore().hmsEventDao(),
+              context.getMetaStore().hmsSyncProgressDao())
+      );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @VisibleForTesting
@@ -259,7 +269,8 @@ public class CmdletManager extends AbstractService
       }
 
       for (CmdletInfo cmdletInfo : metaStore.getCmdlets(CmdletState.PENDING)) {
-        recoverCmdletInfo(cmdletInfo, actionInfos -> {});
+        recoverCmdletInfo(cmdletInfo, actionInfos -> {
+        });
       }
     } catch (MetaStoreException e) {
       LOG.error("DB connection error occurs when ssm is reloading cmdlets!");

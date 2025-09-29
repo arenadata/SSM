@@ -29,6 +29,7 @@ import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.S3FileState;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
   private final Set<String> fileLock;
 
   public Copy2S3Scheduler(SmartContext context, MetaStore metaStore) {
-    super(context, metaStore);
+    super(context);
     this.metaStore = metaStore;
     this.fileLock = ConcurrentHashMap.newKeySet();
   }

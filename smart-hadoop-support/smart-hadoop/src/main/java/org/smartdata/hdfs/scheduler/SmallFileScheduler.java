@@ -40,6 +40,7 @@ import org.smartdata.model.LaunchAction;
 import org.smartdata.model.PathChecker;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -105,7 +106,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
   private DFSClient dfsClient;
 
   public SmallFileScheduler(SmartContext context, MetaStore metaStore) {
-    super(context, metaStore);
+    super(context);
     this.metaStore = metaStore;
     this.metastoreInsertBatchSize = context.getConf().getInt(
         SMART_SMALL_FILE_METASTORE_INSERT_BATCH_SIZE_KEY,

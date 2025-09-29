@@ -46,6 +46,7 @@ import org.smartdata.model.FileState;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -144,7 +145,7 @@ public class CopyScheduler extends ActionSchedulerService {
   private final int initialSyncBatchSize;
 
   public CopyScheduler(SmartContext context, MetaStore metaStore) {
-    super(context, metaStore);
+    super(context);
     this.metaStore = metaStore;
     this.fileLocks = ConcurrentHashMap.newKeySet();
     this.actionDiffMap = new ConcurrentHashMap<>();

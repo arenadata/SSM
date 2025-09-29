@@ -28,12 +28,12 @@ import java.util.List;
 public class PostgresCmdletDao extends DefaultCmdletDao {
   private static final String PRIMARY_KEY_FIELD = "cid";
 
-  private final PostgresUpsertSupport upsertSupport;
+  private final PostgresInsertSupport upsertSupport;
 
   public PostgresCmdletDao(
       DataSource dataSource, PlatformTransactionManager transactionManager) {
     super(dataSource, transactionManager);
-    this.upsertSupport = new PostgresUpsertSupport(dataSource, tableName);
+    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
   }
 
   @Override

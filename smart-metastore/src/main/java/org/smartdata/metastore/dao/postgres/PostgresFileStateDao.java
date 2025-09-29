@@ -28,11 +28,11 @@ import java.util.Map;
 public class PostgresFileStateDao extends DefaultFileStateDao {
   private static final String PRIMARY_KEY_FIELD = "path";
 
-  private final PostgresUpsertSupport upsertSupport;
+  private final PostgresInsertSupport upsertSupport;
 
   public PostgresFileStateDao(DataSource dataSource) {
     super(dataSource);
-    this.upsertSupport = new PostgresUpsertSupport(dataSource, tableName);
+    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
   }
 
   @Override

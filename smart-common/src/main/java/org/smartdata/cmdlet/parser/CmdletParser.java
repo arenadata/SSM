@@ -29,7 +29,7 @@ import static org.smartdata.cmdlet.parser.CmdletParserContext.State.INSIDE_STR_L
 import static org.smartdata.cmdlet.parser.CmdletParserContext.State.INSIDE_TOKEN;
 
 public class CmdletParser {
-  private static final String REG_ACTION_NAME = "^[a-zA-Z]+[a-zA-Z0-9_]*";
+  private static final String REG_ACTION_NAME = "^[a-zA-Z]+[a-zA-Z0-9_-]*";
 
   public ParsedCmdlet parse(String cmdlet) throws ParseException {
     if (StringUtils.isBlank(cmdlet)) {

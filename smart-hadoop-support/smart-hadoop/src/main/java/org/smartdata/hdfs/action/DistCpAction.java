@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.smartdata.model.CmdletDescriptor.OBJECT_ID;
 import static org.smartdata.model.CmdletDescriptor.RULE_ID;
 
 @ActionSignature(
@@ -56,7 +57,8 @@ public class DistCpAction extends HdfsAction {
   private static final Set<String> SSM_ARGS = Sets.newHashSet(
       FILE_PATH,
       TARGET_ARG,
-      RULE_ID
+      RULE_ID,
+      OBJECT_ID
   );
 
   private String sourcePaths;
