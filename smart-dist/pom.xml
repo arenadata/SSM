@@ -39,13 +39,17 @@
         <!--        ssm-hadoop-base image-->
         <hadoop.ssm.image.name>hub.adsw.io/ssm/ssm-hadoop-base</hadoop.ssm.image.name>
         <hadoop.ssm.image.tag>3.3.6</hadoop.ssm.image.tag>
-        <hadoop.ssm.image.file>../supports/tools/docker/multihost/Dockerfile-hadoop-base</hadoop.ssm.image.file>
+        <hadoop.ssm.image.file>
+            target/docker/${hadoop.ssm.image.name}/${hadoop.ssm.image.tag}/build/maven/docker/multihost/Dockerfile-hadoop-base
+        </hadoop.ssm.image.file>
         <hadoop.base.image.name>hub.adsw.io/java/hadoop-openjdk8</hadoop.base.image.name>
         <hadoop.base.image.tag>3.3.6</hadoop.base.image.tag>
         <!--        ssm-server image-->
         <ssm.server.image.name>hub.adsw.io/ssm/ssm-server</ssm.server.image.name>
-        <ssm.server.image.tag>${version}</ssm.server.image.tag>
-        <ssm.server.image.file>../supports/tools/docker/multihost/ssm/Dockerfile-ssm-server</ssm.server.image.file>
+        <ssm.server.image.tag>${project.version}</ssm.server.image.tag>
+        <ssm.server.image.file>
+            target/docker/${ssm.server.image.name}/${ssm.server.image.tag}/build/maven/docker/multihost/ssm/Dockerfile-ssm-server
+        </ssm.server.image.file>
     </properties>
 
 
@@ -171,17 +175,16 @@
                                                         <includes>
                                                             <include>**/*</include>
                                                         </includes>
-                                                        <useDefaultExcludes>false</useDefaultExcludes>
                                                     </fileSet>
                                                 </fileSets>
                                             </inline>
                                         </assembly>
-                                        <contextDir>${basedir}</contextDir>
+                                        <contextDir>${project.basedir}</contextDir>
                                         <dockerFile>${hadoop.ssm.image.file}</dockerFile>
                                         <args>
                                             <HADOOP_IMAGE>${hadoop.base.image.name}:${hadoop.base.image.tag}
                                             </HADOOP_IMAGE>
-                                            <SSM_APP_VERSION>${version}</SSM_APP_VERSION>
+                                            <SSM_APP_VERSION>${project.version}</SSM_APP_VERSION>
                                         </args>
                                     </build>
                                 </image>
@@ -197,15 +200,14 @@
                                                         <includes>
                                                             <include>**/*</include>
                                                         </includes>
-                                                        <useDefaultExcludes>false</useDefaultExcludes>
                                                     </fileSet>
                                                 </fileSets>
                                             </inline>
                                         </assembly>
-                                        <contextDir>${basedir}</contextDir>
+                                        <contextDir>${project.basedir}</contextDir>
                                         <dockerFile>${ssm.server.image.file}</dockerFile>
                                         <args>
-                                            <SSM_APP_VERSION>${version}</SSM_APP_VERSION>
+                                            <SSM_APP_VERSION>${project.version}</SSM_APP_VERSION>
                                         </args>
                                     </build>
                                 </image>
