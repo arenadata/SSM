@@ -54,7 +54,7 @@ Debugger then can be attached to the `localhost:8009`.
 
 In order to test SPNEGO authentication provider, you need to:
 
-1. Move the `smart-dist/src/docker/multihost/kerberos/krb5.conf` Kerberos configuration file to the `/etc` directory
+1. Move the `supports/tools/docker/multihost/kerberos/krb5.conf` Kerberos configuration file to the `/etc` directory
    (after backing up your old config file)
 2. Log in to the KDC server with one of the Kerberos principals
 
