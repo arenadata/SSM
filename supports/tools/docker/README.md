@@ -85,5 +85,5 @@ mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
 
 Run UI tests:
 ```shell
-mvn verify -Pweb-tests -f smart-tests/pom.xm
+mvn verify -Pweb-tests -f smart-tests/pom.xml
 ```
