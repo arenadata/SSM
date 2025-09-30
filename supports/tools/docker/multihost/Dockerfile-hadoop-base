@@ -22,8 +22,8 @@ RUN chmod a+x $SSM_HOME/bin/install.sh
 RUN chmod a+x $SSM_HOME/bin/start-ssm.sh
 RUN chmod a+x $SSM_HOME/bin/start-agent.sh
 
-ADD src/docker/multihost/common.sh /common.sh
-ADD src/docker/multihost/hadoop-base-entrypoint.sh /hadoop-base-entrypoint.sh
+ADD maven/docker/multihost/common.sh /common.sh
+ADD maven/docker/multihost/hadoop-base-entrypoint.sh /hadoop-base-entrypoint.sh
 RUN chmod a+x /common.sh
 RUN chmod a+x /hadoop-base-entrypoint.sh
 

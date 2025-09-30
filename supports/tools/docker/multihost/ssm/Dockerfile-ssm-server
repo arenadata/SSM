@@ -24,8 +24,8 @@ COPY target/smart-data-${SSM_APP_VERSION}/clients/smart-hadoop-client-shaded-${S
 COPY target/smart-data-${SSM_APP_VERSION}/lib/*.jar $SSM_HOME/lib/
 COPY target/smart-data-${SSM_APP_VERSION}/bin/* $SSM_HOME/bin/
 
-ADD src/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
-ADD src/docker/multihost/common.sh /common.sh
+ADD maven/docker/multihost/ssm/ssm-server-entrypoint.sh /ssm-server-entrypoint.sh
+ADD maven/docker/multihost/common.sh /common.sh
 RUN chmod a+x /ssm-server-entrypoint.sh
 RUN chmod a+x /common.sh
 

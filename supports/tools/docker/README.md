@@ -27,7 +27,7 @@ mvn clean install -Pdist,web-ui,hadoop-3.3,with-docker -DskipTests
 Command to start docker containers
 
 ```shell
-docker-compose -f smart-dist/src/docker/multihost/docker-compose.yaml up -d
+docker-compose -f supports/tools/docker/multihost/docker-compose.yaml up -d
 ```
 
 Use one of the following credentials to log in to the Web UI
@@ -85,5 +85,5 @@ mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
 
 Run UI tests:
 ```shell
-mvn verify -Pweb-tests -pl smart-tests
+mvn verify -Pweb-tests -f smart-tests/pom.xm
 ```
