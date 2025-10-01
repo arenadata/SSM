@@ -21,7 +21,7 @@ Not supported currently
 Command to build project with docker images (from project root dir)
 
 ```shell
-mvn clean install -Pdist,web-ui,hadoop-3.3,with-docker -DskipTests
+mvn clean install -Pdist,web-ui,hadoop-3.3,withDocker -DskipTests
 ```
 
 Command to start docker containers

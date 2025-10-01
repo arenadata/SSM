@@ -150,7 +150,7 @@
             </build>
         </profile>
         <profile>
-            <id>with-docker</id>
+            <id>withDocker</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
