@@ -85,7 +85,6 @@ import org.smartdata.server.engine.cmdlet.RuleCmdletTracker;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -94,12 +93,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
@@ -183,25 +185,6 @@ public class CmdletManager extends AbstractService
     this.actionInfoHandler = new ActionInfoHandler(cmdletManagerContext);
     this.cmdletInfoHandler = new CmdletInfoHandler(cmdletManagerContext, actionInfoHandler);
     this.cmdletParser = new CmdletParser();
-  }
-
-  private List<ActionSchedulerService> createSchedulerServices(ServerContext context) {
-    try {
-      return Arrays.asList(
-          new MoverScheduler(context),
-          new CopyScheduler(context, context.getMetaStore()),
-          new Copy2S3Scheduler(context, context.getMetaStore()),
-          new SmallFileScheduler(context, context.getMetaStore()),
-          new CompressionScheduler(context, context.getMetaStore()),
-          new ErasureCodingScheduler(context, context.getMetaStore()),
-          new CacheScheduler(context),
-          new HmsSyncScheduler(context,
-              context.getMetaStore().hmsEventDao(),
-              context.getMetaStore().hmsSyncProgressDao())
-      );
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @VisibleForTesting
@@ -834,6 +817,32 @@ public class CmdletManager extends AbstractService
       CmdletStatus cmdletStatus =
           new CmdletStatus(cmdletId, actionInfo.getFinishTime(), CmdletState.DONE);
       onCmdletStatusUpdate(cmdletStatus);
+    }
+  }
+
+  private List<ActionSchedulerService> createSchedulerServices(ServerContext context) {
+    return Stream.of(
+            createSafely(() -> new MoverScheduler(context)),
+            createSafely(() -> new CopyScheduler(context, context.getMetaStore())),
+            createSafely(() -> new Copy2S3Scheduler(context, context.getMetaStore())),
+            createSafely(() -> new SmallFileScheduler(context, context.getMetaStore())),
+            createSafely(() -> new CompressionScheduler(context, context.getMetaStore())),
+            createSafely(() -> new ErasureCodingScheduler(context, context.getMetaStore())),
+            createSafely(() -> new CacheScheduler(context)),
+            createSafely(() -> new HmsSyncScheduler(context,
+                context.getMetaStore().hmsEventDao(),
+                context.getMetaStore().hmsSyncProgressDao()))
+        ).filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private ActionSchedulerService createSafely(
+      Callable<ActionSchedulerService> schedulerSupplier) {
+    try {
+      return schedulerSupplier.call();
+    } catch (Exception e) {
+      log.error("Create scheduler service failed.", e);
+      return null;
     }
   }
 
