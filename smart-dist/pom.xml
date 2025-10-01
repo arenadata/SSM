@@ -40,7 +40,7 @@
         <hadoop.ssm.image.name>hub.adsw.io/ssm/ssm-hadoop-base</hadoop.ssm.image.name>
         <hadoop.ssm.image.tag>3.3.6</hadoop.ssm.image.tag>
         <hadoop.ssm.image.file>
-            target/docker/${hadoop.ssm.image.name}/${hadoop.ssm.image.tag}/build/maven/docker/multihost/Dockerfile-hadoop-base
+            target/docker/${hadoop.ssm.image.name}/${hadoop.ssm.image.tag}/build/docker-relative-dir/docker/multihost/Dockerfile-hadoop-base
         </hadoop.ssm.image.file>
         <hadoop.base.image.name>hub.adsw.io/java/hadoop-openjdk8</hadoop.base.image.name>
         <hadoop.base.image.tag>3.3.6</hadoop.base.image.tag>
@@ -48,7 +48,7 @@
         <ssm.server.image.name>hub.adsw.io/ssm/ssm-server</ssm.server.image.name>
         <ssm.server.image.tag>${project.version}</ssm.server.image.tag>
         <ssm.server.image.file>
-            target/docker/${ssm.server.image.name}/${ssm.server.image.tag}/build/maven/docker/multihost/ssm/Dockerfile-ssm-server
+            target/docker/${ssm.server.image.name}/${ssm.server.image.tag}/build/docker-relative-dir/docker/multihost/ssm/Dockerfile-ssm-server
         </ssm.server.image.file>
     </properties>
 
@@ -167,6 +167,7 @@
                                     <name>${hadoop.ssm.image.name}:${hadoop.ssm.image.tag}</name>
                                     <build>
                                         <assembly>
+                                            <name>docker-relative-dir</name>
                                             <inline>
                                                 <fileSets>
                                                     <fileSet>
@@ -192,6 +193,7 @@
                                     <name>${ssm.server.image.name}:${ssm.server.image.tag}</name>
                                     <build>
                                         <assembly>
+                                            <name>docker-relative-dir</name>
                                             <inline>
                                                 <fileSets>
                                                     <fileSet>

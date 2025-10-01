@@ -22,8 +22,10 @@ RUN chmod a+x $SSM_HOME/bin/install.sh
 RUN chmod a+x $SSM_HOME/bin/start-ssm.sh
 RUN chmod a+x $SSM_HOME/bin/start-agent.sh
 
-ADD maven/docker/multihost/common.sh /common.sh
-ADD maven/docker/multihost/hadoop-base-entrypoint.sh /hadoop-base-entrypoint.sh
+# docker-relative-dir is assembly build context relative directory, more info below
+# https://maven.fabric8.io/#build-configuration  'Adding assemblies in Dockerfile mode'
+ADD docker-relative-dir/docker/multihost/common.sh /common.sh
+ADD docker-relative-dir/docker/multihost/hadoop-base-entrypoint.sh /hadoop-base-entrypoint.sh
 RUN chmod a+x /common.sh
 RUN chmod a+x /hadoop-base-entrypoint.sh
 
