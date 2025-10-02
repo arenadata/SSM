@@ -35,6 +35,7 @@
 
     <properties>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -113,6 +114,12 @@
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
             <version>2.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-client</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -276,6 +283,25 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>it-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <skipTests>false</skipTests>
+            </properties>
+        </profile>
+    </profiles>
 </project>
