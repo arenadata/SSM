@@ -26,8 +26,11 @@ jobs:
       - name: Build with Maven
         run: sh ./build-project.sh ${{ matrix.hdfs-version }}
 
-      - name: Run integration tests
+      - name: Run unit tests
         run: mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-${{ matrix.hdfs-version }}
+
+      - name: Run integration tests
+        run: mvn test -Dmaven.test.redirectTestOutputToFile=false -Pit-tests -f smart-integration/pom.xml
 
 # Can't run test containers due to inaccessibility of cloud-hub.adsw.io github
 #      - name: Run UI tests
