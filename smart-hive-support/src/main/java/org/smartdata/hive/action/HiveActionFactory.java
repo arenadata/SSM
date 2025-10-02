@@ -18,9 +18,40 @@
 package org.smartdata.hive.action;
 
 import org.smartdata.action.AbstractActionFactory;
+import org.smartdata.hive.action.constraint.HmsCreateConstraintAction;
+import org.smartdata.hive.action.constraint.HmsDropConstraintAction;
+import org.smartdata.hive.action.db.HmsAlterDbAction;
+import org.smartdata.hive.action.db.HmsCreateDbAction;
+import org.smartdata.hive.action.db.HmsDropDbAction;
+import org.smartdata.hive.action.function.HmsCreateFunctionAction;
+import org.smartdata.hive.action.function.HmsDropFunctionAction;
+import org.smartdata.hive.action.partition.HmsAlterPartitionAction;
+import org.smartdata.hive.action.partition.HmsCreatePartitionAction;
+import org.smartdata.hive.action.partition.HmsDropPartitionAction;
+import org.smartdata.hive.action.table.HmsAlterTableAction;
+import org.smartdata.hive.action.table.HmsCreateTableAction;
+import org.smartdata.hive.action.table.HmsDropTableAction;
 
 public class HiveActionFactory extends AbstractActionFactory {
   static {
     addAction(HmsSyncAction.class);
+
+    addAction(HmsCreateDbAction.class);
+    addAction(HmsAlterDbAction.class);
+    addAction(HmsDropDbAction.class);
+
+    addAction(HmsCreateTableAction.class);
+    addAction(HmsAlterTableAction.class);
+    addAction(HmsDropTableAction.class);
+
+    addAction(HmsCreateFunctionAction.class);
+    addAction(HmsDropFunctionAction.class);
+
+    addAction(HmsCreatePartitionAction.class);
+    addAction(HmsAlterPartitionAction.class);
+    addAction(HmsDropPartitionAction.class);
+
+    addAction(HmsCreateConstraintAction.class);
+    addAction(HmsDropConstraintAction.class);
   }
 }

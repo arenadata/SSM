@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
+package org.smartdata.hive.client;
 
-public enum HiveOperation {
-  CREATE,
-  DROP,
-  ALTER,
-  UNKNOWN
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+
+public interface MetaStoreClientProvider {
+  IMetaStoreClient provide(String metastoreAddress, String currentUser);
 }

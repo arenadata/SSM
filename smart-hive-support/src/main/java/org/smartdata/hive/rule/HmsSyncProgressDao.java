@@ -17,10 +17,12 @@
  */
 package org.smartdata.hive.rule;
 
+import java.util.Map;
+
 public interface HmsSyncProgressDao {
   String TABLE_NAME = "hive_sync_progress";
 
   void insertIfNotPresent(long ruleId, long lastHandledEventId);
 
-  void upsert(long ruleId, long lastHandledEventId);
+  void upsert(Map<Long, Long> ruleProgress);
 }

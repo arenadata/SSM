@@ -15,11 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
+package org.smartdata.hive.util;
 
-public enum HiveOperation {
-  CREATE,
-  DROP,
-  ALTER,
-  UNKNOWN
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Arrays;
+import java.util.List;
+
+public interface Trie<K, V> {
+  @Data
+  @RequiredArgsConstructor
+  class Key<K> {
+    private final List<K> segments;
+
+    @SafeVarargs
+    public Key(K... segments) {
+      this.segments = Arrays.asList(segments);
+    }
+  }
+
+  interface Node<K, V> {
+    K getKey();
+
+    V getValue();
+  }
+
+  boolean hasPrefixValues(Key<K> key);
+
+  boolean putIfAbsent(Key<K> key, V value);
+
+  boolean remove(Key<K> key);
+
+  static <K, V> Trie<K, V> synchronize(Trie<K, V> trie) {
+    return SynchronizedTrie.wrap(trie);
+  }
 }

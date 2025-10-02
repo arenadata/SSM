@@ -43,9 +43,13 @@ public class PostgresHmsSyncProgressDao extends AbstractDao implements HmsSyncPr
   }
 
   @Override
-  public void upsert(long ruleId, long lastHandledEventId) {
-    postgresInsertSupport.upsert(
-        toNamedParameters(ruleId, lastHandledEventId), RULE_ID_FIELD);
+  public void upsert(Map<Long, Long> ruleProgress) {
+    postgresInsertSupport.batchUpsert(ruleProgress.entrySet(),
+        this::toNamedParameters, RULE_ID_FIELD);
+  }
+
+  private Map<String, Object> toNamedParameters(Map.Entry<Long, Long> ruleProgress) {
+    return toNamedParameters(ruleProgress.getKey(), ruleProgress.getValue());
   }
 
   private Map<String, Object> toNamedParameters(long ruleId, long lastHandledEventId) {

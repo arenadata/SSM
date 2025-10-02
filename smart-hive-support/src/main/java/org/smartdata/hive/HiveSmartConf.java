@@ -50,6 +50,19 @@ public class HiveSmartConf extends Configuration {
   public static final String HMS_FULL_SYNC = "smart.hive.event.sync.full";
   public static final boolean HMS_FULL_SYNC_DEFAULT = false;
 
+  public static final String HMS_CLIENT_CACHE_TTL_MS = "smart.hive.client.cache.ttl.ms";
+  public static final long HMS_CLIENT_CACHE_TTL_MS_DEFAULT = 120000L;
+
+  public static final String HMS_CLIENT_CACHE_INITIAL_CAPACITY = "smart.hive.client.cache.size.initial";
+  public static final int HMS_CLIENT_CACHE_INITIAL_CAPACITY_DEFAULT = 50;
+
+  public static final String HMS_CLIENT_CACHE_MAX_CAPACITY = "smart.hive.client.cache.size.max";
+  public static final int HMS_CLIENT_CACHE_MAX_CAPACITY_DEFAULT = 50;
+
+  public static final String HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS =
+      "smart.hive.sync.progress.flush.interval.ms";
+  public static final long HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS_DEFAULT = 5000;
+
   public HiveSmartConf(Configuration conf) {
     super(conf);
 

@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
+package org.smartdata.action;
 
-public enum HiveOperation {
-  CREATE,
-  DROP,
-  ALTER,
-  UNKNOWN
+import java.io.Closeable;
+
+public interface CmdletFactoryPlugin extends Closeable {
+  boolean canEnrich(SmartAction action);
+
+  void enrichAction(SmartAction action, String actionUser) throws ActionException;
 }

@@ -15,23 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.action;
+package org.smartdata.hive.action.constraint;
 
+import org.apache.hadoop.hive.metastore.messaging.DropConstraintMessage;
+import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.smartdata.action.annotation.ActionSignature;
+import org.smartdata.hive.action.HmsAction;
 
 @ActionSignature(
-    actionId = HmsSyncAction.NAME,
-    displayName = HmsSyncAction.NAME,
-    usage = HmsSyncAction.DEST + " $dest "
-        + HmsSyncAction.NAMESERVICE_RENAME + " $src_ns $trg_ns "
-        + HmsSyncAction.CASCADE
+    actionId = HmsDropConstraintAction.NAME,
+    displayName = HmsDropConstraintAction.NAME,
+    usage = HmsDropConstraintAction.DEST + " $dest "
+        + HmsCreateConstraintAction.EVENT_MESSAGE + " $message "
 )
-public class HmsSyncAction extends HmsAction {
-  public static final String NAME = "hms-sync";
-  public static final String ENTITY_NAME = "-entityName";
+public class HmsDropConstraintAction extends HmsAction {
+  public static final String NAME = "hms-drop-constraint";
 
   @Override
   protected void execute() throws Exception {
-    // do nothing, it's a pseudo-action for HMS sync
+    DropConstraintMessage message = parseEventMessage(
+        EventMessage.EventType.DROP_CONSTRAINT);
+
+    getMetastoreClient().dropConstraint(
+        message.getDB(),
+        message.getTable(),
+        message.getConstraint());
   }
 }

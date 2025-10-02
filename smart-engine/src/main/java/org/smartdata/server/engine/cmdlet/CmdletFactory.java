@@ -18,46 +18,44 @@
 package org.smartdata.server.engine.cmdlet;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.ActionRegistry;
+import org.smartdata.action.CmdletFactoryPlugin;
 import org.smartdata.action.SmartAction;
-import org.smartdata.hdfs.action.HdfsAction;
-import org.smartdata.hdfs.client.CachingLocalFileSystemProvider;
-import org.smartdata.hdfs.client.LocalFileSystemProvider;
+import org.smartdata.hdfs.action.HdfsCmdletFactoryPlugin;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
+import org.smartdata.hive.action.HmsCmdletFactoryPlugin;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 public class CmdletFactory implements Closeable {
-  static final Logger LOG = LoggerFactory.getLogger(CmdletFactory.class);
-
   private final SmartContext smartContext;
-  private final LocalFileSystemProvider localFileSystemProvider;
   private final UserImpersonationStrategy userImpersonationStrategy;
+  private final List<CmdletFactoryPlugin> plugins;
 
   public CmdletFactory(SmartContext smartContext,
       UserImpersonationStrategy userImpersonationStrategy) {
     this(smartContext,
-        new CachingLocalFileSystemProvider(smartContext.getConf(), userImpersonationStrategy),
-        userImpersonationStrategy);
+        userImpersonationStrategy,
+        new HdfsCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy),
+        new HmsCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy)
+    );
   }
 
   public CmdletFactory(SmartContext smartContext,
-      LocalFileSystemProvider localFileSystemProvider,
-      UserImpersonationStrategy userImpersonationStrategy) {
+      UserImpersonationStrategy userImpersonationStrategy,
+      CmdletFactoryPlugin... plugins) {
     this.smartContext = smartContext;
-    this.localFileSystemProvider = localFileSystemProvider;
     this.userImpersonationStrategy = userImpersonationStrategy;
+    this.plugins = Arrays.asList(plugins);
   }
 
   public Cmdlet createCmdlet(LaunchCmdlet launchCmdlet) throws ActionException {
@@ -90,31 +88,34 @@ public class CmdletFactory implements Closeable {
     smartAction.setLastAction(isLastAction);
     smartAction.init(launchAction.getArgs());
     smartAction.setActionId(launchAction.getActionId());
-    if (smartAction instanceof HdfsAction) {
-      setLocalFileSystem((HdfsAction) smartAction, actionUser);
-    }
+    enrichAction(smartAction, actionUser);
     return smartAction;
   }
 
-  private void setLocalFileSystem(HdfsAction action, String actionUser) throws ActionException {
-    try {
-      DistributedFileSystem localFileSystem = localFileSystemProvider.provide(
-          smartContext.getConf(), actionUser, action.localFsType());
-      action.setLocalFileSystem(localFileSystem);
-    } catch (IOException exception) {
-      LOG.error("smartAction aid={} setDfsClient error", action.getActionId(), exception);
-      throw new ActionException(exception);
+  private void enrichAction(SmartAction action, String actionUser) throws ActionException {
+    for (CmdletFactoryPlugin plugin : plugins) {
+      if (!plugin.canEnrich(action)) {
+        continue;
+      }
+      plugin.enrichAction(action, actionUser);
     }
   }
 
   @Override
   public void close() {
-    try {
-      localFileSystemProvider.close();
-    } catch (IOException exception) {
-      String errorMessage = "Error closing DFS client provider";
-      log.error(errorMessage, exception);
-      throw new RuntimeException(errorMessage, exception);
+    Exception exception = null;
+    for (CmdletFactoryPlugin plugin : plugins) {
+      try {
+        plugin.close();
+      } catch (IOException exc) {
+        String errorMessage = "Error closing cmdlet factory plugin";
+        log.error(errorMessage, exc);
+        exception = exc;
+      }
+    }
+
+    if (exception != null) {
+      throw new RuntimeException(exception);
     }
   }
 }
