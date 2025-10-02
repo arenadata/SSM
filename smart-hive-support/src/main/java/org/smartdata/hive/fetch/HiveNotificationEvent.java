@@ -25,8 +25,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Builder
 @Data
+@Builder(toBuilder = true)
 public class HiveNotificationEvent implements HmsEventStreamRecord {
   // fields from Hive event
   private final long externalId;
@@ -57,7 +57,6 @@ public class HiveNotificationEvent implements HmsEventStreamRecord {
 
   public static String fullResourceName(NotificationEvent event) {
     return fullResourceName(
-        event.getCatName(),
         event.getDbName(),
         event.getTableName());
   }

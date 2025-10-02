@@ -24,6 +24,9 @@
             <column name="event_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="entity_name" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
             <column name="entity_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
@@ -62,6 +65,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="event_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_name" type="VARCHAR(1024)">
                 <constraints nullable="false"/>
             </column>
             <column name="entity_type" type="VARCHAR(255)">

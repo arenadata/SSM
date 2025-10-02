@@ -35,7 +35,6 @@ import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.exception.SsmParseException;
-import org.smartdata.hdfs.scheduler.ActionSchedulerService;
 import org.smartdata.hdfs.scheduler.CacheScheduler;
 import org.smartdata.hdfs.scheduler.CompressionScheduler;
 import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
@@ -43,6 +42,7 @@ import org.smartdata.hdfs.scheduler.CopyScheduler;
 import org.smartdata.hdfs.scheduler.ErasureCodingScheduler;
 import org.smartdata.hdfs.scheduler.MoverScheduler;
 import org.smartdata.hdfs.scheduler.SmallFileScheduler;
+import org.smartdata.hive.action.HmsSyncScheduler;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -53,6 +53,7 @@ import org.smartdata.model.LaunchAction;
 import org.smartdata.model.PathChecker;
 import org.smartdata.model.WhitelistHelper;
 import org.smartdata.model.action.ActionScheduler;
+import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.model.request.CmdletSearchRequest;
 import org.smartdata.protocol.message.ActionStatus;
@@ -85,7 +86,6 @@ import org.smartdata.server.engine.cmdlet.StatusMessageHandler;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -94,12 +94,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
@@ -165,17 +168,7 @@ public class CmdletManager extends AbstractService
     this.scheduledCmdlets = new LinkedBlockingQueue<>();
     this.idToLaunchCmdlets = new ConcurrentHashMap<>();
     this.schedulers = ArrayListMultimap.create();
-    //because we have to ignore exceptions while creating services,
-    //the better way to init them is reflection
-    this.schedulerServices = AbstractServiceFactory.createSchedulerServices(Arrays.asList(
-        MoverScheduler.class,
-        CopyScheduler.class,
-        Copy2S3Scheduler.class,
-        SmallFileScheduler.class,
-        CompressionScheduler.class,
-        ErasureCodingScheduler.class,
-        CacheScheduler.class
-    ), context, metaStore);
+    this.schedulerServices = createSchedulerServices(context);
     this.ruleCmdletTracker = new RuleCmdletTracker();
     this.dispatcher = new CmdletDispatcher(context, this,
         scheduledCmdlets, idToLaunchCmdlets, runningCmdlets, schedulers);
@@ -263,7 +256,8 @@ public class CmdletManager extends AbstractService
       }
 
       for (CmdletInfo cmdletInfo : metaStore.getCmdlets(CmdletState.PENDING)) {
-        recoverCmdletInfo(cmdletInfo, actionInfos -> {});
+        recoverCmdletInfo(cmdletInfo, actionInfos -> {
+        });
       }
     } catch (MetaStoreException e) {
       LOG.error("DB connection error occurs when ssm is reloading cmdlets!");
@@ -828,6 +822,32 @@ public class CmdletManager extends AbstractService
       CmdletStatus cmdletStatus =
           new CmdletStatus(cmdletId, actionInfo.getFinishTime(), CmdletState.DONE);
       onCmdletStatusUpdate(cmdletStatus);
+    }
+  }
+
+  private List<ActionSchedulerService> createSchedulerServices(ServerContext context) {
+    return Stream.of(
+            createSafely(() -> new MoverScheduler(context)),
+            createSafely(() -> new CopyScheduler(context, context.getMetaStore())),
+            createSafely(() -> new Copy2S3Scheduler(context, context.getMetaStore())),
+            createSafely(() -> new SmallFileScheduler(context, context.getMetaStore())),
+            createSafely(() -> new CompressionScheduler(context, context.getMetaStore())),
+            createSafely(() -> new ErasureCodingScheduler(context, context.getMetaStore())),
+            createSafely(() -> new CacheScheduler(context)),
+            createSafely(() -> new HmsSyncScheduler(context,
+                context.getMetaStore().hmsEventDao(),
+                context.getMetaStore().hmsSyncProgressDao()))
+        ).filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private ActionSchedulerService createSafely(
+      Callable<ActionSchedulerService> schedulerSupplier) {
+    try {
+      return schedulerSupplier.call();
+    } catch (Exception e) {
+      log.error("Create scheduler service failed.", e);
+      return null;
     }
   }
 

@@ -29,11 +29,11 @@ import java.util.Map;
 public class PostgresStorageDao extends DefaultStorageDao {
   private static final String PRIMARY_KEY_FIELD = "type";
 
-  private final PostgresUpsertSupport upsertSupport;
+  private final PostgresInsertSupport upsertSupport;
 
   public PostgresStorageDao(DataSource dataSource) {
     super(dataSource);
-    this.upsertSupport = new PostgresUpsertSupport(dataSource, tableName);
+    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
   }
 
   @Override

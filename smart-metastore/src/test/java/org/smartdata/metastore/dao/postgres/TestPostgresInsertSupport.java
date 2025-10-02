@@ -27,12 +27,12 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
-public class TestPostgresUpsertSupport {
+public class TestPostgresInsertSupport {
 
   @Test
-  public void generateSqlTemplate() {
+  public void generateUpsertSqlTemplate() {
     DataSource dataSource = mock(DataSource.class);
-    PostgresUpsertSupport upsertSupport = new PostgresUpsertSupport(dataSource, "");
+    PostgresInsertSupport upsertSupport = new PostgresInsertSupport(dataSource, "");
 
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("primaryKey", "key");
@@ -41,7 +41,7 @@ public class TestPostgresUpsertSupport {
     namedParameters.put("floatField", 1.0f);
     namedParameters.put("jsonField", "{\"key\": \"value\")");
 
-    String sqlTemplate = upsertSupport.generateSqlTemplate(namedParameters, "primaryKey");
+    String sqlTemplate = upsertSupport.generateSqlTemplate(namedParameters, "primaryKey", true);
 
     String expectedSqlTemplate =
         "INSERT INTO (floatField, jsonField, strField, intField, primaryKey)\n"
@@ -56,6 +56,34 @@ public class TestPostgresUpsertSupport {
             + "strField = :strField,\n"
             + "intField = :intField,\n"
             + "primaryKey = :primaryKey";
+
+    assertEquals(expectedSqlTemplate, sqlTemplate);
+  }
+
+  @Test
+  public void generateInsertIfNotPresentSqlTemplate() {
+    DataSource dataSource = mock(DataSource.class);
+    PostgresInsertSupport upsertSupport = new PostgresInsertSupport(dataSource, "");
+
+    Map<String, Object> namedParameters = new HashMap<>();
+    namedParameters.put("primaryKey", "key");
+    namedParameters.put("intField", 1);
+    namedParameters.put("strField", "str");
+    namedParameters.put("floatField", 1.0f);
+    namedParameters.put("jsonField", "{\"key\": \"value\")");
+
+    String sqlTemplate = upsertSupport.generateSqlTemplate(
+        namedParameters, "primaryKey", false);
+
+    String expectedSqlTemplate =
+        "INSERT INTO (floatField, jsonField, strField, intField, primaryKey)\n"
+            + "VALUES (:floatField,\n"
+            + ":jsonField,\n"
+            + ":strField,\n"
+            + ":intField,\n"
+            + ":primaryKey)\n"
+            + "ON CONFLICT (primaryKey)\n"
+            + "DO NOTHING";
 
     assertEquals(expectedSqlTemplate, sqlTemplate);
   }

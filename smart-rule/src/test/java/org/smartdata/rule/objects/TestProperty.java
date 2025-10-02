@@ -31,23 +31,23 @@ public class TestProperty {
   public void testEqual() {
     Property p1 = new Property("test", ValueType.LONG,
         Arrays.asList(ValueType.TIMEINTVAL),
-        "access_count_table", "", false);
+        "access_count_table", "");
 
     Property p2 = new Property("test", ValueType.LONG,
         Arrays.asList(ValueType.LONG),
-        "access_count_table", "", false);
+        "access_count_table", "");
 
     Property p3 = new Property("test", ValueType.LONG,
         Arrays.asList(ValueType.TIMEINTVAL),
-        "access_count_table", "", false);
+        "access_count_table", "");
 
     Property p4 = new Property("test", ValueType.TIMEINTVAL,
         Arrays.asList(ValueType.TIMEINTVAL),
-        "access_count_table", "", false);
+        "access_count_table", "");
 
     Property p5 = new Property("test", ValueType.LONG,
         null,
-        "access_count_table", "", false);
+        "access_count_table", "");
 
     Assert.assertTrue(!p1.equals(p2));
     Assert.assertTrue(p1.equals(p3));

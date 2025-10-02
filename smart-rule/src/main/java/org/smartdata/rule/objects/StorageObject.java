@@ -19,7 +19,7 @@ package org.smartdata.rule.objects;
 
 import org.smartdata.rule.parser.ValueType;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,18 +32,18 @@ public class StorageObject extends SmartObject {
   static {
     PROPERTIES = new HashMap<>();
     PROPERTIES.put("capacity", new Property("capacity", ValueType.LONG,
-        Arrays.asList(ValueType.STRING), "storage", "capacity", true,
+        Collections.singletonList(ValueType.STRING), "storage", "capacity",
         "type = $0 AND capacity"));
     PROPERTIES.put("free", new Property("free", ValueType.LONG,
-        Arrays.asList(ValueType.STRING), "storage", "free", true,
+        Collections.singletonList(ValueType.STRING), "storage", "free",
         "type = $0 AND free"));
     PROPERTIES.put("utilization", new Property("utilization", ValueType.LONG,
-        Arrays.asList(ValueType.STRING), "storage", "free", true,
+        Collections.singletonList(ValueType.STRING), "storage", "free",
         "type = $0 AND (capacity - free) * 100.0 / capacity"));
   }
 
   public StorageObject() {
-    super(ObjectType.STORAGE);
+    super(ObjectType.STORAGE, "storage");
   }
 
   public Map<String, Property> getProperties() {

@@ -17,28 +17,20 @@
  */
 package org.smartdata.rule.objects;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Type of this object.
  */
+@RequiredArgsConstructor
+@Getter
 public enum ObjectType {
-    FILE("file"), CACHE("cache"), STORAGE("storage"), DIRECTORY("directory");
+  FILE("file"),
+  CACHE("cache"),
+  STORAGE("storage"),
+  DIRECTORY("directory"),
+  HMS("hms");
 
-    private String name;
-
-    ObjectType(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public static ObjectType fromName(String name) {
-        for (ObjectType v : values()) {
-            if (v.getName().equals(name)) {
-                return v;
-            }
-        }
-        return null;
-    }
+  private final String name;
 }

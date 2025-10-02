@@ -41,6 +41,7 @@ public class TestSmartRuleStringParser {
     rules.add("file : ac(10min) > acBotSp(10min, 10, \"HOT\") and acBotSp(10min, 10, \"HOT\") > 0 "
         + "| sleep -ms 0");
     rules.add("file : every 5h / 1h/ 20min | length > 19 | sleep -ms 10");
+    rules.add("hms : name matches \"db_n4m3.*\" | hms-sync -target thrift://localhost:7777/ -cascade");
 
     for (String rule : rules) {
       parseRule(rule);

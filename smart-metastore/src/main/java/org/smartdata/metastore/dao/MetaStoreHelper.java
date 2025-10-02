@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class MetaStoreHelper {
   private DataSource dataSource;
@@ -46,12 +47,15 @@ public class MetaStoreHelper {
     jdbcTemplate.execute(sql);
   }
 
-  public List<String> getFilesPath(String sql) {
+  public List<String> getObjectIds(String sql) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     return jdbcTemplate.query(sql, rs -> {
       List<String> files = new ArrayList<>();
       while (rs.next()) {
-        files.add(rs.getString(1));
+        String objectId = Optional.ofNullable(rs.getObject(1))
+            .map(Object::toString)
+            .orElse(null);
+        files.add(objectId);
       }
       return files;
     });

@@ -41,6 +41,7 @@ import static org.smartdata.utils.FormattingUtil.actionToString;
 public class CmdletDescriptor {
   public static final String RULE_ID = "-ruleId";
   public static final String HDFS_FILE_PATH = "-file";
+  public static final String OBJECT_ID = "-objectId";
 
   private final List<String> actionNames;
   private final Map<String, String> actionCommonArgs;

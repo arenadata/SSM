@@ -24,6 +24,8 @@ import java.util.Optional;
 public interface HmsEventDao {
   void insert(HiveNotificationEvent event);
 
+  HiveNotificationEvent get(long eventId);
+
   void deleteAll();
 
   Optional<Long> getLatestExternalEventId();

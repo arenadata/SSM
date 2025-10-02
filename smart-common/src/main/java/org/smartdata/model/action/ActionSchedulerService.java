@@ -15,26 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hdfs.scheduler;
+package org.smartdata.model.action;
 
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
-import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.LaunchAction;
-import org.smartdata.model.action.ActionScheduler;
-import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.IOException;
 
 public abstract class ActionSchedulerService extends AbstractService implements ActionScheduler {
-  private MetaStore metaStore;
 
-  public ActionSchedulerService(SmartContext context, MetaStore metaStore) {
+  public ActionSchedulerService(SmartContext context) {
     super(context);
-    this.metaStore = metaStore;
   }
 
   @Override

@@ -18,6 +18,8 @@
 package org.smartdata.rule.parser;
 
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.smartdata.cmdlet.parser.CmdletParser;
@@ -37,11 +39,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -120,7 +124,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       // We set it to -1 and its value will be set after the rule is triggered.
       if (ctx.timepointexpr().getStart().getText().equalsIgnoreCase("now")
           && ctx.timepointexpr().getStop().getText().equalsIgnoreCase("now")) {
-        tm  = -1L;
+        tm = -1L;
       }
       timeBasedScheduleInfo.setStartTime(tm);
       timeBasedScheduleInfo.setEndTime(tm);
@@ -289,7 +293,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
               + ctx.getText());
     }
 
-    if (p.getParamsTypes() != null) {
+    if (p.getParamsTypes() != null && !p.isAcceptsImplicitParameters()) {
       throw new RuleParserException("Should have no parameter(s) for " + ctx.getText());
     }
     PropertyRealParas realParas = new PropertyRealParas(p, null);
@@ -415,6 +419,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   public TreeNode visitNumricexprId(SmartRuleParser.NumricexprIdContext ctx) {
     return visit(ctx.id());
   }
+
   /**
    * {@inheritDoc}
    *
@@ -660,7 +665,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       }
       timeBasedScheduleInfo =
           new TimeBasedScheduleInfo(getTimeNow(),
-              TimeBasedScheduleInfo.FOR_EVER, new long[] {intval});
+              TimeBasedScheduleInfo.FOR_EVER, new long[]{intval});
     }
   }
 
@@ -669,17 +674,22 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   Map<String, List<Object>> dynamicParameters = new HashMap<>();
 
   public RuleTranslationResult generateSql() throws IOException {
-    String ret = "";
+    String ret;
     TreeNode l = objFilter != null ? objFilter : conditions;
     TreeNode r = objFilter == null ? objFilter : conditions;
-    switch (objects.get("Default").getType()) {
+
+    SmartObject object = objects.get("Default");
+    switch (object.getType()) {
       case DIRECTORY:
       case FILE:
         ret = "SELECT path FROM file";
         break;
+      case HMS:
+        ret = "SELECT id FROM hive_metastore_event";
+        break;
       default:
         throw new IOException(
-            "No operation defined for Object " + objects.get("Default").getType());
+            "No operation defined for Object " + object.getType());
     }
 
     if (l != null) {
@@ -690,7 +700,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       }
       TreeNode root = new OperNode(OperatorType.NONE, actRoot, null);
       actRoot.setParent(root);
-      ret += " WHERE " + doGenerateSql(root, "file").getRet() + ";";
+      ret += " WHERE " + doGenerateSql(root, object.getBaseTableName()).getRet() + ";";
     }
 
     sqlStatements.add(ret);
@@ -706,32 +716,15 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
         pathCheckGlob);
   }
 
-  private class NodeTransResult {
-    private String tableName;
-    private String ret;
-    private boolean invert;
+  @Data
+  @RequiredArgsConstructor
+  private static class NodeTransResult {
+    private final String tableName;
+    private final String ret;
+    private final boolean invert;
 
     public NodeTransResult(String tableName, String ret) {
-      this.tableName = tableName;
-      this.ret = ret;
-    }
-
-    public NodeTransResult(String tableName, String ret, boolean invert) {
-      this.tableName = tableName;
-      this.ret = ret;
-      this.invert = invert;
-    }
-
-    public String getTableName() {
-      return tableName;
-    }
-
-    public String getRet() {
-      return ret;
-    }
-
-    public boolean isInvert() {
-      return invert;
+      this(tableName, ret, false);
     }
   }
 
@@ -802,7 +795,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
 
       boolean procAccLt = false;
       String res;
-      if (op.length() > 0) {
+      if (!op.isEmpty()) {
         String ropStr = rop.getRet();
         if (optype == OperatorType.MATCHES) {
           ropStr = ssmPatternToSqlLike(ropStr);
@@ -914,7 +907,23 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
           return new NodeTransResult(null, "$" + mStrValue);
         }
 
-        return new NodeTransResult(p.getTableName(), realParas.formatParameters());
+        if (!p.isAcceptsImplicitParameters()) {
+          return new NodeTransResult(p.getTableName(), realParas.formatParameters());
+        }
+
+        List<Object> implicitParameters = Optional.ofNullable(vNode.getPeer())
+            .filter(ValueNode.class::isInstance)
+            .map(ValueNode.class::cast)
+            .map(ValueNode::eval)
+            .map(VisitResult::getValue)
+            .map(Object::toString)
+            .map(StringUtil::ssmPatternToSqlLike)
+            .<List<Object>>map(Collections::singletonList)
+            .orElseGet(Collections::emptyList);
+
+        return new NodeTransResult(
+            p.getTableName(),
+            p.formatParameters(implicitParameters));
       }
     }
     // return new NodeTransResult(tableName, "");

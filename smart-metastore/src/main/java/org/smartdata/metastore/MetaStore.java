@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.hive.HmsEventDao;
+import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metaservice.BackupMetaService;
 import org.smartdata.metaservice.CmdletMetaService;
 import org.smartdata.metaservice.CopyMetaService;
@@ -113,6 +114,7 @@ public class MetaStore implements CopyMetaService,
   private final FileAccessDao fileAccessDao;
   private final HmsEventDao hmsEventDao;
   private final HmsEventDao hmsIgnoredEventDao;
+  private final HmsSyncProgressDao hmsSyncProgressDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
@@ -162,6 +164,7 @@ public class MetaStore implements CopyMetaService,
     fileAccessDao = daoProvider.fileAccessDao();
     hmsEventDao =  daoProvider.hmsEventDao();
     hmsIgnoredEventDao = daoProvider.hmsIgnoredEventDao();
+    hmsSyncProgressDao = daoProvider.hmsSyncProgressDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -206,6 +209,10 @@ public class MetaStore implements CopyMetaService,
 
   public HmsEventDao hmsIgnoredEventDao() {
     return hmsIgnoredEventDao;
+  }
+
+  public HmsSyncProgressDao hmsSyncProgressDao() {
+    return hmsSyncProgressDao;
   }
 
   public PlatformTransactionManager transactionManager() {
@@ -599,11 +606,11 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public List<String> executeFilesPathQuery(
+  public List<String> executeObjectIdsQuery(
       String sql) throws MetaStoreException {
     try {
       LOG.debug("ExecuteFilesPathQuery sql = {}", sql);
-      return metaStoreHelper.getFilesPath(sql);
+      return metaStoreHelper.getObjectIds(sql);
     } catch (EmptyResultDataAccessException e) {
       return new ArrayList<>();
     } catch (Exception e) {

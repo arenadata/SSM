@@ -46,7 +46,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-public class DefaultDaoProvider implements DaoProvider {
+public abstract class DefaultDaoProvider implements DaoProvider {
   protected final DataSource dataSource;
   protected final PlatformTransactionManager transactionManager;
 
@@ -167,11 +167,11 @@ public class DefaultDaoProvider implements DaoProvider {
 
   @Override
   public HmsEventDao hmsEventDao() {
-    return DefaultHmsEventDao.defaultEventsDao(dataSource);
+    return DefaultHmsEventDao.defaultEventsDao(dataSource, transactionManager);
   }
 
   @Override
   public HmsEventDao hmsIgnoredEventDao() {
-    return DefaultHmsEventDao.ignoredEventsDao(dataSource);
+    return DefaultHmsEventDao.ignoredEventsDao(dataSource, transactionManager);
   }
 }
