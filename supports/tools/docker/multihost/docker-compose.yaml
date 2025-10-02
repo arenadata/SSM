@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   hadoop-namenode:
-    image: cloud-hub.adsw.io/library/hadoop-namenode:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
     hostname: hadoop-namenode.demo
     container_name: hadoop-namenode
     restart: unless-stopped
@@ -11,9 +11,16 @@ services:
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./conf:/etc/conf
+      - ./common.sh:/common.sh
+      - ./namenode/healthcheck-hadoop-namenode.sh:/healthcheck-hadoop-namenode.sh
+      - ./namenode/hadoop-namenode-entrypoint.sh:/hadoop-namenode-entrypoint.sh
+    entrypoint: [ "/hadoop-namenode-entrypoint.sh" ]
     ports:
       - "9870:9870"
       - "8020:8020"
+    environment:
+      HDFS_PARENT_DATA_DIR: /hadoop/dfs
+      HDFS_CONF_dfs_namenode_name_dir: file:///hadoop/dfs/name
     env_file:
       - hadoop.env
     healthcheck:
@@ -27,7 +34,7 @@ services:
       - hadoop-datanode
 
   hadoop-datanode:
-    image: cloud-hub.adsw.io/library/hadoop-datanode:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
     hostname: hadoop-datanode.demo
     container_name: hadoop-datanode
     restart: unless-stopped
@@ -42,6 +49,8 @@ services:
       - ./conf:/etc/conf
       - ./conf:/opt/ssm/conf
       - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
+      - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
+    entrypoint: ["/hadoop-datanode-entrypoint.sh"]
     ports:
       - "9864:9864"
       - "7048:7048"
@@ -67,7 +76,7 @@ services:
       - ssm-server
 
   ssm-server:
-    image: cloud-hub.adsw.io/library/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
+    image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
     hostname: ssm-server.demo
     container_name: ssm-server
     restart: unless-stopped
@@ -77,6 +86,9 @@ services:
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./conf:/opt/ssm/conf
       - ./ssm-conf/smart-site-master.xml:/opt/ssm/conf/smart-site.xml
+      - ./common.sh:/common.sh
+      - ./ssm/ssm-server-entrypoint.sh:/ssm-server-entrypoint.sh
+    entrypoint: ["/ssm-server-entrypoint.sh"]
     ports:
       - "7042:7042"
       - "8081:8081"
@@ -117,7 +129,7 @@ services:
       - demo
 
   kdc-server:
-    image: cloud-hub.adsw.io/library/ssm-kdc-server:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/java/kdc-server:latest
     restart: unless-stopped
     container_name: kdc-server
     hostname: kdc-server.demo
@@ -140,7 +152,7 @@ services:
       - demo
 
   samba:
-    image: hub.adsw.io/qa-samba/samba:demo
+    image: hub.adsw.io/java/samba:latest
     hostname: samba
     container_name: samba
     privileged: true

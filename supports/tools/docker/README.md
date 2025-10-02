@@ -1,31 +1,12 @@
 # Run Hadoop cluster with SSM in docker containers
 
-There are two cluster types:
-
-* singlehost
-* multihost
-
-And one currently supported HDFS version:
+There are one currently supported HDFS version:
 
 * 3.3.*
 
 ## Singlehost configuration
 
-* Hadoop + SSM in one container
-* SSM metastore as postgres container
-
-Command to build docker images in singlehost cluster mode (from project root dir)
-
-```shell
-./build-images.sh --cluster=singlehost --hadoop=3.3
-```
-
-Command to start docker containers
-
-```shell
-cd ./supports/tools/docker
-./start-demo.sh --cluster=singlehost --hadoop=3.3
-```
+Not supported currently
 
 ## Multihost configuration
 
@@ -37,17 +18,16 @@ cd ./supports/tools/docker
 * Samba LDAP server
 * Prometheus server
 
-Command to build docker images in multihost cluster mode (from project root dir)
+Command to build project with docker images (from project root dir)
 
 ```shell
-./build-images.sh --cluster=multihost --hadoop=3.3
+mvn clean install -Pdist,web-ui,hadoop-3.3,withDocker -DskipTests
 ```
 
 Command to start docker containers
 
 ```shell
-cd ./supports/tools/docker
-./start-demo.sh --cluster=multihost --hadoop=3.3
+docker-compose -f supports/tools/docker/multihost/docker-compose.yaml up -d
 ```
 
 Use one of the following credentials to log in to the Web UI
@@ -93,4 +73,23 @@ kinit krb_user1
 
 ```shell
 curl --negotiate http://ssm-server.demo:8081/api/v2/audit/events
+```
+
+# Run tests
+
+Run unit tests:
+
+```shell
+mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
+```
+
+Run integration tests:
+
+```shell
+mvn test -Dmaven.test.redirectTestOutputToFile=false -Pit-tests -f smart-integration/pom.xml
+```
+
+Run UI tests:
+```shell
+mvn verify -Pweb-tests -f smart-tests/pom.xml
 ```
