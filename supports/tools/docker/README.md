@@ -77,10 +77,16 @@ curl --negotiate http://ssm-server.demo:8081/api/v2/audit/events
 
 # Run tests
 
-Run integration tests:
+Run unit tests:
 
 ```shell
 mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
+```
+
+Run integration tests:
+
+```shell
+mvn test -Dmaven.test.redirectTestOutputToFile=false -Pit-tests -f smart-integration/pom.xml
 ```
 
 Run UI tests:
