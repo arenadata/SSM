@@ -49,7 +49,7 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
-  public boolean putIfAbsent(Trie.Key<K> key, V value) {
+  public boolean putIfNoPrefixPresent(Trie.Key<K> key, V value) {
     boolean isNew = !hasPrefixValues(key);
     getOrCreateNode(key).setValue(value);
     return isNew;
@@ -75,6 +75,12 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
     }
 
     DefaultTrieNode<K, V> node = maybeNode.get();
+    if (!node.isLeaf()) {
+      V oldValue = node.getValue();
+      node.setValue(null);
+      return Optional.ofNullable(oldValue).map(ignore -> node);
+    }
+
     // physically remove node and parents if needed
     K previousKey = node.getKey();
     DefaultTrieNode<K, V> iter = node.getParent();

@@ -36,6 +36,7 @@ public abstract class HmsAction extends SmartAction {
   public static final String DEST = "-dest";
   public static final String NAMESERVICE_RENAME = "-nameservice_rename";
   public static final String EVENT_MESSAGE = "-message";
+  public static final String EVENT_MESSAGE_FORMAT = "-message_format";
   public static final String CASCADE = "-cascade";
 
   // IMetaStoreClient is not thread-safe and therefore the default
@@ -52,7 +53,7 @@ public abstract class HmsAction extends SmartAction {
   protected void preRun() throws Exception {
     super.preRun();
     this.messageDeserializer = MessageFactory
-        .getDefaultInstance(getContext().getConf())
+        .getInstance(getEventMessageFormat())
         .getDeserializer();
   }
 
@@ -69,8 +70,10 @@ public abstract class HmsAction extends SmartAction {
   }
 
   protected String renameNameService(String oldLocation) {
-    Pair<String, String> nameServices = nameServiceToRename();
-    return oldLocation.replace(nameServices.getLeft(), nameServices.getRight());
+    return nameServiceToRename()
+        .map(nameServices -> oldLocation.replace(
+            nameServices.getLeft(), nameServices.getRight()))
+        .orElse(oldLocation);
   }
 
   protected void renameNameService(StorageDescriptor storageDescriptor) {
@@ -79,17 +82,20 @@ public abstract class HmsAction extends SmartAction {
     );
   }
 
-  protected Pair<String, String> nameServiceToRename() {
+  private Optional<Pair<String, String>> nameServiceToRename() {
     return Optional.ofNullable(getArguments().get(NAMESERVICE_RENAME))
         .map(str -> str.split(" "))
         .filter(names -> names.length != 2)
-        .map(names -> ImmutablePair.of(names[0], names[1]))
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Wrong format of `-nameservice_rename` argument"));
+        .map(names -> ImmutablePair.of(names[0], names[1]));
   }
 
   private String getEventMessage() {
     return Optional.ofNullable(getArguments().get(EVENT_MESSAGE))
         .orElseThrow(() -> new IllegalArgumentException("No event message provided"));
+  }
+
+  private String getEventMessageFormat() {
+    return Optional.ofNullable(getArguments().get(EVENT_MESSAGE_FORMAT))
+        .orElseThrow(() -> new IllegalArgumentException("No event message format provided"));
   }
 }

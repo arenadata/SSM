@@ -24,6 +24,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface Trie<K, V> {
+  boolean hasPrefixValues(Key<K> key);
+
+  boolean putIfNoPrefixPresent(Key<K> key, V value);
+
+  boolean remove(Key<K> key);
+
+  static <K, V> Trie<K, V> synchronize(Trie<K, V> trie) {
+    return SynchronizedTrie.wrap(trie);
+  }
+
   @Data
   @RequiredArgsConstructor
   class Key<K> {
@@ -41,13 +51,4 @@ public interface Trie<K, V> {
     V getValue();
   }
 
-  boolean hasPrefixValues(Key<K> key);
-
-  boolean putIfAbsent(Key<K> key, V value);
-
-  boolean remove(Key<K> key);
-
-  static <K, V> Trie<K, V> synchronize(Trie<K, V> trie) {
-    return SynchronizedTrie.wrap(trie);
-  }
 }

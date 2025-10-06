@@ -62,6 +62,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static org.smartdata.hive.HiveSmartConf.HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS;
 import static org.smartdata.hive.HiveSmartConf.HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS_DEFAULT;
@@ -115,10 +117,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   private final HmsSyncProgressDao hmsSyncProgressDao;
   private final HmsEventDao hmsEventDao;
 
-  private final NavigableSet<Long> eventsInProcessing;
-  private final Trie<String, Boolean> entityLocks;
-  // ruleId -> lastHandledEventId + 1
-  private final Map<Long, Long> ruleProgress;
+  private final Map<Long, RuleState> ruleStateMap;
 
   private final ScheduledExecutorService executorService;
   private final long ruleProgressFlushIntervalMs;
@@ -129,9 +128,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     super(context);
     this.hmsSyncProgressDao = hmsSyncProgressDao;
     this.hmsEventDao = hmsEventDao;
-    this.eventsInProcessing = new ConcurrentSkipListSet<>();
-    this.entityLocks = Trie.synchronize(new DefaultTrie<>());
-    this.ruleProgress = new ConcurrentHashMap<>();
+    this.ruleStateMap = new ConcurrentHashMap<>();
     this.executorService = Executors.newSingleThreadScheduledExecutor();
     this.ruleProgressFlushIntervalMs = context.getConf().getLong(
         HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS,
@@ -143,22 +140,23 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   public ScheduleResult onSchedule(CmdletInfo cmdletInfo, ActionInfo actionInfo, LaunchCmdlet cmdlet,
       LaunchAction action) {
     long eventId = eventId(actionInfo);
+    RuleState ruleState = ruleStateMap.computeIfAbsent(
+        ruleId(actionInfo), key -> new RuleState());
 
-    boolean isNewAction = eventsInProcessing.add(eventId);
+    boolean isNewAction = ruleState.eventsInProcessing.add(eventId);
     if (!isNewAction) {
       log.debug("Event {} is already in processing.", eventId);
       return ScheduleResult.SUCCESS_NO_EXECUTION;
     }
 
-    long lastHandledRuleEventId = ruleProgress.getOrDefault(ruleId(actionInfo), Long.MIN_VALUE);
-    if (eventId <= lastHandledRuleEventId) {
+    if (eventId <= ruleState.eventIdWatermark.get()) {
       log.debug("Event id {} is lower than the event watermark for rule {}, skipping",
           eventId, ruleId(actionInfo));
       return ScheduleResult.SUCCESS_NO_EXECUTION;
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);
-    boolean isNewLock = entityLocks.putIfAbsent(trieKey(event), true);
+    boolean isNewLock = ruleState.entityLocks.putIfNoPrefixPresent(trieKey(event), true);
     if (!isNewLock) {
       log.debug("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
       return ScheduleResult.RETRY;
@@ -170,7 +168,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       handleEvent(event, action);
       return ScheduleResult.SUCCESS;
     } catch (Exception e) {
-      stopProcessing(actionInfo);
+      ruleState.eventsInProcessing.remove(eventId(actionInfo));
+      removeLock(ruleState, actionInfo);
 
       log.error("Error trying to schedule HMS event {}", event, e);
       return ScheduleResult.FAIL;
@@ -180,30 +179,34 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   @Override
   public void onActionFinished(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
     long eventId = eventId(actionInfo);
-    eventsInProcessing.remove(eventId);
 
-    long ruleId = ruleId(actionInfo);
+    RuleState ruleState = getRuleState(actionInfo);
+    ruleState.eventsInProcessing.remove(eventId);
+    updateMaxHandledEventId(ruleState, eventId);
+
     try {
-      long lowestEventId = eventsInProcessing.first();
-      forwardProgress(ruleId, lowestEventId);
+      // Set the watermark as the id just before the earliest event still in progress
+      updateWatermark(ruleState, ruleState.eventsInProcessing.first() - 1);
     } catch (NoSuchElementException e) {
-      // There is no atomic way to check the size of eventsInProcessing and
-      // get the first element from it except pessimistic locks. We don't want to penalize
-      // the performance just for this case, so recover from the exception instead
-      forwardProgress(ruleId, eventId);
+      // There is no way to check the size of eventsInProcessing and get
+      // the first element from it atomically except pessimistic locks.
+      // We don't want to penalize the performance just for this case,
+      // so recover from the exception instead.
+      //
+      // Set the watermark as the current maxHandledEventId in case
+      // if the action with the highest event id finished earlier
+      updateWatermark(ruleState, ruleState.maxHandledEventId.get());
     } finally {
-      // remove the entity lock only after setting the progress of the current rule
-      removeLock(actionInfo);
+      // Remove the entity lock only after setting the progress of the current rule
+      // to cover the case when the same event is scheduled for any reason
+      // during the execution of the current method.
+      removeLock(ruleState, actionInfo);
     }
-  }
-
-  private void forwardProgress(long ruleId, long eventId) {
-    ruleProgress.merge(ruleId, eventId,
-        (oldVal, newVal) -> newVal > oldVal ? newVal : oldVal);
   }
 
   private void handleEvent(HiveNotificationEvent event, LaunchAction action) {
     action.getArgs().put(HmsSyncAction.EVENT_MESSAGE, event.getMessage());
+    action.getArgs().put(HmsSyncAction.EVENT_MESSAGE_FORMAT, event.getMessageFormat());
 
     HiveEntity hiveEntity = HiveEntity.valueOf(event.getEntityType());
     HiveOperation hiveOperation = HiveOperation.valueOf(event.getEventType());
@@ -237,14 +240,9 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     return Collections.singletonList(HmsSyncAction.NAME);
   }
 
-  private void stopProcessing(ActionInfo actionInfo) {
-    eventsInProcessing.remove(eventId(actionInfo));
-    removeLock(actionInfo);
-  }
-
-  private void removeLock(ActionInfo actionInfo) {
+  private void removeLock(RuleState ruleState, ActionInfo actionInfo) {
     String entityName = getEntityName(actionInfo);
-    entityLocks.remove(trieKey(entityName));
+    ruleState.entityLocks.remove(trieKey(entityName));
   }
 
   private long eventId(ActionInfo actionInfo) {
@@ -266,8 +264,31 @@ public class HmsSyncScheduler extends ActionSchedulerService {
         });
   }
 
-  private void flushRuleProgress() {
-    HashMap<Long, Long> ruleProgressSnapshot = new HashMap<>(ruleProgress);
+  private void updateMaxHandledEventId(RuleState ruleState, long eventId) {
+    ruleState.maxHandledEventId
+        .updateAndGet(currentId -> Math.max(currentId, eventId));
+  }
+
+  private void updateWatermark(RuleState ruleState, long eventId) {
+    ruleState.eventIdWatermark
+        .updateAndGet(currentId -> Math.max(currentId, eventId));
+  }
+
+  private RuleState getRuleState(ActionInfo actionInfo) {
+    long ruleId = ruleId(actionInfo);
+    return ruleStateMap.computeIfAbsent(ruleId, key -> {
+      throw new IllegalArgumentException("Unknown rule id, this should never happen");
+    });
+  }
+
+  void flushRuleProgress() {
+    Map<Long, Long> ruleProgressSnapshot = ruleStateMap.entrySet()
+        .stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> entry.getValue().eventIdWatermark.get())
+        );
+
     hmsSyncProgressDao.upsert(ruleProgressSnapshot);
   }
 
@@ -288,6 +309,15 @@ public class HmsSyncScheduler extends ActionSchedulerService {
             .withArg(HmsCreateConstraintAction.TYPE, constraintType),
         DROP, action(HmsDropConstraintAction.NAME)
     );
+  }
+
+  @Data
+  static class RuleState {
+    private final NavigableSet<Long> eventsInProcessing = new ConcurrentSkipListSet<>();
+    private final Trie<String, Boolean> entityLocks = Trie.synchronize(new DefaultTrie<>());
+    // the max id of the handled event for which all prior events have also been handled
+    private final AtomicLong eventIdWatermark = new AtomicLong(Long.MIN_VALUE);
+    private final AtomicLong maxHandledEventId = new AtomicLong(Long.MIN_VALUE);
   }
 
   @Data

@@ -126,7 +126,7 @@ public class SmartConf extends Configuration {
       this.agentHosts = parseHostsFile(ssmHostsFileReader, "agents");
     } catch (IOException exception) {
       // In some unit tests, these files may be missing. So such exception is tolerable.
-      LOG.error("Error parsing SSM servers/agents hosts file", exception);
+      LOG.error("Error parsing SSM servers/agents hosts file: {}", exception.getMessage());
     }
   }
 
