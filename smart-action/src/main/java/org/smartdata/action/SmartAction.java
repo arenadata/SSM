@@ -87,8 +87,7 @@ public abstract class SmartAction {
 
   protected void preRun() throws Exception {
     setStartTime();
-    appendLog(
-        String.format("Action starts at %s", Utils.getFormatedCurrentTime()));
+    appendFormatLog("Action %s starts at %s", name, Utils.getFormatedCurrentTime());
   }
 
   public final void run() {
@@ -123,6 +122,10 @@ public abstract class SmartAction {
   // The log will be shown in action's submission section and summary page.
   protected void appendLog(String log) {
     logPrintStream.println(log);
+  }
+
+  protected void appendFormatLog(String formatLog, Object... args) {
+    logPrintStream.printf(formatLog + "%n", args);
   }
 
   public float getProgress() {

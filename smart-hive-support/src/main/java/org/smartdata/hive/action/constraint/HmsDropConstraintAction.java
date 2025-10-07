@@ -35,10 +35,16 @@ public class HmsDropConstraintAction extends HmsAction {
   protected void execute() throws Exception {
     DropConstraintMessage message = parseEventMessage(
         EventMessage.EventType.DROP_CONSTRAINT);
+    appendFormatLog("Dropping constraint %s for table %s.%s",
+        message.getConstraint(),
+        message.getDB(),
+        message.getTable());
 
     getMetastoreClient().dropConstraint(
         message.getDB(),
         message.getTable(),
         message.getConstraint());
+
+    appendLog("Constraint was successfully dropped");
   }
 }

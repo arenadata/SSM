@@ -39,6 +39,9 @@ public class HmsDropPartitionAction extends HmsAction {
   protected void execute() throws Exception {
     DropPartitionMessage message = parseEventMessage(
         EventMessage.EventType.DROP_PARTITION);
+    appendFormatLog("Dropping partition for table %s%s",
+        message.getDB(),
+        message.getTable());
 
     // todo currently MetastoreClient API only exposes
     //  partition bulk removal methods with filters of internal
@@ -46,13 +49,18 @@ public class HmsDropPartitionAction extends HmsAction {
     //  so we need to use it, when we bump the version of Hive.
     //  For now, simply remove partitions one by one
     for (Map<String, String> partition : message.getPartitions()) {
+      ArrayList<String> partitionValues = new ArrayList<>(partition.values());
+      appendFormatLog("Dropping partition: %s", partitionValues);
+
       getMetastoreClient().dropPartition(
           message.getDB(),
           message.getTable(),
-          new ArrayList<>(partition.values()),
+          partitionValues,
           // deleteData
           false
       );
     }
+
+    appendLog("Partitions were successfully dropped");
   }
 }

@@ -37,6 +37,10 @@ public class HmsDropTableAction extends HmsAction {
     DropTableMessage message = parseEventMessage(
         EventMessage.EventType.DROP_TABLE);
 
+    appendFormatLog("Dropping table %s.%s",
+        message.getDB(),
+        message.getTable());
+
     getMetastoreClient().dropTable(
         message.getTableObj(),
         // deleteData
@@ -46,5 +50,7 @@ public class HmsDropTableAction extends HmsAction {
         // ifPurge
         false
     );
+
+    appendLog("Table was successfully dropped");
   }
 }

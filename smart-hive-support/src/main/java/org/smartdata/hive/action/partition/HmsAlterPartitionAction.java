@@ -38,9 +38,13 @@ public class HmsAlterPartitionAction extends HmsAction {
   protected void execute() throws Exception {
     AlterPartitionMessage message = parseEventMessage(
         EventMessage.EventType.ALTER_PARTITION);
-
     Partition oldPartition = message.getPtnObjBefore();
     Partition partition = message.getPtnObjAfter();
+
+    appendFormatLog("Altering partition %s for table %s.%s",
+        oldPartition.getValues(),
+        oldPartition.getDbName(),
+        oldPartition.getTableName());
 
     renameNameService(partition.getSd());
 
@@ -49,5 +53,7 @@ public class HmsAlterPartitionAction extends HmsAction {
         oldPartition.getTableName(),
         partition
     );
+
+    appendLog("Partitions was successfully altered");
   }
 }

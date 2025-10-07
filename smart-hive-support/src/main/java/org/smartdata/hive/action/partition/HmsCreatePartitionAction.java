@@ -43,10 +43,15 @@ public class HmsCreatePartitionAction extends HmsAction {
     AddPartitionMessage message = parseEventMessage(
         EventMessage.EventType.ADD_PARTITION);
 
+    appendFormatLog("Creating partitions for table %s", message.getTable());
+
     List<Partition> partitions = StreamSupport.stream(message.getPartitionObjs().spliterator(), false)
         .peek(partition -> renameNameService(partition.getSd()))
+        .peek(partition -> appendLog("partition: " + partition.getValues()))
         .collect(Collectors.toList());
 
     getMetastoreClient().add_partitions(partitions);
+
+    appendLog("Partitions were successfully created");
   }
 }

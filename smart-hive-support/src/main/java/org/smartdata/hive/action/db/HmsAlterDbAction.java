@@ -38,10 +38,13 @@ public class HmsAlterDbAction extends HmsAction {
   @Override
   protected void execute() throws Exception {
     AlterDatabaseMessage message = parseEventMessage(ALTER_DATABASE);
+    appendFormatLog("Altering database %s", message.getDB());
 
     Database newDb = message.getDbObjAfter();
     newDb.setLocationUri(renameNameService(newDb.getLocationUri()));
 
     getMetastoreClient().alterDatabase(message.getDbObjBefore().getName(), newDb);
+
+    appendLog("Database was successfully altered");
   }
 }

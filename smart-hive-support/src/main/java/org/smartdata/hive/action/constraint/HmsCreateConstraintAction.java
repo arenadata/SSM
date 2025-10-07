@@ -66,12 +66,15 @@ public class HmsCreateConstraintAction extends HmsAction {
       default:
         throw new IllegalArgumentException("Invalid constraint type: " + constraintType);
     }
+
+    appendLog("Constraint was successfully created");
   }
 
   private void handlePrimaryKey() throws Exception {
     AddPrimaryKeyMessage message = parseEventMessage(
         EventMessage.EventType.ADD_PRIMARYKEY);
 
+    appendLog("Creating primary key");
     getMetastoreClient().addPrimaryKey(message.getPrimaryKeys());
   }
 
@@ -79,6 +82,7 @@ public class HmsCreateConstraintAction extends HmsAction {
     AddForeignKeyMessage message = parseEventMessage(
         EventMessage.EventType.ADD_FOREIGNKEY);
 
+    appendLog("Creating foreign key");
     getMetastoreClient().addForeignKey(message.getForeignKeys());
   }
 
@@ -86,6 +90,7 @@ public class HmsCreateConstraintAction extends HmsAction {
     AddUniqueConstraintMessage message = parseEventMessage(
         EventMessage.EventType.ADD_UNIQUECONSTRAINT);
 
+    appendLog("Creating unique constraint");
     getMetastoreClient().addUniqueConstraint(message.getUniqueConstraints());
   }
 
@@ -93,6 +98,7 @@ public class HmsCreateConstraintAction extends HmsAction {
     AddNotNullConstraintMessage message = parseEventMessage(
         EventMessage.EventType.ADD_NOTNULLCONSTRAINT);
 
+    appendLog("Creating not null constraint");
     getMetastoreClient().addNotNullConstraint(message.getNotNullConstraints());
   }
 
@@ -100,6 +106,7 @@ public class HmsCreateConstraintAction extends HmsAction {
     AddDefaultConstraintMessage message = parseEventMessage(
         EventMessage.EventType.ADD_DEFAULTCONSTRAINT);
 
+    appendLog("Creating default constraint");
     getMetastoreClient().addDefaultConstraint(message.getDefaultConstraints());
   }
 
@@ -107,6 +114,7 @@ public class HmsCreateConstraintAction extends HmsAction {
     AddCheckConstraintMessage message = parseEventMessage(
         EventMessage.EventType.ADD_DEFAULTCONSTRAINT);
 
+    appendLog("Creating check constraint");
     getMetastoreClient().addCheckConstraint(message.getCheckConstraints());
   }
 

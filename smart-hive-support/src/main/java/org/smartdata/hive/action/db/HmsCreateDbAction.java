@@ -38,10 +38,13 @@ public class HmsCreateDbAction extends HmsAction {
   protected void execute() throws Exception {
     CreateDatabaseMessage message = parseEventMessage(
         EventMessage.EventType.CREATE_DATABASE);
+    appendFormatLog("Creating database %s", message.getDB());
 
     Database db = message.getDatabaseObject();
     db.setLocationUri(renameNameService(db.getLocationUri()));
 
     getMetastoreClient().createDatabase(db);
+
+    appendLog("Database was successfully created");
   }
 }

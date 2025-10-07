@@ -37,7 +37,13 @@ public class HmsDropFunctionAction extends HmsAction {
     DropFunctionMessage message = parseEventMessage(
         EventMessage.EventType.DROP_FUNCTION);
 
+    appendFormatLog("Dropping function %s.%s",
+        message.getDB(),
+        message.getFunctionName());
+
     getMetastoreClient().dropFunction(
         message.getDB(), message.getFunctionName());
+
+    appendLog("Function was successfully dropped");
   }
 }

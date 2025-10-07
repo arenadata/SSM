@@ -39,9 +39,15 @@ public class HmsCreateTableAction extends HmsAction {
     CreateTableMessage message = parseEventMessage(
         EventMessage.EventType.CREATE_TABLE);
 
+    appendFormatLog("Creating table %s.%s",
+        message.getDB(),
+        message.getTable());
+
     Table table = message.getTableObj();
     renameNameService(table.getSd());
 
     getMetastoreClient().createTable(table);
+
+    appendLog("Table was successfully created");
   }
 }

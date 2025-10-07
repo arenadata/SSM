@@ -48,6 +48,10 @@ public class HmsAlterTableAction extends HmsAction {
     Table table = message.getTableObjAfter();
     renameNameService(table.getSd());
 
+    appendFormatLog("Altering table %s.%s",
+        message.getDB(),
+        table.getTableName());
+
     if (message.getIsTruncateOp()) {
       truncateTable(message.getTableObjBefore());
       return;
@@ -55,6 +59,8 @@ public class HmsAlterTableAction extends HmsAction {
 
     Table oldTable = message.getTableObjBefore();
     getMetastoreClient().alter_table(oldTable.getDbName(), oldTable.getTableName(), table);
+
+    appendLog("Table was successfully altered");
   }
 
   private void truncateTable(Table table) throws TException {
@@ -69,5 +75,7 @@ public class HmsAlterTableAction extends HmsAction {
             table.getDbName(),
             table.getTableName()
         ), partitionNames);
+
+    appendLog("Table was successfully truncated");
   }
 }

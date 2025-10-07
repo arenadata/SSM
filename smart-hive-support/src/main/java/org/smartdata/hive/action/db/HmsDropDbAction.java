@@ -38,6 +38,7 @@ public class HmsDropDbAction extends HmsAction {
   protected void execute() throws Exception {
     DropDatabaseMessage message = parseEventMessage(
         EventMessage.EventType.DROP_DATABASE);
+    appendFormatLog("Dropping database %s", message.getDB());
 
     DropDatabaseRequest request = new DropDatabaseRequest();
     request.setCascade(isCascade());
@@ -46,5 +47,7 @@ public class HmsDropDbAction extends HmsAction {
     request.setIgnoreUnknownDb(true);
 
     getMetastoreClient().dropDatabase(request);
+
+    appendLog("Database was successfully dropped");
   }
 }

@@ -40,9 +40,15 @@ public class HmsCreateFunctionAction extends HmsAction {
         EventMessage.EventType.CREATE_FUNCTION);
 
     Function function = message.getFunctionObj();
+    appendFormatLog("Creating function %s.%s",
+        message.getDB(),
+        function.getFunctionName());
+
     updateResourceLocations(function);
 
     getMetastoreClient().createFunction(function);
+
+    appendLog("Function was successfully created");
   }
 
   private void updateResourceLocations(Function function) {
