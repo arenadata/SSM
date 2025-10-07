@@ -50,7 +50,7 @@ public class HmsCmdletFactoryPlugin implements CmdletFactoryPlugin {
 
     HmsAction hmsAction = (HmsAction) action;
     hmsAction.setMetastoreClientSupplier(
-        () -> hmsClientProvider.provide(actionUser, actionUser));
+        () -> hmsClientProvider.provide(hmsAction.getDestinationCluster(), actionUser));
   }
 
   @Override

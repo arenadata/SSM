@@ -50,9 +50,12 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
 
   @Override
   public boolean putIfNoPrefixPresent(Trie.Key<K> key, V value) {
-    boolean isNew = !hasPrefixValues(key);
+    if (hasPrefixValues(key)) {
+      return false;
+    }
+
     getOrCreateNode(key).setValue(value);
-    return isNew;
+    return true;
   }
 
   @Override

@@ -100,8 +100,7 @@ public abstract class SmartAction {
       setThrowable(t);
       appendLog(ExceptionUtils.getStackTrace(t));
     } finally {
-      setFinishTime();
-      finished = true;
+      postRun();
       stop();
     }
   }
@@ -152,6 +151,11 @@ public abstract class SmartAction {
   private void stop() {
     logPrintStream.close();
     resultPrintStream.close();
+  }
+
+  protected void postRun() {
+    setFinishTime();
+    finished = true;
   }
 
   @VisibleForTesting

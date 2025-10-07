@@ -96,7 +96,7 @@ public class HmsSyncSchedulerTest {
         launchCmdlet(EVENT_ID, RULE_ID),
         launchAction(EVENT_ID, RULE_ID)
     );
-    assertEquals(SUCCESS_NO_EXECUTION, scheduleResult);
+    assertEquals(RETRY, scheduleResult);
   }
 
   @Test
@@ -318,7 +318,7 @@ public class HmsSyncSchedulerTest {
         ImmutableMap.of(
             1L, 3L,
             2L, 2L
-            ),
+        ),
         syncProgressDao.progressMap);
   }
 

@@ -145,20 +145,23 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
     boolean isNewAction = ruleState.eventsInProcessing.add(eventId);
     if (!isNewAction) {
-      log.debug("Event {} is already in processing.", eventId);
-      return ScheduleResult.SUCCESS_NO_EXECUTION;
+      log.info("Event {} is already in processing.", eventId);
+      return ScheduleResult.RETRY;
     }
 
-    if (eventId <= ruleState.eventIdWatermark.get()) {
-      log.debug("Event id {} is lower than the event watermark for rule {}, skipping",
+    if (ruleState.handledEvents.contains(eventId)
+        || eventId <= ruleState.eventIdWatermark.get()) {
+      log.info("Event with id {} has already been handled for rule {}, skipping",
           eventId, ruleId(actionInfo));
+      ruleState.eventsInProcessing.remove(eventId);
       return ScheduleResult.SUCCESS_NO_EXECUTION;
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);
     boolean isNewLock = ruleState.entityLocks.putIfNoPrefixPresent(trieKey(event), true);
     if (!isNewLock) {
-      log.debug("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
+      log.info("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
+      ruleState.eventsInProcessing.remove(eventId);
       return ScheduleResult.RETRY;
     }
 
@@ -168,7 +171,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       handleEvent(event, action);
       return ScheduleResult.SUCCESS;
     } catch (Exception e) {
-      ruleState.eventsInProcessing.remove(eventId(actionInfo));
+      ruleState.eventsInProcessing.remove(eventId);
       removeLock(ruleState, actionInfo);
 
       log.error("Error trying to schedule HMS event {}", event, e);
@@ -179,10 +182,11 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   @Override
   public void onActionFinished(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
     long eventId = eventId(actionInfo);
+    log.info("Event {} has been handled", eventId);
 
     RuleState ruleState = getRuleState(actionInfo);
     ruleState.eventsInProcessing.remove(eventId);
-    updateMaxHandledEventId(ruleState, eventId);
+    ruleState.handledEvents.add(eventId);
 
     try {
       // Set the watermark as the id just before the earliest event still in progress
@@ -195,7 +199,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       //
       // Set the watermark as the current maxHandledEventId in case
       // if the action with the highest event id finished earlier
-      updateWatermark(ruleState, ruleState.maxHandledEventId.get());
+      updateWatermark(ruleState, getMaxHandledEventId(ruleState, eventId));
     } finally {
       // Remove the entity lock only after setting the progress of the current rule
       // to cover the case when the same event is scheduled for any reason
@@ -264,14 +268,23 @@ public class HmsSyncScheduler extends ActionSchedulerService {
         });
   }
 
-  private void updateMaxHandledEventId(RuleState ruleState, long eventId) {
-    ruleState.maxHandledEventId
-        .updateAndGet(currentId -> Math.max(currentId, eventId));
+  private long getMaxHandledEventId(RuleState ruleState, long defaultEventId) {
+    try {
+      return ruleState.handledEvents.last();
+    } catch (NoSuchElementException exception) {
+      // There is no way to check the size of handledEvents and get
+      // the last element from it atomically except pessimistic locks.
+      // We don't want to penalize the performance just for this case,
+      // so recover from the exception instead
+      return defaultEventId;
+    }
   }
 
   private void updateWatermark(RuleState ruleState, long eventId) {
-    ruleState.eventIdWatermark
+    long watermarkEventId = ruleState.eventIdWatermark
         .updateAndGet(currentId -> Math.max(currentId, eventId));
+    ruleState.handledEvents
+        .removeIf(handledEventId -> handledEventId <= watermarkEventId);
   }
 
   private RuleState getRuleState(ActionInfo actionInfo) {
@@ -314,10 +327,10 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   @Data
   static class RuleState {
     private final NavigableSet<Long> eventsInProcessing = new ConcurrentSkipListSet<>();
+    private final NavigableSet<Long> handledEvents = new ConcurrentSkipListSet<>();
     private final Trie<String, Boolean> entityLocks = Trie.synchronize(new DefaultTrie<>());
     // the max id of the handled event for which all prior events have also been handled
     private final AtomicLong eventIdWatermark = new AtomicLong(Long.MIN_VALUE);
-    private final AtomicLong maxHandledEventId = new AtomicLong(Long.MIN_VALUE);
   }
 
   @Data

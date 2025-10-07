@@ -82,10 +82,23 @@ public abstract class HmsAction extends SmartAction {
     );
   }
 
+  @Override
+  protected void postRun() {
+    super.postRun();
+    // it's safe to close here, because the metastore client object is wrapped
+    // with an HMS client cache proxy preventing it from real closing
+    getMetastoreClient().close();
+  }
+
+  String getDestinationCluster() {
+    return Optional.ofNullable(getArguments().get(DEST))
+        .orElseThrow(() -> new IllegalArgumentException("No destination cluster provided"));
+  }
+
   private Optional<Pair<String, String>> nameServiceToRename() {
     return Optional.ofNullable(getArguments().get(NAMESERVICE_RENAME))
         .map(str -> str.split(" "))
-        .filter(names -> names.length != 2)
+        .filter(names -> names.length == 2)
         .map(names -> ImmutablePair.of(names[0], names[1]));
   }
 
