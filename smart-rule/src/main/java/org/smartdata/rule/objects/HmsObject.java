@@ -40,7 +40,8 @@ public class HmsObject extends SmartObject {
             Collections.singletonList(ValueType.STRING),
             "hive_metastore_event",
             "entity_name",
-            "(entity_name LIKE SUBSTRING($0 FROM 1 FOR POSITION('.' IN $0) - 1)) or entity_name",
+            "(entity_name LIKE SUBSTRING($0 FROM 1 FOR "
+                + "NULLIF(POSITION('.' IN $0), 0) - 1)) or entity_name",
             true));
   }
 

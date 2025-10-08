@@ -17,7 +17,6 @@
  */
 package org.smartdata.hive.action.db;
 
-import org.apache.hadoop.hive.metastore.api.DropDatabaseRequest;
 import org.apache.hadoop.hive.metastore.messaging.DropDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.smartdata.action.annotation.ActionSignature;
@@ -40,13 +39,15 @@ public class HmsDropDbAction extends HmsAction {
         EventMessage.EventType.DROP_DATABASE);
     appendFormatLog("Dropping database %s", message.getDB());
 
-    DropDatabaseRequest request = new DropDatabaseRequest();
-    request.setCascade(isCascade());
-    request.setName(message.getDB());
-    request.setDeleteData(false);
-    request.setIgnoreUnknownDb(true);
-
-    getMetastoreClient().dropDatabase(request);
+    getMetastoreClient().dropDatabase(
+        message.getDB(),
+        // deleteData
+        false,
+        // ignoreUnknownDb
+        false,
+        // cascade,
+        isCascade()
+    );
 
     appendLog("Database was successfully dropped");
   }
