@@ -17,12 +17,9 @@
  */
 package org.smartdata.hdfs.impersonation;
 
-import org.smartdata.conf.SmartConf;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.security.PrivilegedExceptionAction;
-
-import static org.smartdata.conf.SmartConfKeys.SMART_PROXY_USER_STRATEGY_KEY;
 
 public interface UserImpersonationStrategy {
   enum Scope {
@@ -36,16 +33,4 @@ public interface UserImpersonationStrategy {
   void runWithImpersonation(String currentUser, Runnable action);
 
   <T> T runWithImpersonation(String currentUser, PrivilegedExceptionAction<T> action) throws Exception;
-
-  static UserImpersonationStrategy from(SmartConf conf) {
-    Scope impersonationScope = conf.getEnum(SMART_PROXY_USER_STRATEGY_KEY, Scope.DISABLED);
-    switch (impersonationScope) {
-      case NODE_SCOPE:
-        return ExplicitUserImpersonationStrategy.from(conf);
-      case CMDLET_SCOPE:
-        return CmdletOwnerUserImpersonationStrategy.from(conf);
-      default:
-        return new DisabledUserImpersonationStrategy();
-    }
-  }
 }

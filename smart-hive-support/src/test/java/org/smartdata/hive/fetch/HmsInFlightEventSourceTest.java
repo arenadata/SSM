@@ -221,7 +221,6 @@ public class HmsInFlightEventSourceTest {
 
   private HiveNotificationEvent ssmEvent(NotificationEvent event, EventOperation eventOperation) {
     return HiveNotificationEvent.fromMetastoreEvent(event)
-        .fullName(fullResourceName(event))
         .entityType(eventOperation.getEntity().toString())
         .eventType(eventOperation.getOperation() == HiveOperation.UNKNOWN
             ? event.getEventType()

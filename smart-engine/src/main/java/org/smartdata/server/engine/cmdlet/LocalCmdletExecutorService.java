@@ -23,6 +23,7 @@ import org.smartdata.action.ActionException;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
+import org.smartdata.hdfs.impersonation.UserImpersonationStrategyFactory;
 import org.smartdata.model.ExecutorType;
 import org.smartdata.protocol.message.LaunchCmdlet;
 import org.smartdata.protocol.message.StatusMessage;
@@ -65,7 +66,8 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
       return;
     }
 
-    UserImpersonationStrategy userImpersonationStrategy = UserImpersonationStrategy.from(smartConf);
+    UserImpersonationStrategy userImpersonationStrategy =
+        UserImpersonationStrategyFactory.from(smartConf);
     this.cmdletFactory = new CmdletFactory(cmdletManager.getContext(), userImpersonationStrategy);
     this.cmdletExecutor = new CmdletExecutor(smartConf, userImpersonationStrategy);
     this.executorService = Executors.newSingleThreadScheduledExecutor();

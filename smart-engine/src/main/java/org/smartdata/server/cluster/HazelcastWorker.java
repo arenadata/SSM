@@ -29,6 +29,7 @@ import org.smartdata.action.ActionException;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
+import org.smartdata.hdfs.impersonation.UserImpersonationStrategyFactory;
 import org.smartdata.model.CmdletState;
 import org.smartdata.protocol.message.CmdletStatusUpdate;
 import org.smartdata.protocol.message.LaunchCmdlet;
@@ -57,7 +58,8 @@ public class HazelcastWorker implements StatusReporter {
 
   public HazelcastWorker(SmartContext smartContext) {
     this.smartConf = smartContext.getConf();
-    UserImpersonationStrategy userImpersonationStrategy = UserImpersonationStrategy.from(smartConf);
+    UserImpersonationStrategy userImpersonationStrategy =
+        UserImpersonationStrategyFactory.from(smartConf);
     this.factory = new CmdletFactory(smartContext, userImpersonationStrategy);
     this.cmdletExecutor = new CmdletExecutor(smartContext.getConf(), userImpersonationStrategy);
     this.executorService = Executors.newSingleThreadScheduledExecutor();

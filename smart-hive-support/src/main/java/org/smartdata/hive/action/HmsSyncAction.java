@@ -17,7 +17,6 @@
  */
 package org.smartdata.hive.action;
 
-import org.smartdata.action.SmartAction;
 import org.smartdata.action.annotation.ActionSignature;
 
 @ActionSignature(
@@ -27,17 +26,12 @@ import org.smartdata.action.annotation.ActionSignature;
         + HmsSyncAction.NAMESERVICE_RENAME + " $src_ns $trg_ns "
         + HmsSyncAction.CASCADE
 )
-public class HmsSyncAction extends SmartAction {
+public class HmsSyncAction extends HmsAction {
   public static final String NAME = "hms-sync";
-  public static final String DEST = "-dest";
-  public static final String NAMESERVICE_RENAME = "-nameservice_rename";
-  public static final String CASCADE = "-cascade";
-
-  // todo tmp arg for testing purposes
-  public static final String OBJECT = "-object";
+  public static final String ENTITY_NAME = "-entityName";
 
   @Override
   protected void execute() throws Exception {
-    appendLog("HMS Sync Started: " + getArguments().get(OBJECT));
+    // do nothing, it's a pseudo-action for HMS sync
   }
 }

@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.model.ActionDescriptor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,13 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ActionRegistry {
   static final Logger LOG = LoggerFactory.getLogger(ActionRegistry.class);
-  private static Map<String, Class<? extends SmartAction>> allActions = new ConcurrentHashMap<>();
+  private static final Map<String, Class<? extends SmartAction>> ACTIONS = new ConcurrentHashMap<>();
 
   static {
     try {
       ServiceLoader<ActionFactory> actionFactories = ServiceLoader.load(ActionFactory.class);
       for (ActionFactory fact : actionFactories) {
-        allActions.putAll(fact.getSupportedActions());
+        ACTIONS.putAll(fact.getSupportedActions());
       }
     } catch (ServiceConfigurationError e) {
       LOG.error("Load actions failed from factory");
@@ -51,16 +50,16 @@ public class ActionRegistry {
   }
 
   public static Set<String> registeredActions() {
-    return Collections.unmodifiableSet(allActions.keySet());
+    return Collections.unmodifiableSet(ACTIONS.keySet());
   }
 
   public static boolean registeredAction(String name) {
-    return allActions.containsKey(name);
+    return ACTIONS.containsKey(name);
   }
 
-  public static List<ActionDescriptor> supportedActions() throws IOException {
-    ArrayList<ActionDescriptor> actionDescriptors = new ArrayList<>();
-    for (Class<? extends SmartAction> clazz : allActions.values()) {
+  public static List<ActionDescriptor> supportedActions() {
+    List<ActionDescriptor> actionDescriptors = new ArrayList<>();
+    for (Class<? extends SmartAction> clazz : ACTIONS.values()) {
       ActionSignature signature = clazz.getAnnotation(ActionSignature.class);
       if (signature != null) {
         actionDescriptors.add(fromSignature(signature));
@@ -74,7 +73,7 @@ public class ActionRegistry {
       throw new ActionException("Unregistered action " + name);
     }
     try {
-      SmartAction smartAction = allActions.get(name).newInstance();
+      SmartAction smartAction = ACTIONS.get(name).newInstance();
       smartAction.setName(name);
       return smartAction;
     } catch (Exception e) {

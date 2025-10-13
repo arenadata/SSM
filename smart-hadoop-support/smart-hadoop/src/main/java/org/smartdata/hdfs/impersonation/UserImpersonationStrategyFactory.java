@@ -15,11 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
+package org.smartdata.hdfs.impersonation;
 
-public enum HiveOperation {
-  CREATE,
-  DROP,
-  ALTER,
-  UNKNOWN
+import org.smartdata.conf.SmartConf;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_PROXY_USER_STRATEGY_KEY;
+
+public class UserImpersonationStrategyFactory {
+  public static UserImpersonationStrategy from(SmartConf conf) {
+    UserImpersonationStrategy.Scope impersonationScope = conf.getEnum(
+        SMART_PROXY_USER_STRATEGY_KEY, UserImpersonationStrategy.Scope.DISABLED);
+    switch (impersonationScope) {
+      case NODE_SCOPE:
+        return ExplicitUserImpersonationStrategy.from(conf);
+      case CMDLET_SCOPE:
+        return CmdletOwnerUserImpersonationStrategy.from(conf);
+      default:
+        return new DisabledUserImpersonationStrategy();
+    }
+  }
 }
