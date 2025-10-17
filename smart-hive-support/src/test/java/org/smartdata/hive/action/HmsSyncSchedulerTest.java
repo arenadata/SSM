@@ -39,6 +39,9 @@ import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -422,6 +425,12 @@ public class HmsSyncSchedulerTest {
     }
 
     @Override
+    public void insertIfNotPresent(HiveNotificationEvent event) {
+      // this method is not used here
+      insert(event);
+    }
+
+    @Override
     public HiveNotificationEvent get(long eventId) {
       return events.computeIfAbsent(eventId, ignore -> {
         throw new IllegalArgumentException("Event with id not found: " + eventId);
@@ -434,12 +443,22 @@ public class HmsSyncSchedulerTest {
     }
 
     @Override
+    public void deleteEventsFor(String fullName) {
+      events.values().removeIf(event -> fullName.equals(event.getFullName()));
+    }
+
+    @Override
     public Optional<Long> getLatestExternalEventId() {
       try {
         return Optional.of(events.lastKey());
       } catch (Exception e) {
         return Optional.empty();
       }
+    }
+
+    @Override
+    public <T> T execute(TransactionCallback<T> action) throws TransactionException {
+      return action.doInTransaction(new SimpleTransactionStatus());
     }
   }
 }

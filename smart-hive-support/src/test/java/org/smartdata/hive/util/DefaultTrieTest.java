@@ -32,42 +32,42 @@ public class DefaultTrieTest {
   }
 
   @Test
-  public void testPutIfNoPrefixPresent() {
-    boolean isNew = trie.putIfNoPrefixPresent(key("test1"), true);
+  public void testPutIfNoIntersectingLocks() {
+    boolean isNew = trie.putIfNoIntersectingLocks(key("test1"), true);
     assertTrue(isNew);
 
-    isNew = trie.putIfNoPrefixPresent(key("test1"), true);
+    isNew = trie.putIfNoIntersectingLocks(key("test1"), true);
     assertFalse(isNew);
-    isNew = trie.putIfNoPrefixPresent(key("test1"), false);
-    assertFalse(isNew);
-
-    isNew = trie.putIfNoPrefixPresent(key("test1", "child"), true);
-    assertFalse(isNew);
-    isNew = trie.putIfNoPrefixPresent(key("test1", "child2"), true);
+    isNew = trie.putIfNoIntersectingLocks(key("test1"), false);
     assertFalse(isNew);
 
-    isNew = trie.putIfNoPrefixPresent(key("parent2", "child"), true);
-    assertTrue(isNew);
-    isNew = trie.putIfNoPrefixPresent(key("parent2", "child2"), true);
-    assertTrue(isNew);
-    isNew = trie.putIfNoPrefixPresent(key("parent2", "child2"), true);
+    isNew = trie.putIfNoIntersectingLocks(key("test1", "child"), true);
+    assertFalse(isNew);
+    isNew = trie.putIfNoIntersectingLocks(key("test1", "child2"), true);
     assertFalse(isNew);
 
-    isNew = trie.putIfNoPrefixPresent(key("1", "2"), true);
+    isNew = trie.putIfNoIntersectingLocks(key("parent2", "child"), true);
     assertTrue(isNew);
-    isNew = trie.putIfNoPrefixPresent(key("1"), true);
+    isNew = trie.putIfNoIntersectingLocks(key("parent2", "child2"), true);
     assertTrue(isNew);
+    isNew = trie.putIfNoIntersectingLocks(key("parent2", "child2"), true);
+    assertFalse(isNew);
+
+    isNew = trie.putIfNoIntersectingLocks(key("1", "2"), true);
+    assertTrue(isNew);
+    isNew = trie.putIfNoIntersectingLocks(key("1"), true);
+    assertFalse(isNew);
   }
 
   @Test
   public void testHasPrefixValues() {
-    trie.putIfNoPrefixPresent(key("1"), true);
+    trie.putIfNoIntersectingLocks(key("1"), true);
 
     assertTrue(trie.hasPrefixValues(key("1", "2", "3")));
     assertTrue(trie.hasPrefixValues(key("1", "2")));
     assertTrue(trie.hasPrefixValues(key("1")));
 
-    trie.putIfNoPrefixPresent(key("4", "5"), true);
+    trie.putIfNoIntersectingLocks(key("4", "5"), true);
     assertTrue(trie.hasPrefixValues(key("4", "5", "6", "7")));
     assertTrue(trie.hasPrefixValues(key("4", "5", "6")));
     assertTrue(trie.hasPrefixValues(key("4", "5")));
@@ -75,26 +75,23 @@ public class DefaultTrieTest {
     assertFalse(trie.hasPrefixValues(key("4")));
     assertFalse(trie.hasPrefixValues(key("4", "another_key")));
     assertFalse(trie.hasPrefixValues(key("4", "another_key", "another_subkey")));
-
-    trie.putIfNoPrefixPresent(key("8", "9"), true);
-    trie.putIfNoPrefixPresent(key("8"), true);
-    assertTrue(trie.hasPrefixValues(key("8")));
-    assertTrue(trie.hasPrefixValues(key("8", "9")));
   }
 
   @Test
   public void testRemove() {
-    trie.putIfNoPrefixPresent(key("1", "2"), true);
+    trie.putIfNoIntersectingLocks(key("1", "2"), true);
+    trie.putIfNoIntersectingLocks(key("1", "3"), true);
 
     boolean isRemoved = trie.remove(key("1", "2"));
     assertTrue(isRemoved);
+    assertTrue(trie.hasPrefixValues(key("1", "3")));
     assertFalse(trie.hasPrefixValues(key("1", "2")));
     assertFalse(trie.hasPrefixValues(key("1", "2", "3")));
   }
 
   @Test
   public void testRemoveUnknownChild() {
-    trie.putIfNoPrefixPresent(key("1", "2"), true);
+    trie.putIfNoIntersectingLocks(key("1", "2"), true);
 
     boolean isRemoved = trie.remove(key("1", "2", "3"));
 
@@ -105,37 +102,13 @@ public class DefaultTrieTest {
 
   @Test
   public void testRemoveUnknownParent() {
-    trie.putIfNoPrefixPresent(key("1", "2"), true);
+    trie.putIfNoIntersectingLocks(key("1", "2"), true);
 
     boolean isRemoved = trie.remove(key("1"));
 
     assertFalse(isRemoved);
     assertTrue(trie.hasPrefixValues(key("1", "2")));
     assertFalse(trie.hasPrefixValues(key("1")));
-  }
-
-  @Test
-  public void testRemoveChild() {
-    trie.putIfNoPrefixPresent(key("8", "9"), true);
-    trie.putIfNoPrefixPresent(key("8"), true);
-
-    boolean isRemoved = trie.remove(key("8", "9"));
-
-    assertTrue(isRemoved);
-    assertTrue(trie.hasPrefixValues(key("8", "9")));
-    assertTrue(trie.hasPrefixValues(key("8")));
-  }
-
-  @Test
-  public void testRemoveParent() {
-    trie.putIfNoPrefixPresent(key("5", "6"), true);
-    trie.putIfNoPrefixPresent(key("5"), true);
-
-    boolean isRemoved = trie.remove(key("5"));
-
-    assertTrue(isRemoved);
-    assertTrue(trie.hasPrefixValues(key("5", "6")));
-    assertFalse(trie.hasPrefixValues(key("5")));
   }
 
   private Trie.Key<String> key(String... parts) {

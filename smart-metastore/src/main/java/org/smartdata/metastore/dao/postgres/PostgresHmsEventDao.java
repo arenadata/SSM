@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.metastore.dao.impl;
+package org.smartdata.metastore.dao.postgres;
 
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
@@ -25,6 +25,8 @@ import org.smartdata.metastore.queries.MetastoreQueryExecutor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.TransactionCallback;
 
 import javax.sql.DataSource;
 
@@ -37,7 +39,7 @@ import java.util.Optional;
 import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
 
-public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
+public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
   private static final String EVENTS_TABLE_NAME = "hive_metastore_event";
   private static final String IGNORED_EVENTS_TABLE_NAME = "ignored_hive_metastore_event";
 
@@ -54,12 +56,14 @@ public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
   private static final String MESSAGE_FORMAT_FIELD = "message_format";
 
   private final MetastoreQueryExecutor queryExecutor;
+  private final PostgresInsertSupport insertSupport;
 
-  public DefaultHmsEventDao(DataSource dataSource,
+  public PostgresHmsEventDao(DataSource dataSource,
       PlatformTransactionManager transactionManager,
       String tableName) {
     super(dataSource, tableName);
 
+    this.insertSupport = new PostgresInsertSupport(dataSource, tableName);
     this.queryExecutor = new MetastoreQueryExecutor(dataSource, transactionManager);
   }
 
@@ -72,6 +76,11 @@ public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
   @Override
   public void insert(HiveNotificationEvent event) {
     insert(event, this::toMap);
+  }
+
+  @Override
+  public void insertIfNotPresent(HiveNotificationEvent event) {
+    insertSupport.insertIfNotPresent(toMap(event), MESSAGE_FIELD);
   }
 
   @Override
@@ -90,6 +99,12 @@ public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
   @Override
   public void deleteAll() {
     jdbcTemplate.update("DELETE FROM " + tableName);
+  }
+
+  @Override
+  public void deleteEventsFor(String fullName) {
+    jdbcTemplate.update(
+        "DELETE FROM " + tableName + " WHERE entity_name = ?", fullName);
   }
 
   @Override
@@ -132,13 +147,18 @@ public class DefaultHmsEventDao extends AbstractDao implements HmsEventDao {
     return parameters;
   }
 
-  public static DefaultHmsEventDao defaultEventsDao(
+  public static PostgresHmsEventDao baseEventsDao(
       DataSource dataSource, PlatformTransactionManager transactionManager) {
-    return new DefaultHmsEventDao(dataSource, transactionManager, EVENTS_TABLE_NAME);
+    return new PostgresHmsEventDao(dataSource, transactionManager, EVENTS_TABLE_NAME);
   }
 
-  public static DefaultHmsEventDao ignoredEventsDao(
+  public static PostgresHmsEventDao ignoredEventsDao(
       DataSource dataSource, PlatformTransactionManager transactionManager) {
-    return new DefaultHmsEventDao(dataSource, transactionManager, IGNORED_EVENTS_TABLE_NAME);
+    return new PostgresHmsEventDao(dataSource, transactionManager, IGNORED_EVENTS_TABLE_NAME);
+  }
+
+  @Override
+  public <T> T execute(TransactionCallback<T> action) throws TransactionException {
+    return queryExecutor.execute(action);
   }
 }

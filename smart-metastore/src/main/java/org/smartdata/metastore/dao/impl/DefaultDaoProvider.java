@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import org.smartdata.hive.HmsEventDao;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
@@ -163,15 +162,5 @@ public abstract class DefaultDaoProvider implements DaoProvider {
   @Override
   public FileAccessPartitionDao fileAccessPartitionDao() {
     return new DefaultFileAccessPartitionDao(dataSource);
-  }
-
-  @Override
-  public HmsEventDao hmsEventDao() {
-    return DefaultHmsEventDao.defaultEventsDao(dataSource, transactionManager);
-  }
-
-  @Override
-  public HmsEventDao hmsIgnoredEventDao() {
-    return DefaultHmsEventDao.ignoredEventsDao(dataSource, transactionManager);
   }
 }

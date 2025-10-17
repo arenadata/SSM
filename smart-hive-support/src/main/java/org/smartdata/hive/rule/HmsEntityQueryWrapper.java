@@ -18,7 +18,7 @@
 package org.smartdata.hive.rule;
 
 public interface HmsEntityQueryWrapper {
-  String wrap(String query);
+  String wrap(String query, long ruleId);
 
   static HmsEntityQueryWrapper withRuleProgressFiltering() {
     return new RuleProgressHmsEntityQueryWrapper();

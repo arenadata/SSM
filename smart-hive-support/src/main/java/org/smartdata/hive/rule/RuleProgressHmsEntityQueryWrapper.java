@@ -20,11 +20,12 @@ package org.smartdata.hive.rule;
 public class RuleProgressHmsEntityQueryWrapper implements HmsEntityQueryWrapper {
 
   @Override
-  public String wrap(String query) {
+  public String wrap(String query, long ruleId) {
     return "SELECT q.id as event_id "
-        + "FROM " + HmsSyncProgressDao.TABLE_NAME
-        + " JOIN (" + query + ") as q "
-        + "ON q.id > " + HmsSyncProgressDao.TABLE_NAME + ".event_id "
-        + "ORDER BY event_id;";
+        + "FROM " + HmsSyncProgressDao.TABLE_NAME + " AS prg "
+        + "JOIN (" + query + ") as q "
+        + "ON q.id > prg.event_id "
+        + "WHERE prg.rule_id = " + ruleId
+        + " ORDER BY event_id;";
   }
 }

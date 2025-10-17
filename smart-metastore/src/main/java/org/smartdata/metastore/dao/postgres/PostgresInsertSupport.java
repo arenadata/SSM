@@ -37,54 +37,53 @@ public class PostgresInsertSupport {
     this.tableName = tableName;
   }
 
-  public void insertIfNotPresent(Map<String, Object> namedParameters, String primaryKeyField) {
-    String sqlTemplate = generateSqlTemplate(namedParameters, primaryKeyField, false);
+  public void insertIfNotPresent(Map<String, Object> namedParameters, String onConflictField) {
+    String sqlTemplate = generateSqlTemplate(namedParameters, onConflictField, false);
     namedJdbcTemplate.update(sqlTemplate, namedParameters);
   }
 
-  public void upsert(Map<String, Object> namedParameters, String primaryKeyField) {
-    String sqlTemplate = generateSqlTemplate(namedParameters, primaryKeyField, true);
+  public void upsert(Map<String, Object> namedParameters, String onConflictField) {
+    String sqlTemplate = generateSqlTemplate(namedParameters, onConflictField, true);
     namedJdbcTemplate.update(sqlTemplate, namedParameters);
   }
 
   public <T> int[] batchUpsert(
       Collection<T> entities,
       EntityToMapConverter<T> entityMapper,
-      String primaryKeyField) {
-    return batchUpsert(entities.stream(), entityMapper, primaryKeyField);
+      String onConflictField) {
+    return batchUpsert(entities.stream(), entityMapper, onConflictField);
   }
 
   public <T> int[] batchUpsert(
       T[] entities,
       EntityToMapConverter<T> entityMapper,
-      String primaryKeyField) {
-    return batchUpsert(Arrays.stream(entities), entityMapper, primaryKeyField);
+      String onConflictField) {
+    return batchUpsert(Arrays.stream(entities), entityMapper, onConflictField);
   }
 
   @SuppressWarnings("unchecked")
   private <T> int[] batchUpsert(
       Stream<T> entitiesStream,
       EntityToMapConverter<T> entityMapper,
-      String primaryKeyField) {
+      String onConflictField) {
     Map<String, Object>[] namedParameters = entitiesStream
         .map(entityMapper::toMap)
         .toArray(Map[]::new);
-    return batchUpsert(namedParameters, primaryKeyField);
+    return batchUpsert(namedParameters, onConflictField);
   }
 
-  private int[] batchUpsert(Map<String, Object>[] namedParameters, String primaryKeyField) {
+  private int[] batchUpsert(Map<String, Object>[] namedParameters, String onConflictField) {
     if (namedParameters.length == 0) {
       return new int[0];
     }
-    String sqlTemplate = generateSqlTemplate(namedParameters[0], primaryKeyField, true);
+    String sqlTemplate = generateSqlTemplate(namedParameters[0], onConflictField, true);
     return namedJdbcTemplate.batchUpdate(sqlTemplate, namedParameters);
   }
 
   String generateSqlTemplate(
       Map<String, Object> namedParameters,
-      String primaryKeyField,
-      boolean updateFieldsIfFound
-  ) {
+      String onConflictField,
+      boolean updateFieldsIfFound) {
     ArrayList<String> fieldNames = new ArrayList<>(namedParameters.keySet());
 
     String valueFieldsClause = String.join(", ", fieldNames);
@@ -104,7 +103,7 @@ public class PostgresInsertSupport {
             + valuesClause
             + ")\n"
             + "ON CONFLICT ("
-            + primaryKeyField
+            + onConflictField
             + ")\n";
 
     if (!updateFieldsIfFound) {

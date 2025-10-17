@@ -122,7 +122,7 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
   private CompletableFuture<Void> handleDb(String dbName, long diffId) {
     return supplyWithMetastoreClient(client -> {
       Database database = client.getDatabase(dbName);
-      send(eventFactory.createDbEvent(database.getCatalogName(), database, diffId));
+      send(eventFactory.createDbEvent(database, diffId));
       return database;
     }).thenComposeAsync(db -> handleTables(db, diffId), executor);
   }

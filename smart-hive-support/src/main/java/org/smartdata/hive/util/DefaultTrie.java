@@ -19,7 +19,11 @@ package org.smartdata.hive.util;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayDeque;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 
 @RequiredArgsConstructor
 public class DefaultTrie<K, V> implements Trie<K, V> {
@@ -49,8 +53,8 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
-  public boolean putIfNoPrefixPresent(Trie.Key<K> key, V value) {
-    if (hasPrefixValues(key)) {
+  public boolean putIfNoIntersectingLocks(Trie.Key<K> key, V value) {
+    if (hasPrefixValues(key) || hasChildValues(key)) {
       return false;
     }
 
@@ -61,6 +65,29 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
   @Override
   public boolean remove(Trie.Key<K> key) {
     return removeNode(key).isPresent();
+  }
+
+  @Override
+  public boolean hasChildValues(Key<K> key) {
+    return getExactNode(key)
+        .map(this::hasChildValues)
+        .isPresent();
+  }
+
+  private boolean hasChildValues(DefaultTrieNode<K, V> node) {
+    Queue<DefaultTrieNode<K, V>> children = new ArrayDeque<>(node.getChildren().values());
+
+    while (!children.isEmpty()) {
+      DefaultTrieNode<K, V> child = children.poll();
+
+      if (child.getValue() != null) {
+        return true;
+      }
+
+      children.addAll(child.getChildren().values());
+    }
+
+    return false;
   }
 
   private DefaultTrieNode<K, V> getOrCreateNode(Trie.Key<K> key) {

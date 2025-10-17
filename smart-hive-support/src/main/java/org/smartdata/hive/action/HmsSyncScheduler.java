@@ -158,7 +158,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);
-    boolean isNewLock = ruleState.entityLocks.putIfNoPrefixPresent(trieKey(event), true);
+    boolean isNewLock = ruleState.entityLocks.putIfNoIntersectingLocks(trieKey(event), true);
     if (!isNewLock) {
       log.info("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
       ruleState.eventsInProcessing.remove(eventId);

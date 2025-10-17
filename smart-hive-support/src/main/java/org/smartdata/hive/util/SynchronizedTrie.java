@@ -40,10 +40,20 @@ public class SynchronizedTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
-  public boolean putIfNoPrefixPresent(Key<K> key, V value) {
+  public boolean hasChildValues(Key<K> key) {
     lock.writeLock().lock();
     try {
-      return delegate.putIfNoPrefixPresent(key, value);
+      return delegate.hasChildValues(key);
+    } finally {
+      lock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public boolean putIfNoIntersectingLocks(Key<K> key, V value) {
+    lock.writeLock().lock();
+    try {
+      return delegate.putIfNoIntersectingLocks(key, value);
     } finally {
       lock.writeLock().unlock();
     }
