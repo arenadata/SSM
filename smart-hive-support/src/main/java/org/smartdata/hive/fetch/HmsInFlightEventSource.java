@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
-import org.smartdata.retry.RetrySupport;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,18 +30,18 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static lombok.AccessLevel.PROTECTED;
-import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
+import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUserThrowing;
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 
 @Slf4j
 public class HmsInFlightEventSource extends BaseHmsEventSource {
   public static final long INITIAL_DIFF_ID = 0L;
 
-  private final IMetaStoreClient metaStoreClient;
+  private final Supplier<IMetaStoreClient> metaStoreClientSupplier;
   private final ScheduledExecutorService executor;
-  private final RetrySupport retrySupport;
   private final EventOperationBuilder eventOperationBuilder;
   private final int eventBatchSize;
   private final long fetchPeriodMs;
@@ -64,20 +63,18 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
       toBuilder = true
   )
   public HmsInFlightEventSource(
-      IMetaStoreClient metaStoreClient,
+      Supplier<IMetaStoreClient> metaStoreClientSupplier,
       ScheduledExecutorService executor,
-      RetrySupport retrySupport,
       long fetchPeriodMs,
       int eventBatchSize,
       Long endEventId
   ) {
-    this.metaStoreClient = metaStoreClient;
+    this.metaStoreClientSupplier = metaStoreClientSupplier;
     this.executor = executor;
     this.fetchPeriodMs = fetchPeriodMs;
     this.eventBatchSize = eventBatchSize;
     this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.ignoredEventsQueue = new ArrayBlockingQueue<>(eventBatchSize);
-    this.retrySupport = retrySupport;
     this.pollStarted = new AtomicBoolean(false);
     this.pollFinished = new AtomicBoolean(false);
     this.endEventId = endEventId;
@@ -104,9 +101,11 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
     try {
       log.debug("Polling records batch from eventId {}", lastHandledEventId);
 
-      retrySupport.withRetries(
-          () -> doAsCurrentUser(this::pollRecordsBatchAction)
-      );
+      doAsCurrentUserThrowing(() -> {
+        try (IMetaStoreClient metaStoreClient = metaStoreClientSupplier.get()) {
+          pollRecordsBatchAction(metaStoreClient);
+        }
+      });
 
       if (pollFinished.get()) {
         close();
@@ -123,17 +122,11 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
   @Override
   protected void closeAction() {
-    try {
-      metaStoreClient.close();
-    } catch (Exception e) {
-      log.error("Error closing Hive Metastore client", e);
-    }
-
     outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
     ignoredEventsQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
 
-  private void pollRecordsBatchAction() {
+  private void pollRecordsBatchAction(IMetaStoreClient metaStoreClient) {
     try {
       List<NotificationEvent> events = metaStoreClient.getNextNotification(
           lastHandledEventId,

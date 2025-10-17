@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.smartdata.hadoop.filesystem.SmartFileSystem;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
 import org.smartdata.utils.StringUtil;

@@ -19,12 +19,16 @@ package org.smartdata.hive;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
 import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncoder;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
+import org.smartdata.hdfs.impersonation.DisabledUserImpersonationStrategy;
+import org.smartdata.hive.client.CachingMetaStoreClientProvider;
+import org.smartdata.hive.client.MetaStoreClientProvider;
 import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
@@ -46,10 +50,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
+import java.util.function.Supplier;
 
 @Slf4j
 public class HiveMetastoreFetcherService extends AbstractService {
@@ -78,11 +82,9 @@ public class HiveMetastoreFetcherService extends AbstractService {
   @Override
   public void init() throws IOException {
     try {
-      scheduledExecutorService = Executors.newScheduledThreadPool(16);
+      scheduledExecutorService = Executors.newScheduledThreadPool(8);
 
-      resourceSource = buildEventSource(
-          buildMetastoreClient(),
-          buildFetcherRetrySupport());
+      resourceSource = buildEventSource(buildClientSupplier());
       eventStreamHandler = buildStreamHandler();
     } catch (Exception metaException) {
       throw new IOException("Error initializing Hive Metastore client", metaException);
@@ -94,7 +96,6 @@ public class HiveMetastoreFetcherService extends AbstractService {
     Optional<Long> latestEventId = hiveEventDao.getLatestExternalEventId();
 
     HmsEventStream eventStream;
-
     if (hiveSmartConf.isFullMetastoreSync()) {
       log.info("Running full resync of resource diffs");
       // if the full resync is required, then restart fetcher from scratch
@@ -144,26 +145,23 @@ public class HiveMetastoreFetcherService extends AbstractService {
   }
 
   private HmsEventSource buildEventSource(
-      IMetaStoreClient hiveMetaStoreClient,
-      RetrySupport retrySupport
-  ) {
+      Supplier<IMetaStoreClient> metaStoreClientSupplier) {
     return new CompositeHmsEventSource(
-        hiveMetaStoreClient,
-        buildSnapshotEventSource(hiveMetaStoreClient, retrySupport),
-        buildInFlightEventSource(hiveMetaStoreClient, retrySupport),
+        metaStoreClientSupplier,
+        buildSnapshotEventSource(metaStoreClientSupplier),
+        buildInFlightEventSource(metaStoreClientSupplier),
         scheduledExecutorService,
         hiveSmartConf.getFetchBatchSize()
     );
   }
 
   private HmsSnapshotEventSource buildSnapshotEventSource(
-      IMetaStoreClient hiveMetaStoreClient,
-      RetrySupport retrySupport
-  ) {
+      Supplier<IMetaStoreClient> metaStoreClientSupplier) {
+    ExecutorService executorService = Executors.newFixedThreadPool(
+        hiveSmartConf.getSnapshotFetcherThreadsCount());
     return new HmsSnapshotEventSource(
-        hiveMetaStoreClient,
-        scheduledExecutorService,
-        retrySupport,
+        metaStoreClientSupplier,
+        executorService,
         new HiveNotificationEventFactory(
             GzipJSONMessageEncoder.getInstance()
         ),
@@ -171,29 +169,30 @@ public class HiveMetastoreFetcherService extends AbstractService {
     );
   }
 
+  private Supplier<IMetaStoreClient> buildClientSupplier() {
+    Configuration metastoreConf = MetastoreConf.newMetastoreConf(hiveSmartConf);
+    String metastoreUrl = MetastoreConf.getVar(metastoreConf, MetastoreConf.ConfVars.THRIFT_URIS);
+
+    if (StringUtils.isBlank(metastoreUrl)) {
+      throw new IllegalArgumentException("Metastore URL is not provided");
+    }
+
+    MetaStoreClientProvider metaStoreClientProvider = new CachingMetaStoreClientProvider(
+        hiveSmartConf,
+        new DisabledUserImpersonationStrategy()
+    );
+    return () -> metaStoreClientProvider.provide(metastoreUrl, null);
+  }
+
   private HmsInFlightEventSource buildInFlightEventSource(
-      IMetaStoreClient hiveMetaStoreClient,
-      RetrySupport retrySupport
-  ) {
+      Supplier<IMetaStoreClient> metaStoreClientSupplier) {
     return new HmsInFlightEventSource(
-        hiveMetaStoreClient,
+        metaStoreClientSupplier,
         scheduledExecutorService,
-        retrySupport,
         hiveSmartConf.getFetchPeriodMs(),
         hiveSmartConf.getFetchBatchSize(),
         null
     );
-  }
-
-  private RetrySupport buildFetcherRetrySupport() {
-    RetryPolicyFactory retryPolicyFactory = new RetryPolicyFactory();
-
-    ResourceMapperRetryPolicy retryPolicy = retryPolicyFactory.provide(
-        hiveSmartConf.getHiveListenerRetryStrategy(),
-        hiveSmartConf.getHiveListenerMaxRetries(),
-        hiveSmartConf.getHiveListenerRetryIntervalMs()
-    );
-    return new PolicyBasedRetrySupport(retryPolicy, Thread::sleep);
   }
 
   private RetrySupport buildHandlerRetrySupport() {
@@ -205,19 +204,6 @@ public class HiveMetastoreFetcherService extends AbstractService {
         hiveSmartConf.getEventApplierRetryIntervalMs()
     );
     return new PolicyBasedRetrySupport(retryPolicy, Thread::sleep);
-  }
-
-  private IMetaStoreClient buildMetastoreClient() {
-    try {
-      return doAsCurrentUser(this::buildMetastoreClientAction);
-    } catch (IOException e) {
-      log.error("Failed to build metastore client", e);
-      throw new RuntimeException(e);
-    }
-  }
-
-  private IMetaStoreClient buildMetastoreClientAction() throws MetaException {
-    return new HiveMetaStoreClient(hiveSmartConf);
   }
 
   // todo: remove when we add proper snapshot to event transition

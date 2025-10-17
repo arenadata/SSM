@@ -24,37 +24,38 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.AllTableConstraintsRequest;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Function;
-import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SQLAllTableConstraints;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
 import org.apache.hadoop.thirdparty.com.google.common.collect.Iterables;
-import org.apache.thrift.TException;
 import org.smartdata.hive.HiveSmartConf;
+import org.smartdata.hive.fetch.BaseHmsEventSource;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
-import org.smartdata.retry.RetryException;
-import org.smartdata.retry.RetrySupport;
+import org.smartdata.utils.ThrowingFunction;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
 
 @Slf4j
-public class HmsSnapshotEventSource implements HmsEventSource {
+public class HmsSnapshotEventSource extends BaseHmsEventSource {
   public static final long SNAPSHOT_EVENT_ID = -1L;
 
-  private final IMetaStoreClient metaStoreClient;
+  private final Supplier<IMetaStoreClient> metaStoreClientProvider;
   private final ExecutorService executor;
-  private final RetrySupport retrySupport;
   private final int eventBatchSize;
   private final String defaultCatalog;
 
@@ -66,17 +67,15 @@ public class HmsSnapshotEventSource implements HmsEventSource {
 
   @lombok.Builder(builderClassName = "Builder")
   public HmsSnapshotEventSource(
-      IMetaStoreClient metaStoreClient,
+      Supplier<IMetaStoreClient> metaStoreClientProvider,
       ExecutorService executor,
-      RetrySupport retrySupport,
       HiveNotificationEventFactory eventFactory,
       HiveSmartConf hiveSmartConf
   ) {
-    this.metaStoreClient = metaStoreClient;
+    this.metaStoreClientProvider = metaStoreClientProvider;
     this.executor = executor;
     this.eventBatchSize = hiveSmartConf.getFetchBatchSize();
     this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
-    this.retrySupport = retrySupport;
     this.eventFactory = eventFactory;
     this.pollStarted = new AtomicBoolean(false);
     this.defaultCatalog = MetaStoreUtils.getDefaultCatalog(hiveSmartConf);
@@ -90,72 +89,78 @@ public class HmsSnapshotEventSource implements HmsEventSource {
   @Override
   public HmsEventStream eventStreamFrom(long eventId) {
     if (pollStarted.compareAndSet(false, true)) {
-      executor.submit(() -> pollRecordsBatch(eventId));
+      pollRecordsBatchAsync(eventId);
     }
     return HmsEventStream.withoutIgnoredEvents(outputQueue);
   }
 
-  void pollRecordsBatch(long diffId) {
-    try {
-      retrySupport.withRetries(
-          () -> doAsCurrentUser(() -> pollRecordsBatchAction(diffId))
-      );
-    } catch (RetryException retryException) {
-      log.error("Exiting HiveMetastoreEventFetcher due to error", retryException);
-      close();
-    }
+  @Override
+  protected void closeAction() {
+    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    executor.shutdown();
   }
 
-  private void pollRecordsBatchAction(long diffId) {
-    try {
-      snapshotMetastore(diffId);
-    } catch (Exception e) {
-      throw new RuntimeException("Error polling records batch from Hive Metastore", e);
-    }
+  CompletableFuture<Void> pollRecordsBatchAsync(long diffId) {
+    return supplyWithMetastoreClient(client -> client.getAllDatabases(defaultCatalog))
+        .thenCompose(dbs -> executeInParallel(dbs, diffId, this::handleDb))
+        .thenCompose(ignore -> handleFunctions(diffId))
+        .thenRun(() -> send(HmsEventStreamRecord.endOfStreamRecord()))
+        .thenRun(() -> log.info("Hive metastore snapshot is successfully done"))
+        .exceptionally(error -> {
+          handleError(error);
+          return null;
+        });
   }
 
-  private void snapshotMetastore(long diffId) throws Exception {
-    for (String dbName : metaStoreClient.getAllDatabases(defaultCatalog)) {
-      handleDb(dbName, diffId);
-    }
-
-    for (Function function : metaStoreClient.getAllFunctions().getFunctions()) {
-      send(eventFactory.createFunctionEvent(function, diffId));
-    }
-
-    send(HmsEventStreamRecord.endOfStreamRecord());
+  private CompletableFuture<Void> handleFunctions(long diffId) {
+    return supplyWithMetastoreClient(client -> client.getAllFunctions().getFunctions())
+        .thenAccept(functions -> functions.stream()
+            .map(function -> eventFactory.createFunctionEvent(function, diffId))
+            .forEach(this::send));
   }
 
-  private void handleDb(String dbName, long diffId) throws Exception {
-    Database database = metaStoreClient.getDatabase(dbName);
-    send(eventFactory.createDbEvent(database.getCatalogName(), database, diffId));
-
-    List<String> allTables = metaStoreClient.getAllTables(database.getCatalogName(), database.getName());
-
-    for (List<String> tableNamesBatch : Iterables.partition(allTables, eventBatchSize)) {
-      for (Table table : metaStoreClient.getTableObjectsByName(
-          database.getCatalogName(), database.getName(), tableNamesBatch)) {
-        handleTable(table, diffId);
-      }
-    }
+  private CompletableFuture<Void> handleDb(String dbName, long diffId) {
+    return supplyWithMetastoreClient(client -> {
+      Database database = client.getDatabase(dbName);
+      send(eventFactory.createDbEvent(database.getCatalogName(), database, diffId));
+      return database;
+    }).thenComposeAsync(db -> handleTables(db, diffId), executor);
   }
 
-  // todo parallelize
-  private void handleTable(Table table, long diffId) throws Exception {
+  private CompletableFuture<Void> handleTables(Database db, long diffId) {
+    List<String> tables = withMetastoreClient(
+        client -> client.getAllTables(db.getCatalogName(), db.getName()));
+    Iterable<List<String>> batches = Iterables.partition(tables, eventBatchSize);
+    return executeInParallel(batches, diffId,
+        (tableBatch, ignore) -> handleTableBatch(db, tableBatch, diffId));
+  }
+
+  private CompletableFuture<Void> handleTableBatch(Database db, List<String> tablesBatch, long diffId) {
+    return supplyWithMetastoreClient(client -> client.getTableObjectsByName(
+        db.getCatalogName(), db.getName(), tablesBatch))
+        .thenComposeAsync(tables -> executeInParallel(tables, diffId, this::handleTable), executor);
+  }
+
+  private CompletableFuture<Void> handleTable(Table table, long diffId) {
     send(eventFactory.createTableEvent(table, diffId));
 
-    handlePartitions(table, diffId);
-    handleConstraints(table, diffId);
+    return CompletableFuture.allOf(
+        handlePartitions(table, diffId),
+        handleConstraints(table, diffId)
+    );
   }
 
-  private void handleConstraints(Table table, long diffId) throws Exception {
-    AllTableConstraintsRequest request = new AllTableConstraintsRequest(
-        table.getDbName(),
-        table.getTableName(),
-        table.getCatName()
-    );
-    SQLAllTableConstraints allTableConstraints = metaStoreClient.getAllTableConstraints(request);
+  private CompletableFuture<Void> handleConstraints(Table table, long diffId) {
+    return supplyWithMetastoreClient(client -> client.getAllTableConstraints(
+        new AllTableConstraintsRequest(
+            table.getDbName(),
+            table.getTableName(),
+            table.getCatName()
+        )
+    )).thenAccept(constraints -> handleConstraints(constraints, diffId));
+  }
 
+  private void handleConstraints(SQLAllTableConstraints allTableConstraints, long diffId) {
     handleConstraint(
         diffId,
         allTableConstraints.getPrimaryKeys(),
@@ -193,15 +198,12 @@ public class HmsSnapshotEventSource implements HmsEventSource {
     );
   }
 
-  private void handlePartitions(Table table, long diffId) throws TException {
-    for (Partition partition : metaStoreClient.listPartitions(
-        table.getCatName(), table.getDbName(), table.getTableName(), (short) -1)) {
-      send(eventFactory.createPartitionEvent(table, partition, diffId));
-    }
-  }
-
-  private void send(HmsEventStreamRecord record) {
-    outputQueue.add(record);
+  private CompletableFuture<Void> handlePartitions(Table table, long diffId) {
+    return supplyWithMetastoreClient(client -> client.listPartitions(
+        table.getCatName(), table.getDbName(), table.getTableName(), (short) -1))
+        .thenAccept(partitions -> partitions.stream()
+            .map(partition -> eventFactory.createPartitionEvent(table, partition, diffId))
+            .forEach(this::send));
   }
 
   private <T> void handleConstraint(
@@ -214,8 +216,63 @@ public class HmsSnapshotEventSource implements HmsEventSource {
     }
   }
 
-  @Override
-  public void close() {
-    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+  private <V> CompletableFuture<V> supplyWithMetastoreClient(
+      ThrowingFunction<IMetaStoreClient, V, Exception> function) {
+    return CompletableFuture.supplyAsync(() -> withMetastoreClient(function), executor);
+  }
+
+  private void handleError(Throwable exception) {
+    log.error("Error polling records batch from Hive Metastore", exception);
+    close();
+  }
+
+  private <V> V withMetastoreClient(ThrowingFunction<IMetaStoreClient, V, Exception> function) {
+    throwIfClosed();
+    try (IMetaStoreClient client = metaStoreClientProvider.get()) {
+      return doAsCurrentUser(() -> function.apply(client));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private <T> CompletableFuture<Void> executeInParallel(
+      Iterable<T> entities,
+      long diffId,
+      BiFunction<T, Long, CompletableFuture<?>> transformer) {
+    return executeInParallel(StreamSupport.stream(entities.spliterator(), false), diffId, transformer);
+  }
+
+  private <T> CompletableFuture<Void> executeInParallel(
+      Collection<T> entities,
+      long diffId,
+      BiFunction<T, Long, CompletableFuture<?>> transformer) {
+    return executeInParallel(entities.stream(), diffId, transformer);
+  }
+
+  private <T> CompletableFuture<Void> executeInParallel(
+      Stream<T> entities,
+      long diffId,
+      BiFunction<T, Long, CompletableFuture<?>> transformer) {
+    throwIfClosed();
+    return CompletableFuture.allOf(
+        entities
+            .map(entity -> transformer.apply(entity, diffId))
+            .toArray(CompletableFuture[]::new)
+    );
+  }
+
+  private void send(HmsEventStreamRecord record) {
+    try {
+      throwIfClosed();
+      outputQueue.put(record);
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Thread interrupted during event send", e);
+    }
+  }
+
+  private void throwIfClosed() {
+    if (isClosed()) {
+      throw new CancellationException("HmsEventSource is closed");
+    }
   }
 }

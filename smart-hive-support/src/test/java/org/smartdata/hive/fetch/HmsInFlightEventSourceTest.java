@@ -27,8 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.smartdata.hive.EntityInfo;
-import org.smartdata.retry.PolicyBasedRetrySupport;
-import org.smartdata.retry.RetryPolicyFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +65,6 @@ import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
-import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 
 public class HmsInFlightEventSourceTest {
@@ -83,12 +80,10 @@ public class HmsInFlightEventSourceTest {
         .then(invocation -> getEvents(eventsHolder, invocation));
 
     eventFetcher = HmsInFlightEventSource.builder()
-        .metaStoreClient(metaStoreClient)
+        .metaStoreClientSupplier(() -> metaStoreClient)
         // we don't use executor in tests
         .fetchPeriodMs(-1)
         .eventBatchSize(10000)
-        .retrySupport(new PolicyBasedRetrySupport(
-            RetryPolicyFactory.NO_RETRIES_POLICY, Thread::sleep))
         .build();
 
     eventsHolder = new MetastoreEventsHolder();

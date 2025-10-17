@@ -195,7 +195,7 @@ public class CompositeHmsEventSourceTest {
       List<HmsEventStreamRecord> eventRecords) {
 
     return CompositeHmsEventSource.builder()
-        .metaStoreClient(metaStoreClient)
+        .metaStoreClientSupplier(() -> metaStoreClient)
         .snapshotFetcher(new MockSnapshotFetcher(snapshotRecords))
         .eventFetcher(new MockEventFetcher(eventRecords))
         .executor(Executors.newFixedThreadPool(2))
@@ -208,7 +208,8 @@ public class CompositeHmsEventSourceTest {
     private final BlockingQueue<HmsEventStreamRecord> records;
 
     public MockSnapshotFetcher(List<HmsEventStreamRecord> records) {
-      super(null, null, null, null, new HiveSmartConf(new SmartConf()));
+      super(null, Executors.newSingleThreadExecutor(),
+          null, new HiveSmartConf(new SmartConf()));
       this.records = new ArrayBlockingQueue<>(records.size() + 1);
       this.records.addAll(records);
       this.records.add(HmsEventStreamRecord.endOfStreamRecord());
@@ -240,7 +241,7 @@ public class CompositeHmsEventSourceTest {
     private MockEventFetcher(
         BlockingQueue<HmsEventStreamRecord> records,
         Long endEventId) {
-      super(null, null, null, 0, 1, endEventId);
+      super(null, null, 0, 1, endEventId);
       this.records = records;
     }
 

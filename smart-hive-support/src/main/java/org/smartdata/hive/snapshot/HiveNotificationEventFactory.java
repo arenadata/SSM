@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SQLCheckConstraint;
 import org.apache.hadoop.hive.metastore.api.SQLDefaultConstraint;
@@ -44,7 +45,6 @@ import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageBuilder;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.apache.hadoop.hive.metastore.messaging.MessageSerializer;
-import org.apache.thrift.TException;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
@@ -84,16 +84,15 @@ public class HiveNotificationEventFactory {
         .buildCreateTableMessage(table, Collections.emptyIterator());
 
     return eventBuilder(table.getCatName(), message, diffId)
-        .fullName(fullResourceName(table.getDbName(), table.getTableName()))
+        .fullName(fullName(table))
         .entityType(HiveEntity.TABLE.toString())
         .dbName(table.getDbName())
         .tableName(table.getTableName())
         .build();
   }
 
-  public HiveNotificationEvent createPartitionEvent(Table table, Partition partition, long diffId) throws TException {
-    String partitionKey = fullResourceName(partition.getDbName(), partition.getTableName(),
-        Warehouse.makePartName(table.getPartitionKeys(), partition.getValues()));
+  public HiveNotificationEvent createPartitionEvent(Table table, Partition partition, long diffId) {
+    String partitionKey = partitionName(table, partition);
     log.debug("Saving a new partition from metastore: {}", partitionKey);
 
     // we don't use filenames in the handler
@@ -111,7 +110,7 @@ public class HiveNotificationEventFactory {
   }
 
   public HiveNotificationEvent createFunctionEvent(Function function, long diffId) {
-    String resourceName = fullResourceName(function.getDbName(), function.getFunctionName());
+    String resourceName = fullName(function);
     log.debug("Saving a new function from metastore: {}", resourceName);
 
     CreateFunctionMessage message = MessageBuilder.getInstance()
@@ -217,6 +216,26 @@ public class HiveNotificationEventFactory {
         .dbName(constraint.getTable_db())
         .tableName(constraint.getTable_name())
         .build();
+  }
+
+  public static String partitionName(Table table, Partition partition) {
+    try {
+      return fullResourceName(partition.getDbName(), partition.getTableName(),
+          Warehouse.makePartName(table.getPartitionKeys(), partition.getValues()));
+    } catch (MetaException e) {
+      throw new IllegalArgumentException("Error creating partition name", e);
+    }
+  }
+
+  public static String fullName(Table table) {
+    return fullResourceName(
+        table.getDbName(),
+        table.getTableName()
+    );
+  }
+
+  public static String fullName(Function function) {
+    return fullResourceName(function.getDbName(), function.getFunctionName());
   }
 
   public static String fullName(SQLPrimaryKey constraint) {

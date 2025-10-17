@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.EVENTS_STARTED;
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.INTERMEDIATE_EVENTS_STARTED;
@@ -44,7 +45,7 @@ import static org.smartdata.hive.fetch.composite.NewHiveSourceStateRecord.newSta
 @Slf4j
 public class CompositeHmsEventSource extends BaseHmsEventSource {
 
-  private final IMetaStoreClient metaStoreClient;
+  private final Supplier<IMetaStoreClient> metaStoreClientSupplier;
   private final HmsSnapshotEventSource snapshotFetcher;
   private final HmsInFlightEventSource eventFetcher;
   private final ExecutorService executor;
@@ -57,13 +58,13 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
 
   @lombok.Builder(builderClassName = "Builder")
   public CompositeHmsEventSource(
-      IMetaStoreClient metaStoreClient,
+      Supplier<IMetaStoreClient> metaStoreClientSupplier,
       HmsSnapshotEventSource snapshotFetcher,
       HmsInFlightEventSource eventFetcher,
       ExecutorService executor,
       int eventBatchSize
   ) {
-    this.metaStoreClient = metaStoreClient;
+    this.metaStoreClientSupplier = metaStoreClientSupplier;
     this.snapshotFetcher = snapshotFetcher;
     this.eventFetcher = eventFetcher;
     this.executor = executor;
@@ -96,12 +97,6 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       executor.shutdown();
     }
 
-    try {
-      metaStoreClient.close();
-    } catch (Exception e) {
-      log.error("Error closing HiveMetastore client", e);
-    }
-
     outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
     unhandledOutputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
   }
@@ -121,7 +116,7 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
   }
 
   void multiPhaseFetch() {
-    try {
+    try (IMetaStoreClient metaStoreClient = metaStoreClientSupplier.get()) {
       // 1. Snapshot phase
       log.info("Start fetching Hive entities using snapshot fetcher");
       outputQueue.put(newStateRecord(SNAPSHOT_STARTED));

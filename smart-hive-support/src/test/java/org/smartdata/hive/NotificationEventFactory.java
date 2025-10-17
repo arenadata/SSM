@@ -17,12 +17,8 @@
  */
 package org.smartdata.hive;
 
-import lombok.Getter;
 import org.apache.hadoop.hive.metastore.TableType;
-import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
-import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
-import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.messaging.AlterDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.AlterTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.CreateDatabaseMessage;
@@ -45,7 +41,8 @@ import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.CREATE_TABLE;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.DROP_DATABASE;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.DROP_TABLE;
-
+import static org.smartdata.hive.HiveEntityFactory.buildDb;
+import static org.smartdata.hive.HiveEntityFactory.buildTable;
 
 public class NotificationEventFactory {
   private static final MessageSerializer MESSAGE_ENCODER = new JSONMessageEncoder().getSerializer();
@@ -171,55 +168,11 @@ public class NotificationEventFactory {
     event.setEventId(id);
     event.setEventTime(0);
 
-    event.setCatName(entityName.catalogName);
-    event.setDbName(entityName.dbName);
-    event.setTableName(entityName.tableName);
+    event.setCatName(entityName.getCatalogName());
+    event.setDbName(entityName.getDbName());
+    event.setTableName(entityName.getEntityName());
 
     return event;
-  }
-
-  private static Table buildTable(EntityName entityName, TableType tableType, String location) {
-    Table table = new Table();
-    table.setCatName(entityName.catalogName);
-    table.setDbName(entityName.dbName);
-    table.setTableName(entityName.tableName);
-    table.setTableType(tableType.toString());
-
-    StorageDescriptor sd = new StorageDescriptor();
-    sd.setLocation(location);
-
-    table.setSd(sd);
-    return table;
-  }
-
-  private static Database buildDb(EntityName entityName, String location) {
-    Database db = new Database();
-    db.setCatalogName(entityName.catalogName);
-    db.setName(entityName.dbName);
-    db.setLocationUri(location);
-    return db;
-  }
-
-  @Getter
-  private static class EntityName {
-    private final String catalogName;
-    private final String dbName;
-    private final String tableName;
-
-    private EntityName(String fullName) {
-      String[] nameParts = fullName.split("\\.");
-      if (nameParts.length < 1) {
-        throw new IllegalArgumentException("Invalid fullName : " + fullName);
-      }
-
-      this.catalogName = nameParts[0];
-      this.dbName = nameParts.length > 1
-          ? nameParts[1]
-          : null;
-      this.tableName = nameParts.length == 3
-          ? nameParts[2]
-          : null;
-    }
   }
 }
 
