@@ -231,7 +231,7 @@ public class HmsSyncSchedulerTest {
   }
 
   @Test
-  public void testHandleParentEntitiesWithChildLock() {
+  public void testRetryParentEntitiesWithChildLock() {
     eventDao.insert(
         ssmEvent(newCreateDbEvent(1L, "hive.db", "/location/1")),
         ssmEvent(newCreateTableEvent(2L, "hive.db.table", TableType.EXTERNAL_TABLE, "/location/1/tb"))
@@ -251,7 +251,7 @@ public class HmsSyncSchedulerTest {
         launchCmdlet(1L, RULE_ID),
         launchAction(1L, RULE_ID)
     );
-    assertEquals(SUCCESS, scheduleResult);
+    assertEquals(RETRY, scheduleResult);
   }
 
   @Test
