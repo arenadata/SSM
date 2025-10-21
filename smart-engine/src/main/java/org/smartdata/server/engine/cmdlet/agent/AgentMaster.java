@@ -26,7 +26,6 @@ import akka.pattern.Patterns;
 import akka.remote.AssociationEvent;
 import akka.remote.DisassociatedEvent;
 import akka.util.Timeout;
-import com.google.common.annotations.VisibleForTesting;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
@@ -35,8 +34,8 @@ import org.smartdata.conf.SmartConf;
 import org.smartdata.protocol.message.LaunchCmdlet;
 import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.protocol.message.StopCmdlet;
-import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcherHelper;
+import org.smartdata.server.engine.cmdlet.StatusMessageHandler;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterNewAgent;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentId;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentRegistered;
@@ -64,10 +63,7 @@ public class AgentMaster {
   private ActorSystem system;
   private ActorRef master;
 
-  private static CmdletManager statusUpdater;
-  private static AgentMaster agentMaster = null;
-
-  private AgentMaster(SmartConf conf) throws IOException {
+  public AgentMaster(SmartConf conf, StatusMessageHandler statusHandler) throws IOException {
     String[] addresses = AgentUtils.getMasterAddress(conf);
     if (addresses == null) {
       throw new IOException("AgentMaster address not configured!");
@@ -80,30 +76,14 @@ public class AgentMaster {
     masterAskTimeout = new Timeout(Duration.create(masterAskTimeoutMs, TimeUnit.MILLISECONDS));
 
     String address = addresses[0];
-    LOG.info("Agent master: " + address);
+    LOG.info("Agent master: {}", address);
     Config config = AgentUtils.overrideRemoteAddress(
         ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), address);
     CmdletDispatcherHelper.init();
     this.agentManager = new AgentManager();
-    Props props = Props.create(MasterActor.class, null, agentManager);
+    Props props = Props.create(MasterActor.class, agentManager, statusHandler);
     ActorSystemLauncher launcher = new ActorSystemLauncher(config, props);
     launcher.start();
-  }
-
-  public static AgentMaster getAgentMaster() throws IOException {
-    return getAgentMaster(new SmartConf());
-  }
-
-  public static AgentMaster getAgentMaster(SmartConf conf)
-      throws IOException {
-    if (agentMaster == null) {
-      agentMaster = new AgentMaster(conf);
-    }
-    return agentMaster;
-  }
-
-  public static void setCmdletManager(CmdletManager statusUpdater) {
-    AgentMaster.statusUpdater = statusUpdater;
   }
 
   public boolean canAcceptMore() {
@@ -159,11 +139,6 @@ public class AgentMaster {
     return agentManager.getAgents().size();
   }
 
-  @VisibleForTesting
-  ActorRef getMasterActor() {
-    return master;
-  }
-
   Object askMaster(Object message) throws Exception {
     Future<Object> answer = Patterns.ask(master, message, masterAskTimeout);
     return Await.result(answer, masterAskTimeout.duration());
@@ -207,21 +182,15 @@ public class AgentMaster {
     }
   }
 
-
   static class MasterActor extends UntypedActor {
     private final Map<Long, ActorRef> dispatches = new HashMap<>();
+
     private final AgentManager agentManager;
+    private final StatusMessageHandler statusHandler;
 
-    public MasterActor(CmdletManager statusUpdater,
-        AgentManager agentManager) {
-      this(agentManager);
-      if (statusUpdater != null) {
-        setCmdletManager(statusUpdater);
-      }
-    }
-
-    public MasterActor(AgentManager agentManager) {
+    public MasterActor(AgentManager agentManager, StatusMessageHandler statusHandler) {
       this.agentManager = agentManager;
+      this.statusHandler = statusHandler;
     }
 
     /**
@@ -258,12 +227,14 @@ public class AgentMaster {
         agent.tell(registered, getSelf());
         LOG.info("Register SmartAgent {} from {}", id, agent);
         return true;
-      } else if (message instanceof StatusMessage) {
-        AgentMaster.statusUpdater.updateStatus((StatusMessage) message);
-        return true;
-      } else {
-        return false;
       }
+
+      if (message instanceof StatusMessage) {
+        statusHandler.onStatusMessage((StatusMessage) message);
+        return true;
+      }
+
+      return false;
     }
 
     private boolean handleClientMessage(Object message) {
@@ -277,7 +248,9 @@ public class AgentMaster {
           getSender().tell(agentId, getSelf());
         }
         return true;
-      } else if (message instanceof StopCmdlet) {
+      }
+
+      if (message instanceof StopCmdlet) {
         long cmdletId = ((StopCmdlet) message).getCmdletId();
         if (dispatches.containsKey(cmdletId)) {
           dispatches.get(cmdletId).tell(message, getSelf());
@@ -286,9 +259,9 @@ public class AgentMaster {
           getSender().tell("NotFound", getSelf());
         }
         return true;
-      } else {
-        return false;
       }
+
+      return false;
     }
 
     private boolean handleTerminatedMessage(Object message) {
@@ -297,12 +270,12 @@ public class AgentMaster {
         ActorRef agent = terminated.actor();
         AgentId id = this.agentManager.removeAgent(agent);
         // Unwatch this agent to avoid trying re-association.
-        this.context().unwatch(agent);
+        getContext().unwatch(agent);
         LOG.warn("SmartAgent ({} {} down", id, agent);
         return true;
-      } else {
-        return false;
       }
+
+      return false;
     }
 
     /**
@@ -312,6 +285,7 @@ public class AgentMaster {
       if (!(message instanceof DisassociatedEvent)) {
         return false;
       }
+
       AssociationEvent associEvent = (AssociationEvent) message;
       ActorRef agent = agentManager.getAgentActorByAddress(
           associEvent.getRemoteAddress());
@@ -325,7 +299,7 @@ public class AgentMaster {
       LOG.warn("Removing the disassociated agent: {}", agent.path().address());
       agentManager.removeAgent(agent);
       // Unwatch this agent to avoid trying re-association.
-      this.context().unwatch(agent);
+      getContext().unwatch(agent);
       return true;
     }
   }

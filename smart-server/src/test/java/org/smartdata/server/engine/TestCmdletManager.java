@@ -200,12 +200,12 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     long startTime = System.currentTimeMillis();
     ActionStatus actionStatus = new ActionStatus(cmdletId, true, actionId, startTime, null);
     StatusReport statusReport = new StatusReport(Collections.singletonList(actionStatus));
-    cmdletManager.updateStatus(statusReport);
+    cmdletManager.onStatusMessage(statusReport);
     ActionInfo actionInfo = cmdletManager.getActionInfoHandler().getActionInfo(actionId);
     CmdletInfo cmdletInfo = cmdletManager.getCmdletInfoHandler().getCmdletInfo(cmdletId);
     Assert.assertNotNull(actionInfo);
 
-    cmdletManager.updateStatus(
+    cmdletManager.onStatusMessage(
         new CmdletStatusUpdate(cmdletId, System.currentTimeMillis(), CmdletState.EXECUTING));
     CmdletInfo info = cmdletManager.getCmdletInfoHandler().getCmdletInfo(cmdletId);
     Assert.assertNotNull(info);
@@ -218,14 +218,14 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     actionStatus = new ActionStatus(cmdletId, true, actionId, null, startTime,
         finishTime, null, true);
     statusReport = new StatusReport(Collections.singletonList(actionStatus));
-    cmdletManager.updateStatus(statusReport);
+    cmdletManager.onStatusMessage(statusReport);
     Assert.assertTrue(actionInfo.isFinished());
     Assert.assertTrue(actionInfo.isSuccessful());
     assertEquals((long) actionInfo.getStartTime(), startTime);
     assertEquals((long) actionInfo.getFinishTime(), finishTime);
     assertEquals(cmdletInfo.getState(), CmdletState.DONE);
 
-    cmdletManager.updateStatus(
+    cmdletManager.onStatusMessage(
         new CmdletStatusUpdate(cmdletId, System.currentTimeMillis(), CmdletState.DONE));
     assertEquals(info.getState(), CmdletState.DONE);
     Thread.sleep(500);

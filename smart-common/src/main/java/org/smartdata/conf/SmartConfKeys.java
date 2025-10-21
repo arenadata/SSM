@@ -223,6 +223,14 @@ public class SmartConfKeys {
       "smart.agent.master.ask.timeout.ms";
   public static final long SMART_AGENT_MASTER_ASK_TIMEOUT_MS_DEFAULT = 5000L;
 
+  public static final String SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_KEY =
+      "smart.agent.connect.timeout.ms";
+  public static final long SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_DEFAULT = 240000L;
+
+  public static final String SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_KEY =
+      "smart.agent.connect.retry.interval.ms";
+  public static final long SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_DEFAULT = 2000L;
+
   /** Do NOT configure the following two options manually. They are set by the boot scripts. **/
   public static final String SMART_AGENT_MASTER_ADDRESS_KEY = "smart.agent.master.address";
   public static final String SMART_AGENT_ADDRESS_KEY = "smart.agent.address";
