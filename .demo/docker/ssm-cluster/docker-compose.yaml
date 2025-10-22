@@ -1,0 +1,309 @@
+version: "3.8"
+services:
+  ##### SOURCE CLUSTER
+
+  hadoop-namenode:
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    hostname: hadoop-namenode.demo
+    container_name: hadoop-namenode
+    restart: unless-stopped
+    volumes:
+      - hadoop-namenode:/hadoop/dfs/name
+      - ./conf:/etc/conf
+      - ./common.sh:/common.sh
+      - ./namenode/healthcheck-hadoop-namenode.sh:/healthcheck-hadoop-namenode.sh
+      - ./namenode/hadoop-namenode-entrypoint.sh:/hadoop-namenode-entrypoint.sh
+    entrypoint: [ "/hadoop-namenode-entrypoint.sh" ]
+    environment:
+      HDFS_PARENT_DATA_DIR: /hadoop/dfs
+      HDFS_CONF_dfs_namenode_name_dir: file:///hadoop/dfs/name
+    ports:
+      - "9870:9870"
+      - "8020:8020"
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: [ "CMD-SHELL", "bash /healthcheck-hadoop-namenode.sh" ]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks:
+      - demo
+    depends_on:
+      - hadoop-datanode
+
+  hadoop-datanode:
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    hostname: hadoop-datanode.demo
+    container_name: hadoop-datanode
+    restart: unless-stopped
+    volumes:
+      - ssm-shared:/etc/ssm/shared
+      - hadoop-datanode-data:/hadoop/dfs/data
+      - hadoop-datanode-ram-data:/hadoop/dfs/ram-data
+      - hadoop-datanode-ssd-data:/hadoop/dfs/ssd-data
+      - hadoop-datanode-archive-data:/hadoop/dfs/archive-data
+      - ./conf:/etc/conf
+      - ./conf:/opt/ssm/conf
+      - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
+      - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
+    entrypoint: ["/hadoop-datanode-entrypoint.sh"]
+    ports:
+      - "9864:9864"
+      - "7048:7048"
+      - "7051:7051"
+      # SSM Agent web server port
+      - "18081:8081"
+      # JMX port
+      - "3334:3334"
+      # agent debug port
+      - "8009:8008"
+    environment:
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: [ "CMD-SHELL", "curl http://hadoop-datanode.demo:1006 || exit 1" ]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks:
+      - demo
+    depends_on:
+      - ssm-server
+
+  ssm-server:
+    image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
+    hostname: ssm-server.demo
+    container_name: ssm-server
+    restart: unless-stopped
+    volumes:
+      - ssm-shared:/tmp/shared
+      - ./conf:/opt/ssm/conf
+      - ./ssm-conf/smart-site-master.xml:/opt/ssm/conf/smart-site.xml
+      - ./common.sh:/common.sh
+      - ./ssm/ssm-server-entrypoint.sh:/ssm-server-entrypoint.sh
+    entrypoint: ["/ssm-server-entrypoint.sh"]
+    ports:
+      - "7042:7042"
+      - "8081:8081"
+      # JMX port
+      - "3333:3333"
+      # ssm debug port
+      - "8008:8008"
+    environment:
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl http://ssm-server.demo:8081 || exit 1" ]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks:
+      - demo
+    depends_on:
+      - ssm-metastore-db
+
+  ssm-metastore-db:
+    image: "docker.io/library/postgres:14.0"
+    restart: unless-stopped
+    container_name: ssm-metastore-db.demo
+    hostname: ssm-metastore-db
+    environment:
+      POSTGRES_DB: 'metastore'
+      POSTGRES_USER: 'ssm'
+      POSTGRES_PASSWORD: 'ssm'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "psql -d metastore -U ssm -Atc 'SELECT 1;'" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+    volumes:
+      - ./db/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - demo
+
+  hive-metastore:
+    image: apache/hive:4.0.1
+    container_name: hive-metastore
+    hostname: hive-metastore.demo
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive
+        -Djavax.jdo.option.ConnectionUserName=ssm
+        -Djavax.jdo.option.ConnectionPassword=ssm
+        -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
+        -Dhive.metastore.event.db.listener.timetolive=86400s
+        -Dhive.metastore.warehouse.dir=hdfs://source/user/hive/warehouse
+    volumes:
+      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./conf/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+    ports:
+      - "9083:9083"
+    networks:
+      - demo
+    depends_on:
+      ssm-metastore-db:
+        condition: service_healthy
+
+  hive-server2:
+    image: apache/hive:4.0.1
+    container_name: hive-server2
+    hostname: hive-server2.demo
+    depends_on:
+      hive-metastore:
+        condition: service_started
+      hadoop-namenode:
+        condition: service_healthy
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: true
+      SERVICE_OPTS: >-
+        -Dhive.metastore.uris=thrift://hive-metastore.demo:9083
+        -Dhive.metastore.warehouse.dir=hdfs://source/user/hive/warehouse
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./conf/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    networks:
+      - demo
+
+  ##### TARGET CLUSTER
+
+  target-namenode:
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    hostname: target-namenode.demo
+    container_name: target-namenode
+    restart: unless-stopped
+    volumes:
+      - target-namenode:/hadoop/dfs/name
+      - ./target-conf:/etc/conf
+      - ./common.sh:/common.sh
+      - ./namenode/healthcheck-hadoop-namenode.sh:/healthcheck-hadoop-namenode.sh
+      - ./namenode/hadoop-namenode-entrypoint.sh:/hadoop-namenode-entrypoint.sh
+    entrypoint: [ "/hadoop-namenode-entrypoint.sh" ]
+    environment:
+      HDFS_PARENT_DATA_DIR: /hadoop/dfs
+      HDFS_CONF_dfs_namenode_name_dir: file:///hadoop/dfs/name
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: [ "CMD-SHELL", "curl http://target-namenode.demo:9870/ || exit 1" ]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks:
+      - demo
+    depends_on:
+      - target-datanode
+
+  target-datanode:
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    hostname: target-datanode.demo
+    container_name: target-datanode
+    restart: unless-stopped
+    volumes:
+      - target-datanode-data:/hadoop/dfs/data
+      - target-datanode-ram-data:/hadoop/dfs/ram-data
+      - target-datanode-ssd-data:/hadoop/dfs/ssd-data
+      - target-datanode-archive-data:/hadoop/dfs/archive-data
+      - ./target-conf:/etc/conf
+      - ./target-conf:/opt/ssm/conf
+      - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
+      - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
+    entrypoint: ["/hadoop-datanode-entrypoint.sh"]
+    environment:
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
+    env_file:
+      - hadoop.env
+    healthcheck:
+      test: [ "CMD-SHELL", "curl http://target-datanode.demo:1006 || exit 1" ]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks:
+      - demo
+
+  target-hive-metastore:
+    image: apache/hive:4.0.1
+    container_name: target-hive-metastore
+    hostname: target-hive-metastore.demo
+    depends_on:
+      ssm-metastore-db:
+        condition: service_healthy
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive2
+        -Djavax.jdo.option.ConnectionUserName=ssm
+        -Djavax.jdo.option.ConnectionPassword=ssm
+        -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
+        -Dhive.metastore.event.db.listener.timetolive=86400s
+        -Dhive.metastore.warehouse.dir=hdfs://target/user/hive/warehouse
+    volumes:
+      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./target-conf/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./target-conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./target-conf/core-site.xml:/opt/hive/conf/core-site.xml
+    networks:
+      - demo
+
+  target-hive-server2:
+    image: apache/hive:4.0.1
+    container_name: target-hive-server2
+    hostname: target-hive-server2.demo
+    depends_on:
+      target-hive-metastore:
+        condition: service_started
+      target-namenode:
+        condition: service_healthy
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: true
+      SERVICE_OPTS: >-
+        -Dhive.metastore.uris=thrift://target-hive-metastore.demo:9083
+        -Dhive.metastore.warehouse.dir=hdfs://target/user/hive/warehouse
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./target-conf/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./target-conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./target-conf/core-site.xml:/opt/hive/conf/core-site.xml
+    networks:
+      - demo
+
+networks:
+  demo:
+    name: demo
+
+volumes:
+  ssm-shared:
+  hadoop-namenode:
+  hadoop-datanode-data:
+  hadoop-datanode-ram-data:
+  hadoop-datanode-ssd-data:
+  hadoop-datanode-archive-data:
+  target-namenode:
+  target-datanode-data:
+  target-datanode-ram-data:
+  target-datanode-ssd-data:
+  target-datanode-archive-data:
