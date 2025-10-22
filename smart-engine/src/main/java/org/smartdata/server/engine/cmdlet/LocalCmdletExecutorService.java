@@ -133,7 +133,7 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
   @Override
   public void report(StatusMessage status) {
     LOG.debug("Reporting status message {}", status);
-    cmdletManager.updateStatus(status);
+    cmdletManager.onStatusMessage(status);
   }
 
   private String getActiveServerAddress() {

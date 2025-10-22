@@ -207,7 +207,7 @@ public class HazelcastExecutorService extends CmdletExecutorService {
         }
       }
     }
-    cmdletManager.updateStatus(message);
+    cmdletManager.onStatusMessage(message);
   }
 
   private class ClusterMembershipListener implements MembershipListener {
