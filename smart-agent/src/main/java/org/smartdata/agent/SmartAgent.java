@@ -72,6 +72,10 @@ import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_KEY;
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_DEFAULT;
+import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY;
 
@@ -250,10 +254,8 @@ public class SmartAgent implements StatusReporter {
   static class AgentActor extends UntypedActor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentActor.class);
 
-    private static final FiniteDuration TIMEOUT =
-        Duration.create(30, TimeUnit.SECONDS);
-    private static final FiniteDuration RETRY_INTERVAL =
-        Duration.create(2, TimeUnit.SECONDS);
+    private final FiniteDuration connectionTimeout;
+    private final FiniteDuration connectionRetryInterval;
 
     private final String[] masters;
     private final SmartConf conf;
@@ -276,6 +278,18 @@ public class SmartAgent implements StatusReporter {
       int executorsCount = conf.getInt(
           SMART_CMDLET_EXECUTORS_KEY,
           SMART_CMDLET_EXECUTORS_DEFAULT);
+
+      long connectionTimeoutMs = conf.getLong(
+          SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_KEY,
+          SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_DEFAULT);
+      this.connectionTimeout = Duration.create(
+          connectionTimeoutMs, TimeUnit.MILLISECONDS);
+
+      long connectionRetryIntervalMs = conf.getLong(
+          SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_KEY,
+          SMART_AGENT_MASTER_CONNECT_INTERVAL_MS_DEFAULT);
+      this.connectionRetryInterval = Duration.create(
+          connectionRetryIntervalMs, TimeUnit.MILLISECONDS);
 
       this.registrationMessage = new RegisterNewAgent(
           "SSMAgent@" + agentAddress,
@@ -314,7 +328,7 @@ public class SmartAgent implements StatusReporter {
         master = null;
       }
       return AgentUtils.repeatActionUntil(getContext().system(),
-          Duration.Zero(), RETRY_INTERVAL, TIMEOUT,
+          Duration.Zero(), connectionRetryInterval, connectionTimeout,
           new Runnable() {
             @Override
             public void run() {
@@ -375,7 +389,7 @@ public class SmartAgent implements StatusReporter {
 
             Cancellable registerAgent =
                 AgentUtils.repeatActionUntil(getContext().system(),
-                    Duration.Zero(), RETRY_INTERVAL, TIMEOUT,
+                    Duration.Zero(), connectionRetryInterval, connectionTimeout,
                     new SendMessage(master, registrationMessage),
                     new Shutdown());
             LOG.info("Registering to master {}", master);
@@ -535,7 +549,7 @@ public class SmartAgent implements StatusReporter {
       @Override
       public void run() {
         getSelf().tell(PoisonPill.getInstance(), ActorRef.noSender());
-        LOG.info("Failed to find master after {}, shutting down...", TIMEOUT);
+        LOG.info("Failed to find master after {}, shutting down...", connectionTimeout);
         // Now that akka actor will not work, no need to keep program alive.
         System.exit(-1);
       }

@@ -81,6 +81,7 @@ import org.smartdata.server.engine.cmdlet.DeleteTerminatedCmdletsTask;
 import org.smartdata.server.engine.cmdlet.DetectTimeoutActionsTask;
 import org.smartdata.server.engine.cmdlet.InMemoryRegistry;
 import org.smartdata.server.engine.cmdlet.RuleCmdletTracker;
+import org.smartdata.server.engine.cmdlet.StatusMessageHandler;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -119,7 +120,10 @@ import static org.smartdata.model.audit.UserActivityOperation.STOP;
  */
 @Slf4j
 public class CmdletManager extends AbstractService
-    implements ActionStatusUpdateListener, ClusterNodeMetricsProvider, Auditable {
+    implements ActionStatusUpdateListener,
+    ClusterNodeMetricsProvider,
+    StatusMessageHandler,
+    Auditable {
   private static final Logger LOG = LoggerFactory.getLogger(CmdletManager.class);
 
   private final ScheduledExecutorService executorService;
@@ -720,7 +724,8 @@ public class CmdletManager extends AbstractService
     disableCmdlets(cmdletIds);
   }
 
-  public void updateStatus(StatusMessage status) {
+  @Override
+  public void onStatusMessage(StatusMessage status) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Got status update: {}", status);
     }

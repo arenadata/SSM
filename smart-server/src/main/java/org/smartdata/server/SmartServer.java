@@ -39,7 +39,6 @@ import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.StatesManager;
-import org.smartdata.server.engine.cmdlet.agent.AgentMaster;
 import org.smartdata.server.utils.GenericOptionsParser;
 
 import java.io.File;
@@ -171,9 +170,6 @@ public class SmartServer implements AutoCloseable {
   }
 
   static SmartServer processWith(StartupOption startOption, SmartConf conf) throws Exception {
-    // New AgentMaster
-    AgentMaster.getAgentMaster(conf);
-
     MetaStore metaStore = getDBAdapter(conf);
     if (startOption == StartupOption.FORMAT) {
       LOG.info("Formatting DataBase ...");
