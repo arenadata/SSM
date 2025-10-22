@@ -18,15 +18,20 @@
 package org.smartdata.hive;
 
 import org.smartdata.hive.fetch.HiveNotificationEvent;
+import org.springframework.transaction.support.TransactionOperations;
 
 import java.util.Optional;
 
-public interface HmsEventDao {
+public interface HmsEventDao extends TransactionOperations {
   void insert(HiveNotificationEvent event);
+
+  void insertIfNotPresent(HiveNotificationEvent event);
 
   HiveNotificationEvent get(long eventId);
 
   void deleteAll();
+
+  void deleteEventsFor(String fullName);
 
   Optional<Long> getLatestExternalEventId();
 }

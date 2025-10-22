@@ -47,7 +47,7 @@ public class HmsSyncRulePlugin implements RuleExecutorPlugin {
 
     for (int i = 0; i < cmdletDescriptor.getActionSize(); i++) {
       if (cmdletDescriptor.getActionName(i).equals(HmsSyncAction.NAME)) {
-        wrapGetEntitiesToSyncQuery(translationResult);
+        wrapGetEntitiesToSyncQuery(translationResult, ruleId);
         hmsSyncProgressDao.insertIfNotPresent(ruleId, START_FETCH_ID);
 
         break;
@@ -76,11 +76,11 @@ public class HmsSyncRulePlugin implements RuleExecutorPlugin {
     return true;
   }
 
-  private void wrapGetEntitiesToSyncQuery(RuleTranslationResult tResult) {
+  private void wrapGetEntitiesToSyncQuery(RuleTranslationResult tResult, long ruleId) {
     List<String> statements = tResult.getSqlStatements();
     String oldFetchFilesQuery = statements.get(statements.size() - 1)
         .replace(";", "");
-    String wrappedQuery = hmsEntityQueryWrapper.wrap(oldFetchFilesQuery);
+    String wrappedQuery = hmsEntityQueryWrapper.wrap(oldFetchFilesQuery, ruleId);
     statements.set(statements.size() - 1, wrappedQuery);
 
     log.info("Transformed '{}' rule's fetch HMS entities sql from '{}' to '{}'",

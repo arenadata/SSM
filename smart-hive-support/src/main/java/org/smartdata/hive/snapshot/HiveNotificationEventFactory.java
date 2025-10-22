@@ -18,6 +18,7 @@
 
 package org.smartdata.hive.snapshot;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -44,7 +45,6 @@ import org.apache.hadoop.hive.metastore.messaging.CreateTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageBuilder;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
-import org.apache.hadoop.hive.metastore.messaging.MessageSerializer;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
@@ -54,22 +54,23 @@ import java.util.Collections;
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 
 @Slf4j
+@Getter
 public class HiveNotificationEventFactory {
-  private final MessageSerializer serializer;
+  private final MessageEncoder messageEncoder;
   private final String messageFormat;
 
   public HiveNotificationEventFactory(MessageEncoder messageEncoder) {
-    this.serializer = messageEncoder.getSerializer();
+    this.messageEncoder = messageEncoder;
     this.messageFormat = messageEncoder.getMessageFormat();
   }
 
-  public HiveNotificationEvent createDbEvent(String catalog, Database database, long diffId) {
+  public HiveNotificationEvent createDbEvent(Database database, long diffId) {
     log.debug("Saving a new db from metastore: {}", database.getName());
 
     CreateDatabaseMessage message = MessageBuilder.getInstance()
         .buildCreateDatabaseMessage(database);
 
-    return eventBuilder(catalog, message, diffId)
+    return eventBuilder(database.getCatalogName(), message, diffId)
         .fullName(fullResourceName(database.getName()))
         .entityType(HiveEntity.DATABASE.toString())
         .dbName(database.getName())
@@ -291,7 +292,7 @@ public class HiveNotificationEventFactory {
         .externalId(diffId)
         .eventType(HiveOperation.CREATE.toString())
         .catalogName(catalog)
-        .message(serializer.serialize(message))
+        .message(messageEncoder.getSerializer().serialize(message))
         .messageFormat(messageFormat);
   }
 }

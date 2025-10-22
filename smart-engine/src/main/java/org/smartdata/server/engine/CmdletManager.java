@@ -689,8 +689,14 @@ public class CmdletManager extends AbstractService
     cmdletInfoHandler.store(cmdletInfo);
   }
 
+  // It's wrapped intentionally to distinguish
+  // cmdlets deleted by user and deleted by SSM itself
   @Audit(objectType = CMDLET, operation = DELETE)
   public void deleteCmdlet(@AuditId long cmdletId) throws IOException {
+    deleteCmdletInternal(cmdletId);
+  }
+
+  private void deleteCmdletInternal(long cmdletId) throws IOException {
     CmdletInfo cmdletInfo = inMemoryRegistry.stopCmdletTracking(cmdletId);
     boolean cmdletFound = disableCmdletInternal(cmdletInfo);
     // we don't fail if it's not found in the cache, we anyway need to check the metastore

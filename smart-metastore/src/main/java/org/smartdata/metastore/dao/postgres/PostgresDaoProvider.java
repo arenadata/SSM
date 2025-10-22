@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao.postgres;
 
+import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.dao.ActionDao;
@@ -66,5 +67,15 @@ public class PostgresDaoProvider extends DefaultDaoProvider {
   @Override
   public HmsSyncProgressDao hmsSyncProgressDao() {
     return new PostgresHmsSyncProgressDao(dataSource);
+  }
+
+  @Override
+  public HmsEventDao hmsEventDao() {
+    return PostgresHmsEventDao.baseEventsDao(dataSource, transactionManager);
+  }
+
+  @Override
+  public HmsEventDao hmsIgnoredEventDao() {
+    return PostgresHmsEventDao.ignoredEventsDao(dataSource, transactionManager);
   }
 }
