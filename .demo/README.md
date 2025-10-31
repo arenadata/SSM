@@ -22,6 +22,9 @@ drop table db2.t1;
 
 ### Inspect entities
 ```hiveql
+show databases;
+show tables in db2;
+
 DESCRIBE extended db2.t1;
 DESCRIBE extended db1.t2;
 ```
