@@ -80,7 +80,7 @@ remote:
 
 ssm-metastore-db:
   datasource:
-    jdbc-url: jdbc:postgresql://localhost:5432/metastore
+    jdbc-url: jdbc:postgresql://${SSM_HOST:localhost}:5432/metastore
     username: ssm
     password: ssm
     schema: public
