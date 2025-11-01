@@ -29,8 +29,10 @@ import static org.smartdata.hive.fetch.HiveEntity.FOREIGN_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.NOT_NULL_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
+import static org.smartdata.hive.fetch.HiveEntity.PARTITION_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveEntity.TABLE_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveOperation.ALTER;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
@@ -81,7 +83,17 @@ public class EventOperationBuilder {
         return new EventOperation(FUNCTION, CREATE);
       case DROP_FUNCTION:
         return new EventOperation(FUNCTION, DROP);
-      // the event types below are not produced by the Hive DbNotificationListener
+      case UPDATE_TABLE_COLUMN_STAT:
+        return new EventOperation(TABLE_COLUMN_STAT, ALTER);
+      case DELETE_TABLE_COLUMN_STAT:
+        return new EventOperation(TABLE_COLUMN_STAT, DROP);
+      case UPDATE_PARTITION_COLUMN_STAT:
+        return new EventOperation(PARTITION_COLUMN_STAT, ALTER);
+      case DELETE_PARTITION_COLUMN_STAT:
+        return new EventOperation(PARTITION_COLUMN_STAT, DROP);
+      // it's an internal event type
+      case UPDATE_PARTITION_COLUMN_STAT_BATCH:
+        // the event types below are not produced by the Hive DbNotificationListener
       case DROP_DATACONNECTOR:
       case CREATE_DATACONNECTOR:
       case ALTER_DATACONNECTOR:
@@ -103,11 +115,6 @@ public class EventOperationBuilder {
       case ABORT_TXN:
       case ACID_WRITE:
       case BATCH_ACID_WRITE:
-      case UPDATE_TABLE_COLUMN_STAT:
-      case DELETE_TABLE_COLUMN_STAT:
-      case UPDATE_PARTITION_COLUMN_STAT:
-      case UPDATE_PARTITION_COLUMN_STAT_BATCH:
-      case DELETE_PARTITION_COLUMN_STAT:
       case COMMIT_COMPACTION:
       case RELOAD:
         // do nothing

@@ -38,6 +38,7 @@ public abstract class HmsAction extends SmartAction {
   public static final String EVENT_MESSAGE = "-message";
   public static final String EVENT_MESSAGE_FORMAT = "-message_format";
   public static final String CASCADE = "-cascade";
+  public static final String TABLE_NAME = "-table";
 
   // IMetaStoreClient is not thread-safe and therefore the default
   // cache-based MetaStoreClientProvider uses thread id as a part of a composite cache key.
@@ -93,6 +94,11 @@ public abstract class HmsAction extends SmartAction {
   String getDestinationCluster() {
     return Optional.ofNullable(getArguments().get(DEST))
         .orElseThrow(() -> new IllegalArgumentException("No destination cluster provided"));
+  }
+
+  protected String getTableName() {
+    return Optional.ofNullable(getArguments().get(TABLE_NAME))
+        .orElseThrow(() -> new IllegalArgumentException("No table name provided"));
   }
 
   private Optional<Pair<String, String>> nameServiceToRename() {

@@ -79,8 +79,10 @@ import static org.smartdata.hive.fetch.HiveEntity.FOREIGN_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.NOT_NULL_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
+import static org.smartdata.hive.fetch.HiveEntity.PARTITION_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveEntity.TABLE_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveOperation.ALTER;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
@@ -142,6 +144,14 @@ public class EventOperationBuilderTest {
         {DROP_DATACONNECTOR, EventOperation.ignored()},
         {ALTER_DATACONNECTOR, EventOperation.ignored()},
 
+        // Table column stat
+        {UPDATE_TABLE_COLUMN_STAT, new EventOperation(TABLE_COLUMN_STAT, CREATE)},
+        {DELETE_TABLE_COLUMN_STAT, new EventOperation(TABLE_COLUMN_STAT, DROP)},
+
+        // Partition column stat
+        {UPDATE_PARTITION_COLUMN_STAT, new EventOperation(PARTITION_COLUMN_STAT, CREATE)},
+        {DELETE_PARTITION_COLUMN_STAT, new EventOperation(PARTITION_COLUMN_STAT, DROP)},
+
         // Ignored operations
         {INSERT, EventOperation.ignored()},
         {ALLOC_WRITE_ID, EventOperation.ignored()},
@@ -156,11 +166,7 @@ public class EventOperationBuilderTest {
         {ABORT_TXN, EventOperation.ignored()},
         {ACID_WRITE, EventOperation.ignored()},
         {BATCH_ACID_WRITE, EventOperation.ignored()},
-        {UPDATE_TABLE_COLUMN_STAT, EventOperation.ignored()},
-        {DELETE_TABLE_COLUMN_STAT, EventOperation.ignored()},
-        {UPDATE_PARTITION_COLUMN_STAT, EventOperation.ignored()},
         {UPDATE_PARTITION_COLUMN_STAT_BATCH, EventOperation.ignored()},
-        {DELETE_PARTITION_COLUMN_STAT, EventOperation.ignored()},
         {COMMIT_COMPACTION, EventOperation.ignored()},
         {RELOAD, EventOperation.ignored()}
     });
