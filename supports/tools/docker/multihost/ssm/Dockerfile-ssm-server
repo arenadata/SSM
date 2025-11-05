@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:8u342-jdk
 
 ARG SSM_APP_VERSION
 ENV USER=root
