@@ -1,4 +1,4 @@
-FROM eclipse-temurin:8-jdk
+FROM openjdk:8
 
 ARG SSM_APP_VERSION
 ENV USER=root
@@ -6,7 +6,7 @@ ENV SSM_HOME=/opt/ssm
 
 # Install SSH server
 RUN apt-get update \
-    && apt-get install -y netcat-traditional \
+    && apt-get install -y netcat \
     && apt-get install -y openssh-server \
     && apt-get install -y nano \
     && mkdir -p /root/.ssh \
