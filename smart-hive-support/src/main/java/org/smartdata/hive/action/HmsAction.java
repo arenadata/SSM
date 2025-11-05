@@ -61,7 +61,7 @@ public abstract class HmsAction extends SmartAction {
   @SuppressWarnings("unchecked")
   protected <T extends EventMessage> T parseEventMessage(EventMessage.EventType hiveEventType) {
     return (T) messageDeserializer.getEventMessage(
-        hiveEventType.toString(),
+        hiveEventType.name(),
         getEventMessage()
     );
   }

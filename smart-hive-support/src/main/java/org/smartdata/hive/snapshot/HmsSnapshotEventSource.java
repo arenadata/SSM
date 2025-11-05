@@ -24,10 +24,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.AllTableConstraintsRequest;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
 import org.apache.hadoop.hive.metastore.api.SQLAllTableConstraints;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.utils.MetaStoreUtils;
-import org.apache.hadoop.thirdparty.com.google.common.collect.Iterables;
 import org.smartdata.hive.HiveSmartConf;
 import org.smartdata.hive.fetch.BaseHmsEventSource;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static org.smartdata.hdfs.HadoopUtil.doAsCurrentUser;
 
@@ -56,7 +55,6 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
 
   private final Supplier<IMetaStoreClient> metaStoreClientProvider;
   private final ExecutorService executor;
-  private final int eventBatchSize;
   private final String defaultCatalog;
 
   @Getter
@@ -74,8 +72,7 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
   ) {
     this.metaStoreClientProvider = metaStoreClientProvider;
     this.executor = executor;
-    this.eventBatchSize = hiveSmartConf.getFetchBatchSize();
-    this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
+    this.outputQueue = new ArrayBlockingQueue<>(hiveSmartConf.getFetchBatchSize());
     this.eventFactory = eventFactory;
     this.pollStarted = new AtomicBoolean(false);
     this.defaultCatalog = MetaStoreUtils.getDefaultCatalog(hiveSmartConf);
@@ -130,15 +127,17 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
   private CompletableFuture<Void> handleTables(Database db, long diffId) {
     List<String> tables = withMetastoreClient(
         client -> client.getAllTables(db.getCatalogName(), db.getName()));
-    Iterable<List<String>> batches = Iterables.partition(tables, eventBatchSize);
-    return executeInParallel(batches, diffId,
-        (tableBatch, ignore) -> handleTableBatch(db, tableBatch, diffId));
+    return executeInParallel(tables, diffId,
+        (table, ignore) -> handleTable(db, table, diffId));
   }
 
-  private CompletableFuture<Void> handleTableBatch(Database db, List<String> tablesBatch, long diffId) {
-    return supplyWithMetastoreClient(client -> client.getTableObjectsByName(
-        db.getCatalogName(), db.getName(), tablesBatch))
-        .thenComposeAsync(tables -> executeInParallel(tables, diffId, this::handleTable), executor);
+  private CompletableFuture<Void> handleTable(Database db, String tableName, long diffId) {
+    GetTableRequest request = new GetTableRequest(db.getName(), tableName);
+    request.setCatName(db.getCatalogName());
+    request.setGetColumnStats(true);
+
+    return supplyWithMetastoreClient(client -> client.getTable(request))
+        .thenComposeAsync(table -> handleTable(table, diffId), executor);
   }
 
   private CompletableFuture<Void> handleTable(Table table, long diffId) {
@@ -233,13 +232,6 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private <T> CompletableFuture<Void> executeInParallel(
-      Iterable<T> entities,
-      long diffId,
-      BiFunction<T, Long, CompletableFuture<?>> transformer) {
-    return executeInParallel(StreamSupport.stream(entities.spliterator(), false), diffId, transformer);
   }
 
   private <T> CompletableFuture<Void> executeInParallel(

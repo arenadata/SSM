@@ -20,7 +20,11 @@ package org.smartdata.hive.fetch;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.smartdata.hive.fetch.HiveEntity.CHECK_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
@@ -39,8 +43,19 @@ import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 import static org.smartdata.hive.fetch.HiveOperation.DROP;
 
 public class EventOperationBuilder {
+  private final Map<String, EventMessage.EventType> rawTypeToEnumMap;
+
+  public EventOperationBuilder() {
+    this.rawTypeToEnumMap = Arrays.stream(EventMessage.EventType.values())
+        .collect(Collectors.toMap(
+            EventMessage.EventType::toString,
+            Function.identity()
+        ));
+  }
+
   public EventOperation from(NotificationEvent event) {
-    return extractEventType(event)
+    return Optional.ofNullable(event.getEventType())
+        .map(rawTypeToEnumMap::get)
         .map(this::toEventOperation)
         .orElse(EventOperation.unknown());
   }
@@ -122,14 +137,5 @@ public class EventOperationBuilder {
     }
 
     return EventOperation.ignored();
-  }
-
-  private Optional<EventMessage.EventType> extractEventType(NotificationEvent event) {
-    try {
-      return Optional.ofNullable(event.getEventType())
-          .map(EventMessage.EventType::valueOf);
-    } catch (IllegalArgumentException e) {
-      return Optional.empty();
-    }
   }
 }
