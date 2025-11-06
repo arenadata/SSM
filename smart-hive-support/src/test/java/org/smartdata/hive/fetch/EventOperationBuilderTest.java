@@ -145,11 +145,11 @@ public class EventOperationBuilderTest {
         {ALTER_DATACONNECTOR, EventOperation.ignored()},
 
         // Table column stat
-        {UPDATE_TABLE_COLUMN_STAT, new EventOperation(TABLE_COLUMN_STAT, CREATE)},
+        {UPDATE_TABLE_COLUMN_STAT, new EventOperation(TABLE_COLUMN_STAT, ALTER)},
         {DELETE_TABLE_COLUMN_STAT, new EventOperation(TABLE_COLUMN_STAT, DROP)},
 
         // Partition column stat
-        {UPDATE_PARTITION_COLUMN_STAT, new EventOperation(PARTITION_COLUMN_STAT, CREATE)},
+        {UPDATE_PARTITION_COLUMN_STAT, new EventOperation(PARTITION_COLUMN_STAT, ALTER)},
         {DELETE_PARTITION_COLUMN_STAT, new EventOperation(PARTITION_COLUMN_STAT, DROP)},
 
         // Ignored operations
