@@ -10,11 +10,11 @@
 create database db1;
 create table db1.t1(i int);
 create table db1.t2(r int);
+insert into db1.t1 values (1), (2), (3);
+ANALYZE TABLE db1.t1 COMPUTE STATISTICS FOR COLUMNS;
 
 create database db2;
 create table db2.t1(g int);
-
-insert into db1.t1 values (1), (2), (3);
 
 create table db2.t3(g int);
 drop table db2.t1;
