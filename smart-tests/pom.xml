@@ -44,11 +44,12 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.10-jdk8</java-test-common.version>
+        <java-test-common.version>1.11-jdk8</java-test-common.version>
         <postgresql.version>42.7.7</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>6.6.0</openapi.generator.version>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -119,6 +120,26 @@
                                 <version>${maven.surefire.version}</version>
                             </dependency>
                         </dependencies>
+                    </plugin>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <version>${exec-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>Pull selenoid browser images</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>/bin/bash</executable>
+                                    <arguments>
+                                        <argument>target/common-resources/selenoid/pull-browser-image.sh</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
