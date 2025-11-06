@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:8u342
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       net-tools curl wget netcat procps gnupg libsnappy-dev && rm -rf /var/lib/apt/lists/*
