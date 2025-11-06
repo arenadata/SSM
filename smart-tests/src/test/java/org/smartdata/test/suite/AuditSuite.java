@@ -31,6 +31,7 @@ import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -78,7 +79,7 @@ public class AuditSuite extends SsmBaseSuite {
     prepareDataForSortingTest();
     tableStep.checkDefaultSorting(ID)
         .checkSorting(USER)
-        .checkSorting(DATE)
+        .checkSorting(DATE, new UiDateTimeComparator())
         .checkSorting(OBJECT_TYPE)
         .checkSorting(OBJECT_ID)
         .checkSorting(OPERATION);

@@ -29,6 +29,7 @@ import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.RulesStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -118,8 +119,8 @@ public class RulesSuite extends SsmBaseSuite {
   public void testSorting() {
     prepareDataForSortingTest();
     tableStep.checkDefaultSorting(ID)
-        .checkSorting(SUBMISSION_TIME)
-        .checkSorting(LAST_CHECK_TIME)
+        .checkSorting(SUBMISSION_TIME, new UiDateTimeComparator())
+        .checkSorting(LAST_CHECK_TIME, new UiDateTimeComparator())
         .checkSorting(CHECKED_NUMBER)
         .checkSorting(CMDLETS_GENERATED)
         .checkSorting(STATUS);
