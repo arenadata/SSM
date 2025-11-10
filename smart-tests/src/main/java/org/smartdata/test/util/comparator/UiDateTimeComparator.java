@@ -17,33 +17,21 @@
  */
 package org.smartdata.test.util.comparator;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 
-public class DashIsMaxComparator implements Comparator<String> {
-  private final Comparator<String> comparator;
+import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_FORMATTER_UI;
 
-  public DashIsMaxComparator(Comparator<String> additionalComparator) {
-    this.comparator = additionalComparator;
-  }
 
-  public DashIsMaxComparator() {
-    this.comparator = null;
-  }
+public class UiDateTimeComparator implements Comparator<String> {
 
   @Override
   public int compare(String o1, String o2) {
     if (o1 == null || o2 == null) {
       throw new IllegalArgumentException("Arguments must not be null");
     }
-    if ("-".equals(o1) && "-".equals(o2)) {
-      return 0;
-    }
-    if ("-".equals(o1)) {
-      return 1;
-    }
-    if ("-".equals(o2)) {
-      return -1;
-    }
-    return comparator != null ? comparator.compare(o1, o2) : o1.compareTo(o2);
+    LocalDateTime localDateTime1 = LocalDateTime.parse(o1, DATE_TIME_FORMATTER_UI);
+    LocalDateTime localDateTime2 = LocalDateTime.parse(o2, DATE_TIME_FORMATTER_UI);
+    return localDateTime1.compareTo(localDateTime2);
   }
 }

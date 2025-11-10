@@ -29,6 +29,7 @@ import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -82,7 +83,7 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     tableStep.checkSelectedSorting(ID, ASC)
         .checkColumnValuesIsSorted(ID, ASC)
         .checkSorting(EXECUTORS)
-        .checkSorting(REGISTER_TIME)
+        .checkSorting(REGISTER_TIME, new UiDateTimeComparator())
         .checkSorting(ID);
   }
 

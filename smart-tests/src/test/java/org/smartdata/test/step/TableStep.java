@@ -166,9 +166,10 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check that values in {column} column are sorted in {sortOrder} order using custom comparator")
-  public TableStep checkColumnValuesIsSorted(TableColumn column, SortOrder sortOrder, Comparator customComparator) {
+  public TableStep checkColumnValuesIsSorted(TableType tableType, TableColumn column, SortOrder sortOrder,
+                                             Comparator customComparator) {
     waitUntil(() -> {
-      List<String> cellTexts = getAllColumnCells(column).asFixedIterable().stream()
+      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable().stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
           .collect(Collectors.toList());
@@ -202,6 +203,12 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check sorting on {tableColumn} column using custom comparator")
+  public TableStep checkSorting(TableColumn tableColumn, Comparator customComparator) {
+    checkSorting(PRIMARY, tableColumn, customComparator);
+    return this;
+  }
+
   @Step("Check sorting on {tableType} table {tableColumn} column")
   public TableStep checkSorting(TableType tableType, TableColumn tableColumn) {
     clickOnSortingColumn(tableType, tableColumn)
@@ -214,13 +221,13 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check sorting on {tableColumn} column using custom comparator")
-  public TableStep checkSorting(TableColumn tableColumn, Comparator customComparator) {
-    clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, ASC)
-        .checkColumnValuesIsSorted(tableColumn, ASC, customComparator)
-        .clickOnSortingColumn(tableColumn)
-        .checkSelectedSorting(tableColumn, DESC)
-        .checkColumnValuesIsSorted(tableColumn, DESC, customComparator);
+  public TableStep checkSorting(TableType tableType, TableColumn tableColumn, Comparator customComparator) {
+    clickOnSortingColumn(tableType, tableColumn)
+        .checkSelectedSorting(tableType, tableColumn, ASC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, ASC, customComparator)
+        .clickOnSortingColumn(tableType, tableColumn)
+        .checkSelectedSorting(tableType, tableColumn, DESC)
+        .checkColumnValuesIsSorted(tableType, tableColumn, DESC, customComparator);
     return this;
   }
 

@@ -48,7 +48,7 @@ public class ActiveServerAddressFileCacheTest {
         new ActiveServerAddressFileCache(Paths.get(cacheFile.toURI()));
 
     InetSocketAddress expectedAddress =
-        InetSocketAddress.createUnresolved("test", 81);
+        InetSocketAddress.createUnresolved("unresolved", 81);
 
     fileCache.put(expectedAddress);
     Optional<InetSocketAddress> actualAddress = fileCache.get();

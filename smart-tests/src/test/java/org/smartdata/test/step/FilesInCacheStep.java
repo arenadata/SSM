@@ -20,6 +20,7 @@ package org.smartdata.test.step;
 import io.arenadata.test.step.BaseWebStep;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,8 +56,8 @@ public class FilesInCacheStep extends BaseWebStep {
         .checkColumnValuesIsSorted(SECONDARY, ACCESS_COUNT, ASC)
         .checkSorting(SECONDARY, ID)
         .checkSorting(SECONDARY, FILE_PATH)
-        .checkSorting(SECONDARY, CACHED_TIME)
-        .checkSorting(SECONDARY, LAST_ACCESSED_TIME)
+        .checkSorting(SECONDARY, CACHED_TIME, new UiDateTimeComparator())
+        .checkSorting(SECONDARY, LAST_ACCESSED_TIME, new UiDateTimeComparator())
         .checkSorting(SECONDARY, ACCESS_COUNT);
     return this;
   }

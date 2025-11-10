@@ -86,12 +86,12 @@ public class TableFilterPopupStep extends BaseWebStep {
 
   @Step("Set date and time in the '{inputName}' input to '{startDateTime}'")
   private void setDatePickerCalendarValue(String inputName, LocalDateTime startDateTime) {
-    waitAndReWrite(getDatePickerCalendarInput(inputName, DAY_TIME_UNIT_NAME),
-        String.valueOf(startDateTime.getDayOfMonth()));
-    waitAndReWrite(getDatePickerCalendarInput(inputName, MONTH_TIME_UNIT_NAME),
-        String.valueOf(startDateTime.getMonthValue()));
     waitAndReWrite(getDatePickerCalendarInput(inputName, YEAR_TIME_UNIT_NAME),
         String.valueOf(startDateTime.getYear()));
+    waitAndReWrite(getDatePickerCalendarInput(inputName, MONTH_TIME_UNIT_NAME),
+        String.valueOf(startDateTime.getMonthValue()));
+    waitAndReWrite(getDatePickerCalendarInput(inputName, DAY_TIME_UNIT_NAME),
+        String.valueOf(startDateTime.getDayOfMonth()));
     waitAndReWrite(getDatePickerCalendarInput(inputName, HOURS_TIME_UNIT_NAME),
         String.valueOf(startDateTime.getHour()));
     waitAndReWrite(getDatePickerCalendarInput(inputName, MINUTES_TIME_UNIT_NAME),
