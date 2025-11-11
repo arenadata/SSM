@@ -18,8 +18,6 @@
 
 package org.smartdata.hive.fetch.composite;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.smartdata.hive.fetch.BaseHmsEventSource;
@@ -27,11 +25,10 @@ import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
+import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.hive.snapshot.HmsSnapshotEventSource;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,10 +47,6 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
   private final HmsInFlightEventSource eventFetcher;
   private final ExecutorService executor;
 
-  @Getter(AccessLevel.PACKAGE)
-  private final BlockingQueue<HmsEventStreamRecord> outputQueue;
-  @Getter(AccessLevel.PACKAGE)
-  private final BlockingQueue<HmsEventStreamRecord> unhandledOutputQueue;
   private final AtomicBoolean pollStarted;
 
   @lombok.Builder(builderClassName = "Builder")
@@ -64,12 +57,11 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       ExecutorService executor,
       int eventBatchSize
   ) {
+    super(HmsEventFilter.noOp(), eventBatchSize);
     this.metaStoreClientSupplier = metaStoreClientSupplier;
     this.snapshotFetcher = snapshotFetcher;
     this.eventFetcher = eventFetcher;
     this.executor = executor;
-    this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
-    this.unhandledOutputQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.pollStarted = new AtomicBoolean(false);
   }
 
@@ -79,7 +71,7 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       log.info("Start composite hive metastore event fetcher");
       executor.submit(this::multiPhaseFetch);
     }
-    return new HmsEventStream(outputQueue, unhandledOutputQueue);
+    return outputStream();
   }
 
   @Override
@@ -88,7 +80,7 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       log.info("Start simple hive metastore event fetcher");
       executor.submit(() -> fetchMetastoreEventsDirectly(fromEventId));
     }
-    return new HmsEventStream(outputQueue, unhandledOutputQueue);
+    return outputStream();
   }
 
   @Override
@@ -97,21 +89,20 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       executor.shutdown();
     }
 
-    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
-    unhandledOutputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    sendEof();
   }
 
   void fetchMetastoreEventsDirectly(long fromEventId) {
     try {
-      outputQueue.put(newStateRecord(EVENTS_STARTED));
+      stateTransition(EVENTS_STARTED);
 
       log.info("Start fetching Hive events using event fetcher from id {}", fromEventId);
-      pollRecords(eventFetcher, fromEventId, true);
+      pollRecords(eventFetcher, fromEventId);
     } catch (Exception retryException) {
       log.error("Exiting HiveMetastoreEventFetcher due to error", retryException);
       close();
     } finally {
-      sendEof();
+      sendEofIfNotClosed();
     }
   }
 
@@ -119,10 +110,10 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
     try (IMetaStoreClient metaStoreClient = metaStoreClientSupplier.get()) {
       // 1. Snapshot phase
       log.info("Start fetching Hive entities using snapshot fetcher");
-      outputQueue.put(newStateRecord(SNAPSHOT_STARTED));
+      stateTransition(SNAPSHOT_STARTED);
 
       long eventIdBeforeSnapshot = metaStoreClient.getCurrentNotificationEventId().getEventId();
-      pollRecords(snapshotFetcher, eventIdBeforeSnapshot, false);
+      pollRecords(snapshotFetcher, eventIdBeforeSnapshot);
       long eventIdAfterSnapshot = metaStoreClient.getCurrentNotificationEventId().getEventId();
 
       log.info("Hive entities initial fetch successfully finished");
@@ -137,32 +128,34 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
       // 3. Hive metastore events phase
       log.info("Start fetching Hive entity diffs using event fetcher from id {}", eventIdAfterSnapshot);
 
-      outputQueue.put(newStateRecord(EVENTS_STARTED));
-      pollRecords(eventFetcher, eventIdAfterSnapshot, true);
+      stateTransition(EVENTS_STARTED);
+      pollRecords(eventFetcher, eventIdAfterSnapshot);
     } catch (Exception retryException) {
       log.error("Exiting HiveMetastoreEventFetcher due to error", retryException);
       close();
     } finally {
-      sendEof();
+      sendEofIfNotClosed();
     }
   }
 
   private void resolveUnhandledEvents(long eventIdBeforeSnapshot,
       long eventIdAfterSnapshot) throws Exception {
-    outputQueue.put(newStateRecord(INTERMEDIATE_EVENTS_STARTED));
+    stateTransition(INTERMEDIATE_EVENTS_STARTED);
 
     HmsInFlightEventSource unhandledEventsFetcher = eventFetcher.toFiniteFetcher(eventIdAfterSnapshot);
-    pollRecords(unhandledEventsFetcher, eventIdBeforeSnapshot, true);
+    pollRecords(unhandledEventsFetcher, eventIdBeforeSnapshot);
+  }
+
+  private void stateTransition(HiveDiffSourceState newState) throws InterruptedException {
+    outputQueue.put(newStateRecord(newState));
   }
 
   private void pollRecords(
       HmsEventSource fetcher,
-      long fromEventId,
-      boolean forwardUnprocessedRecords) {
+      long fromEventId) {
     HmsEventStream sourceStream = fetcher.eventStreamFrom(fromEventId);
-    Future<?> ignoredEventsFuture = forwardUnprocessedRecords
-        ? executor.submit(() -> handleUnprocessedEvents(sourceStream.getIgnoredEvents()))
-        : CompletableFuture.completedFuture(null);
+    Future<?> ignoredEventsFuture = executor.submit(
+        () -> handleUnprocessedEvents(sourceStream.getIgnoredEvents()));
 
     try {
       forwardEvents(sourceStream.getEvents(), outputQueue);
@@ -177,15 +170,11 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
 
   private void handleUnprocessedEvents(BlockingQueue<HmsEventStreamRecord> ignoredEvents) {
     try {
-      forwardEvents(ignoredEvents, unhandledOutputQueue);
+      forwardEvents(ignoredEvents, ignoredEventsQueue);
     } catch (InterruptedException e) {
+      ignoredEventsQueue.add(HmsEventStreamRecord.endOfStreamRecord());
       log.debug("Interrupting unprocessed events handler", e);
     }
-  }
-
-  private void sendEof() {
-    closeQueue(outputQueue);
-    closeQueue(unhandledOutputQueue);
   }
 
   private void forwardEvents(

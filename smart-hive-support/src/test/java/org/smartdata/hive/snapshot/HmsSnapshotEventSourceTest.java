@@ -38,6 +38,7 @@ import org.smartdata.hive.HiveSmartConf;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.hive.fetch.filter.HmsEventNameIgnoreFilter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,15 +84,19 @@ public class HmsSnapshotEventSourceTest {
   private final static int FUNCTION_COUNT = 16;
   private final static int CONSTRAINT_PER_TABLE_COUNT = 6;
 
-  private final static int TOTAL_EVENTS_COUNT = DB_COUNT
-      // tables
-      + DB_COUNT * TABLE_PER_DB_COUNT
-      // partitions
-      + DB_COUNT * TABLE_PER_DB_COUNT * PARTITION_PER_TABLE_COUNT
-      // constraints
-      + DB_COUNT * TABLE_PER_DB_COUNT * CONSTRAINT_PER_TABLE_COUNT
-      // functions
-      + FUNCTION_COUNT;
+  private final static int TOTAL_EVENTS_PER_TABLE_COUNT =
+      1 + PARTITION_PER_TABLE_COUNT + CONSTRAINT_PER_TABLE_COUNT;
+
+  private final static int TOTAL_EVENTS_PER_DB_COUNT =
+      1 + TABLE_PER_DB_COUNT * TOTAL_EVENTS_PER_TABLE_COUNT;
+
+  private final static int TOTAL_EVENTS_COUNT =
+      DB_COUNT * TOTAL_EVENTS_PER_DB_COUNT + FUNCTION_COUNT;
+
+  private final static String IGNORED_ENTITIES_PATTERN = "ignore";
+  private final static int TOTAL_IGNORED_EVENTS_COUNT =
+      // 2 ignored dbs + 1 ignored function
+      2 * TOTAL_EVENTS_PER_DB_COUNT + 1;
 
   private MockMetastoreClient metaStoreClient;
   private ExecutorService executorService;
@@ -112,6 +117,7 @@ public class HmsSnapshotEventSourceTest {
         .metaStoreClientProvider(() -> metaStoreClient.delegate)
         .executor(executorService)
         .eventFactory(new HiveNotificationEventFactory(GzipJSONMessageEncoder.getInstance()))
+        .eventFilter(new HmsEventNameIgnoreFilter("ignore.*"))
         .hiveSmartConf(conf)
         .build();
   }
@@ -135,15 +141,20 @@ public class HmsSnapshotEventSourceTest {
 
     assertEquals(TOTAL_EVENTS_COUNT, actualEvents.size());
     assertEquals(metaStoreClient.getExpectedEvents(), actualEvents);
+    assertEquals(TOTAL_IGNORED_EVENTS_COUNT, snapshotEventSource.getIgnoredEventsQueue().size());
   }
 
   private Map<String, DbInfo> buildDbs() {
-    return IntStream.range(0, DB_COUNT)
+    Map<String, DbInfo> dbs = IntStream.range(0, DB_COUNT)
         .mapToObj(i -> buildDbInfo("db_" + i))
         .collect(Collectors.toMap(
             db -> db.getDelegate().getName(),
             db -> db
         ));
+
+    dbs.put("ignored_db", buildDbInfo("ignored_db"));
+    dbs.put("ignoreddb2", buildDbInfo("ignoreddb2"));
+    return dbs;
   }
 
   private DbInfo buildDbInfo(String dbName) {
@@ -202,9 +213,12 @@ public class HmsSnapshotEventSourceTest {
   }
 
   private List<Function> buildFunctions() {
-    return IntStream.range(0, FUNCTION_COUNT)
+    List<Function> functions = IntStream.range(0, FUNCTION_COUNT)
         .mapToObj(i -> buildFunction("hive.db.function_" + i))
         .collect(Collectors.toList());
+
+    functions.add(buildFunction("hive.ignored_db.function_1"));
+    return functions;
   }
 
   @Data
@@ -285,6 +299,7 @@ public class HmsSnapshotEventSourceTest {
 
     private Set<EventInfo> functionExpectedEvents() {
       return functions.stream()
+          .filter(function -> !fullName(function).contains(IGNORED_ENTITIES_PATTERN))
           .map(function -> EventInfo.of(HiveEntity.FUNCTION, fullName(function)))
           .collect(Collectors.toSet());
     }
@@ -292,6 +307,7 @@ public class HmsSnapshotEventSourceTest {
     private Set<EventInfo> dbsExpectedEvents() {
       return dbs.values()
           .stream()
+          .filter(db -> !db.delegate.getName().contains(IGNORED_ENTITIES_PATTERN))
           .flatMap(db -> dbExpectedEvents(db).stream())
           .collect(Collectors.toSet());
     }
@@ -299,6 +315,7 @@ public class HmsSnapshotEventSourceTest {
     private Set<EventInfo> dbExpectedEvents(DbInfo dbInfo) {
       Set<EventInfo> events = dbInfo.getTables().values()
           .stream()
+          .filter(table -> !fullName(table.delegate).contains(IGNORED_ENTITIES_PATTERN))
           .flatMap(table -> tableExpectedEvents(table).stream())
           .collect(Collectors.toSet());
       events.add(EventInfo.of(HiveEntity.DATABASE, dbInfo.delegate.getName()));

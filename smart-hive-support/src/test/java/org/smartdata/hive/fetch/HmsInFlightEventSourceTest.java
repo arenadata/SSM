@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.smartdata.hive.EntityInfo;
+import org.smartdata.hive.fetch.filter.HmsEventNameIgnoreFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +67,7 @@ import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
+import static org.smartdata.hive.fetch.HiveOperation.DROP;
 
 public class HmsInFlightEventSourceTest {
 
@@ -84,6 +86,8 @@ public class HmsInFlightEventSourceTest {
         // we don't use executor in tests
         .fetchPeriodMs(-1)
         .eventBatchSize(10000)
+        .eventFilter(new HmsEventNameIgnoreFilter("ignore.*"))
+        .eventEnrichers(Collections.emptyList())
         .build();
 
     eventsHolder = new MetastoreEventsHolder();
@@ -107,15 +111,19 @@ public class HmsInFlightEventSourceTest {
         ssmIgnoredEvent(newEvent(8, "default.db.table77", COMMIT_TXN)),
         ssmIgnoredEvent(newEvent(9, "default.db", COMMIT_COMPACTION)),
         ssmIgnoredEvent(newEvent(12, "default.db.table78", "unknown_event_type")),
-        ssmIgnoredEvent(newEvent(15, "default.db.table78", UPDATE_PARTITION_COLUMN_STAT_BATCH)),
-        ssmIgnoredEvent(newEvent(18, "catalog1", DROP_CATALOG)),
-        ssmIgnoredEvent(newEvent(19, "default.db_schema", DROP_SCHEMA_VERSION)),
-        ssmIgnoredEvent(newEvent(20, "default.db_conn", CREATE_DATACONNECTOR))
+        ssmEvent(newCreateDbEvent(15, "default.ignored_db", "/ignored_db"), new EventOperation(DATABASE, CREATE)),
+        ssmIgnoredEvent(newEvent(16, "default.db.table78", UPDATE_PARTITION_COLUMN_STAT_BATCH)),
+        ssmEvent(newCreateDbEvent(17, "default.ignoreddb2", "/ignoreddb2"), new EventOperation(DATABASE, DROP)),
+        ssmEvent(newCreateTableEvent(20, "default.ignored_db.tb1", TableType.MANAGED_TABLE,
+            "/db/ignored_db/tb1"), new EventOperation(TABLE, CREATE)),
+        ssmIgnoredEvent(newEvent(21, "catalog1", DROP_CATALOG)),
+        ssmIgnoredEvent(newEvent(22, "default.db_schema", DROP_SCHEMA_VERSION)),
+        ssmIgnoredEvent(newEvent(23, "default.db_conn", CREATE_DATACONNECTOR))
     );
     assertEquals(expectedIgnoredRecords, new ArrayList<>(eventFetcher.getIgnoredEventsQueue()));
 
     assertEquals(Collections.singletonList(0L), eventsHolder.requestedOffsetIds);
-    assertEquals(20L, eventFetcher.getLastHandledEventId());
+    assertEquals(23L, eventFetcher.getLastHandledEventId());
   }
 
   private List<HmsEventStreamRecord> getFetchedEvents() {
@@ -166,9 +174,9 @@ public class HmsInFlightEventSourceTest {
                 new EntityInfo("default.db.table3", "/db/table3"),
                 new EntityInfo("default.db.table3", "/other/location2")),
             new EventOperation(TABLE, HiveOperation.ALTER)),
-        ssmEvent(newEvent(16, "default.db.partitioned_table", ALTER_PARTITION),
+        ssmEvent(newEvent(18, "default.db.partitioned_table", ALTER_PARTITION),
             new EventOperation(PARTITION, HiveOperation.ALTER)),
-        ssmEvent(newEvent(17, "default.db2", CREATE_FUNCTION),
+        ssmEvent(newEvent(19, "default.db2", CREATE_FUNCTION),
             new EventOperation(FUNCTION, CREATE))
     );
   }
@@ -201,9 +209,13 @@ public class HmsInFlightEventSourceTest {
             TableType.EXTERNAL_TABLE,
             new EntityInfo("default.db.table3", "/db/table3"),
             new EntityInfo("default.db.table3", "/other/location2")),
+        newCreateDbEvent(idSeq.getAndIncrement(), "default.ignored_db", "/ignored_db"),
         newEvent(idSeq.getAndIncrement(), "default.db.table78", UPDATE_PARTITION_COLUMN_STAT_BATCH),
+        newDropDbEvent(idSeq.getAndIncrement(), "default.ignoreddb2", "/ignoreddb2"),
         newEvent(idSeq.getAndIncrement(), "default.db.partitioned_table", ALTER_PARTITION),
         newEvent(idSeq.getAndIncrement(), "default.db2", CREATE_FUNCTION),
+        newCreateTableEvent(idSeq.getAndIncrement(), "default.ignored_db.tb1", TableType.MANAGED_TABLE,
+            "/db/ignored_db/tb1"),
         newEvent(idSeq.getAndIncrement(), "catalog1", DROP_CATALOG),
         newEvent(idSeq.getAndIncrement(), "default.db_schema", DROP_SCHEMA_VERSION),
         newEvent(idSeq.getAndIncrement(), "default.db_conn", CREATE_DATACONNECTOR)

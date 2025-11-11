@@ -20,6 +20,9 @@ package org.smartdata.hive;
 import org.apache.hadoop.conf.Configuration;
 import org.smartdata.retry.RetryStrategy;
 
+import java.util.Collection;
+import java.util.List;
+
 public class HiveSmartConf extends Configuration {
   private static final String HIVE_CONFIG_FILE = "hive-site.xml";
 
@@ -57,6 +60,9 @@ public class HiveSmartConf extends Configuration {
       "smart.hive.sync.progress.flush.interval.ms";
   public static final long HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS_DEFAULT = 5000;
 
+  public static final String HMS_EVENT_IGNORE_PATTERNS = "smart.hive.event.ignore.patterns";
+  public static final String HMS_EVENT_INCLUDE_PATTERNS = "smart.hive.event.include.patterns";
+
   public HiveSmartConf(Configuration conf) {
     super(conf);
 
@@ -90,6 +96,14 @@ public class HiveSmartConf extends Configuration {
 
   public int getSnapshotFetcherThreadsCount() {
     return getInt(HMS_SNAPSHOT_THREADS_COUNT, HMS_SNAPSHOT_THREADS_COUNT_DEFAULT);
+  }
+
+  public Collection<String> getEventIgnoredPatterns() {
+    return getStringCollection(HMS_EVENT_IGNORE_PATTERNS);
+  }
+
+  public Collection<String> getEventIncludePatterns() {
+    return getStringCollection(HMS_EVENT_INCLUDE_PATTERNS);
   }
 
   private void loadSystemProperties() {

@@ -29,9 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.smartdata.conf.SmartConfKeys.SMART_IGNORED_PATH_TEMPLATES_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_IGNORE_DIRS_KEY;
@@ -41,7 +38,7 @@ import static org.smartdata.conf.SmartConfKeys.SMART_INTERNAL_PATH_TEMPLATES_KEY
 public class PathChecker {
   private static final String IGNORED_PATH_TEMPLATES_DELIMITER = ",";
 
-  private final ThreadLocal<Matcher> patternMatcherThreadLocal;
+  private final RegexFilterSupport filterSupport;
   private final List<String> coverDirs;
 
   public PathChecker(Configuration configuration) {
@@ -49,19 +46,12 @@ public class PathChecker {
   }
 
   public PathChecker(List<String> ignoredPathPatterns, List<String> coverDirs) {
-    StringJoiner patternBuilder = new StringJoiner("|", "(", ")");
-    ignoredPathPatterns.forEach(patternBuilder::add);
-
-    Pattern pattern = Pattern.compile(patternBuilder.toString());
-    this.patternMatcherThreadLocal =
-        ThreadLocal.withInitial(() -> pattern.matcher(""));
+    this.filterSupport = new RegexFilterSupport(ignoredPathPatterns);
     this.coverDirs = coverDirs;
   }
 
   public boolean isIgnored(String absolutePath) {
-    return patternMatcherThreadLocal.get()
-        .reset(absolutePath)
-        .find();
+    return filterSupport.matches(absolutePath);
   }
 
   public boolean isCovered(String absolutePath) {
