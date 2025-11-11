@@ -23,9 +23,6 @@ import lombok.Getter;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
-import org.smartdata.retry.PolicyBasedRetrySupport;
-import org.smartdata.retry.RetryException;
-import org.smartdata.retry.RetryPolicyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -64,8 +61,6 @@ public class CompositeHmsEventHandlerTest {
         .delegate(mockDiffCollectorDelegate)
         .intermediateEventsResolver(intermediateEventResolver)
         .transactionManager(transactionManager)
-        .retrySupport(new PolicyBasedRetrySupport(
-            RetryPolicyFactory.NO_RETRIES_POLICY, Thread::sleep))
         .build();
   }
 
@@ -181,7 +176,7 @@ public class CompositeHmsEventHandlerTest {
   }
 
   private void checkTxRollback(List<HmsEventStreamRecord> records) {
-    assertThrows(RetryException.class, () -> {
+    assertThrows(IllegalArgumentException.class, () -> {
       for (HmsEventStreamRecord record : records) {
         eventHandler.handle(record);
       }
