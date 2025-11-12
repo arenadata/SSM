@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.fetch.composite.HiveDiffSourceState;
 import org.smartdata.hive.fetch.composite.NewHiveSourceStateRecord;
-import org.smartdata.retry.RetrySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -34,7 +33,6 @@ import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.SNAPSHOT_ST
 
 @Slf4j
 public class CompositeHmsEventHandler implements HmsEventHandler {
-  private final RetrySupport retrySupport;
   private final PlatformTransactionManager transactionManager;
   private final HmsBufferingEventHandler intermediateEventsResolver;
   private final HmsEventHandler delegate;
@@ -43,11 +41,9 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
 
   @lombok.Builder
   public CompositeHmsEventHandler(
-      RetrySupport retrySupport,
       PlatformTransactionManager transactionManager,
       HmsBufferingEventHandler intermediateEventsResolver,
       HmsEventHandler delegate) {
-    this.retrySupport = retrySupport;
     this.transactionManager = transactionManager;
     this.intermediateEventsResolver = intermediateEventsResolver;
     this.delegate = delegate;
@@ -57,7 +53,7 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
   @Override
   public void handle(HmsEventStreamRecord record) throws Exception {
     try {
-      retrySupport.withRetries(() -> handleAction(record));
+      handleAction(record);
     } catch (Exception e) {
       recordsHandler.fail();
       throw e;

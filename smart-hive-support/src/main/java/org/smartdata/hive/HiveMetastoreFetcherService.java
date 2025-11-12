@@ -139,7 +139,6 @@ public class HiveMetastoreFetcherService extends AbstractService {
     DbHmsEventHandler delegate = new DbHmsEventHandler(hiveEventDao, retrySupport);
 
     return new CompositeHmsEventHandler(
-        retrySupport,
         transactionManager,
         new HmsIntermediateEventsResolver(hiveEventDao, eventFactory),
         delegate
