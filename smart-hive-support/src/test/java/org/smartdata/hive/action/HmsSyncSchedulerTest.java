@@ -59,8 +59,8 @@ import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE;
 import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE_FORMAT;
 import static org.smartdata.hive.action.HmsSyncAction.ENTITY_NAME;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
+import static org.smartdata.model.action.ScheduleResult.SKIP;
 import static org.smartdata.model.action.ScheduleResult.SUCCESS;
-import static org.smartdata.model.action.ScheduleResult.SUCCESS_NO_EXECUTION;
 
 @Slf4j
 public class HmsSyncSchedulerTest {
@@ -149,7 +149,7 @@ public class HmsSyncSchedulerTest {
         launchCmdlet(1L, RULE_ID),
         launchAction(1L, RULE_ID)
     );
-    assertEquals(SUCCESS_NO_EXECUTION, scheduleResult);
+    assertEquals(SKIP, scheduleResult);
 
     // check doesn't affect other rules
     scheduleResult = scheduler.onSchedule(
@@ -350,6 +350,63 @@ public class HmsSyncSchedulerTest {
         launchAction(2L, RULE_ID)
     );
     assertEquals(SUCCESS, scheduleResult);
+  }
+
+  @Test
+  public void testRetryActionIfEntityHasRetryEvents() {
+    eventDao.insert(
+        ssmEvent(newCreateDbEvent(1L, "hive.db", "/location")),
+        ssmEvent(newCreateTableEvent(2L, "hive.db.table1",
+            TableType.EXTERNAL_TABLE, "/location/tb1")),
+        ssmEvent(newCreateTableEvent(3L, "hive.db.table1",
+            TableType.EXTERNAL_TABLE, "/location/tb2"))
+    );
+
+    ActionInfo finishedAction = actionInfo(1L, RULE_ID);
+    ScheduleResult scheduleResult = scheduler.onSchedule(
+        cmdletInfo(),
+        finishedAction,
+        launchCmdlet(1L, RULE_ID),
+        launchAction(1L, RULE_ID)
+    );
+    assertEquals(SUCCESS, scheduleResult);
+
+    ScheduleResult scheduleResult2 = scheduler.onSchedule(
+        cmdletInfo(),
+        actionInfo(2L, RULE_ID),
+        launchCmdlet(2L, RULE_ID),
+        launchAction(2L, RULE_ID)
+    );
+    assertEquals(RETRY, scheduleResult2);
+
+    scheduler.onActionFinished(cmdletInfo(), finishedAction);
+
+    ScheduleResult scheduleResult3 = scheduler.onSchedule(
+        cmdletInfo(),
+        actionInfo(3L, RULE_ID),
+        launchCmdlet(3L, RULE_ID),
+        launchAction(3L, RULE_ID)
+    );
+    assertEquals(RETRY, scheduleResult3);
+
+    ActionInfo finishedAction2 = actionInfo(2L, RULE_ID);
+    scheduleResult2 = scheduler.onSchedule(
+        cmdletInfo(),
+        finishedAction2,
+        launchCmdlet(2L, RULE_ID),
+        launchAction(2L, RULE_ID)
+    );
+    assertEquals(SUCCESS, scheduleResult2);
+
+    scheduler.onActionFinished(cmdletInfo(), finishedAction2);
+
+    scheduleResult3 = scheduler.onSchedule(
+        cmdletInfo(),
+        actionInfo(3L, RULE_ID),
+        launchCmdlet(3L, RULE_ID),
+        launchAction(3L, RULE_ID)
+    );
+    assertEquals(SUCCESS, scheduleResult3);
   }
 
   private LaunchCmdlet launchCmdlet(long eventId, long ruleId) {

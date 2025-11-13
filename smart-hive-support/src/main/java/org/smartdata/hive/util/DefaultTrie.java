@@ -20,8 +20,6 @@ package org.smartdata.hive.util;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayDeque;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -34,27 +32,8 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
-  public boolean hasPrefixValues(Key<K> key) {
-    DefaultTrieNode<K, V> iter = root;
-    for (K segment : key.getSegments()) {
-      Optional<DefaultTrieNode<K, V>> child = iter.getChild(segment);
-      if (!child.isPresent()) {
-        break;
-      }
-
-      if (child.get().getValue() != null) {
-        return true;
-      }
-
-      iter = child.get();
-    }
-
-    return false;
-  }
-
-  @Override
   public boolean putIfNoIntersectingLocks(Trie.Key<K> key, V value) {
-    if (hasPrefixValues(key) || hasChildValues(key)) {
+    if (getIntersectingLock(key).isPresent()) {
       return false;
     }
 
@@ -63,31 +42,54 @@ public class DefaultTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
+  public Optional<V> getIntersectingLock(Key<K> key) {
+    return getPrefixValue(key)
+        .map(Optional::of)
+        .orElseGet(() -> getChildValue(key));
+  }
+
+  @Override
   public boolean remove(Trie.Key<K> key) {
     return removeNode(key).isPresent();
   }
 
-  @Override
-  public boolean hasChildValues(Key<K> key) {
-    return getExactNode(key)
-        .map(this::hasChildValues)
-        .isPresent();
+  private Optional<V> getPrefixValue(Key<K> key) {
+    DefaultTrieNode<K, V> iter = root;
+    for (K segment : key.getSegments()) {
+      Optional<DefaultTrieNode<K, V>> child = iter.getChild(segment);
+      if (!child.isPresent()) {
+        break;
+      }
+
+      if (child.get().getValue() != null) {
+        return Optional.of(child.get().getValue());
+      }
+
+      iter = child.get();
+    }
+
+    return Optional.empty();
   }
 
-  private boolean hasChildValues(DefaultTrieNode<K, V> node) {
+  private Optional<V> getChildValue(Key<K> key) {
+    return getExactNode(key)
+        .flatMap(this::getChildValue);
+  }
+
+  private Optional<V> getChildValue(DefaultTrieNode<K, V> node) {
     Queue<DefaultTrieNode<K, V>> children = new ArrayDeque<>(node.getChildren().values());
 
     while (!children.isEmpty()) {
       DefaultTrieNode<K, V> child = children.poll();
 
       if (child.getValue() != null) {
-        return true;
+        return Optional.of(child.getValue());
       }
 
       children.addAll(child.getChildren().values());
     }
 
-    return false;
+    return Optional.empty();
   }
 
   private DefaultTrieNode<K, V> getOrCreateNode(Trie.Key<K> key) {

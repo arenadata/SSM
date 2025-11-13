@@ -22,15 +22,18 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public interface Trie<K, V> {
-  boolean hasPrefixValues(Key<K> key);
-
-  boolean hasChildValues(Key<K> key);
-
   boolean putIfNoIntersectingLocks(Key<K> key, V value);
 
+  Optional<V> getIntersectingLock(Key<K> key);
+
   boolean remove(Key<K> key);
+
+  default boolean hasIntersectingLock(Key<K> key) {
+    return getIntersectingLock(key).isPresent();
+  }
 
   static <K, V> Trie<K, V> synchronize(Trie<K, V> trie) {
     return SynchronizedTrie.wrap(trie);
