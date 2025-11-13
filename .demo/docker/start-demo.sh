@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --cluster=*)
+      CLUSTER_TYPE="${1#*=}"
+      ;;
+    --hadoop=*)
+      HADOOP_PROFILE="${1#*=}"
+      ;;
+    --debugMaster)
+      SSM_DEBUG_OPT+="--debug master "
+      ;;
+    --debugAgent)
+      SSM_DEBUG_OPT+="--debug agent "
+      ;;
+    *)
+      echo "=========================================================="
+      echo " Error: Invalid argument. Should be in the form --key=arg or --key."
+      echo " Supported arguments:"
+      echo "    --cluster: multihost (default) | singlehost"
+      echo "    --hadoop: 3.3 (default)"
+      echo "    --debugMaster"
+      echo "    --debugAgent"
+      echo "=========================================================="
+      exit 1
+  esac
+  shift
+done
+
+HADOOP_PROFILE=${HADOOP_PROFILE:-3.3}
+CLUSTER_TYPE=${CLUSTER_TYPE:-multihost}
+
+case $HADOOP_PROFILE in
+  3.3)
+  HADOOP_VERSION=3.3.6
+  ;;
+  *)
+    echo "Unknown Hadoop profile ${HADOOP_PROFILE}"
+    exit 1;
+  ;;
+esac
+
+case $CLUSTER_TYPE in
+  singlehost)
+    COMPOSE_FILE_PATH="./singlehost/docker-compose.yaml"
+  ;;
+  multihost)
+    COMPOSE_FILE_PATH="./ssm-cluster/docker-compose.yaml"
+  ;;
+  *)
+    echo "Unknown cluster type ${CLUSTER_TYPE}"
+    exit 1;
+  ;;
+esac
+
+SSM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive -f "../../pom.xml" exec:exec)
+SSM_VERSION=$(echo "${SSM_VERSION}" | head -1)
+
+env HADOOP_VERSION=$HADOOP_VERSION SSM_DEBUG_OPT="$SSM_DEBUG_OPT" SSM_VERSION="$SSM_VERSION" docker compose -f ${COMPOSE_FILE_PATH} up -d

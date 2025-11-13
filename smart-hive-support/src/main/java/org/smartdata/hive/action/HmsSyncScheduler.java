@@ -154,7 +154,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       log.info("Event with id {} has already been handled for rule {}, skipping",
           eventId, ruleId(actionInfo));
       ruleState.eventsInProcessing.remove(eventId);
-      return ScheduleResult.SUCCESS_NO_EXECUTION;
+      return ScheduleResult.SKIP;
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);

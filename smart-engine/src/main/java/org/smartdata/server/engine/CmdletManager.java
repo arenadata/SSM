@@ -547,6 +547,7 @@ public class CmdletManager extends AbstractService
           break;
         case SKIP:
           cmdlet.updateState(CmdletState.DISABLED);
+          cmdletInfoHandler.onCmdletFinished(cmdlet, true);
           deleteCmdletInternal(cmdlet.getId());
       }
     } catch (Exception exception) {
