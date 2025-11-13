@@ -540,6 +540,10 @@ public class CmdletManager extends AbstractService
           cmdletPurgeTask.onCmdletFinished();
           cmdletInfoHandler.onCmdletFinished(cmdlet, true);
           onCmdletStatusUpdate(statusFromCmdletInfo(cmdlet));
+          break;
+        case SKIP:
+          cmdlet.updateState(CmdletState.DISABLED);
+          deleteCmdletInternal(cmdlet.getId());
       }
     } catch (Exception exception) {
       LOG.error("Error handling scheduling result for {}", cmdlet, exception);

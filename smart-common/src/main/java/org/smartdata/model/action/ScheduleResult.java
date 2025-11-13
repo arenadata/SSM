@@ -21,6 +21,7 @@ public enum ScheduleResult {
   SUCCESS,  // OK for dispatch
   SUCCESS_NO_EXECUTION,  // No need for further execution, mark the action finished successfully
   RETRY,    // Need re-schedule later
+  SKIP,
   FAIL;
 
   public static boolean isSuccessful(ScheduleResult result) {
