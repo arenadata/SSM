@@ -100,16 +100,16 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
     }
   }
 
-  @RequiredArgsConstructor
   class SnapshotRecordsHandler implements RecordsHandler {
-    private TransactionStatus transactionStatus;
+    private final TransactionStatus transactionStatus;
+
+    public SnapshotRecordsHandler() {
+      this.transactionStatus = transactionManager.getTransaction(
+          new DefaultTransactionDefinition());
+    }
 
     @Override
     public void handle(HmsEventStreamRecord record) throws Exception {
-      if (transactionStatus == null) {
-        transactionStatus = transactionManager.getTransaction(
-            new DefaultTransactionDefinition());
-      }
       delegate.handle(record);
     }
 
