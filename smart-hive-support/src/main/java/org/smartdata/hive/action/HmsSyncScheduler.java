@@ -32,6 +32,10 @@ import org.smartdata.hive.action.function.HmsDropFunctionAction;
 import org.smartdata.hive.action.partition.HmsAlterPartitionAction;
 import org.smartdata.hive.action.partition.HmsCreatePartitionAction;
 import org.smartdata.hive.action.partition.HmsDropPartitionAction;
+import org.smartdata.hive.action.stats.HmsAlterPartitionColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsAlterTableColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsDropPartitionColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsDropTableColumnStatsAction;
 import org.smartdata.hive.action.table.HmsAlterTableAction;
 import org.smartdata.hive.action.table.HmsCreateTableAction;
 import org.smartdata.hive.action.table.HmsDropTableAction;
@@ -75,8 +79,10 @@ import static org.smartdata.hive.fetch.HiveEntity.FOREIGN_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.NOT_NULL_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
+import static org.smartdata.hive.fetch.HiveEntity.PARTITION_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
+import static org.smartdata.hive.fetch.HiveEntity.TABLE_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
 import static org.smartdata.hive.fetch.HiveOperation.ALTER;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
@@ -86,33 +92,42 @@ import static org.smartdata.hive.fetch.HiveOperation.DROP;
 public class HmsSyncScheduler extends ActionSchedulerService {
   private final static String ENTITY_NAME_DELIMITER = "\\.";
   private static final Map<HiveEntity, Map<HiveOperation, ActionBlueprint>> ENTITY_ACTIONS =
-      ImmutableMap.of(
-          DATABASE, ImmutableMap.of(
+      ImmutableMap.<HiveEntity, Map<HiveOperation, ActionBlueprint>>builder()
+          .put(DATABASE, ImmutableMap.of(
               CREATE, action(HmsCreateDbAction.NAME),
               DROP, action(HmsDropDbAction.NAME),
               ALTER, action(HmsAlterDbAction.NAME)
-          ),
-          TABLE, ImmutableMap.of(
+          ))
+          .put(TABLE, ImmutableMap.of(
               CREATE, action(HmsCreateTableAction.NAME),
               DROP, action(HmsDropTableAction.NAME),
               ALTER, action(HmsAlterTableAction.NAME)
-          ),
-          FUNCTION, ImmutableMap.of(
+          ))
+          .put(FUNCTION, ImmutableMap.of(
               CREATE, action(HmsCreateFunctionAction.NAME),
               DROP, action(HmsDropFunctionAction.NAME)
-          ),
-          PARTITION, ImmutableMap.of(
+          ))
+          .put(PARTITION, ImmutableMap.of(
               CREATE, action(HmsCreatePartitionAction.NAME),
               DROP, action(HmsDropPartitionAction.NAME),
               ALTER, action(HmsAlterPartitionAction.NAME)
-          ),
-          PRIMARY_KEY, constraintActions(PRIMARY_KEY),
-          FOREIGN_KEY, constraintActions(FOREIGN_KEY),
-          UNIQUE_CONSTRAINT, constraintActions(UNIQUE_CONSTRAINT),
-          NOT_NULL_CONSTRAINT, constraintActions(NOT_NULL_CONSTRAINT),
-          DEFAULT_CONSTRAINT, constraintActions(DEFAULT_CONSTRAINT),
-          CHECK_CONSTRAINT, constraintActions(CHECK_CONSTRAINT)
-      );
+          ))
+          .put(TABLE_COLUMN_STAT, ImmutableMap.of(
+              ALTER, action(HmsAlterTableColumnStatsAction.NAME),
+              DROP, action(HmsDropTableColumnStatsAction.NAME)
+          ))
+          .put(PARTITION_COLUMN_STAT, ImmutableMap.of(
+              ALTER, action(HmsAlterPartitionColumnStatsAction.NAME),
+              DROP, action(HmsDropPartitionColumnStatsAction.NAME)
+          ))
+          .put(PRIMARY_KEY, constraintActions(PRIMARY_KEY))
+          .put(FOREIGN_KEY, constraintActions(FOREIGN_KEY))
+          .put(UNIQUE_CONSTRAINT, constraintActions(UNIQUE_CONSTRAINT))
+          .put(NOT_NULL_CONSTRAINT, constraintActions(NOT_NULL_CONSTRAINT))
+          .put(DEFAULT_CONSTRAINT, constraintActions(DEFAULT_CONSTRAINT))
+          .put(CHECK_CONSTRAINT, constraintActions(CHECK_CONSTRAINT))
+          .build();
+
 
   private final HmsSyncProgressDao hmsSyncProgressDao;
   private final HmsEventDao hmsEventDao;
@@ -166,6 +181,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     }
 
     actionInfo.getArgs().put(HmsSyncAction.ENTITY_NAME, event.getFullName());
+    actionInfo.getArgs().put(HmsSyncAction.TABLE_NAME, event.getTableName());
 
     try {
       handleEvent(event, action);
@@ -236,7 +252,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
   @Override
   public void stop() throws IOException {
-
+    executorService.shutdown();
+    flushRuleProgress();
   }
 
   @Override

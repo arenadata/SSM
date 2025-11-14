@@ -28,6 +28,10 @@ import org.smartdata.hive.action.function.HmsDropFunctionAction;
 import org.smartdata.hive.action.partition.HmsAlterPartitionAction;
 import org.smartdata.hive.action.partition.HmsCreatePartitionAction;
 import org.smartdata.hive.action.partition.HmsDropPartitionAction;
+import org.smartdata.hive.action.stats.HmsAlterPartitionColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsAlterTableColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsDropPartitionColumnStatsAction;
+import org.smartdata.hive.action.stats.HmsDropTableColumnStatsAction;
 import org.smartdata.hive.action.table.HmsAlterTableAction;
 import org.smartdata.hive.action.table.HmsCreateTableAction;
 import org.smartdata.hive.action.table.HmsDropTableAction;
@@ -53,5 +57,10 @@ public class HiveActionFactory extends AbstractActionFactory {
 
     addAction(HmsCreateConstraintAction.class);
     addAction(HmsDropConstraintAction.class);
+
+    addAction(HmsAlterPartitionColumnStatsAction.class);
+    addAction(HmsAlterTableColumnStatsAction.class);
+    addAction(HmsDropPartitionColumnStatsAction.class);
+    addAction(HmsDropTableColumnStatsAction.class);
   }
 }
