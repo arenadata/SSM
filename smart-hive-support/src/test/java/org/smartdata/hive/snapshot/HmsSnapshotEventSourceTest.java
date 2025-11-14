@@ -25,6 +25,8 @@ import org.apache.hadoop.hive.metastore.api.AllTableConstraintsRequest;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.GetAllFunctionsResponse;
+import org.apache.hadoop.hive.metastore.api.GetTableRequest;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SQLAllTableConstraints;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -265,9 +267,8 @@ public class HmsSnapshotEventSourceTest {
           .thenAnswer(invocation -> getDatabase(invocation.getArgument(0)));
       when(delegate.getAllTables(anyString(), anyString()))
           .thenAnswer(invocation -> getAllTables(invocation.getArgument(1)));
-      when(delegate.getTableObjectsByName(anyString(), anyString(), any()))
-          .thenAnswer(invocation -> getTableObjectsByName(
-              invocation.getArgument(1), invocation.getArgument(2)));
+      when(delegate.getTable(any()))
+          .thenAnswer(invocation -> getTable(invocation.getArgument(0)));
       when(delegate.getAllTableConstraints(any()))
           .thenAnswer(invocation -> getAllTableConstraints(invocation.getArgument(0)));
       when(delegate.listPartitions(anyString(), anyString(), anyString(), anyInt()))
@@ -351,12 +352,11 @@ public class HmsSnapshotEventSourceTest {
           .collect(Collectors.toList());
     }
 
-    private List<Table> getTableObjectsByName(String dbName, List<String> tableNames) {
-      return getDbTables(dbName)
-          .stream()
-          .filter(table -> tableNames.contains(table.name))
+    private Table getTable(GetTableRequest request) throws NoSuchObjectException {
+      return Optional.ofNullable(getDbTableInfo(request.getDbName(), request.getTblName()))
           .map(TableInfo::getDelegate)
-          .collect(Collectors.toList());
+          .orElseThrow(() -> new NoSuchObjectException(
+              "Table " + request.getTblName() + " doesn't exist"));
     }
 
     private SQLAllTableConstraints getAllTableConstraints(AllTableConstraintsRequest request) {
