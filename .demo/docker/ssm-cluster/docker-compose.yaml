@@ -67,7 +67,7 @@ services:
     image: cloud-hub.adsw.io/library/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
     hostname: ssm-server.demo
     container_name: ssm-server
-    restart: unless-stopped
+    restart: no
     volumes:
       - ssm-shared:/tmp/shared
       - ./conf:/opt/ssm/conf

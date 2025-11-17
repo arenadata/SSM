@@ -60,7 +60,7 @@
   </property>
   <property>
     <name>hadoop.user.group.static.mapping.overrides</name>
-    <value>ssm=supergroup;agent=supergroup;hive=supergroup</value>
+    <value>ssm=supergroup;agent=supergroup;hive=supergroup;tigrulya=supergroup</value>
   </property>
   <property>
     <name>dfs.blocksize</name>

@@ -31,4 +31,64 @@
     <value>0</value>
   </property>
 
+  <property>
+    <name>dfs.nameservices</name>
+    <value>source</value>
+  </property>
+
+  <property>
+    <name>dfs.ha.namenodes.source</name>
+    <value>nn1</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.rpc-address.source.nn1</name>
+    <value>localhost:8020</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.http-address.source.nn1</name>
+    <value>localhost:9870</value>
+  </property>
+
+  <property>
+    <name>dfs.client.failover.proxy.provider.source</name>
+    <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+  </property>
+
+  <!-- Disable min block size since most tests use tiny blocks -->
+  <property>
+    <name>dfs.namenode.fs-limits.min-block-size</name>
+    <value>0</value>
+  </property>
+  <property>
+    <name>smart.server.rpc.address</name>
+    <value>ssm-server.demo:7042</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>[RAM_DISK]file://hadoop/dfs/ram-data,[SSD]file://hadoop/dfs/ssd-data,[DISK]file://hadoop/dfs/data,[ARCHIVE]file://hadoop/dfs/archive-data</value>
+  </property>
+  <property>
+    <name>hadoop.user.group.static.mapping.overrides</name>
+    <value>ssm=supergroup;agent=supergroup;hive=supergroup</value>
+  </property>
+  <property>
+    <name>dfs.blocksize</name>
+    <value>1048576</value>
+  </property>
+  <property>
+    <name>dfs.namenode.delegation.token.max-lifetime</name>
+    <value>604800000</value>
+    <description>The maximum lifetime in milliseconds for which a delegation token is valid.</description>
+  </property>
+  <property>
+    <name>dfs.block.access.token.enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>dfs.client.block.write.replace-datanode-on-failure.policy</name>
+    <value>NEVER</value>
+  </property>
+
 </configuration>

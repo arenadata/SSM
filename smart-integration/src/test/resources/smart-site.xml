@@ -17,5 +17,46 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
+    <property>
+        <name>smart.dfs.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>smart.server.rpc.address</name>
+        <value>localhost:7042</value>
+    </property>
+    <property>
+        <name>smart.dfs.namenode.rpcserver</name>
+        <value>hdfs://localhost:8020</value>
+    </property>
+    <property>
+        <name>smart.rule.executors</name>
+        <value>5</value>
+    </property>
+    <property>
+        <name>smart.hadoop.conf.path</name>
+        <value>/opt/ssm/conf</value>
+    </property>
 
+    <!-- REST server configs -->
+    <property>
+        <name>smart.rest.server.security.enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>smart.hive.event.fetch.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://localhost:9083</value>
+    </property>
+    <property>
+        <name>hive.metastore.ds.retry.interval</name>
+        <value>3000ms</value>
+    </property>
+    <property>
+        <name>hive.metastore.ds.retry.attempts</name>
+        <value>30</value>
+    </property>
 </configuration>

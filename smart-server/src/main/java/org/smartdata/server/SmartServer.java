@@ -46,6 +46,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -206,7 +207,7 @@ public class SmartServer implements AutoCloseable {
   }
 
   private static boolean parseHelpArgument(String[] args,
-                                           String helpDescription, PrintStream out) {
+      String helpDescription, PrintStream out) {
     try {
       CommandLineParser parser = new PosixParser();
       CommandLine cmdLine = parser.parse(helpOptions, args);
@@ -351,6 +352,8 @@ public class SmartServer implements AutoCloseable {
   }
 
   public static void main(String[] args) {
+    // ExitTrap.forbidSystemExitCall();
+
     int errorCode = 0;  // if SSM exit normally then the errorCode is 0
     try {
       final SmartServer inst = launchWith(args, null);
@@ -372,6 +375,10 @@ public class SmartServer implements AutoCloseable {
           Thread.sleep(1000);
         }
       }
+    } catch (ExitTrap.ExitTrappedException e) {
+      LOG.error("ExitTrappedException", e);
+      e.printStackTrace(); // full call chain to System.exit()
+      errorCode = 1;
     } catch (Exception e) {
       LOG.error("Failed to create SmartServer", e);
       errorCode = 1;
@@ -379,6 +386,39 @@ public class SmartServer implements AutoCloseable {
       System.exit(errorCode);
     }
   }
+
+  public static class ExitTrap {
+    public static void forbidSystemExitCall() {
+      System.setSecurityManager(new SecurityManager() {
+        @Override
+        public void checkPermission(Permission perm) {
+          // allow everything except exit VM
+          if ("exitVM".equals(perm.getName())) {
+            throw new ExitTrappedException();
+          }
+        }
+
+        @Override
+        public void checkPermission(Permission perm, Object context) {
+          if (perm.getName().startsWith("exitVM")) {
+            throw new ExitTrappedException();
+          }
+        }
+
+        @Override
+        public void checkExit(int status) {
+          new ExitTrappedException().printStackTrace();
+        }
+      });
+    }
+
+    public static class ExitTrappedException extends SecurityException {
+      public ExitTrappedException() {
+        super("System.exit() called");
+      }
+    }
+  }
+
 
   public SmartRpcServer getRpcServer() {
     return rpcServer;

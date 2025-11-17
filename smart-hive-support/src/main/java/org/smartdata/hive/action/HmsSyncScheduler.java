@@ -149,6 +149,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       return ScheduleResult.RETRY;
     }
 
+    ruleState.notYetHandledEvents.add(eventId);
     if (ruleState.handledEvents.contains(eventId)
         || eventId <= ruleState.eventIdWatermark.get()) {
       log.info("Event with id {} has already been handled for rule {}, skipping",
@@ -172,6 +173,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       return ScheduleResult.SUCCESS;
     } catch (Exception e) {
       ruleState.eventsInProcessing.remove(eventId);
+      ruleState.notYetHandledEvents.remove(eventId);
       removeLock(ruleState, actionInfo);
 
       log.error("Error trying to schedule HMS event {}", event, e);
@@ -186,11 +188,12 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
     RuleState ruleState = getRuleState(actionInfo);
     ruleState.eventsInProcessing.remove(eventId);
+    ruleState.notYetHandledEvents.remove(eventId);
     ruleState.handledEvents.add(eventId);
 
     try {
       // Set the watermark as the id just before the earliest event still in progress
-      updateWatermark(ruleState, ruleState.eventsInProcessing.first() - 1);
+      updateWatermark(ruleState, ruleState.notYetHandledEvents.first() - 1);
     } catch (NoSuchElementException e) {
       // There is no way to check the size of eventsInProcessing and get
       // the first element from it atomically except pessimistic locks.
@@ -327,6 +330,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   @Data
   static class RuleState {
     private final NavigableSet<Long> eventsInProcessing = new ConcurrentSkipListSet<>();
+    // eventsInProcessing + locked events sent for retry
+    private final NavigableSet<Long> notYetHandledEvents = new ConcurrentSkipListSet<>();
     private final NavigableSet<Long> handledEvents = new ConcurrentSkipListSet<>();
     private final Trie<String, Boolean> entityLocks = Trie.synchronize(new DefaultTrie<>());
     // the max id of the handled event for which all prior events have also been handled
