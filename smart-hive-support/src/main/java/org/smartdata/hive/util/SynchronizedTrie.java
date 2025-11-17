@@ -17,6 +17,7 @@
  */
 package org.smartdata.hive.util;
 
+import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -40,20 +41,20 @@ public class SynchronizedTrie<K, V> implements Trie<K, V> {
   }
 
   @Override
-  public boolean hasChildValues(Key<K> key) {
+  public boolean putIfNoIntersectingLocks(Key<K> key, V value) {
     lock.writeLock().lock();
     try {
-      return delegate.hasChildValues(key);
+      return delegate.putIfNoIntersectingLocks(key, value);
     } finally {
       lock.writeLock().unlock();
     }
   }
 
   @Override
-  public boolean putIfNoIntersectingLocks(Key<K> key, V value) {
+  public Optional<V> getIntersectingLock(Key<K> key) {
     lock.writeLock().lock();
     try {
-      return delegate.putIfNoIntersectingLocks(key, value);
+      return delegate.getIntersectingLock(key);
     } finally {
       lock.writeLock().unlock();
     }

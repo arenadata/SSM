@@ -145,26 +145,28 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
     boolean isNewAction = ruleState.eventsInProcessing.add(eventId);
     if (!isNewAction) {
-      log.info("Event {} is already in processing.", eventId);
+      log.debug("Event {} is already in processing.", eventId);
       return ScheduleResult.RETRY;
     }
 
-    ruleState.notYetHandledEvents.add(eventId);
     if (ruleState.handledEvents.contains(eventId)
         || eventId <= ruleState.eventIdWatermark.get()) {
-      log.info("Event with id {} has already been handled for rule {}, skipping",
+      log.debug("Event with id {} has already been handled for rule {}, skipping",
           eventId, ruleId(actionInfo));
       ruleState.eventsInProcessing.remove(eventId);
       return ScheduleResult.SKIP;
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);
-    boolean isNewLock = ruleState.entityLocks.putIfNoIntersectingLocks(trieKey(event), true);
-    if (!isNewLock) {
+    if (ruleState.isLocked(event) || ruleState.hasEventsToRetryForEntity(event)) {
       log.debug("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
       ruleState.eventsInProcessing.remove(eventId);
+      ruleState.addRetryState(event);
       return ScheduleResult.RETRY;
     }
+
+    ruleState.putEntityLock(event);
+    ruleState.clearRetryState(event);
 
     actionInfo.getArgs().put(HmsSyncAction.ENTITY_NAME, event.getFullName());
 
@@ -172,9 +174,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       handleEvent(event, action);
       return ScheduleResult.SUCCESS;
     } catch (Exception e) {
-      ruleState.eventsInProcessing.remove(eventId);
-      ruleState.notYetHandledEvents.remove(eventId);
-      removeLock(ruleState, actionInfo);
+      ruleState.clearEventState(event);
 
       log.error("Error trying to schedule HMS event {}", event, e);
       return ScheduleResult.FAIL;
@@ -188,12 +188,11 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
     RuleState ruleState = getRuleState(actionInfo);
     ruleState.eventsInProcessing.remove(eventId);
-    ruleState.notYetHandledEvents.remove(eventId);
     ruleState.handledEvents.add(eventId);
 
     try {
       // Set the watermark as the id just before the earliest event still in progress
-      updateWatermark(ruleState, ruleState.notYetHandledEvents.first() - 1);
+      ruleState.updateWatermark(ruleState.eventsInProcessing.first() - 1);
     } catch (NoSuchElementException e) {
       // There is no way to check the size of eventsInProcessing and get
       // the first element from it atomically except pessimistic locks.
@@ -202,7 +201,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       //
       // Set the watermark as the current maxHandledEventId in case
       // if the action with the highest event id finished earlier
-      updateWatermark(ruleState, getMaxHandledEventId(ruleState, eventId));
+      ruleState.updateWatermark(getMaxHandledEventId(ruleState, eventId));
     } finally {
       // Remove the entity lock only after setting the progress of the current rule
       // to cover the case when the same event is scheduled for any reason
@@ -249,7 +248,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
   private void removeLock(RuleState ruleState, ActionInfo actionInfo) {
     String entityName = getEntityName(actionInfo);
-    ruleState.entityLocks.remove(trieKey(entityName));
+    ruleState.removeLock(entityName);
   }
 
   private long eventId(ActionInfo actionInfo) {
@@ -281,13 +280,6 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       // so recover from the exception instead
       return defaultEventId;
     }
-  }
-
-  private void updateWatermark(RuleState ruleState, long eventId) {
-    long watermarkEventId = ruleState.eventIdWatermark
-        .updateAndGet(currentId -> Math.max(currentId, eventId));
-    ruleState.handledEvents
-        .removeIf(handledEventId -> handledEventId <= watermarkEventId);
   }
 
   private RuleState getRuleState(ActionInfo actionInfo) {
@@ -330,12 +322,68 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   @Data
   static class RuleState {
     private final NavigableSet<Long> eventsInProcessing = new ConcurrentSkipListSet<>();
-    // eventsInProcessing + locked events sent for retry
-    private final NavigableSet<Long> notYetHandledEvents = new ConcurrentSkipListSet<>();
     private final NavigableSet<Long> handledEvents = new ConcurrentSkipListSet<>();
     private final Trie<String, Boolean> entityLocks = Trie.synchronize(new DefaultTrie<>());
     // the max id of the handled event for which all prior events have also been handled
     private final AtomicLong eventIdWatermark = new AtomicLong(Long.MIN_VALUE);
+
+    // retry events state
+    private final NavigableSet<Long> retryEvents = new ConcurrentSkipListSet<>();
+    private final Trie<String, Long> retryEntityLocks = Trie.synchronize(new DefaultTrie<>());
+
+    void putEntityLock(HiveNotificationEvent event) {
+      entityLocks.putIfNoIntersectingLocks(trieKey(event), true);
+    }
+
+    boolean isLocked(HiveNotificationEvent event) {
+      return entityLocks.getIntersectingLock(trieKey(event)).isPresent();
+    }
+
+    boolean hasEventsToRetryForEntity(HiveNotificationEvent event) {
+      return retryEntityLocks
+          .getIntersectingLock(trieKey(event))
+          .map(lockEventId -> lockEventId != event.getId())
+          .orElse(false);
+    }
+
+    void addRetryState(HiveNotificationEvent event) {
+      retryEvents.add(event.getId());
+      retryEntityLocks.putIfNoIntersectingLocks(trieKey(event), event.getId());
+    }
+
+    void clearRetryState(HiveNotificationEvent event) {
+      retryEvents.remove(event.getId());
+      retryEntityLocks.remove(trieKey(event));
+    }
+
+    void clearEventState(HiveNotificationEvent event) {
+      eventsInProcessing.remove(event.getId());
+      removeLock(event.getFullName());
+      clearRetryState(event);
+    }
+
+    void removeLock(String entityName) {
+      entityLocks.remove(trieKey(entityName));
+    }
+
+    void updateWatermark(long eventId) {
+      long watermarkEventId = eventIdWatermark
+          .updateAndGet(currentId -> Math.max(currentId, getMinEventToRetryId(eventId) - 1));
+      handledEvents
+          .removeIf(handledEventId -> handledEventId <= watermarkEventId);
+    }
+
+    private long getMinEventToRetryId(long defaultEventId) {
+      try {
+        return retryEvents.first();
+      } catch (NoSuchElementException exception) {
+        // There is no way to check the size of handledEvents and get
+        // the last element from it atomically except pessimistic locks.
+        // We don't want to penalize the performance just for this case,
+        // so recover from the exception instead
+        return defaultEventId;
+      }
+    }
   }
 
   @Data

@@ -60,7 +60,7 @@ public class DefaultTrieTest {
   }
 
   @Test
-  public void testHasPrefixValues() {
+  public void testGetPrefixValue() {
     trie.putIfNoIntersectingLocks(key("1"), true);
 
     assertTrue(trie.hasPrefixValues(key("1", "2", "3")));
