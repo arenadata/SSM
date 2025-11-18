@@ -47,9 +47,6 @@ public class HiveSmartConf extends Configuration {
   public static final String HMS_CLIENT_CACHE_TTL_MS = "smart.hive.client.cache.ttl.ms";
   public static final long HMS_CLIENT_CACHE_TTL_MS_DEFAULT = 120000L;
 
-  public static final String HMS_CLIENT_CACHE_INITIAL_CAPACITY = "smart.hive.client.cache.size.initial";
-  public static final int HMS_CLIENT_CACHE_INITIAL_CAPACITY_DEFAULT = 50;
-
   public static final String HMS_CLIENT_CACHE_MAX_CAPACITY = "smart.hive.client.cache.size.max";
   public static final int HMS_CLIENT_CACHE_MAX_CAPACITY_DEFAULT = 50;
 

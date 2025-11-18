@@ -26,8 +26,6 @@ import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.smartdata.hive.HiveSmartConf.HMS_CLIENT_CACHE_INITIAL_CAPACITY;
-import static org.smartdata.hive.HiveSmartConf.HMS_CLIENT_CACHE_INITIAL_CAPACITY_DEFAULT;
 import static org.smartdata.hive.HiveSmartConf.HMS_CLIENT_CACHE_MAX_CAPACITY;
 import static org.smartdata.hive.HiveSmartConf.HMS_CLIENT_CACHE_MAX_CAPACITY_DEFAULT;
 import static org.smartdata.hive.HiveSmartConf.HMS_CLIENT_CACHE_TTL_MS;
@@ -47,10 +45,12 @@ public class CachingMetaStoreClientProvider implements MetaStoreClientProvider {
     baseHiveConf.setTimeVar(HiveConf.ConfVars.METASTORE_CLIENT_CACHE_EXPIRY_TIME,
         configuration.getLong(HMS_CLIENT_CACHE_TTL_MS, HMS_CLIENT_CACHE_TTL_MS_DEFAULT),
         TimeUnit.MILLISECONDS);
+    int cacheCapacity = configuration.getInt(
+        HMS_CLIENT_CACHE_MAX_CAPACITY, HMS_CLIENT_CACHE_MAX_CAPACITY_DEFAULT);
     baseHiveConf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CACHE_INITIAL_CAPACITY,
-        configuration.getInt(HMS_CLIENT_CACHE_INITIAL_CAPACITY, HMS_CLIENT_CACHE_INITIAL_CAPACITY_DEFAULT));
+        cacheCapacity);
     baseHiveConf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CACHE_MAX_CAPACITY,
-        configuration.getInt(HMS_CLIENT_CACHE_MAX_CAPACITY, HMS_CLIENT_CACHE_MAX_CAPACITY_DEFAULT));
+        cacheCapacity);
   }
 
   @Override
