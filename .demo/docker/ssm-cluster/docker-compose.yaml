@@ -121,7 +121,7 @@ services:
       DB_DRIVER: postgres
       SERVICE_OPTS: >-
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
-        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db/hive
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive
         -Djavax.jdo.option.ConnectionUserName=ssm
         -Djavax.jdo.option.ConnectionPassword=ssm
         -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
@@ -136,6 +136,9 @@ services:
       - "9083:9083"
     networks:
       - demo
+    depends_on:
+      ssm-metastore-db:
+        condition: service_healthy
 
   hive-server2:
     image: apache/hive:4.0.1
@@ -219,13 +222,14 @@ services:
     container_name: target-hive-metastore
     hostname: target-hive-metastore.demo
     depends_on:
-      - ssm-metastore-db
+      ssm-metastore-db:
+        condition: service_healthy
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
       SERVICE_OPTS: >-
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
-        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db/hive2
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive2
         -Djavax.jdo.option.ConnectionUserName=ssm
         -Djavax.jdo.option.ConnectionPassword=ssm
         -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
