@@ -144,11 +144,19 @@
         <value>thrift://hive-metastore:9083</value>
     </property>
     <property>
-        <name>hive.metastore.ds.retry.interval</name>
+        <name>hive.hmshandler.retry.interval</name>
         <value>3000ms</value>
     </property>
     <property>
-        <name>hive.metastore.ds.retry.attempts</name>
+        <name>hive.hmshandler.retry.attempts</name>
         <value>30</value>
+    </property>
+    <property>
+        <name>metastore.client.connect.retry.delay</name>
+        <value>5000ms</value>
+    </property>
+    <property>
+        <name>metastore.connect.retries</name>
+        <value>15</value>
     </property>
 </configuration>
