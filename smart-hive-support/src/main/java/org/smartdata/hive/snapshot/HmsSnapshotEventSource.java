@@ -18,7 +18,6 @@
 
 package org.smartdata.hive.snapshot;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -33,12 +32,11 @@ import org.smartdata.hive.fetch.BaseHmsEventSource;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
+import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.utils.ThrowingFunction;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -55,24 +53,22 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
 
   private final Supplier<IMetaStoreClient> metaStoreClientProvider;
   private final ExecutorService executor;
+  private final HiveNotificationEventFactory eventFactory;
   private final String defaultCatalog;
 
-  @Getter
-  private final BlockingQueue<HmsEventStreamRecord> outputQueue;
   private final AtomicBoolean pollStarted;
-
-  private final HiveNotificationEventFactory eventFactory;
 
   @lombok.Builder(builderClassName = "Builder")
   public HmsSnapshotEventSource(
       Supplier<IMetaStoreClient> metaStoreClientProvider,
       ExecutorService executor,
+      HmsEventFilter eventFilter,
       HiveNotificationEventFactory eventFactory,
       HiveSmartConf hiveSmartConf
   ) {
+    super(eventFilter, hiveSmartConf.getFetchBatchSize());
     this.metaStoreClientProvider = metaStoreClientProvider;
     this.executor = executor;
-    this.outputQueue = new ArrayBlockingQueue<>(hiveSmartConf.getFetchBatchSize());
     this.eventFactory = eventFactory;
     this.pollStarted = new AtomicBoolean(false);
     this.defaultCatalog = MetaStoreUtils.getDefaultCatalog(hiveSmartConf);
@@ -88,12 +84,12 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
     if (pollStarted.compareAndSet(false, true)) {
       pollRecordsBatchAsync(eventId);
     }
-    return HmsEventStream.withoutIgnoredEvents(outputQueue);
+    return outputStream();
   }
 
   @Override
   protected void closeAction() {
-    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    sendEof();
     executor.shutdown();
   }
 
@@ -256,7 +252,7 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
   private void send(HmsEventStreamRecord record) {
     try {
       throwIfClosed();
-      outputQueue.put(record);
+      sendEvent(record);
     } catch (InterruptedException e) {
       throw new RuntimeException("Thread interrupted during event send", e);
     }

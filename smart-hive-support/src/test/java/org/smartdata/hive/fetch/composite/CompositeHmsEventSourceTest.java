@@ -23,12 +23,14 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.CurrentNotificationEventId;
+import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncoder;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.hive.HiveSmartConf;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
+import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.hive.snapshot.HmsSnapshotEventSource;
 
 import java.util.ArrayList;
@@ -209,7 +211,7 @@ public class CompositeHmsEventSourceTest {
 
     public MockSnapshotFetcher(List<HmsEventStreamRecord> records) {
       super(null, Executors.newSingleThreadExecutor(),
-          null, new HiveSmartConf(new SmartConf()));
+          HmsEventFilter.noOp(), null, new HiveSmartConf(new SmartConf()));
       this.records = new ArrayBlockingQueue<>(records.size() + 1);
       this.records.addAll(records);
       this.records.add(HmsEventStreamRecord.endOfStreamRecord());
@@ -241,7 +243,7 @@ public class CompositeHmsEventSourceTest {
     private MockEventFetcher(
         BlockingQueue<HmsEventStreamRecord> records,
         Long endEventId) {
-      super(null, null, 0, 1, endEventId);
+      super(null, null, HmsEventFilter.noOp(), 0, 1, endEventId, Collections.emptyList());
       this.records = records;
     }
 

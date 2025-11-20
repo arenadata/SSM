@@ -23,10 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
+import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
+import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
+import org.smartdata.hive.fetch.enrich.HmsEventNameSetter;
+import org.smartdata.hive.fetch.filter.HmsEventFilter;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,10 +51,6 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
   @Getter(PROTECTED)
   private final Long endEventId;
 
-  @Getter(AccessLevel.PACKAGE)
-  private final BlockingQueue<HmsEventStreamRecord> outputQueue;
-  @Getter(AccessLevel.PACKAGE)
-  private final BlockingQueue<HmsEventStreamRecord> ignoredEventsQueue;
   private final AtomicBoolean pollStarted;
   private final AtomicBoolean pollFinished;
 
@@ -65,16 +64,17 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
   public HmsInFlightEventSource(
       Supplier<IMetaStoreClient> metaStoreClientSupplier,
       ScheduledExecutorService executor,
+      HmsEventFilter eventFilter,
       long fetchPeriodMs,
       int eventBatchSize,
-      Long endEventId
+      Long endEventId,
+      List<HmsEventEnricher> eventEnrichers
   ) {
+    super(eventFilter, eventBatchSize, eventEnrichers);
     this.metaStoreClientSupplier = metaStoreClientSupplier;
     this.executor = executor;
     this.fetchPeriodMs = fetchPeriodMs;
     this.eventBatchSize = eventBatchSize;
-    this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
-    this.ignoredEventsQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.pollStarted = new AtomicBoolean(false);
     this.pollFinished = new AtomicBoolean(false);
     this.endEventId = endEventId;
@@ -94,7 +94,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
       executor.scheduleAtFixedRate(this::pollRecordsBatch,
           0L, fetchPeriodMs, TimeUnit.MILLISECONDS);
     }
-    return new HmsEventStream(outputQueue, ignoredEventsQueue);
+    return outputStream();
   }
 
   void pollRecordsBatch() {
@@ -122,8 +122,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
   @Override
   protected void closeAction() {
-    outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
-    ignoredEventsQueue.add(HmsEventStreamRecord.endOfStreamRecord());
+    sendEof();
   }
 
   private void pollRecordsBatchAction(IMetaStoreClient metaStoreClient) {
@@ -180,7 +179,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
         .eventType(eventOperation.getOperation().toString())
         .build();
 
-    outputQueue.put(ssmEvent);
+    sendEvent(ssmEvent);
   }
 
   private void handleIgnoredEvent(NotificationEvent event) throws InterruptedException {
@@ -189,6 +188,6 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
         .eventType(event.getEventType())
         .build();
 
-    ignoredEventsQueue.put(ignoredEvent);
+    sendIgnoredEvent(ignoredEvent);
   }
 }

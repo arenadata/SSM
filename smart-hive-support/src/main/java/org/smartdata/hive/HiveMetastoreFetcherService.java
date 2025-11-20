@@ -32,6 +32,9 @@ import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
 import org.smartdata.hive.fetch.composite.CompositeHmsEventSource;
+import org.smartdata.hive.fetch.enrich.HmsEventNameSetter;
+import org.smartdata.hive.fetch.filter.CompositeHmsEventFilter;
+import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.hive.handler.AsyncHmsEventStreamHandler;
 import org.smartdata.hive.handler.CompositeHmsEventHandler;
 import org.smartdata.hive.handler.DbHmsEventHandler;
@@ -47,6 +50,7 @@ import org.smartdata.retry.RetrySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,10 +152,12 @@ public class HiveMetastoreFetcherService extends AbstractService {
   private HmsEventSource buildEventSource(
       Supplier<IMetaStoreClient> metaStoreClientSupplier,
       HiveNotificationEventFactory eventFactory) {
+    HmsEventFilter eventFilter = CompositeHmsEventFilter.fromConf(hiveSmartConf);
+
     return new CompositeHmsEventSource(
         metaStoreClientSupplier,
-        buildSnapshotEventSource(metaStoreClientSupplier, eventFactory),
-        buildInFlightEventSource(metaStoreClientSupplier),
+        buildSnapshotEventSource(metaStoreClientSupplier, eventFilter, eventFactory),
+        buildInFlightEventSource(metaStoreClientSupplier, eventFilter),
         scheduledExecutorService,
         hiveSmartConf.getFetchBatchSize()
     );
@@ -159,12 +165,14 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
   private HmsSnapshotEventSource buildSnapshotEventSource(
       Supplier<IMetaStoreClient> metaStoreClientSupplier,
+      HmsEventFilter eventFilter,
       HiveNotificationEventFactory eventFactory) {
     ExecutorService executorService = Executors.newFixedThreadPool(
         hiveSmartConf.getSnapshotFetcherThreadsCount());
     return new HmsSnapshotEventSource(
         metaStoreClientSupplier,
         executorService,
+        eventFilter,
         eventFactory,
         hiveSmartConf
     );
@@ -186,14 +194,19 @@ public class HiveMetastoreFetcherService extends AbstractService {
   }
 
   private HmsInFlightEventSource buildInFlightEventSource(
-      Supplier<IMetaStoreClient> metaStoreClientSupplier) {
-    return new HmsInFlightEventSource(
-        metaStoreClientSupplier,
-        scheduledExecutorService,
-        hiveSmartConf.getFetchPeriodMs(),
-        hiveSmartConf.getFetchBatchSize(),
-        null
-    );
+      Supplier<IMetaStoreClient> metaStoreClientSupplier,
+      HmsEventFilter eventFilter) {
+    HmsEventNameSetter eventNameSetter =
+        new HmsEventNameSetter(GzipJSONMessageEncoder.getInstance());
+
+    return HmsInFlightEventSource.builder()
+        .metaStoreClientSupplier(metaStoreClientSupplier)
+        .executor(scheduledExecutorService)
+        .eventFilter(eventFilter)
+        .fetchPeriodMs(hiveSmartConf.getFetchPeriodMs())
+        .eventBatchSize(hiveSmartConf.getFetchBatchSize())
+        .eventEnrichers(Collections.singletonList(eventNameSetter))
+        .build();
   }
 
   private RetrySupport buildHandlerRetrySupport() {
