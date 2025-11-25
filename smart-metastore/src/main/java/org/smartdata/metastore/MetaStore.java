@@ -74,6 +74,7 @@ import org.smartdata.model.RuleState;
 import org.smartdata.model.S3FileState;
 import org.smartdata.model.StorageCapacity;
 import org.smartdata.model.SystemInfo;
+import org.smartdata.ozone.OzoneFileInfoDao;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -123,6 +124,7 @@ public class MetaStore implements CopyMetaService,
   private final SmallFileDao smallFileDao;
   private final ErasureCodingPolicyDao ecDao;
   private final WhitelistDao whitelistDao;
+  private final OzoneFileInfoDao ozoneFileInfoDao;
   private final UserActivityDao userActivityDao;
   private final DBPool dbPool;
 
@@ -157,6 +159,7 @@ public class MetaStore implements CopyMetaService,
     userActivityDao = daoProvider.userActivityDao();
     fileAccessPartitionDao = daoProvider.fileAccessPartitionDao();
     fileAccessDao = daoProvider.fileAccessDao();
+    ozoneFileInfoDao = daoProvider.ozoneFileInfoDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -195,6 +198,9 @@ public class MetaStore implements CopyMetaService,
     return fileAccessPartitionDao;
   }
 
+  public OzoneFileInfoDao ozoneFileInfoDao() {
+    return ozoneFileInfoDao;
+  }
 
   public PlatformTransactionManager transactionManager() {
     return defaultTransactionRunner.getTransactionManager();

@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
+import org.smartdata.ozone.OzoneFetcherService;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
@@ -35,6 +37,9 @@ import org.smartdata.server.engine.audit.AuditService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
 
 public class SmartEngine extends AbstractService {
   public static final Logger LOG = LoggerFactory.getLogger(SmartEngine.class);
@@ -76,6 +81,7 @@ public class SmartEngine extends AbstractService {
     ruleManager = new RuleManager(
         serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
     services.add(ruleManager);
+    maybeEnableOzoneFetcher();
 
     for (AbstractService s : services) {
       s.init();
@@ -117,6 +123,21 @@ public class SmartEngine extends AbstractService {
     } catch (IOException e) {
       LOG.error("Error while stopping {}", service.getClass().getCanonicalName(), e);
     }
+  }
+
+  private void maybeEnableOzoneFetcher() {
+    SmartFsType smartFsType = serverContext.getConf().getEnum(
+        SMART_FS_TYPE,
+        SMART_FS_TYPE_DEFAULT);
+    if (smartFsType != SmartFsType.OZONE) {
+      return;
+    }
+
+    OzoneFetcherService ozoneFetcherService = new OzoneFetcherService(
+        serverContext,
+        serverContext.getMetaStore().ozoneFileInfoDao()
+    );
+    services.add(ozoneFetcherService);
   }
 
   public SmartConf getConf() {
