@@ -76,6 +76,7 @@ import org.smartdata.model.RuleState;
 import org.smartdata.model.S3FileState;
 import org.smartdata.model.StorageCapacity;
 import org.smartdata.model.SystemInfo;
+import org.smartdata.ozone.OzoneFileInfoDao;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -128,14 +129,15 @@ public class MetaStore implements CopyMetaService,
   private final SmallFileDao smallFileDao;
   private final ErasureCodingPolicyDao ecDao;
   private final WhitelistDao whitelistDao;
+  private final OzoneFileInfoDao ozoneFileInfoDao;
   private final UserActivityDao userActivityDao;
   private final DBPool dbPool;
 
   public MetaStore(DBPool pool,
-                   DbSchemaManager dbSchemaManager,
-                   DaoProvider daoProvider,
-                   DbMetadataProvider dbMetadataProvider,
-                   PlatformTransactionManager transactionManager) throws MetaStoreException {
+      DbSchemaManager dbSchemaManager,
+      DaoProvider daoProvider,
+      DbMetadataProvider dbMetadataProvider,
+      PlatformTransactionManager transactionManager) throws MetaStoreException {
     this.dbPool = pool;
     this.dbSchemaManager = dbSchemaManager;
     this.dbMetadataProvider = dbMetadataProvider;
@@ -162,9 +164,10 @@ public class MetaStore implements CopyMetaService,
     userActivityDao = daoProvider.userActivityDao();
     fileAccessPartitionDao = daoProvider.fileAccessPartitionDao();
     fileAccessDao = daoProvider.fileAccessDao();
-    hmsEventDao =  daoProvider.hmsEventDao();
+    hmsEventDao = daoProvider.hmsEventDao();
     hmsIgnoredEventDao = daoProvider.hmsIgnoredEventDao();
     hmsSyncProgressDao = daoProvider.hmsSyncProgressDao();
+    ozoneFileInfoDao = daoProvider.ozoneFileInfoDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -213,6 +216,10 @@ public class MetaStore implements CopyMetaService,
 
   public HmsSyncProgressDao hmsSyncProgressDao() {
     return hmsSyncProgressDao;
+  }
+
+  public OzoneFileInfoDao ozoneFileInfoDao() {
+    return ozoneFileInfoDao;
   }
 
   public PlatformTransactionManager transactionManager() {
@@ -506,8 +513,8 @@ public class MetaStore implements CopyMetaService,
   }
 
   public void insertCachedFiles(long fid, String path,
-                                long fromTime,
-                                long lastAccessTime, int numAccessed) throws MetaStoreException {
+      long fromTime,
+      long lastAccessTime, int numAccessed) throws MetaStoreException {
     try {
       cacheFileDao.insert(fid, path, fromTime, lastAccessTime, numAccessed);
     } catch (Exception e) {
@@ -533,8 +540,8 @@ public class MetaStore implements CopyMetaService,
   }
 
   public boolean updateCachedFiles(Long fid,
-                                   Long lastAccessTime,
-                                   Integer numAccessed) throws MetaStoreException {
+      Long lastAccessTime,
+      Integer numAccessed) throws MetaStoreException {
     try {
       return cacheFileDao.update(fid, lastAccessTime, numAccessed) >= 0;
     } catch (Exception e) {
@@ -628,7 +635,7 @@ public class MetaStore implements CopyMetaService,
   }
 
   public boolean updateRuleInfo(long ruleId, RuleState rs,
-                                long lastCheckTime, long checkedCount, int commandsGen)
+      long lastCheckTime, long checkedCount, int commandsGen)
       throws MetaStoreException {
     try {
       if (rs == null) {
@@ -935,7 +942,7 @@ public class MetaStore implements CopyMetaService,
 
   @Override
   public boolean updateFileDiff(long did,
-                                FileDiffState state) throws MetaStoreException {
+      FileDiffState state) throws MetaStoreException {
     try {
       return fileDiffDao.update(did, state) >= 0;
     } catch (Exception e) {

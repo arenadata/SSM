@@ -57,6 +57,7 @@
     <module>smart-hadoop-support</module>
     <module>smart-tests</module>
     <module>smart-hive-support</module>
+    <module>smart-ozone-support</module>
   </modules>
 
   <properties>
@@ -98,7 +99,7 @@
     <spring.boot.version>2.7.18</spring.boot.version>
     <spring.boot.security.kerberos.version>1.0.1.RELEASE</spring.boot.security.kerberos.version>
     <openapi.generator.version>6.6.0</openapi.generator.version>
-    <commons.lang3.version>3.12.0</commons.lang3.version>
+    <commons.lang3.version>3.17.0</commons.lang3.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
     <aspectj.version>1.9.22</aspectj.version>
@@ -110,12 +111,14 @@
     <rest-assured.version>4.5.1</rest-assured.version>
       <caffeine.version>2.9.3</caffeine.version>
     <micrometer.version>1.9.17</micrometer.version>
+    <ozone.version>2.0.0</ozone.version>
     <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
     <smart.hadoop.client.artifact>smart-hadoop-client-3</smart.hadoop.client.artifact>
     <maven-replacer-plugin.version>1.5.3</maven-replacer-plugin.version>
     <hadoop-thirdparty-shaded.prefix>org.apache.hadoop.thirdparty</hadoop-thirdparty-shaded.prefix>
     <hadoop-thirdparty-shaded.protobuf.prefix>${hadoop-thirdparty-shaded.prefix}.protobuf</hadoop-thirdparty-shaded.protobuf.prefix>
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+    <jsr305.version>3.0.2</jsr305.version>
     <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
     <liquibase.version>4.23.2</liquibase.version>
     <hive.version>4.0.1</hive.version>
@@ -405,6 +408,16 @@
             <artifactId>slf4j-reload4j</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-annotations</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-auth</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>

@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.hive.HiveMetastoreFetcherService;
+import org.smartdata.ozone.OzoneFetcherService;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
@@ -37,6 +39,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_HMS_EVENT_FETCH_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_HMS_EVENT_FETCH_ENABLED;
 
@@ -81,6 +85,7 @@ public class SmartEngine extends AbstractService {
     ruleManager = new RuleManager(
         serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
     services.add(ruleManager);
+    maybeEnableOzoneFetcher();
     maybeEnableHiveEventsFetcher();
 
     for (AbstractService s : services) {
@@ -139,5 +144,24 @@ public class SmartEngine extends AbstractService {
         serverContext.getMetaStore().transactionManager()
     );
     services.add(hiveMetastoreFetcherService);
+  }
+
+  private void maybeEnableOzoneFetcher() {
+    SmartFsType smartFsType = serverContext.getConf().getEnum(
+        SMART_FS_TYPE,
+        SMART_FS_TYPE_DEFAULT);
+    if (smartFsType != SmartFsType.OZONE) {
+      return;
+    }
+
+    OzoneFetcherService ozoneFetcherService = new OzoneFetcherService(
+        serverContext,
+        serverContext.getMetaStore().ozoneFileInfoDao()
+    );
+    services.add(ozoneFetcherService);
+  }
+
+  public SmartConf getConf() {
+    return serverContext.getConf();
   }
 }
