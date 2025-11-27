@@ -18,7 +18,10 @@
 package org.smartdata.ozone;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.ozone.RootedOzoneFileSystem;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
+
+import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 
 public class OzoneSmartConf extends OzoneConfiguration {
   public static final String OZONE_FETCH_BATCH_SIZE = "smart.ozone.event.fetch.batch.size";
@@ -27,14 +30,15 @@ public class OzoneSmartConf extends OzoneConfiguration {
   public static final String OZONE_SNAPSHOT_THREADS_COUNT = "smart.ozone.snapshot.threads.count";
   public static final int OZONE_SNAPSHOT_THREADS_COUNT_DEFAULT = 16;
 
-  public OzoneSmartConf() {
-    super();
-
-    loadSystemProperties();
-  }
+  // todo: remove option after ADH-7056 will be completed
+  public static final String DEFAULT_OFS_ADDRESS = "smart.ozone.ofs.default";
 
   public OzoneSmartConf(Configuration conf) {
     super(conf);
+
+    // todo: move to appropriate place during ADH-7056 implementation
+    set(FS_DEFAULT_NAME_KEY, get(DEFAULT_OFS_ADDRESS));
+    set("fs.ofs.impl", RootedOzoneFileSystem.class.getName());
 
     loadSystemProperties();
   }

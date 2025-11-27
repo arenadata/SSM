@@ -17,59 +17,40 @@
  */
 package org.smartdata.ozone.snapshot;
 
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-import org.junit.After;
-import org.junit.Before;
+import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.junit.Test;
-import org.smartdata.ozone.MiniOzoneClusterHarness;
-import org.smartdata.ozone.model.FsObjectStreamRecord;
-
-import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class OfsSnapshotFetcherTest extends MiniOzoneClusterHarness {
-  private static final int BATCH_SIZE = 1024;
-  private static final int TIMEOUT_MS = 5000;
-
-  private OfsSnapshotFetcher fetcher;
-
-  @Before
-  public void initFiles() {
-//    ofs.createFile(new Path("/test.txt"));
-
-    fetcher = new OfsSnapshotFetcher(
-        ofs, Executors.newSingleThreadExecutor(), BATCH_SIZE);
-  }
-
-  @After
-  public void close() {
-    if (fetcher != null) {
-      fetcher.close();
-    }
-  }
-
-  //  @Test
-  public void testFetchSnapshot() throws InterruptedException {
-    fetcher.runSnapshotAsync().wait(TIMEOUT_MS);
-
-    BlockingQueue<FsObjectStreamRecord> outputQueue = fetcher.getOutputQueue();
-    assertEquals(1, outputQueue.size());
-  }
+public class OfsSnapshotFetcherTest {
 
   @Test
-  public void test() throws IOException {
-    ofs.mkdirs(new Path("/vol1"));
-    ofs.mkdirs(new Path("/vol1", "bucket1"));
+  public void testExtractOriginalFilePath() {
+    testExtractOriginalFilePath("/vol/buck/.snapshot/sn1/key", "/vol/buck/key");
+    testExtractOriginalFilePath("/vol/buck/.snapshot/sn1/dir/key", "/vol/buck/dir/key");
+    testExtractOriginalFilePath("/vol/buck/.snapshot/sn1/dir/subdir/key",
+        "/vol/buck/dir/subdir/key");
 
-    try (FSDataOutputStream os = ofs.create(new Path("/vol1/buck1/test"))) {
-      os.writeBytes("test");
+    testExtractOriginalFilePath("ofs://host:123/vol/buck/.snapshot/sn1/dir/key",
+        "ofs://host:123/vol/buck/dir/key");
+
+    testExtractOriginalFilePath("/", "/");
+    testExtractOriginalFilePath("/vol", "/vol");
+    testExtractOriginalFilePath("/vol/buck", "/vol/buck");
+  }
+
+  private void testExtractOriginalFilePath(String sourcePath, String expectedPath) {
+    try (OfsSnapshotFetcher fetcher = emptyFetcher()) {
+      Path actualPath = fetcher.getOriginalFilePath(new Path(sourcePath));
+      assertEquals(expectedPath, actualPath.toString());
     }
+  }
 
-    assertTrue(ofs.exists(new Path("/vol1/buck1/test")));
+  private OfsSnapshotFetcher emptyFetcher() {
+    return OfsSnapshotFetcher.builder()
+        .conf(new OzoneConfiguration())
+        .batchSize(1)
+        .build();
   }
 }

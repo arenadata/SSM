@@ -17,4 +17,5 @@
     <include file="/db/changelog/changelog-7.make-action-finish-time-nullable.xml"/>
     <include file="/db/changelog/changelog-8.add-action-start-time.xml"/>
     <include file="/db/changelog/changelog-9.add-cmdlet-rule-owner.xml"/>
+    <include file="/db/changelog/changelog-12.add-ozone-file-table.xml"/>
 </databaseChangeLog>

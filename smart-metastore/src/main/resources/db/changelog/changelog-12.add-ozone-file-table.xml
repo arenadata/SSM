@@ -11,7 +11,7 @@
                 <tableExists tableName="ofile"/>
             </not>
         </preConditions>
-        <createTable tableName="file">
+        <createTable tableName="ofile">
             <column name="fid" autoIncrement="true" type="BIGINT">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
@@ -26,11 +26,10 @@
             <column name="is_volume" type="BOOLEAN"/>
             <column name="is_bucket" type="BOOLEAN"/>
             <column name="is_s3" type="BOOLEAN"/>
-            <column name="sid" type="TINYINT"/>
             <column name="owner" type="VARCHAR(255)"/>
             <column name="owner_group" type="VARCHAR(255)"/>
             <column name="permission" type="SMALLINT"/>
-            <column name="ec_policy_id" type="TINYINT"/>
+            <column name="ec_policy" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>
