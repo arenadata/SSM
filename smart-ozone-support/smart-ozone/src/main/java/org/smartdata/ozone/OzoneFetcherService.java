@@ -19,6 +19,7 @@ package org.smartdata.ozone;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.ozone.client.OzoneClientFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
 import org.smartdata.ozone.handler.AsyncFsObjectStreamHandler;
@@ -65,6 +66,8 @@ public class OzoneFetcherService extends AbstractService {
 
     return new OfsSnapshotFetcher(
         FileSystem.get(ozoneSmartConf),
+        OzoneClientFactory.getRpcClient(ozoneSmartConf).getObjectStore(),
+        ozoneSmartConf,
         executorService,
         ozoneSmartConf.getFetchBatchSize()
     );

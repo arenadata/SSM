@@ -35,9 +35,8 @@ public class OzoneFileInfo implements FsObjectStreamRecord {
   private boolean isVolume;
   private boolean isBucket;
   private boolean isS3;
-  private byte storagePolicy;
   private String owner;
   private String group;
   private short permission;
-  private byte erasureCodingPolicy;
+  private String erasureCodingPolicy;
 }

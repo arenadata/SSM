@@ -40,11 +40,10 @@ public class DefaultOzoneFileInfoDao extends AbstractDao implements OzoneFileInf
   private static final String IS_VOLUME_FIELD = "is_volume";
   private static final String IS_BUCKET_FIELD = "is_bucket";
   private static final String IS_S3_FIELD = "is_s3";
-  private static final String STORAGE_POLICY_FIELD = "sid";
   private static final String OWNER_FIELD = "owner";
   private static final String OWNER_GROUP_FIELD = "owner_group";
   private static final String PERMISSION_FIELD = "permission";
-  private static final String EC_POLICY_FIELD = "ec_policy_id";
+  private static final String EC_POLICY_FIELD = "ec_policy";
 
   public DefaultOzoneFileInfoDao(DataSource dataSource) {
     super(dataSource, TABLE_NAME);
@@ -72,7 +71,6 @@ public class DefaultOzoneFileInfoDao extends AbstractDao implements OzoneFileInf
     parameters.put(IS_VOLUME_FIELD, fileInfo.isVolume());
     parameters.put(IS_BUCKET_FIELD, fileInfo.isBucket());
     parameters.put(IS_S3_FIELD, fileInfo.isS3());
-    parameters.put(STORAGE_POLICY_FIELD, fileInfo.getStoragePolicy());
     parameters.put(OWNER_FIELD, fileInfo.getOwner());
     parameters.put(OWNER_GROUP_FIELD, fileInfo.getGroup());
     parameters.put(PERMISSION_FIELD, fileInfo.getPermission());
