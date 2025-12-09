@@ -30,6 +30,8 @@ kadmin.local -q "add_principal -randkey HTTP/hadoop-datanode.demo@DEMO"
 kadmin.local -q "add_principal -randkey ssm/ssm-server.demo@DEMO"
 kadmin.local -q "add_principal -randkey agent/hadoop-datanode.demo@DEMO"
 kadmin.local -q "add_principal -randkey yarn/hadoop-namenode.demo@DEMO"
+kadmin.local -q "add_principal -randkey hive/hive-server2.demo@DEMO"
+kadmin.local -q "add_principal -randkey hive/hive-metastore.demo@DEMO"
 kadmin.local -q "add_principal -pw krb_pass1 krb_user1@DEMO"
 kadmin.local -q "add_principal -pw krb_pass2 krb_user2@DEMO"
 echo ""
@@ -46,6 +48,8 @@ kadmin.local -q "xst -kt /tmp/secrets/http.keytab HTTP/hadoop-datanode.demo@DEMO
 kadmin.local -q "xst -kt /tmp/secrets/ssm.keytab ssm/ssm-server.demo@DEMO" && chown appuser:appuser /tmp/secrets/ssm.keytab
 kadmin.local -q "xst -kt /tmp/secrets/agent.keytab agent/hadoop-datanode.demo@DEMO" && chown appuser:appuser /tmp/secrets/agent.keytab
 kadmin.local -q "xst -kt /tmp/secrets/yarn.keytab yarn/hadoop-namenode.demo@DEMO" && chown appuser:appuser /tmp/secrets/yarn.keytab
+kadmin.local -q "xst -kt /tmp/secrets/hive.keytab hive/hive-server2.demo@DEMO" && chown appuser:appuser /tmp/secrets/hive.keytab
+kadmin.local -q "xst -kt /tmp/secrets/hms.keytab hive/hive-metastore.demo@DEMO" && chown appuser:appuser /tmp/secrets/hms.keytab
 echo ""
 
 krb5kdc

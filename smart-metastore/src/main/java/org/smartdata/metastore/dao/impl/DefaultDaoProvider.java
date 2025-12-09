@@ -45,7 +45,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-public class DefaultDaoProvider implements DaoProvider {
+public abstract class DefaultDaoProvider implements DaoProvider {
   protected final DataSource dataSource;
   protected final PlatformTransactionManager transactionManager;
 

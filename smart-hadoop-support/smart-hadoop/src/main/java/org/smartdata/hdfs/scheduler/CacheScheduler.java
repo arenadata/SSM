@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.HdfsAction;
-import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -53,8 +53,8 @@ public class CacheScheduler extends ActionSchedulerService {
   private DFSClient dfsClient;
   private static boolean isCachePoolCreated;
 
-  public CacheScheduler(SmartContext context, MetaStore metaStore) {
-    super(context, metaStore);
+  public CacheScheduler(SmartContext context) {
+    super(context);
     fileLock = new HashSet<>();
     isCachePoolCreated = false;
   }

@@ -28,13 +28,13 @@ import java.util.List;
 public class PostgresActionDao extends DefaultActionDao {
   private static final String PRIMARY_KEY_FIELD = "aid";
 
-  private final PostgresUpsertSupport upsertSupport;
+  private final PostgresInsertSupport upsertSupport;
 
   public PostgresActionDao(
       DataSource dataSource,
       PlatformTransactionManager transactionManager) {
     super(dataSource, transactionManager);
-    this.upsertSupport = new PostgresUpsertSupport(dataSource, tableName);
+    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
   }
 
   @Override

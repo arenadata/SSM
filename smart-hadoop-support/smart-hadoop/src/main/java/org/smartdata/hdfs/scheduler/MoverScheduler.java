@@ -31,13 +31,13 @@ import org.smartdata.hdfs.action.HdfsAction;
 import org.smartdata.hdfs.action.MoveFileAction;
 import org.smartdata.hdfs.metric.fetcher.DatanodeStorageReportProcTask;
 import org.smartdata.hdfs.metric.fetcher.MovePlanMaker;
-import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.FileMovePlan;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -66,9 +66,9 @@ public class MoverScheduler extends ActionSchedulerService {
   public static final Logger LOG =
       LoggerFactory.getLogger(MoverScheduler.class);
 
-  public MoverScheduler(SmartContext context, MetaStore metaStore)
+  public MoverScheduler(SmartContext context)
       throws IOException {
-    super(context, metaStore);
+    super(context);
     SmartConf conf = getContext().getConf();
     nnUri = HadoopUtil.getNameNodeUri(conf);
     throttleInMb = conf.getLong(

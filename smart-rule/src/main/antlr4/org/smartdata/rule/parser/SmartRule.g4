@@ -166,6 +166,7 @@ OBJECTTYPE
     | DIRECTORY
     | STORAGE
     | CACHE
+    | HMS
     ;
 
 AT : 'at' ;
@@ -185,6 +186,7 @@ fragment FILE : 'file' ;
 fragment DIRECTORY : 'directory' ;
 fragment STORAGE : 'storage' ;
 fragment CACHE : 'cache' ;
+fragment HMS : 'hms' ;
 
 FILECREATE: 'FileCreate' ;
 FILECLOSE: 'FileClose' ;

@@ -120,7 +120,7 @@ public class RuleExecutor implements Runnable {
     return ret;
   }
 
-  public List<String> executeFileRuleQuery() {
+  public List<String> executeObjectIdsQuery() {
     int index = 0;
     List<String> ret = new ArrayList<>();
     for (String sql : translationResult.getSqlStatements()) {
@@ -130,7 +130,7 @@ public class RuleExecutor implements Runnable {
           LOG.debug("Rule " + executionCtx.getRuleId() + " --> " + sql);
         }
         if (index == translationResult.getRetSqlIndex()) {
-          ret = metastore.executeFilesPathQuery(sql);
+          ret = metastore.executeObjectIdsQuery(sql);
         } else {
           sql = sql.trim();
           if (sql.length() > 5) {
@@ -246,7 +246,7 @@ public class RuleExecutor implements Runnable {
 
       long endCheckTime;
       int numCmdSubmitted = 0;
-      List<String> files = new ArrayList<>();
+      List<String> objectIds = new ArrayList<>();
 
       RuleInfo info;
       try {
@@ -292,7 +292,7 @@ public class RuleExecutor implements Runnable {
       }
 
       if (continueExecution) {
-        files = executeFileRuleQuery();
+        objectIds = executeObjectIdsQuery();
         if (exited) {
           exitSchedule();
         }
@@ -300,9 +300,9 @@ public class RuleExecutor implements Runnable {
       endCheckTime = System.currentTimeMillis();
       if (continueExecution) {
         for (RuleExecutorPlugin plugin : executorPlugins) {
-          files = plugin.preSubmitCmdlet(info, files);
+          objectIds = plugin.preSubmitCmdlet(info, objectIds);
         }
-        numCmdSubmitted = submitCmdlets(info, files);
+        numCmdSubmitted = submitCmdlets(info, objectIds);
       }
       ruleManager.updateRuleInfo(rid, null, startCheckTime, 1, numCmdSubmitted);
 
@@ -352,21 +352,23 @@ public class RuleExecutor implements Runnable {
     throw new RuntimeException("Rule executor exit exception");
   }
 
-  private int submitCmdlets(RuleInfo ruleInfo, List<String> files) {
+  private int submitCmdlets(RuleInfo ruleInfo, List<String> objectIds) {
     long ruleId = ruleInfo.getId();
-    if (files == null || files.isEmpty() || ruleManager.getCmdletManager() == null) {
+    if (objectIds == null || objectIds.isEmpty() || ruleManager.getCmdletManager() == null) {
       return 0;
     }
     int nSubmitted = 0;
     CmdletDescriptor templateCmdlet = translationResult.getCmdDescriptor();
-    for (String file : files) {
+    for (String objectId : objectIds) {
       if (exited) {
         break;
       }
       try {
         CmdletDescriptor cmdletDescriptor = new CmdletDescriptor(templateCmdlet);
         cmdletDescriptor.setRuleId(ruleId);
-        cmdletDescriptor.setCmdletParameter(CmdletDescriptor.HDFS_FILE_PATH, file);
+        // for compatibility with old cmdlets and schedulers
+        cmdletDescriptor.setCmdletParameter(CmdletDescriptor.HDFS_FILE_PATH, objectId);
+        cmdletDescriptor.setCmdletParameter(CmdletDescriptor.OBJECT_ID, objectId);
         for (RuleExecutorPlugin plugin : executorPlugins) {
           cmdletDescriptor = plugin.preSubmitCmdletDescriptor(
               ruleInfo, translationResult, cmdletDescriptor);
@@ -381,7 +383,7 @@ public class RuleExecutor implements Runnable {
         break;
       } catch (IOException e) {
         // it's common here, ignore this and continue submit
-        LOG.debug("Failed to submit cmdlet for file {} due to Exception", file, e);
+        LOG.debug("Failed to submit cmdlet for objectId {} due to Exception", objectId, e);
       }
     }
     return nSubmitted;

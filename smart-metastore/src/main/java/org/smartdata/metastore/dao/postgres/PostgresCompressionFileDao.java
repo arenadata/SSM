@@ -25,11 +25,11 @@ import javax.sql.DataSource;
 public class PostgresCompressionFileDao extends DefaultCompressionFileDao {
   private static final String PRIMARY_KEY_FIELD = "path";
 
-  private final PostgresUpsertSupport upsertSupport;
+  private final PostgresInsertSupport upsertSupport;
 
   public PostgresCompressionFileDao(DataSource dataSource) {
     super(dataSource);
-    this.upsertSupport = new PostgresUpsertSupport(dataSource, tableName);
+    this.upsertSupport = new PostgresInsertSupport(dataSource, tableName);
   }
 
   @Override

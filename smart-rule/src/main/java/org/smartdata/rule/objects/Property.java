@@ -17,125 +17,65 @@
  */
 package org.smartdata.rule.objects;
 
+import lombok.Data;
 import org.smartdata.rule.parser.ValueType;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Property of SSM object.
  */
+@Data
 public class Property {
   private final String propertyName;
-  private final ValueType retType;
+  private final ValueType valueType;
   private final List<ValueType> paramsTypes;
 
   private final String tableName;
-  private final String tableItemName;
-  private String formatTemplate;
-  private final boolean isGlobal;
+  private final String tableColumn;
+  private final String formatTemplate;
+  private final boolean acceptsImplicitParameters;
 
-  public Property(String propertyName, ValueType retType, List<ValueType> paramsTypes,
-       String tableName, String tableItemName, boolean isGlobal) {
-    this.propertyName = propertyName;
-    this.retType = retType;
-    this.paramsTypes = paramsTypes;
-    this.tableName = tableName;
-    this.tableItemName = tableItemName;
-    this.isGlobal = isGlobal;
+  public Property(
+      String propertyName,
+      ValueType retType,
+      List<ValueType> paramsTypes,
+      String tableName,
+      String tableColumn) {
+    this(propertyName, retType, paramsTypes, tableName, tableColumn, null, false);
   }
 
   // TODO: re-arch to couple paramsTypes and formatTemplate
-  public Property(String propertyName, ValueType retType,
-      List<ValueType> paramsTypes, String tableName,
-      String tableItemName, boolean isGlobal,
+  public Property(
+      String propertyName,
+      ValueType retType,
+      List<ValueType> paramsTypes,
+      String tableName,
+      String tableColumn,
       String formatTemplate) {
+    this(propertyName, retType, paramsTypes, tableName, tableColumn, formatTemplate, false);
+  }
+
+  public Property(
+      String propertyName,
+      ValueType retType,
+      List<ValueType> paramsTypes,
+      String tableName,
+      String tableColumn,
+      String formatTemplate,
+      boolean acceptsImplicitParameters) {
     this.propertyName = propertyName;
-    this.retType = retType;
+    this.valueType = retType;
     this.paramsTypes = paramsTypes;
     this.tableName = tableName;
-    this.tableItemName = tableItemName;
+    this.tableColumn = tableColumn;
     this.formatTemplate = formatTemplate;
-    this.isGlobal = isGlobal;
-  }
-
-  public String getPropertyName() {
-    return propertyName;
-  }
-
-  public ValueType getValueType() {
-    return retType;
-  }
-
-  public List<ValueType> getParamsTypes() {
-    return paramsTypes;
-  }
-
-  public String getTableName() {
-    return tableName;
-  }
-
-  public String getTableItemName() {
-    return tableItemName;
-  }
-
-  public boolean isGlobal() {
-    return isGlobal;
-  }
-
-  public boolean hasParameters() {
-    return paramsTypes != null;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Property property = (Property) o;
-    return isGlobal == property.isGlobal
-        && Objects.equals(propertyName, property.propertyName)
-        && retType == property.retType
-        && Objects.equals(paramsTypes, property.paramsTypes)
-        && Objects.equals(tableName, property.tableName)
-        && Objects.equals(tableItemName, property.tableItemName)
-        && Objects.equals(formatTemplate, property.formatTemplate);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(
-        propertyName, retType, paramsTypes, tableName, tableItemName, formatTemplate, isGlobal);
-  }
-
-  public String instId(List<Object> values) {
-    if (getParamsTypes() == null) {
-      return propertyName;
-    }
-    StringBuilder ret = new StringBuilder(propertyName);
-    assert(values.size() == getParamsTypes().size());
-    for (Object value : values) {
-      switch (getValueType()) {
-        case TIMEINTVAL:
-        case LONG:
-          ret.append("_").append(value);
-          break;
-        case STRING:
-          ret.append("_").append(((String) value).replaceAll("[\t -\"']+", "_"));
-          break;
-        default:
-          assert (false);  // TODO: throw exception
-      }
-    }
-    return ret.toString();
+    this.acceptsImplicitParameters = acceptsImplicitParameters;
   }
 
   public String formatParameters(List<Object> values) {
     if (formatTemplate == null) {
-      return tableItemName;
+      return tableColumn;
     }
 
     if (values == null) {

@@ -33,7 +33,7 @@ public class TestPropertyRealParas {
   public void testEqual() {
     Property p = new Property("test", ValueType.LONG,
         Arrays.asList(ValueType.LONG),
-        "test", "", false);
+        "test", "");
 
     List<Object> v1 = Arrays.asList((Object) new Long(1));
     List<Object> v2 = Arrays.asList((Object) new Integer(1));

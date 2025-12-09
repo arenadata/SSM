@@ -22,6 +22,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
@@ -29,7 +32,7 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
-public class MetastoreQueryExecutor {
+public class MetastoreQueryExecutor implements TransactionOperations {
   private final NamedParameterJdbcTemplate namedJdbcTemplate;
   private final TransactionTemplate transactionTemplate;
 
@@ -77,5 +80,10 @@ public class MetastoreQueryExecutor {
         execute(query, rowMapper),
         executeCount(query)
     );
+  }
+
+  @Override
+  public <T> T execute(TransactionCallback<T> action) throws TransactionException {
+    return transactionTemplate.execute(action);
   }
 }

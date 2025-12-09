@@ -17,55 +17,19 @@
  */
 package org.smartdata.rule.objects;
 
+import lombok.Data;
+
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Log parameters for a property.
  */
+@Data
 public class PropertyRealParas {
-  private Property property;
-  private List<Object> values;
-
-  public PropertyRealParas(Property p, List<Object> values) {
-    this.property = p;
-    this.values = values;
-  }
-
-  public Property getProperty() {
-    return property;
-  }
-
-  public List<Object> getValues() {
-    return values;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PropertyRealParas that = (PropertyRealParas) o;
-    return Objects.equals(property, that.property) && Objects.equals(values, that.values);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(property, values);
-  }
+  private final Property property;
+  private final List<Object> values;
 
   public String formatParameters() {
     return property.formatParameters(values);
-  }
-
-  public String instId() {
-    return property.instId(values);
-  }
-
-  public String instId(int s, int e) {
-    return property.instId(values.subList(s, e));
   }
 }

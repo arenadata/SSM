@@ -40,6 +40,7 @@ import org.smartdata.model.CompressionFileState;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
+import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,9 +75,8 @@ public class CompressionScheduler extends ActionSchedulerService {
   public static final Logger LOG =
       LoggerFactory.getLogger(CompressionScheduler.class);
 
-  public CompressionScheduler(SmartContext context, MetaStore metaStore)
-      throws IOException {
-    super(context, metaStore);
+  public CompressionScheduler(SmartContext context, MetaStore metaStore) {
+    super(context);
     this.conf = context.getConf();
     this.metaStore = metaStore;
 

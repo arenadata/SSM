@@ -17,6 +17,11 @@
  */
 package org.smartdata;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public abstract class AbstractService implements SmartService {
   private SmartContext context;
 
@@ -25,14 +30,6 @@ public abstract class AbstractService implements SmartService {
   }
 
   public AbstractService(SmartContext context) {
-    this.context = context;
-  }
-
-  public SmartContext getContext() {
-    return context;
-  }
-
-  public void setContext(SmartContext context) {
     this.context = context;
   }
 

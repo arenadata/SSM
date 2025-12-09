@@ -17,25 +17,20 @@
  */
 package org.smartdata.rule.objects;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Map;
 
 /**
  * Acts as base of SSM objects.
  */
+@Getter
+@RequiredArgsConstructor
 public abstract class SmartObject {
 
-  private ObjectType type;
-
-  public SmartObject(ObjectType type) {
-    this.type = type;
-  }
-
-  public ObjectType getType() {
-    return type;
-  }
-
-  private List<Property> requiredProperties;
+  private final ObjectType type;
+  private final String baseTableName;
 
   public static SmartObject getInstance(String typeName) {
     // TODO: create through class name
@@ -44,25 +39,11 @@ public abstract class SmartObject {
         return new FileObject();
       case "storage":
         return new StorageObject();
+      case "hms":
+        return new HmsObject();
       default:
         return null;
     }
-  }
-
-  /**
-   * The following PROPERTIES of this Object are required.
-   * @param properties
-   */
-  public void setRequiredProperties(List<Property> properties) {
-    requiredProperties = properties;
-  }
-
-  public List<Property> getPropertyRequired() {
-    return requiredProperties;
-  }
-
-  public boolean containsProperty(String propertyName) {
-    return getProperties().get(propertyName) != null;
   }
 
   public Property getProperty(String propertyName) {

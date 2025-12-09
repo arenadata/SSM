@@ -135,4 +135,28 @@
         <name>smart.rest.server.auth.ldap.user.search.groups</name>
         <value>developers</value>
     </property>
+    <property>
+        <name>smart.hive.event.fetch.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://hive-metastore:9083</value>
+    </property>
+    <property>
+        <name>hive.hmshandler.retry.interval</name>
+        <value>3000ms</value>
+    </property>
+    <property>
+        <name>hive.hmshandler.retry.attempts</name>
+        <value>30</value>
+    </property>
+    <property>
+        <name>metastore.client.connect.retry.delay</name>
+        <value>5000ms</value>
+    </property>
+    <property>
+        <name>metastore.connect.retries</name>
+        <value>15</value>
+    </property>
 </configuration>

@@ -21,6 +21,7 @@ import org.smartdata.AgentService;
 import org.smartdata.SmartConstants;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
+import org.smartdata.hdfs.impersonation.UserImpersonationStrategyFactory;
 import org.smartdata.protocol.message.LaunchCmdlet;
 import org.smartdata.protocol.message.StopCmdlet;
 import org.smartdata.server.engine.cmdlet.CmdletExecutor;
@@ -39,7 +40,8 @@ public class AgentCmdletService extends AgentService {
   public void init() throws IOException {
     SmartAgentContext context = (SmartAgentContext) getContext();
     SmartConf conf = context.getConf();
-    UserImpersonationStrategy userImpersonationStrategy = UserImpersonationStrategy.from(conf);
+    UserImpersonationStrategy userImpersonationStrategy =
+        UserImpersonationStrategyFactory.from(conf);
     this.executor = new CmdletExecutor(conf, userImpersonationStrategy);
     this.factory = new CmdletFactory(context, userImpersonationStrategy);
   }

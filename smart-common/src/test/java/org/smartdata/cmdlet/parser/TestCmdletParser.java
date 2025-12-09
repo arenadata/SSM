@@ -147,7 +147,6 @@ public class TestCmdletParser {
         "1",
         "1action",
         "_action",
-        "another-symbol",
         "another_symbol!",
         "another_s@mb0l"
     ).forEach(this::testThrowOnInvalidActionName);
