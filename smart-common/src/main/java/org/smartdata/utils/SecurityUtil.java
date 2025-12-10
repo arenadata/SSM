@@ -37,6 +37,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -148,7 +149,7 @@ public class SecurityUtil {
     return loginContext.getSubject();
   }
 
-  public static void loginUsingKeytab(SmartConf conf) throws IOException{
+  public static void loginUsingKeytab(SmartConf conf) throws IOException {
     String keytabFilename = conf.get(SmartConfKeys.SMART_SERVER_KEYTAB_FILE_KEY);
     if (keytabFilename == null || keytabFilename.length() == 0) {
       throw new IOException("Running in secure mode, but config doesn't have a keytab");
@@ -285,5 +286,14 @@ public class SecurityUtil {
 
   public static boolean isSecurityEnabled(SmartConf conf) {
     return conf.getBoolean(SmartConfKeys.SMART_SECURITY_ENABLE, false);
+  }
+
+  public static Optional<String> getCurrentUsername() {
+    try {
+      return Optional.ofNullable(UserGroupInformation.getCurrentUser())
+          .map(UserGroupInformation::getUserName);
+    } catch (IOException e) {
+      return Optional.empty();
+    }
   }
 }

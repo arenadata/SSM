@@ -36,7 +36,6 @@ import org.apache.hadoop.hdfs.protocol.HdfsPathHandle;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
 import org.apache.hadoop.hdfs.protocol.LocatedBlocks;
 import org.apache.hadoop.ipc.RemoteException;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +56,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import static org.smartdata.utils.SecurityUtil.getCurrentUsername;
 
 public class SmartDFSClient extends DFSClient {
   private static final Logger LOG = LoggerFactory.getLogger(SmartDFSClient.class);
@@ -372,7 +373,7 @@ public class SmartDFSClient extends DFSClient {
   }
 
   @Override
-  public void concat(String trg, String [] srcs) throws IOException {
+  public void concat(String trg, String[] srcs) throws IOException {
     try {
       super.concat(trg, srcs);
     } catch (IOException e) {
@@ -583,17 +584,14 @@ public class SmartDFSClient extends DFSClient {
    * Report file access event to SSM server.
    */
   private void reportFileAccessEvent(String src) {
+    if (!healthy) {
+      return;
+    }
+    FileAccessEvent accessEvent = new FileAccessEvent(
+        src, getCurrentUsername().orElse(null));
+
     try {
-      if (!healthy) {
-        return;
-      }
-      String userName;
-      try {
-        userName = UserGroupInformation.getCurrentUser().getUserName();
-      } catch (IOException e) {
-        userName = "Unknown";
-      }
-      smartClient.reportFileAccessEvent(new FileAccessEvent(src, userName));
+      smartClient.reportFileAccessEvent(accessEvent);
     } catch (IOException e) {
       // Here just ignores that failed to report
       LOG.error("Cannot report file access event to SmartServer: " + src
