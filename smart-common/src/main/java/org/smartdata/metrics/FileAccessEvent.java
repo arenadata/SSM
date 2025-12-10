@@ -48,13 +48,6 @@ public class FileAccessEvent implements DataAccessEvent {
     this(path, -1, user);
   }
 
-  // DFSClient has no info about the file id, except have another rpc call
-  // to Namenode, SmartServer can get this value from Namespace, so not
-  // provide id info here.
-  public long getFileId() {
-    return 0;
-  }
-
   @Override
   public String getAccessedBy() {
     return this.user;
