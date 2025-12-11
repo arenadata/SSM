@@ -36,6 +36,9 @@ public class SmartConfKeys {
 
   public static final String SMART_DFS_NAMENODE_RPCSERVER_KEY = "smart.dfs.namenode.rpcserver";
 
+  public static final String SMART_FS_TYPE = "smart.fs.type";
+  public static final SmartFsType SMART_FS_TYPE_DEFAULT = SmartFsType.HDFS;
+
   // Configure keys for HDFS
   public static final String SMART_NAMESPACE_FETCHER_IGNORE_UNSUCCESSIVE_INOTIFY_EVENT_KEY =
       "smart.namespace.fetcher.ignore.unsuccessive.inotify.event";
@@ -120,9 +123,6 @@ public class SmartConfKeys {
 
   public static final String SMART_CMDLET_EXECUTORS_KEY = "smart.cmdlet.executors";
   public static final int SMART_CMDLET_EXECUTORS_DEFAULT = 10;
-  public static final String SMART_DISPATCH_CMDLETS_EXTRA_NUM_KEY =
-      "smart.dispatch.cmdlets.extra.num";
-  public static final int SMART_DISPATCH_CMDLETS_EXTRA_NUM_DEFAULT = 10;
 
   public static final String SMART_SYNC_FILE_EQUALITY_STRATEGY =
       "smart.sync.file.equality.strategy";

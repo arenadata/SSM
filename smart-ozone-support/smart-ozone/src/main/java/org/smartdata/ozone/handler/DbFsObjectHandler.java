@@ -15,54 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.metastore.dao;
+package org.smartdata.ozone.handler;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.smartdata.ozone.OzoneFileInfoDao;
+import org.smartdata.ozone.model.FsObjectStreamRecord;
+import org.smartdata.ozone.model.OzoneFileInfo;
 
-public interface DaoProvider {
-  RuleDao ruleDao();
+@Slf4j
+@RequiredArgsConstructor
+public class DbFsObjectHandler implements FsObjectHandler {
+  private final OzoneFileInfoDao ozoneFileInfoDao;
 
-  CmdletDao cmdletDao();
-
-  ActionDao actionDao();
-
-  FileInfoDao fileInfoDao();
-
-  CacheFileDao cacheFileDao();
-
-  StorageDao storageDao();
-
-  FileDiffDao fileDiffDao();
-
-  FileAccessDao fileAccessDao();
-
-  ClusterConfigDao clusterConfigDao();
-
-  GlobalConfigDao globalConfigDao();
-
-  BackUpInfoDao backUpInfoDao();
-
-  ClusterInfoDao clusterInfoDao();
-
-  SystemInfoDao systemInfoDao();
-
-  FileStateDao fileStateDao();
-
-  CompressionFileDao compressionFileDao();
-
-  GeneralDao generalDao();
-
-  SmallFileDao smallFileDao();
-
-  ErasureCodingPolicyDao ecDao();
-
-  WhitelistDao whitelistDao();
-
-  StoragePolicyDao storagePolicyDao();
-
-  UserActivityDao userActivityDao();
-
-  FileAccessPartitionDao fileAccessPartitionDao();
-
-  OzoneFileInfoDao ozoneFileInfoDao();
+  @Override
+  public void handle(FsObjectStreamRecord record) throws Exception {
+    if (record instanceof OzoneFileInfo) {
+      ozoneFileInfoDao.insert((OzoneFileInfo) record);
+    } else {
+      log.warn("Unsupported event type: {}", record.getClass().getName());
+    }
+  }
 }
