@@ -34,6 +34,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>smart-ozone</module>
+        <module>smart-ozone-fs-client</module>
     </modules>
 
 </project>

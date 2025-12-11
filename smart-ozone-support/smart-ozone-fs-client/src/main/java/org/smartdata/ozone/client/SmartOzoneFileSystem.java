@@ -15,27 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.protocol;
+package org.smartdata.ozone.client;
 
-import org.apache.hadoop.security.KerberosInfo;
-import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.metrics.FileAccessEvent;
-import org.smartdata.model.FileState;
+import org.apache.hadoop.fs.ozone.OzoneClientAdapter;
+import org.apache.hadoop.fs.ozone.OzoneFileSystem;
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
+import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 
-import java.io.Closeable;
 import java.io.IOException;
 
-/**
- * Interface between SmartClient and SmartServer.
- */
-@KerberosInfo(
-  serverPrincipal = SmartConfKeys.SMART_SERVER_KERBEROS_PRINCIPAL_KEY)
-public interface SmartClientProtocol extends Closeable {
-  void reportFileAccessEvent(FileAccessEvent event) throws IOException;
-  FileState getFileState(String filePath) throws IOException;
+public class SmartOzoneFileSystem extends OzoneFileSystem {
 
   @Override
-  default void close() throws IOException {
-    // do nothing
+  protected OzoneClientAdapter createAdapter(ConfigurationSource conf, String bucketStr, String volumeStr,
+      String omHost, int omPort) throws IOException {
+    return SmartOzoneClientAdapter.wrap(
+        super.createAdapter(conf, bucketStr, volumeStr, omHost, omPort),
+        OzoneConfiguration.of(conf), volumeStr, bucketStr
+    );
   }
 }
