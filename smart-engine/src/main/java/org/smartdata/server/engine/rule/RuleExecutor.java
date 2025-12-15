@@ -20,6 +20,7 @@ package org.smartdata.server.engine.rule;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.metastore.MetaStore;
@@ -41,6 +42,10 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
+import static org.smartdata.metastore.dao.FileAccessPartitionDao.HDFS_FILE_ACCESS_TABLE;
+import static org.smartdata.metastore.dao.FileAccessPartitionDao.OZONE_FILE_ACCESS_TABLE;
+
 /**
  * Execute rule queries and return result.
  */
@@ -61,16 +66,19 @@ public class RuleExecutor implements Runnable {
   private final MetaStore metastore;
   private final Stack<String> dynamicCleanups;
   private final List<RuleExecutorPlugin> executorPlugins;
+  private final SmartConf conf;
 
   private volatile boolean exited;
   private long exitTime;
 
   public RuleExecutor(
+      SmartConf conf,
       RuleManager ruleManager,
       ExecutionContext executionCtx,
       RuleTranslationResult translationResult,
       MetaStore metastore,
       List<RuleExecutorPlugin> executorPlugins) {
+    this.conf = conf;
     this.ruleManager = ruleManager;
     this.executionCtx = executionCtx;
     this.metastore = metastore;
@@ -199,12 +207,14 @@ public class RuleExecutor implements Runnable {
     long interval = paraList.isEmpty() ? 0L : (long) paraList.get(0);
     String countFilter = "";
     long currentTimeMillis = System.currentTimeMillis();
-    return generateSQL(newTable, countFilter, metastore, currentTimeMillis - interval,
+    return generateSQL(conf, newTable, countFilter, metastore, currentTimeMillis - interval,
         currentTimeMillis);
   }
 
+  // todo refactor dynamic calls to access count tables
   @VisibleForTesting
   static String generateSQL(
+      SmartConf conf,
       String newTable,
       String countFilter,
       MetaStore adapter,
@@ -217,11 +227,16 @@ public class RuleExecutor implements Runnable {
     } catch (MetaStoreException e) {
       LOG.error("Cannot create table " + newTable, e);
     }
+
+    String fileAccessTable = conf.getFsType() == SMART_FS_TYPE_DEFAULT
+        ? HDFS_FILE_ACCESS_TABLE
+        : OZONE_FILE_ACCESS_TABLE;
+
     String sqlCountFilter =
         (countFilter == null || countFilter.isEmpty())
             ? ""
             : " HAVING count(*) " + countFilter;
-    sqlFinal = "INSERT INTO " + newTable + " SELECT fid, count(*) AS count FROM file_access\n"
+    sqlFinal = "INSERT INTO " + newTable + " SELECT fid, count(*) AS count FROM " + fileAccessTable + "\n"
         + "WHERE access_time >= " + startTime + " AND access_time <= " + endTime
         + " GROUP BY fid" + sqlCountFilter + " ;";
     return sqlFinal;

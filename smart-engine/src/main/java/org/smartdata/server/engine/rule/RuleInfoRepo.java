@@ -152,6 +152,7 @@ public class RuleInfoRepo {
           : new SmartRuleStringParser(ruleInfo.getRuleText(), translationCtx, conf).translate();
 
       ruleExecutor = new RuleExecutor(
+          conf,
           ruleManager,
           executionCtx,
           translationResult,

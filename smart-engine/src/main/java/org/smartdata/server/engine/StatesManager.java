@@ -95,7 +95,7 @@ public class StatesManager extends AbstractService implements Reconfigurable {
     AccessCountFailoverFactory accessCountFailoverFactory =
         new AccessCountFailoverFactory(serverContext.getConf());
     DbAccessEventAggregator accessEventAggregator = new DbAccessEventAggregator(
-        serverContext.getMetaStore().fileInfoDao(),
+        serverContext.getMetaStore().generalFileInfoSource(),
         fileAccessManager,
         accessCountFailoverFactory.create());
     this.accessEventFetcher = new AccessEventFetcher(

@@ -35,6 +35,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
+
 /**
  * SSM related configurations as well as HDFS configurations.
  */
@@ -128,6 +131,10 @@ public class SmartConf extends Configuration {
       // In some unit tests, these files may be missing. So such exception is tolerable.
       LOG.error("Error parsing SSM servers/agents hosts file", exception);
     }
+  }
+
+  public SmartFsType getFsType() {
+    return getEnum(SMART_FS_TYPE, SMART_FS_TYPE_DEFAULT);
   }
 
   private Set<String> parseHostsFile(

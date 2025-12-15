@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao;
 
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.ozone.OzoneFileInfoDao;
 
 public interface DaoProvider {
@@ -65,4 +66,6 @@ public interface DaoProvider {
   FileAccessPartitionDao fileAccessPartitionDao();
 
   OzoneFileInfoDao ozoneFileInfoDao();
+
+  GeneralFileInfoSource generalFileInfoSource();
 }

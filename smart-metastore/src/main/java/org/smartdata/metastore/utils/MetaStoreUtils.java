@@ -58,6 +58,7 @@ public class MetaStoreUtils {
       "ec_policy",
       "file",
       "file_access",
+      "ofile_access",
       "storage",
       "storage_hist",
       "storage_policy",
@@ -119,7 +120,7 @@ public class MetaStoreUtils {
         new JdbcTransactionManager(druidPool.getDataSource());
 
     DaoProvider daoProvider = daoProviderFactory
-        .createDaoProvider(druidPool, transactionManager, dbType);
+        .createDaoProvider(conf, druidPool, transactionManager, dbType);
     DbSchemaManager dbSchemaManager = dbHandlersFactory.createDbManager(druidPool, conf);
     DbMetadataProvider dbMetadataProvider = dbHandlersFactory
         .createDbMetadataProvider(druidPool, dbType);

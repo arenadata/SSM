@@ -38,9 +38,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
-import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
-
 public class SmartEngine extends AbstractService {
   public static final Logger LOG = LoggerFactory.getLogger(SmartEngine.class);
 
@@ -126,10 +123,7 @@ public class SmartEngine extends AbstractService {
   }
 
   private void maybeEnableOzoneFetcher() {
-    SmartFsType smartFsType = serverContext.getConf().getEnum(
-        SMART_FS_TYPE,
-        SMART_FS_TYPE_DEFAULT);
-    if (smartFsType != SmartFsType.OZONE) {
+    if (serverContext.getConf().getFsType() != SmartFsType.OZONE) {
       return;
     }
 

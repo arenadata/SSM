@@ -33,36 +33,33 @@ import java.util.List;
 @Slf4j
 public class DefaultFileAccessPartitionDao extends AbstractDao implements FileAccessPartitionDao {
 
-  private static final String CREATE_NEW_PARTITION_ERR_MSG =
-      "Failed to create new partition for file_access table";
-
-  public DefaultFileAccessPartitionDao(DataSource dataSource) {
-    super(dataSource, "");
+  public DefaultFileAccessPartitionDao(DataSource dataSource, String accessTableName) {
+    super(dataSource, accessTableName);
   }
 
   @Override
   public void create(LocalDateTime date) throws MetaStoreException {
     try {
       Integer result =
-          jdbcTemplate.queryForObject("select create_file_access_partition(?);", Integer.class,
-              date);
+          jdbcTemplate.queryForObject("select create_file_access_partition(?, ?);", Integer.class,
+              tableName, date);
       if (result == null) {
-        throw new MetaStoreException(CREATE_NEW_PARTITION_ERR_MSG);
+        throw new MetaStoreException("Failed to create new partition for table " + tableName);
       }
       if (result == 1) {
-        log.info("Created partition for file_access table for date {}", date);
+        log.info("Created partition for {} table for date {}", tableName, date);
       }
     } catch (Exception e) {
-      throw new MetaStoreException(CREATE_NEW_PARTITION_ERR_MSG, e);
+      throw new MetaStoreException("Failed to create new partition for table " + tableName, e);
     }
   }
 
   @Override
   public List<FileAccessPartition> getAll() {
     String query = "SELECT inhrelid AS id, inhrelid::regclass AS name, "
-        + "cast(REPLACE(REPLACE(inhrelid::regclass::text, 'file_access_', ''),'_','-') as date) "
+        + "cast(REPLACE(REPLACE(inhrelid::regclass::text, '" + tableName + "_', ''),'_','-') as date) "
         + "as partition_date FROM pg_catalog.pg_inherits "
-        + "WHERE inhparent = 'file_access'::regclass "
+        + "WHERE inhparent = '" + tableName + "'::regclass "
         + "ORDER BY partition_date ASC;";
     try {
       return jdbcTemplate.query(query,
