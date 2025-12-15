@@ -26,7 +26,6 @@ import org.smartdata.metastore.queries.MetastoreQuery;
 import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
 import org.smartdata.model.FileAccessInfo;
 import org.smartdata.model.request.FileAccessInfoSearchRequest;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -48,14 +47,13 @@ public class DefaultFileAccessDao
     implements FileAccessDao {
 
   public DefaultFileAccessDao(
-      DataSource dataSource, PlatformTransactionManager transactionManager) {
-    super(dataSource, transactionManager, TABLE_NAME);
+      DataSource dataSource, PlatformTransactionManager transactionManager, String tableName) {
+    super(dataSource, transactionManager, tableName);
   }
 
   @Override
   public void insert(Collection<AggregatedAccessCounts> aggregatedAccessCounts) {
-    insert(new SimpleJdbcInsert(dataSource).withTableName(TABLE_NAME), aggregatedAccessCounts,
-        this::toMap);
+    insert(aggregatedAccessCounts, this::toMap);
   }
 
   protected Map<String, Object> toMap(AggregatedAccessCounts accessCounts) {
@@ -68,7 +66,7 @@ public class DefaultFileAccessDao
 
   @Override
   public void updateFileIds(long srcFileId, long destFileId) throws MetaStoreException {
-    String statement = "UPDATE " + TABLE_NAME
+    String statement = "UPDATE " + tableName
         + " SET fid = " + destFileId
         + " WHERE fid = " + srcFileId;
     try {
@@ -85,9 +83,9 @@ public class DefaultFileAccessDao
         "access_time",
         "path")
         .fromSubQuery("SELECT file.fid, count(*) AS count,\n"
-            + "MAX(file_access.access_time) as access_time, file.path as path\n"
-            + "FROM file_access\n"
-            + "    JOIN file ON file_access.fid = file.fid\n"
+            + "MAX(fa.access_time) as access_time, file.path as path\n"
+            + "FROM " + tableName + " as fa\n"
+            + "    JOIN file ON fa.fid = file.fid\n"
             + "GROUP BY file.fid, file.path", "f")
         .where(
             in("fid", searchRequest.getIds()),

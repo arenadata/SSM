@@ -123,7 +123,7 @@
                                     <shadedPattern>${shaded.dependencies.prefix}.org.apache.commons</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google</pattern>
+                                    <pattern>com.google.guava</pattern>
                                     <shadedPattern>${shaded.dependencies.prefix}.com.google</shadedPattern>
                                 </relocation>
                                 <relocation>

@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface FileAccessPartitionDao {
+  String HDFS_FILE_ACCESS_TABLE = "file_access";
+  String OZONE_FILE_ACCESS_TABLE = "ofile_access";
 
   void create(LocalDateTime date) throws MetaStoreException;
 

@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.ozone.OzoneFileInfoDao;
 import org.smartdata.ozone.model.OzoneFileInfo;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -27,7 +26,7 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultOzoneFileInfoDao extends AbstractDao implements OzoneFileInfoDao {
+public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFileInfoDao {
   private static final String TABLE_NAME = "ofile";
 
   private static final String FILE_ID_FIELD = "fid";

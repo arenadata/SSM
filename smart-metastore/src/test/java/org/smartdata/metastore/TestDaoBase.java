@@ -84,7 +84,7 @@ public abstract class TestDaoBase {
     PlatformTransactionManager transactionManager =
         new JdbcTransactionManager(druidPool.getDataSource());
     daoProvider = new DaoProviderFactory()
-        .createDaoProvider(druidPool, transactionManager, dbType);
+        .createDaoProvider(new SmartConf(), druidPool, transactionManager, dbType);
     dbMetadataProvider = dbHandlersFactory.createDbMetadataProvider(druidPool, dbType);
     metaStore = new MetaStore(
         druidPool, dbSchemaManager, daoProvider, dbMetadataProvider, transactionManager);

@@ -20,4 +20,5 @@
     <include file="/db/changelog/changelog-10.add-hive-event-tables.xml"/>
     <include file="/db/changelog/changelog-11.add-hive-sync-progress-table.xml"/>
     <include file="/db/changelog/changelog-12.add-ozone-file-table.xml"/>
+    <include file="/db/changelog/changelog-13.add-ozone-file-access-table.xml"/>
 </databaseChangeLog>

@@ -28,7 +28,6 @@ import java.util.Collection;
 
 public interface FileAccessDao extends
     Searchable<FileAccessInfoSearchRequest, FileAccessInfo, FileAccessInfoSortField> {
-  String TABLE_NAME = "file_access";
   String FILE_ID_FIELD = "fid";
   String ACCESS_COUNT_FIELD = "count";
   String ACCESS_TIME_FIELD = "access_time";

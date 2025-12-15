@@ -17,6 +17,8 @@
  */
 package org.smartdata.metastore.dao.impl;
 
+import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
@@ -41,17 +43,24 @@ import org.smartdata.metastore.dao.StoragePolicyDao;
 import org.smartdata.metastore.dao.SystemInfoDao;
 import org.smartdata.metastore.dao.UserActivityDao;
 import org.smartdata.metastore.dao.WhitelistDao;
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.ozone.OzoneFileInfoDao;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
+import static org.smartdata.metastore.dao.FileAccessPartitionDao.HDFS_FILE_ACCESS_TABLE;
+import static org.smartdata.metastore.dao.FileAccessPartitionDao.OZONE_FILE_ACCESS_TABLE;
+
 public abstract class DefaultDaoProvider implements DaoProvider {
+
   protected final DataSource dataSource;
   protected final PlatformTransactionManager transactionManager;
+  protected final SmartConf smartConf;
 
-  public DefaultDaoProvider(DBPool dbPool, PlatformTransactionManager transactionManager) {
+  public DefaultDaoProvider(SmartConf smartConf, DBPool dbPool, PlatformTransactionManager transactionManager) {
     this.dataSource = dbPool.getDataSource();
+    this.smartConf = smartConf;
     this.transactionManager = transactionManager;
   }
 
@@ -92,7 +101,7 @@ public abstract class DefaultDaoProvider implements DaoProvider {
 
   @Override
   public FileAccessDao fileAccessDao() {
-    return new DefaultFileAccessDao(dataSource, transactionManager);
+    return new DefaultFileAccessDao(dataSource, transactionManager, fileAccessTableName());
   }
 
   @Override
@@ -162,11 +171,24 @@ public abstract class DefaultDaoProvider implements DaoProvider {
 
   @Override
   public FileAccessPartitionDao fileAccessPartitionDao() {
-    return new DefaultFileAccessPartitionDao(dataSource);
+    return new DefaultFileAccessPartitionDao(dataSource, fileAccessTableName());
   }
 
   @Override
   public OzoneFileInfoDao ozoneFileInfoDao() {
     return new DefaultOzoneFileInfoDao(dataSource);
+  }
+
+  @Override
+  public GeneralFileInfoSource generalFileInfoSource() {
+    return smartConf.getFsType() == SmartFsType.HDFS
+        ? fileInfoDao()
+        : ozoneFileInfoDao();
+  }
+
+  private String fileAccessTableName() {
+    return smartConf.getFsType() == SmartFsType.HDFS
+        ? HDFS_FILE_ACCESS_TABLE
+        : OZONE_FILE_ACCESS_TABLE;
   }
 }

@@ -19,6 +19,7 @@ package org.smartdata.metastore.dao;
 
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.ozone.OzoneFileInfoDao;
 
 public interface DaoProvider {
@@ -73,4 +74,6 @@ public interface DaoProvider {
   HmsSyncProgressDao hmsSyncProgressDao();
 
   OzoneFileInfoDao ozoneFileInfoDao();
+
+  GeneralFileInfoSource generalFileInfoSource();
 }

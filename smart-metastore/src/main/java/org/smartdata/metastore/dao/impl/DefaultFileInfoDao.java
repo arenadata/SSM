@@ -17,7 +17,6 @@
  */
 package org.smartdata.metastore.dao.impl;
 
-import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileInfoDiff;
@@ -36,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
+public class DefaultFileInfoDao extends BaseFileInfoDao implements FileInfoDao {
 
   private static final String TABLE_NAME = "file";
 
@@ -83,23 +82,6 @@ public class DefaultFileInfoDao extends AbstractDao implements FileInfoDao {
   public FileInfo getByPath(String path) {
     return jdbcTemplate.queryForObject("SELECT * FROM file WHERE path = ?",
         new Object[]{path}, new DefaultFileInfoDao.FileInfoRowMapper());
-  }
-
-  @Override
-  public Map<String, Long> getPathFids(Collection<String> paths)
-      throws SQLException {
-    NamedParameterJdbcTemplate namedParameterJdbcTemplate =
-        new NamedParameterJdbcTemplate(dataSource);
-    Map<String, Long> pathToId = new HashMap<>();
-    String sql = "SELECT * FROM file WHERE path IN (:paths)";
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-    parameterSource.addValue("paths", paths);
-    List<FileInfo> files = namedParameterJdbcTemplate.query(sql,
-        parameterSource, new FileInfoRowMapper());
-    for (FileInfo file : files) {
-      pathToId.put(file.getPath(), file.getFileId());
-    }
-    return pathToId;
   }
 
   @Override

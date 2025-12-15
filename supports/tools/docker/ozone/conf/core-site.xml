@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>ofs://om/</value>
+    </property>
+    <property>
+        <name>fs.ofs.impl</name>
+        <value>org.apache.hadoop.fs.ozone.SmartRootedOzoneFileSystem</value>
+    </property>
+    <property>
+        <name>fs.o3fs.impl</name>
+        <value>org.apache.hadoop.fs.ozone.SmartOzoneFileSystem</value>
+    </property>
+    <property>
+        <name>smart.server.rpc.address</name>
+        <value>localhost:8081</value>
+    </property>
+</configuration>

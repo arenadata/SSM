@@ -17,15 +17,14 @@
  */
 package org.smartdata.metastore.dao;
 
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileInfoDiff;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-public interface FileInfoDao {
+public interface FileInfoDao extends GeneralFileInfoSource {
   String FILE_PATH_FIELD = "path";
 
   List<FileInfo> getAll();
@@ -39,9 +38,6 @@ public interface FileInfoDao {
   FileInfo getById(long fid);
 
   FileInfo getByPath(String path);
-
-  Map<String, Long> getPathFids(Collection<String> paths)
-      throws SQLException;
 
   void insert(FileInfo fileInfo, boolean generateId);
 
