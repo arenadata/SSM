@@ -28,6 +28,8 @@
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
                 select count(*) from pg_proc where proname = 'create_file_access_partition'
+                                               AND array_length(proargtypes, 1) = 1
+                                               AND proargtypes[0] = 'timestamp'::regtype;
             </sqlCheck>
         </preConditions>
         <sql>drop function create_file_access_partition(timestamp);</sql>
