@@ -57,7 +57,7 @@ public abstract class BaseFileInfoDao extends AbstractDao implements GeneralFile
 
   private GeneralFileInfo mapRow(ResultSet resultSet, int i) throws SQLException {
     return new GeneralFileInfo(
-        resultSet.getLong("id"),
+        resultSet.getLong("fid"),
         resultSet.getString("path")
     );
   }

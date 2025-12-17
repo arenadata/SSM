@@ -40,9 +40,59 @@ services:
     <<: *image
     ports:
       - 9864
-    command: ["ozone","datanode"]
+    command: [ "ozone","datanode" ]
     environment:
       <<: *common-config
+
+  ssm-server:
+    image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
+    volumes:
+      - ./conf:/opt/ssm/conf
+      - ./ssm/common.sh:/common.sh
+      - ./ssm/ssm-server-entrypoint.sh:/ssm-server-entrypoint.sh
+    entrypoint: ["/ssm-server-entrypoint.sh"]
+    ports:
+      - "7042:7042"
+      - "8081:8081"
+      # JMX port
+      - "3333:3333"
+      # ssm debug port
+      - "8008:8008"
+    environment:
+      SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://ssm-server.demo:8081 || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    depends_on:
+      - ssm-metastore-db
+
+  ssm-metastore-db:
+    image: "docker.io/library/postgres:14.0"
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: 'metastore'
+      POSTGRES_USER: 'ssm'
+      POSTGRES_PASSWORD: 'ssm'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD-SHELL", "psql -d metastore -U ssm -Atc 'SELECT 1;'"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+
+#  ozone-fs-client:
+#    image: hub.adsw.io/java/hadoop-openjdk8:${HADOOP_VERSION:-3.3.6}
+#    restart: unless-stopped
+#    entrypoint: [ "/entrypoint.sh" ]
+#    volumes:
+#      - ./conf:/etc/conf
+#      - ./fs-client/common.sh:/common.sh
+#      - ./fs-client/entrypoint.sh:/entrypoint.sh
+#      - ../../../../smart-ozone-support/target/smart-ozone-fs-client-shaded-2.2.0-SNAPSHOT.jar:/etc/jars/smart-ozone-client.jar
+
   om:
     <<: *image
     ports:
@@ -54,7 +104,8 @@ services:
       CORE-SITE.XML_hadoop.proxyuser.hadoop.groups: "*"
       ENSURE_OM_INITIALIZED: /data/metadata/om/current/VERSION
       WAITFOR: scm:9876
-    command: ["ozone","om"]
+    command: [ "ozone","om" ]
+
   scm:
     <<: *image
     ports:
@@ -62,21 +113,24 @@ services:
     environment:
       <<: *common-config
       ENSURE_SCM_INITIALIZED: /data/metadata/scm/current/VERSION
-    command: ["ozone","scm"]
+    command: [ "ozone","scm" ]
+
   recon:
     <<: *image
     ports:
       - 9888:9888
     environment:
       <<: *common-config
-    command: ["ozone","recon"]
+    command: [ "ozone","recon" ]
+
   s3g:
     <<: *image
     ports:
       - 9878:9878
     environment:
       <<: *common-config
-    command: ["ozone","s3g"]
+    command: [ "ozone","s3g" ]
+
   httpfs:
     <<: *image
     ports:

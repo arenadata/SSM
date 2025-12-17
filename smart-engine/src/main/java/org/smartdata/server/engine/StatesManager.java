@@ -47,6 +47,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.smartdata.conf.SmartConfKeys.ACCESS_EVENT_SOURCE_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.ACCESS_EVENT_SOURCE_KEY;
+import static org.smartdata.utils.PathUtil.addPathSeparator;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 /**
@@ -199,8 +200,7 @@ public class StatesManager extends AbstractService implements Reconfigurable {
   }
 
   public void reportFileAccessEvent(FileAccessEvent event) {
-    String path = event.getPath();
-    path = path + (path.endsWith("/") ? "" : "/");
+    String path = addPathSeparator(event.getPath());
 
     if (pathChecker.isIgnored(path)) {
       LOG.debug("Path {} is in the ignore list. Skip report file access event.", path);
