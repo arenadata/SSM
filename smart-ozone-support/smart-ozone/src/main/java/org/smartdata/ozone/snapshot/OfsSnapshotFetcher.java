@@ -148,7 +148,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
 
   private CompletableFuture<Void> handleVolume(FileStatus fileStatus) {
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
-        .path(fileStatus.getPath().toString())
+        .path(pathWithoutAuthority(fileStatus.getPath()))
         .isVolume(true);
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> executeInParallel(
@@ -158,7 +158,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
 
   private CompletableFuture<Void> handleBucket(FileStatus fileStatus) {
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
-        .path(fileStatus.getPath().toString())
+        .path(pathWithoutAuthority(fileStatus.getPath()))
         .isBucket(true);
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> createBucketSnapshot(fileStatus), executor)
@@ -172,7 +172,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
   private CompletableFuture<Void> handleKey(FileStatus fileStatus) {
     Path filePath = getOriginalFilePath(fileStatus.getPath());
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
-        .path(filePath.toString());
+        .path(pathWithoutAuthority(filePath));
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> handleChildrenIfDirectory(fileStatus), executor);
   }
@@ -358,6 +358,10 @@ public class OfsSnapshotFetcher implements AutoCloseable {
         ofsPath.getAuthority(),
         ofsPath.getNonKeyPath() + ofsSnapshotKeyToPath(ofsPath)
     );
+  }
+
+  private String pathWithoutAuthority(Path path) {
+    return path.toUri().getPath();
   }
 
   private String ofsSnapshotKeyToPath(OFSPath ofsPath) {
