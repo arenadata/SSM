@@ -206,7 +206,7 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
   }
 
   private FSDataOutputStream checkAndMarkRunning(URI namenodeURI, Configuration conf,
-                                                 String filePath)
+      String filePath)
       throws IOException {
     Path path = new Path(filePath);
     DistributedFileSystem fs = (DistributedFileSystem) FileSystem.get(namenodeURI, conf);

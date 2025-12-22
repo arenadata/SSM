@@ -27,6 +27,7 @@ import org.smartdata.hdfs.action.HdfsCmdletFactoryPlugin;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
 import org.smartdata.hive.action.HmsCmdletFactoryPlugin;
 import org.smartdata.model.LaunchAction;
+import org.smartdata.ozone.action.OzoneCmdletFactoryPlugin;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.Closeable;
@@ -40,20 +41,26 @@ public class CmdletFactory implements Closeable {
   private final SmartContext smartContext;
   private final UserImpersonationStrategy userImpersonationStrategy;
   private final List<CmdletFactoryPlugin> plugins;
+  private final ActionRegistry actionRegistry;
 
   public CmdletFactory(SmartContext smartContext,
-      UserImpersonationStrategy userImpersonationStrategy) {
+      UserImpersonationStrategy userImpersonationStrategy,
+      ActionRegistry actionRegistry) {
     this(smartContext,
         userImpersonationStrategy,
+        actionRegistry,
         new HdfsCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy),
-        new HmsCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy)
+        new HmsCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy),
+        new OzoneCmdletFactoryPlugin(smartContext.getConf(), userImpersonationStrategy)
     );
   }
 
   public CmdletFactory(SmartContext smartContext,
       UserImpersonationStrategy userImpersonationStrategy,
+      ActionRegistry actionRegistry,
       CmdletFactoryPlugin... plugins) {
     this.smartContext = smartContext;
+    this.actionRegistry = actionRegistry;
     this.userImpersonationStrategy = userImpersonationStrategy;
     this.plugins = Arrays.asList(plugins);
   }
@@ -82,7 +89,7 @@ public class CmdletFactory implements Closeable {
       boolean isLastAction,
       LaunchAction launchAction,
       String actionUser) throws ActionException {
-    SmartAction smartAction = ActionRegistry.createAction(launchAction.getActionType());
+    SmartAction smartAction = actionRegistry.createAction(launchAction.getActionType());
     smartAction.setContext(smartContext);
     smartAction.setCmdletId(cmdletId);
     smartAction.setLastAction(isLastAction);

@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.CachedFilesSortField;
 import org.smartdata.model.request.CachedFileSearchRequest;
-import org.smartdata.server.engine.CachedFilesManager;
+import org.smartdata.server.engine.file.DbCachedFilesManager;
 import org.smartdata.server.generated.model.CachedFileSortDto;
 import org.smartdata.server.generated.model.CachedFilesDto;
 import org.smartdata.server.generated.model.CachedTimeIntervalDto;
@@ -39,7 +39,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CachedFilesControllerDelegate {
 
-  private final CachedFilesManager cachedFilesManager;
+  private final DbCachedFilesManager cachedFilesManager;
   private final CachedFilePageRequestMapper pageRequestMapper;
   private final CachedFileMapper cachedFileMapper;
 

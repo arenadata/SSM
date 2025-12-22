@@ -34,6 +34,8 @@ import org.smartdata.utils.SecurityUtil;
 
 import java.io.IOException;
 
+import static org.smartdata.server.utils.ConfigUtil.enrichSmartConf;
+
 public class SmartDaemon implements ServerDaemon {
   private static final Logger LOG = LoggerFactory.getLogger(SmartDaemon.class);
   private final String[] args;
@@ -51,7 +53,7 @@ public class SmartDaemon implements ServerDaemon {
     if (HazelcastUtil.isMaster(instance)) {
       SmartServer.main(args);
     } else {
-      HadoopUtil.setSmartConfByHadoop(conf);
+      enrichSmartConf(conf);
 
       String rpcHost = HazelcastUtil
               .getMasterMember(HazelcastInstanceProvider.getInstance(conf))

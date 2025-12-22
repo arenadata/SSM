@@ -19,6 +19,7 @@ package org.smartdata.utils;
 
 import com.google.common.net.HostAndPort;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.smartdata.conf.SmartConfKeys;
 
@@ -30,13 +31,31 @@ import java.util.stream.Collectors;
 
 import static org.smartdata.SmartConstants.DISTRIBUTED_FILE_SYSTEM;
 import static org.smartdata.SmartConstants.FS_HDFS_IMPL;
+import static org.smartdata.SmartConstants.FS_O3FS_IMPL;
+import static org.smartdata.SmartConstants.FS_OFS_IMPL;
+import static org.smartdata.SmartConstants.O3FS;
+import static org.smartdata.SmartConstants.OFS;
 import static org.smartdata.SmartConstants.SMART_FILE_SYSTEM;
+import static org.smartdata.SmartConstants.SMART_O3FS;
+import static org.smartdata.SmartConstants.SMART_OFS;
 
 public class ConfigUtil {
   public static Configuration toRemoteClusterConfig(Configuration configuration) {
     Configuration remoteConfig = new Configuration(configuration);
-    if (SMART_FILE_SYSTEM.equals(remoteConfig.get(FS_HDFS_IMPL))) {
+
+    String hdfsImpl = remoteConfig.get(FS_HDFS_IMPL);
+    if (StringUtils.isBlank(hdfsImpl) || SMART_FILE_SYSTEM.equals(hdfsImpl)) {
       remoteConfig.set(FS_HDFS_IMPL, DISTRIBUTED_FILE_SYSTEM);
+    }
+
+    String ofsImpl = remoteConfig.get(FS_OFS_IMPL);
+    if (StringUtils.isBlank(ofsImpl) || SMART_OFS.equals(ofsImpl)) {
+      remoteConfig.set(FS_OFS_IMPL, OFS);
+    }
+
+    String o3fsImpl = remoteConfig.get(FS_O3FS_IMPL);
+    if (StringUtils.isBlank(o3fsImpl) || SMART_O3FS.equals(o3fsImpl)) {
+      remoteConfig.set(FS_O3FS_IMPL, O3FS);
     }
 
     return remoteConfig;

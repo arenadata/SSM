@@ -31,7 +31,7 @@ import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.action.CopyDirectoryAction;
 import org.smartdata.hdfs.action.CopyFileAction;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.hdfs.file.equality.FileEqualityStrategy;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -204,7 +204,7 @@ public class CopyScheduler extends ActionSchedulerService {
       return ScheduleResult.FAIL;
     }
     String srcDir = action.getArgs().get(SyncAction.SRC);
-    String path = action.getArgs().get(HdfsAction.FILE_PATH);
+    String path = action.getArgs().get(HadoopAction.FILE_PATH);
     String destDir = action.getArgs().get(SyncAction.DEST);
     String preserveAttributes = action.getArgs().get(SyncAction.PRESERVE);
     String destPath = path.replaceFirst(srcDir, destDir);
@@ -278,11 +278,11 @@ public class CopyScheduler extends ActionSchedulerService {
         break;
       case DELETE:
         action.setActionType("delete");
-        action.getArgs().put(HdfsAction.FILE_PATH, destPath);
+        action.getArgs().put(HadoopAction.FILE_PATH, destPath);
         break;
       case RENAME:
         action.setActionType("rename");
-        action.getArgs().put(HdfsAction.FILE_PATH, destPath);
+        action.getArgs().put(HadoopAction.FILE_PATH, destPath);
         // TODO scope check
         String remoteDest = getDest(fileDiff);
         action.getArgs().put("-dest", remoteDest.replaceFirst(srcDir, destDir));
@@ -290,7 +290,7 @@ public class CopyScheduler extends ActionSchedulerService {
         break;
       case METADATA:
         action.setActionType("metadata");
-        action.getArgs().put(HdfsAction.FILE_PATH, destPath);
+        action.getArgs().put(HadoopAction.FILE_PATH, destPath);
         break;
       default:
         break;
@@ -355,7 +355,7 @@ public class CopyScheduler extends ActionSchedulerService {
     if (actionInfo.getArgs() == null) {
       throw new ActionRejectedException("No arguments for the action");
     }
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String path = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     LOG.debug("Submit file {} with lock {}", path, fileLocks);
     // If locked then false
     if (!isFileLocked(path)) {

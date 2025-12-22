@@ -19,6 +19,7 @@ package org.smartdata.server.engine.cmdlet.agent;
 
 import org.smartdata.AgentService;
 import org.smartdata.SmartConstants;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategyFactory;
@@ -26,6 +27,7 @@ import org.smartdata.protocol.message.LaunchCmdlet;
 import org.smartdata.protocol.message.StopCmdlet;
 import org.smartdata.server.engine.cmdlet.CmdletExecutor;
 import org.smartdata.server.engine.cmdlet.CmdletFactory;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.io.IOException;
 
@@ -33,17 +35,17 @@ public class AgentCmdletService extends AgentService {
   private CmdletExecutor executor;
   private CmdletFactory factory;
 
-  public AgentCmdletService() {
-  }
-
   @Override
   public void init() throws IOException {
     SmartAgentContext context = (SmartAgentContext) getContext();
     SmartConf conf = context.getConf();
     UserImpersonationStrategy userImpersonationStrategy =
         UserImpersonationStrategyFactory.from(conf);
+
+    ActionRegistry actionRegistry =
+        new ActionRegistry(FileSystemContext.fromConfig(conf).actionFactories());
     this.executor = new CmdletExecutor(conf, userImpersonationStrategy);
-    this.factory = new CmdletFactory(context, userImpersonationStrategy);
+    this.factory = new CmdletFactory(context, userImpersonationStrategy, actionRegistry);
   }
 
   @Override

@@ -42,7 +42,7 @@ public class EnableErasureCodingPolicy extends HdfsAction {
 
   @Override
   public void execute() throws Exception {
-    localFileSystem.enableErasureCodingPolicy(policyName);
+    localDfs.enableErasureCodingPolicy(policyName);
     appendLog(String.format("The EC policy named %s is enabled!", policyName));
   }
 

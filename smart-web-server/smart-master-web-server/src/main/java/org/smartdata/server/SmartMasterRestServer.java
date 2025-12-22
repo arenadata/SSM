@@ -47,7 +47,7 @@ public class SmartMasterRestServer extends SmartHttpServer {
     public void initialize(ConfigurableApplicationContext applicationContext) {
       ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
       beanFactory.registerSingleton("smartEngine", smartEngine);
-      beanFactory.registerSingleton("statesManager", smartEngine.getStatesManager());
+      beanFactory.registerSingleton("statesManager", smartEngine.getFileAccessManager());
       beanFactory.registerSingleton("cmdletManager", smartEngine.getCmdletManager());
       beanFactory.registerSingleton("ruleManager", smartEngine.getRuleManager());
       beanFactory.registerSingleton("auditService", smartEngine.getAuditService());
@@ -60,11 +60,11 @@ public class SmartMasterRestServer extends SmartHttpServer {
       beanFactory.registerSingleton(
           "actionInfoHandler", smartEngine.getCmdletManager().getActionInfoHandler());
       beanFactory.registerSingleton(
-          "cachedFilesManager", smartEngine.getStatesManager().getCachedFilesManager());
+          "cachedFilesManager", smartEngine.getCachedFilesManager());
       beanFactory.registerSingleton(
           "smartPrincipalManager", smartEngine.getSmartPrincipalManager());
       beanFactory.registerSingleton("dbFileAccessManager",
-          smartEngine.getStatesManager().getFileAccessManager());
+          smartEngine.getFileAccessManager().getFileAccessCountManager());
     }
   }
 

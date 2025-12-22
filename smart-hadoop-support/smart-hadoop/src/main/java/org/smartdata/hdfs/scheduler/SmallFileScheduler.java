@@ -26,7 +26,7 @@ import org.smartdata.SmartContext;
 import org.smartdata.SmartFilePermission;
 import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.HadoopUtil;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.hdfs.action.SmallFileCompactAction;
 import org.smartdata.hdfs.action.SmallFileUncompactAction;
 import org.smartdata.metastore.MetaStore;
@@ -172,7 +172,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
       }
 
       // Check if small files is null or empty
-      String smallFiles = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+      String smallFiles = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
       if (smallFiles == null || smallFiles.isEmpty()) {
         throw new ActionRejectedException("Illegal small files: " + smallFiles);
       }
@@ -322,7 +322,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
     // Get container file and small file list of this action
     String containerFilePath = getContainerFile(actionInfo);
     ArrayList<String> smallFileList = new Gson().fromJson(
-        actionInfo.getArgs().get(HdfsAction.FILE_PATH),
+        actionInfo.getArgs().get(HadoopAction.FILE_PATH),
         new TypeToken<ArrayList<String>>() {
         }.getType());
 
@@ -431,7 +431,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
 
         // Put small files into arguments of this action
         Map<String, String> args = new HashMap<>(2);
-        args.put(HdfsAction.FILE_PATH, new Gson().toJson(smallFileList));
+        args.put(HadoopAction.FILE_PATH, new Gson().toJson(smallFileList));
         args.put(SmallFileUncompactAction.CONTAINER_FILE,
             getContainerFile(actionInfo));
         action.setArgs(args);
@@ -560,7 +560,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
     // Get container file path, small files, result of this action
     String containerFilePath = getContainerFile(actionInfo);
     List<String> smallFileList = new Gson().fromJson(
-        actionInfo.getArgs().get(HdfsAction.FILE_PATH),
+        actionInfo.getArgs().get(HadoopAction.FILE_PATH),
         new TypeToken<ArrayList<String>>() {
         }.getType());
     List<CompactFileState> compactFileStates = new Gson().fromJson(
@@ -622,7 +622,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
   }
 
   public List<String> getSmallFileList(ActionInfo actionInfo) {
-    return new Gson().fromJson(actionInfo.getArgs().get(HdfsAction.FILE_PATH),
+    return new Gson().fromJson(actionInfo.getArgs().get(HadoopAction.FILE_PATH),
         new TypeToken<ArrayList<String>>() {
         }.getType());
   }

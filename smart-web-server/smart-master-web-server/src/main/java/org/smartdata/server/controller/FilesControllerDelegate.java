@@ -18,7 +18,7 @@
 package org.smartdata.server.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.smartdata.metastore.accesscount.FileAccessManager;
+import org.smartdata.metastore.accesscount.FileAccessCountManager;
 import org.smartdata.metastore.model.SearchResult;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.FileAccessInfoSortField;
@@ -44,26 +44,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FilesControllerDelegate implements FilesApiDelegate {
 
-  private final FileAccessManager fileAccessManager;
+  private final FileAccessCountManager fileAccessManager;
   private final FileAccessInfoMapper fileInfoMapper;
   private final FileAccessInfoPageRequestMapper pageRequestMapper;
   private final CachedFilesControllerDelegate cachedFilesControllerDelegate;
 
   @Override
   public CachedFilesDto getCachedFiles(PageRequestDto pageRequestDto,
-                                       List<@Valid CachedFileSortDto> sort,
-                                       String pathLike,
-                                       LastAccessedTimeIntervalDto lastAccessedTime,
-                                       CachedTimeIntervalDto cachedTime) throws Exception {
+      List<@Valid CachedFileSortDto> sort,
+      String pathLike,
+      LastAccessedTimeIntervalDto lastAccessedTime,
+      CachedTimeIntervalDto cachedTime) throws Exception {
     return cachedFilesControllerDelegate.getCachedFiles(
         pageRequestDto, sort, pathLike, lastAccessedTime, cachedTime);
   }
 
   @Override
   public FileAccessCountsDto getAccessCounts(PageRequestDto pageRequestDto,
-                                             List<@Valid HotFileSortDto> sort,
-                                             String pathLike,
-                                             LastAccessedTimeIntervalDto lastAccessedTime)
+      List<@Valid HotFileSortDto> sort,
+      String pathLike,
+      LastAccessedTimeIntervalDto lastAccessedTime)
       throws Exception {
     PageRequest<FileAccessInfoSortField> pageRequest =
         pageRequestMapper.toPageRequest(pageRequestDto, sort);

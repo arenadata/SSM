@@ -21,7 +21,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.audit.UserActivityEvent;
@@ -33,6 +35,7 @@ import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcherHelper;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,8 +61,14 @@ public class TestCmdletLifecycleLogger extends TestDaoBase {
     principalManager = new ThreadScopeSmartPrincipalManager(
         new AnonymousDefaultPrincipalProvider());
 
+    FileSystemContext fsContext = FileSystemContext.fromFsType(SmartFsType.HDFS);
     CmdletDispatcherHelper.init();
-    cmdletManager = new CmdletManager(serverContext, auditService, principalManager);
+    cmdletManager = new CmdletManager(
+        serverContext,
+        auditService,
+        principalManager,
+        new ActionRegistry(fsContext.actionFactories()),
+        fsContext.actionSchedulerServices(serverContext));
     cmdletManager.init();
     cmdletManager.start();
   }

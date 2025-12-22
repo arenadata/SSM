@@ -19,30 +19,38 @@ package org.smartdata.hdfs.action;
 
 import org.apache.hadoop.util.VersionInfo;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.ActionRegistry;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.util.Set;
 
 public class TestActionRegistry {
 
-  @Test
-  public void testInit() throws IOException {
-    System.out.println(VersionInfo.getBuildVersion());
-    Set<String> actionNames = ActionRegistry.registeredActions();
-    // System.out.print(actionNames.size());
-    Assert.assertTrue(actionNames.size() > 0);
+  private ActionRegistry actionRegistry;
+
+  @Before
+  public void init() {
+    actionRegistry = new ActionRegistry(
+        Collections.singletonList(new HdfsActionFactory()));
   }
 
   @Test
-  public void testCreateAction() throws IOException, ActionException {
-    Assert.assertTrue(ActionRegistry.createAction("cache") instanceof CacheFileAction);
-    Set<String> actionNames = ActionRegistry.registeredActions();
+  public void testInit() {
+    System.out.println(VersionInfo.getBuildVersion());
+    Set<String> actionNames = actionRegistry.registeredActions();
+    Assert.assertFalse(actionNames.isEmpty());
+  }
+
+  @Test
+  public void testCreateAction() throws ActionException {
+    Assert.assertTrue(actionRegistry.createAction("cache") instanceof CacheFileAction);
+    Set<String> actionNames = actionRegistry.registeredActions();
     // create all kinds of actions
     for (String name : actionNames) {
-      ActionRegistry.createAction(name);
+      actionRegistry.createAction(name);
     }
   }
 }

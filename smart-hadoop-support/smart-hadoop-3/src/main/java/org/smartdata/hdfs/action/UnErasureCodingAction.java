@@ -57,7 +57,7 @@ public class UnErasureCodingAction extends ErasureCodingBase {
   protected void execute() throws Exception {
     validateNonEmptyArgs(FILE_PATH);
 
-    HdfsFileStatus fileStatus = (HdfsFileStatus) localFileSystem.getFileStatus(srcPath);
+    HdfsFileStatus fileStatus = (HdfsFileStatus) localDfs.getFileStatus(srcPath);
     ErasureCodingPolicy srcEcPolicy = fileStatus.getErasureCodingPolicy();
 
     // if ecPolicy is null, it means replication.
@@ -67,7 +67,7 @@ public class UnErasureCodingAction extends ErasureCodingBase {
       return;
     }
     if (fileStatus.isDir()) {
-      localFileSystem.setErasureCodingPolicy(srcPath, ecPolicyName);
+      localDfs.setErasureCodingPolicy(srcPath, ecPolicyName);
       progress = 1.0F;
       appendLog(DIR_RESULT);
       return;
@@ -76,14 +76,14 @@ public class UnErasureCodingAction extends ErasureCodingBase {
     try {
       convert(fileStatus);
       setAttributes(fileStatus);
-      localFileSystem.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
+      localDfs.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
       appendLog(CONVERT_RESULT);
       appendLog(String.format("The previous EC policy is %s.", srcEcPolicy.getName()));
       appendLog(String.format("The current EC policy is %s.", REPLICATION_POLICY_NAME));
     } catch (ActionException ex) {
       try {
-        if (localFileSystem.exists(ecTmpPath)) {
-          localFileSystem.delete(ecTmpPath, false);
+        if (localDfs.exists(ecTmpPath)) {
+          localDfs.delete(ecTmpPath, false);
         }
       } catch (IOException e) {
         LOG.error("Failed to delete tmp file created during the conversion!");

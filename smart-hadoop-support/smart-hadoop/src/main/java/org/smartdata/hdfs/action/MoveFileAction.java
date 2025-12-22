@@ -65,7 +65,7 @@ public class MoveFileAction extends AbstractMoveFileAction {
     validateNonEmptyArgs(FILE_PATH, MOVE_PLAN);
 
     if (movePlan.isDir()) {
-      localFileSystem.setStoragePolicy(filePath, storagePolicy);
+      localDfs.setStoragePolicy(filePath, storagePolicy);
       appendLog("Directory moved successfully.");
       return;
     }
@@ -97,12 +97,12 @@ public class MoveFileAction extends AbstractMoveFileAction {
 
   private boolean recheckModification() {
     try {
-      Optional<HdfsFileStatus> fileStatus = getHdfsFileStatus(localFileSystem, filePath);
+      Optional<HdfsFileStatus> fileStatus = getHdfsFileStatus(localDfs, filePath);
       if (!fileStatus.isPresent()) {
         return true;
       }
 
-      return !localFileSystem.isFileClosed(filePath)
+      return !localDfs.isFileClosed(filePath)
           || (movePlan.getFileId() != 0 && fileStatus.get().getFileId() != movePlan.getFileId())
           || fileStatus.get().getLen() != movePlan.getFileLength()
           || fileStatus.get().getModificationTime() != movePlan.getModificationTime();

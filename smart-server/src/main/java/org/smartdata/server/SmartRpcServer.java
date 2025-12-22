@@ -158,7 +158,7 @@ public class SmartRpcServer implements SmartServerProtocols {
   public void reportFileAccessEvent(FileAccessEvent event)
       throws IOException {
     checkIfActive();
-    ssm.getStatesManager().reportFileAccessEvent(event);
+    ssm.getFileAccessManager().reportFileAccessEvent(event);
   }
 
   @Override

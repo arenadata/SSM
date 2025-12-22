@@ -25,7 +25,7 @@ import org.smartdata.action.annotation.ActionSignature;
 @ActionSignature(
     actionId = "ramdisk",
     displayName = "ramdisk",
-    usage = HdfsAction.FILE_PATH + " $file "
+    usage = HadoopAction.FILE_PATH + " $file "
 )
 public class RamDiskFileAction extends MoveFileAction {
 

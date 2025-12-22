@@ -44,10 +44,23 @@ public class SmartConstants {
   public static final String SMART_FILE_CHECKSUM_XATTR_NAME = "user.checksum";
 
   public static final String FS_HDFS_IMPL = "fs.hdfs.impl";
+  public static final String FS_OFS_IMPL = "fs.ofs.impl";
+  public static final String FS_O3FS_IMPL = "fs.o3fs.impl";
   public static final String SMART_FILE_SYSTEM =
       "org.smartdata.hadoop.filesystem.SmartFileSystem";
+  public static final String SMART_OFS =
+      "org.apache.hadoop.fs.ozone.SmartRootedOzoneFileSystem";
+  public static final String SMART_O3FS =
+      "org.apache.hadoop.fs.ozone.SmartOzoneFileSystem";
+
   public static final String DISTRIBUTED_FILE_SYSTEM =
       "org.apache.hadoop.hdfs.DistributedFileSystem";
+  public static final String OFS =
+      "org.apache.hadoop.fs.ozone.RootedOzoneFileSystem";
+  public static final String O3FS =
+      "org.apache.hadoop.fs.ozone.OzoneFileSystem";
+
+
 
   public static final String REPLICATION_CODEC_NAME = "replication";
 }

@@ -52,7 +52,7 @@ import static org.smartdata.utils.PathUtil.getRawPath;
 @ActionSignature(
     actionId = "compact",
     displayName = "compact",
-    usage = HdfsAction.FILE_PATH + " $files "
+    usage = HadoopAction.FILE_PATH + " $files "
         + SmallFileCompactAction.CONTAINER_FILE + " $container_file "
 )
 public class SmallFileCompactAction extends HdfsAction {

@@ -35,6 +35,7 @@ public class SmartConfKeys {
   public static final int SMART_NAMESPACE_FETCHER_BATCH_DEFAULT = 500;
 
   public static final String SMART_DFS_NAMENODE_RPCSERVER_KEY = "smart.dfs.namenode.rpcserver";
+  public static final String SMART_OZONE_RPC_SERVER_KEY = "smart.ozone.rpcserver";
 
   public static final String SMART_FS_TYPE = "smart.fs.type";
   public static final SmartFsType SMART_FS_TYPE_DEFAULT = SmartFsType.HDFS;

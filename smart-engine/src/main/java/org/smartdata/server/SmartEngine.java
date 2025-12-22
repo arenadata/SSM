@@ -21,10 +21,10 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
+import org.smartdata.SmartService;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.conf.SmartFsType;
 import org.smartdata.hive.HiveMetastoreFetcherService;
-import org.smartdata.ozone.OzoneFetcherService;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
@@ -32,8 +32,11 @@ import org.smartdata.server.cluster.ClusterNodesManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
-import org.smartdata.server.engine.StatesManager;
 import org.smartdata.server.engine.audit.AuditService;
+import org.smartdata.server.engine.file.CachedFilesManager;
+import org.smartdata.server.engine.file.DbFileAccessManager;
+import org.smartdata.server.engine.file.FileAccessManager;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,7 +52,7 @@ public class SmartEngine extends AbstractService {
   @Getter
   private final ServerContext serverContext;
   @Getter
-  private StatesManager statesManager;
+  private FileAccessManager fileAccessManager;
   @Getter
   private RuleManager ruleManager;
   @Getter
@@ -60,8 +63,10 @@ public class SmartEngine extends AbstractService {
   private ClusterNodesManager clusterNodesManager;
   @Getter
   private SmartPrincipalManager smartPrincipalManager;
+  @Getter
+  private CachedFilesManager cachedFilesManager;
 
-  private final List<AbstractService> services;
+  private final List<SmartService> services;
 
   public SmartEngine(ServerContext context) {
     super(context);
@@ -72,41 +77,60 @@ public class SmartEngine extends AbstractService {
 
   @Override
   public void init() throws IOException {
-    statesManager = new StatesManager(serverContext);
     smartPrincipalManager = new ThreadScopeSmartPrincipalManager(
         new AnonymousDefaultPrincipalProvider());
-    services.add(statesManager);
+    fileAccessManager = new DbFileAccessManager(serverContext);
+    services.add(fileAccessManager);
     auditService = new AuditService(serverContext.getMetaStore().userActivityDao());
-    cmdletManager = new CmdletManager(serverContext, auditService, smartPrincipalManager);
+
+    FileSystemContext fsContext = FileSystemContext.fromConfig(conf);
+
+    ActionRegistry actionRegistry = new ActionRegistry(fsContext.actionFactories());
+
+    cmdletManager = CmdletManager.builder()
+        .context(serverContext)
+        .auditService(auditService)
+        .smartPrincipalManager(smartPrincipalManager)
+        .schedulerServices(fsContext.actionSchedulerServices(serverContext))
+        .actionRegistry(actionRegistry)
+        .build();
     services.add(cmdletManager);
-    clusterNodesManager = new ClusterNodesManager(conf, cmdletManager);
-    ruleManager = new RuleManager(
-        serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
+
+    ruleManager = RuleManager.builder()
+        .context(serverContext)
+        .cmdletManager(cmdletManager)
+        .auditService(auditService)
+        .actionRegistry(actionRegistry)
+        .smartPrincipalManager(smartPrincipalManager)
+        .executorPlugins(fsContext.ruleExecutorPlugins(serverContext, cmdletManager))
+        .build();
+
     services.add(ruleManager);
-    maybeEnableOzoneFetcher();
+
+    clusterNodesManager = new ClusterNodesManager(conf, cmdletManager);
+
     maybeEnableHiveEventsFetcher();
 
-    for (AbstractService s : services) {
+    cachedFilesManager = fsContext.cachedFilesManager(serverContext);
+
+    services.addAll(fsContext.additionalServices(serverContext));
+    for (SmartService s : services) {
       s.init();
     }
   }
 
   @Override
   public boolean inSafeMode() {
-    if (services.isEmpty()) { //Not initiated
+    if (services.isEmpty()) {
       return true;
     }
-    for (AbstractService service : services) {
-      if (service.inSafeMode()) {
-        return true;
-      }
-    }
-    return false;
+    return services.stream()
+        .anyMatch(SmartService::inSafeMode);
   }
 
   @Override
   public void start() throws IOException {
-    for (AbstractService s : services) {
+    for (SmartService s : services) {
       s.start();
     }
   }
@@ -118,7 +142,7 @@ public class SmartEngine extends AbstractService {
     }
   }
 
-  private void stopEngineService(AbstractService service) {
+  private void stopEngineService(SmartService service) {
     try {
       if (service != null) {
         service.stop();
@@ -142,18 +166,6 @@ public class SmartEngine extends AbstractService {
         serverContext.getMetaStore().transactionManager()
     );
     services.add(hiveMetastoreFetcherService);
-  }
-
-  private void maybeEnableOzoneFetcher() {
-    if (serverContext.getConf().getFsType() != SmartFsType.OZONE) {
-      return;
-    }
-
-    OzoneFetcherService ozoneFetcherService = new OzoneFetcherService(
-        serverContext,
-        serverContext.getMetaStore().ozoneFileInfoDao()
-    );
-    services.add(ozoneFetcherService);
   }
 
   public SmartConf getConf() {

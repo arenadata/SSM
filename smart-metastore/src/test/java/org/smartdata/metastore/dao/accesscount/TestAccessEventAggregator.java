@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.accesscount.DbAccessEventAggregator;
-import org.smartdata.metastore.accesscount.FileAccessManager;
+import org.smartdata.metastore.accesscount.DbFileAccessCountManager;
 import org.smartdata.metastore.accesscount.failover.AccessCountContext;
 import org.smartdata.metastore.accesscount.failover.Failover;
 import org.smartdata.metastore.model.SearchResult;
@@ -49,13 +49,13 @@ public class TestAccessEventAggregator extends TestDaoBase {
       "/file3", 3L,
       "/file4", 4L
   );
-  private FileAccessManager dbTableManager;
+  private DbFileAccessCountManager dbTableManager;
   private DbAccessEventAggregator aggregator;
 
   @Before
   public void setup() {
     dbTableManager =
-        new FileAccessManager(new TransactionRunner(metaStore.transactionManager()),
+        new DbFileAccessCountManager(new TransactionRunner(metaStore.transactionManager()),
             metaStore.accessCountEventDao(),
             metaStore.cacheFileDao());
     aggregator =

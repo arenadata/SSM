@@ -17,58 +17,24 @@
  */
 package org.smartdata.hdfs.action;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.smartdata.action.ActionException;
-import org.smartdata.action.CmdletFactoryPlugin;
-import org.smartdata.action.SmartAction;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.hdfs.client.CachingLocalFileSystemProvider;
-import org.smartdata.hdfs.client.LocalFileSystemProvider;
+import org.smartdata.conf.SmartFsType;
+import org.smartdata.hdfs.HadoopCmdletFactoryPlugin;
+import org.smartdata.hdfs.client.CachingDfsProvider;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
 
-import java.io.IOException;
-
 @Slf4j
-@RequiredArgsConstructor
-public class HdfsCmdletFactoryPlugin implements CmdletFactoryPlugin {
-  private final SmartConf conf;
-  private final LocalFileSystemProvider localFileSystemProvider;
+public class HdfsCmdletFactoryPlugin extends HadoopCmdletFactoryPlugin<DistributedFileSystem> {
 
-  public HdfsCmdletFactoryPlugin(SmartConf conf, UserImpersonationStrategy userImpersonationStrategy) {
-    this.conf = conf;
-    this.localFileSystemProvider = new CachingLocalFileSystemProvider(conf, userImpersonationStrategy);
+  public HdfsCmdletFactoryPlugin(SmartConf conf,
+      UserImpersonationStrategy userImpersonationStrategy) {
+    super(conf, new CachingDfsProvider(conf, userImpersonationStrategy));
   }
 
   @Override
-  public boolean canEnrich(SmartAction action) {
-    return action instanceof HdfsAction;
-  }
-
-  @Override
-  public void enrichAction(SmartAction action, String actionUser) throws ActionException {
-    if (!canEnrich(action)) {
-      return;
-    }
-
-    HdfsAction hdfsAction = (HdfsAction) action;
-    setLocalFileSystem(hdfsAction, actionUser);
-  }
-
-  private void setLocalFileSystem(HdfsAction action, String actionUser) throws ActionException {
-    try {
-      DistributedFileSystem localFileSystem = localFileSystemProvider.provide(
-          conf, actionUser, action.localFsType());
-      action.setLocalFileSystem(localFileSystem);
-    } catch (IOException exception) {
-      log.error("smartAction aid={} setDfsClient error", action.getActionId(), exception);
-      throw new ActionException(exception);
-    }
-  }
-
-  @Override
-  public void close() throws IOException {
-    localFileSystemProvider.close();
+  protected SmartFsType supportedFsType() {
+    return SmartFsType.HDFS;
   }
 }

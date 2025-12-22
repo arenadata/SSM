@@ -24,7 +24,6 @@ import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.SsmParseException;
-import org.smartdata.hive.rule.HmsSyncRulePlugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.metastore.dao.RuleDao;
@@ -49,19 +48,13 @@ import org.smartdata.server.engine.audit.Auditable;
 import org.smartdata.server.engine.audit.aspect.Audit;
 import org.smartdata.server.engine.audit.aspect.AuditId;
 import org.smartdata.server.engine.audit.aspect.ReturnsAuditId;
-import org.smartdata.server.engine.rule.ErasureCodingPlugin;
 import org.smartdata.server.engine.rule.ExecutorScheduler;
-import org.smartdata.server.engine.rule.FileCopy2S3Plugin;
 import org.smartdata.server.engine.rule.RuleExecutor;
 import org.smartdata.server.engine.rule.RuleInfoHandler;
 import org.smartdata.server.engine.rule.RuleInfoRepo;
-import org.smartdata.server.engine.rule.SmallFilePlugin;
-import org.smartdata.server.engine.rule.copy.FileCopyDrPlugin;
-import org.smartdata.server.engine.rule.copy.FileCopyScheduleStrategy;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,10 +76,10 @@ public class RuleManager
   public static final Logger LOG = LoggerFactory.getLogger(RuleManager.class.getName());
 
   private final ServerContext serverContext;
-  private final StatesManager statesManager;
   private final CmdletManager cmdletManager;
   private final MetaStore metaStore;
   private final PathChecker pathChecker;
+  private final ActionRegistry actionRegistry;
 
   private final AuditService auditService;
   private final SmartPrincipalManager smartPrincipalManager;
@@ -100,12 +93,14 @@ public class RuleManager
 
   public ExecutorScheduler execScheduler;
 
+  @lombok.Builder
   public RuleManager(
       ServerContext context,
-      StatesManager statesManager,
       CmdletManager cmdletManager,
       AuditService auditService,
-      SmartPrincipalManager smartPrincipalManager) {
+      ActionRegistry actionRegistry,
+      SmartPrincipalManager smartPrincipalManager,
+      List<RuleExecutorPlugin> executorPlugins) {
     super(context);
 
     int numExecutors =
@@ -116,7 +111,6 @@ public class RuleManager
     execScheduler = new ExecutorScheduler(numExecutors);
 
     this.mapRules = new ConcurrentHashMap<>();
-    this.statesManager = statesManager;
     this.cmdletManager = cmdletManager;
     this.serverContext = context;
     this.auditService = auditService;
@@ -125,14 +119,8 @@ public class RuleManager
     this.ruleDao = metaStore.ruleDao();
     this.ruleInfoHandler = new RuleInfoHandler(ruleDao);
     this.pathChecker = new PathChecker(context.getConf());
-
-    this.executorPlugins = Arrays.asList(
-        new FileCopyDrPlugin(
-            context.getMetaStore(), FileCopyScheduleStrategy.ordered()),
-        new FileCopy2S3Plugin(),
-        new SmallFilePlugin(context, cmdletManager),
-        new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao()),
-        new ErasureCodingPlugin(context));
+    this.executorPlugins = executorPlugins;
+    this.actionRegistry = actionRegistry;
   }
 
   public RuleInfo submitRule(String rule) throws IOException {
@@ -190,7 +178,7 @@ public class RuleManager
   private void doCheckActions(CmdletDescriptor cd) throws IOException {
     StringBuilder error = new StringBuilder();
     for (int i = 0; i < cd.getActionSize(); i++) {
-      if (!ActionRegistry.registeredAction(cd.getActionName(i))) {
+      if (!actionRegistry.isRegistered(cd.getActionName(i))) {
         error.append("Action '").append(cd.getActionName(i)).append("' not supported.\n");
       }
     }
@@ -284,10 +272,6 @@ public class RuleManager
 
   public boolean isClosed() {
     return isClosed;
-  }
-
-  public StatesManager getStatesManager() {
-    return statesManager;
   }
 
   public CmdletManager getCmdletManager() {

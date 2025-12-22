@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.hdfs.HadoopUtil;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.LaunchAction;
@@ -65,7 +65,7 @@ public class CacheScheduler extends ActionSchedulerService {
   }
 
   public boolean isLocked(ActionInfo actionInfo) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     return fileLock.contains(srcPath);
   }
 
@@ -82,7 +82,7 @@ public class CacheScheduler extends ActionSchedulerService {
   @Override
   public ScheduleResult onSchedule(CmdletInfo cmdletInfo, ActionInfo actionInfo,
       LaunchCmdlet cmdlet, LaunchAction action) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     fileLock.add(srcPath);
     return ScheduleResult.SUCCESS;
   }
@@ -125,7 +125,7 @@ public class CacheScheduler extends ActionSchedulerService {
       return;
     }
     if (isLocked(actionInfo)) {
-      fileLock.remove(actionInfo.getArgs().get(HdfsAction.FILE_PATH));
+      fileLock.remove(actionInfo.getArgs().get(HadoopAction.FILE_PATH));
     }
   }
 

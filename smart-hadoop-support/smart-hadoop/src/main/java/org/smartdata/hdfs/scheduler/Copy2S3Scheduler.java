@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.exception.ActionRejectedException;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -64,9 +64,9 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
   public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo) throws IOException {
     // check args
     String path = Optional.ofNullable(actionInfo.getArgs())
-        .map(args -> args.get(HdfsAction.FILE_PATH))
+        .map(args -> args.get(HadoopAction.FILE_PATH))
         .orElseThrow(() -> new ActionRejectedException(
-            "Required argument not found: " + HdfsAction.FILE_PATH));
+            "Required argument not found: " + HadoopAction.FILE_PATH));
 
     if (isLocked(path)) {
       throw new ActionRejectedException("The source file " + path + " is locked");
@@ -88,7 +88,7 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
 
   @Override
   public void onActionFinished(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String path = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     if (actionInfo.isFinished() && actionInfo.isSuccessful()) {
       // Insert fileState
       try {

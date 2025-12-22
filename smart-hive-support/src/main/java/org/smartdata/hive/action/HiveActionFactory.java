@@ -18,6 +18,7 @@
 package org.smartdata.hive.action;
 
 import org.smartdata.action.AbstractActionFactory;
+import org.smartdata.action.SmartAction;
 import org.smartdata.hive.action.constraint.HmsCreateConstraintAction;
 import org.smartdata.hive.action.constraint.HmsDropConstraintAction;
 import org.smartdata.hive.action.db.HmsAlterDbAction;
@@ -36,31 +37,37 @@ import org.smartdata.hive.action.table.HmsAlterTableAction;
 import org.smartdata.hive.action.table.HmsCreateTableAction;
 import org.smartdata.hive.action.table.HmsDropTableAction;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class HiveActionFactory extends AbstractActionFactory {
-  static {
-    addAction(HmsSyncAction.class);
+  @Override
+  protected List<Class<? extends SmartAction>> supportedActionClasses() {
+    return Arrays.asList(
+        HmsSyncAction.class,
 
-    addAction(HmsCreateDbAction.class);
-    addAction(HmsAlterDbAction.class);
-    addAction(HmsDropDbAction.class);
+        HmsCreateDbAction.class,
+        HmsAlterDbAction.class,
+        HmsDropDbAction.class,
 
-    addAction(HmsCreateTableAction.class);
-    addAction(HmsAlterTableAction.class);
-    addAction(HmsDropTableAction.class);
+        HmsCreateTableAction.class,
+        HmsAlterTableAction.class,
+        HmsDropTableAction.class,
 
-    addAction(HmsCreateFunctionAction.class);
-    addAction(HmsDropFunctionAction.class);
+        HmsCreateFunctionAction.class,
+        HmsDropFunctionAction.class,
 
-    addAction(HmsCreatePartitionAction.class);
-    addAction(HmsAlterPartitionAction.class);
-    addAction(HmsDropPartitionAction.class);
+        HmsCreatePartitionAction.class,
+        HmsAlterPartitionAction.class,
+        HmsDropPartitionAction.class,
 
-    addAction(HmsCreateConstraintAction.class);
-    addAction(HmsDropConstraintAction.class);
+        HmsCreateConstraintAction.class,
+        HmsDropConstraintAction.class,
 
-    addAction(HmsAlterPartitionColumnStatsAction.class);
-    addAction(HmsAlterTableColumnStatsAction.class);
-    addAction(HmsDropPartitionColumnStatsAction.class);
-    addAction(HmsDropTableColumnStatsAction.class);
+        HmsAlterPartitionColumnStatsAction.class,
+        HmsAlterTableColumnStatsAction.class,
+        HmsDropPartitionColumnStatsAction.class,
+        HmsDropTableColumnStatsAction.class
+    );
   }
 }

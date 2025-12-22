@@ -17,44 +17,46 @@
  */
 package org.smartdata.action;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.smartdata.action.annotation.ActionSignature;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A common action factory for action providers to use.
  */
+@Slf4j
 public abstract class AbstractActionFactory implements ActionFactory {
-  static final Logger LOG = LoggerFactory.getLogger(AbstractActionFactory.class);
-  private static Map<String, Class<? extends SmartAction>> supportedActions = new HashMap<>();
+  private static final List<Class<? extends SmartAction>> COMMON_ACTIONS = Arrays.asList(
+      EchoAction.class,
+      SleepAction.class,
+      SyncAction.class,
+      ExecAction.class
+  );
 
-  static {
-    addAction(EchoAction.class);
-    addAction(SleepAction.class);
-    addAction(SyncAction.class);
-    addAction(ExecAction.class);
-  }
-
-  protected static void addAction(Class<? extends SmartAction> actionClass) {
-    ActionSignature actionSignature = actionClass.getAnnotation(ActionSignature.class);
-    if (actionSignature != null) {
-      String actionId = actionSignature.actionId();
-      if (!supportedActions.containsKey(actionId)) {
-        supportedActions.put(actionId, actionClass);
-      } else {
-        LOG.error("There is already an Action registered with id {}.", actionId);
-      }
-    } else {
-      LOG.error("Action {} does not has an ActionSignature.", actionClass.getName());
-    }
-  }
+  protected abstract List<Class<? extends SmartAction>> supportedActionClasses();
 
   @Override
   public Map<String, Class<? extends SmartAction>> getSupportedActions() {
-    return Collections.unmodifiableMap(supportedActions);
+    Map<String, Class<? extends SmartAction>> supportedActions = new HashMap<>();
+    COMMON_ACTIONS.forEach(
+        actionClass -> addActionInfo(supportedActions, actionClass));
+    supportedActionClasses().forEach(
+        actionClass -> addActionInfo(supportedActions, actionClass));
+
+    return supportedActions;
+  }
+
+  private void addActionInfo(
+      Map<String, Class<? extends SmartAction>> supportedActions,
+      Class<? extends SmartAction> actionClass) {
+
+    Optional.ofNullable(actionClass.getAnnotation(ActionSignature.class))
+        .map(ActionSignature::actionId)
+        .ifPresent(actionId -> supportedActions.put(actionId, actionClass));
   }
 }

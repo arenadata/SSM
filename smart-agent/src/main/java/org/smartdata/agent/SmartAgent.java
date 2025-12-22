@@ -78,6 +78,7 @@ import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_TIMEOU
 import static org.smartdata.conf.SmartConfKeys.SMART_AGENT_MASTER_CONNECT_TIMEOUT_MS_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT;
 import static org.smartdata.conf.SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY;
+import static org.smartdata.server.utils.ConfigUtil.enrichSmartConf;
 
 public class SmartAgent implements StatusReporter {
   private static final String NAME = "SmartAgent";
@@ -102,7 +103,7 @@ public class SmartAgent implements StatusReporter {
     LOG.info("Agent address: {}", agentAddress);
     this.akkaConfig = AgentUtils.overrideRemoteAddress(
         ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), agentAddress);
-    HadoopUtil.setSmartConfByHadoop(smartConfig);
+    enrichSmartConf(smartConfig);
 
     this.smartConfig = smartConfig;
     this.httpServer = new SmartAgentHttpServer(smartConfig,

@@ -35,8 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static org.smartdata.ozone.OzoneSmartConf.DEFAULT_OFS_ADDRESS;
-
 public class OzoneClusterHarness {
 
   private static final ReplicationConfig REPLICATION_CONFIG =
@@ -51,7 +49,6 @@ public class OzoneClusterHarness {
   @Before
   public void init() throws Exception {
     SmartConf smartConf = new SmartConf();
-    smartConf.set(DEFAULT_OFS_ADDRESS, "ofs://" + ozoneContainer.getOmRpcAddress());
     smartConf.set("ozone.om.address", ozoneContainer.getOmRpcAddress());
 
     ozoneConf = new OzoneSmartConf(smartConf);

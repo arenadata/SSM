@@ -29,7 +29,7 @@ import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.CompatibilityHelper;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
 import org.smartdata.hdfs.HadoopUtil;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -114,7 +114,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
         !actionInfo.getActionName().equals(UNEC_ACTION_ID)) {
       return;
     }
-    String filePath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String filePath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     fileLock.add(filePath);
   }
 
@@ -125,15 +125,15 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
       return true;
     }
 
-    if (actionInfo.getArgs().get(HdfsAction.FILE_PATH) == null) {
+    if (actionInfo.getArgs().get(HadoopAction.FILE_PATH) == null) {
       throw new ActionRejectedException("File path is required for action "
           + actionInfo.getActionName() + "!");
     }
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     // The root dir should be excluded in checking whether file path ends with slash.
     if (!srcPath.equals("/") && srcPath.endsWith("/")) {
       srcPath = srcPath.substring(0, srcPath.length() - 1);
-      actionInfo.getArgs().put(HdfsAction.FILE_PATH, srcPath);
+      actionInfo.getArgs().put(HadoopAction.FILE_PATH, srcPath);
     }
     // For ec or unec action, check if the file is locked.
     if (actionInfo.getActionName().equals(EC_ACTION_ID) ||
@@ -154,7 +154,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
       return ScheduleResult.SUCCESS;
     }
 
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     if (srcPath == null) {
       actionInfo.appendLog("No file is given in this action!");
       return ScheduleResult.FAIL;
@@ -203,7 +203,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
 
   @Override
   public boolean isSuccessfulBySpeculation(ActionInfo actionInfo) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     try {
       HdfsFileStatus fileStatus = dfsClient.getFileInfo(srcPath);
       CompatibilityHelper compatibilityHelper =
@@ -232,7 +232,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
    * the old file id is kept in a map.
    */
   public void afterSchedule(ActionInfo actionInfo) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     // lock the file only if ec or unec action is scheduled
     fileLock.add(srcPath);
     try {
@@ -254,7 +254,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
       return;
     }
     List<Long> oids = new ArrayList<>();
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String path = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     try {
       oids.add(dfsClient.getFileInfo(path).getFileId());
     } catch (IOException e) {
@@ -265,7 +265,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
   }
 
   private String createTmpName(LaunchAction action) {
-    String path = action.getArgs().get(HdfsAction.FILE_PATH);
+    String path = action.getArgs().get(HadoopAction.FILE_PATH);
     String fileName;
     int index = path.lastIndexOf("/");
     if (index == path.length() - 1) {
@@ -292,7 +292,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
         actionInfo.getActionName().equals(UNEC_ACTION_ID)) {
       String filePath = null;
       try {
-        filePath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+        filePath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
         if (!actionInfo.isSuccessful()) {
           return;
         }
@@ -315,7 +315,7 @@ public class ErasureCodingScheduler extends ActionSchedulerService {
    */
   public void takeOverAccessCount(ActionInfo actionInfo) {
     try {
-      String filePath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+      String filePath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
       long oldFid = actionInfo.getOldFileIds().get(0);
       // The new fid may have not been updated in metastore, so
       // we get it from dfs client.

@@ -27,7 +27,7 @@ import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.hdfs.HadoopUtil;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.hdfs.action.MoveFileAction;
 import org.smartdata.hdfs.metric.fetcher.DatanodeStorageReportProcTask;
 import org.smartdata.hdfs.metric.fetcher.MovePlanMaker;
@@ -133,9 +133,9 @@ public class MoverScheduler extends ActionSchedulerService {
       throw new ActionRejectedException("No arguments for the action");
     }
 
-    if (fileLock.contains(actionInfo.getArgs().get(HdfsAction.FILE_PATH))) {
+    if (fileLock.contains(actionInfo.getArgs().get(HadoopAction.FILE_PATH))) {
       LOG.warn("The file {} is locked by other mover action!",
-          actionInfo.getArgs().get(HdfsAction.FILE_PATH));
+          actionInfo.getArgs().get(HadoopAction.FILE_PATH));
       return false;
     }
     return true;
@@ -148,7 +148,7 @@ public class MoverScheduler extends ActionSchedulerService {
       return ScheduleResult.SUCCESS;
     }
 
-    String file = action.getArgs().get(HdfsAction.FILE_PATH);
+    String file = action.getArgs().get(HadoopAction.FILE_PATH);
     if (file == null) {
       actionInfo.appendLog("File path not specified!\n");
       return ScheduleResult.FAIL;
@@ -192,7 +192,7 @@ public class MoverScheduler extends ActionSchedulerService {
       }
       plan.setNamenode(nnUri);
       action.getArgs().put(MoveFileAction.MOVE_PLAN, plan.toString());
-      fileLock.add(action.getArgs().get(HdfsAction.FILE_PATH));
+      fileLock.add(action.getArgs().get(HadoopAction.FILE_PATH));
       return ScheduleResult.SUCCESS;
     } catch (IOException e) {
       actionInfo.appendLogLine(e.getMessage());
@@ -207,7 +207,7 @@ public class MoverScheduler extends ActionSchedulerService {
 
   @Override
   public void onActionFinished(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    fileLock.remove(actionInfo.getArgs().get(HdfsAction.FILE_PATH));
+    fileLock.remove(actionInfo.getArgs().get(HadoopAction.FILE_PATH));
   }
 
   private class UpdateClusterInfoTask implements Runnable {

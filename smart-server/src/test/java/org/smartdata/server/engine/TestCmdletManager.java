@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.smartdata.action.ActionRegistry;
 import org.smartdata.cmdlet.parser.CmdletParser;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.exception.SsmParseException;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.ActionInfo;
@@ -44,6 +45,7 @@ import org.smartdata.server.engine.action.ActionInfoHandler;
 import org.smartdata.server.engine.audit.AuditService;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcher;
 import org.smartdata.server.engine.cmdlet.CmdletInfoHandler;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -105,7 +107,6 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     Path dir3 = new Path("/testCacheFile");
     dfs.mkdirs(dir3);
 
-    Assert.assertFalse(ActionRegistry.supportedActions().isEmpty());
     CmdletInfo cmdletInfo = cmdletManager.submitCmdlet(
         "allssd -file /testMoveFile/file1 ; cache -file /testCacheFile ; "
             + "write -file /test -length 1024");
@@ -185,8 +186,11 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
     Assert.assertNotNull(dispatcher);
     when(dispatcher.canDispatchMore()).thenReturn(true);
     ServerContext serverContext = new ServerContext(new SmartConf(), metaStore);
+    FileSystemContext fsCtx = FileSystemContext.fromFsType(SmartFsType.HDFS);
     CmdletManager cmdletManager = new CmdletManager(
-        serverContext, auditService, principalManager);
+        serverContext, auditService, principalManager,
+        new ActionRegistry(fsCtx.actionFactories()),
+        fsCtx.actionSchedulerServices(serverContext));
     cmdletManager.init();
     cmdletManager.setDispatcher(dispatcher);
 
@@ -294,7 +298,7 @@ public class TestCmdletManager extends MiniSmartClusterHarness {
   }
 
   private void flushToDB(MetaStore metaStore,
-                         List<ActionInfo> actionInfos, CmdletInfo cmdletInfo) throws Exception {
+      List<ActionInfo> actionInfos, CmdletInfo cmdletInfo) throws Exception {
     for (ActionInfo actionInfo : actionInfos) {
       cmdletInfo.addAction(actionInfo.getActionId());
     }

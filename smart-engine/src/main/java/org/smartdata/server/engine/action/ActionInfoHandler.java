@@ -54,6 +54,7 @@ public class ActionInfoHandler
   private static final Logger LOG = LoggerFactory.getLogger(ActionInfoHandler.class);
 
   private final MetaStore metaStore;
+  private final ActionRegistry actionRegistry;
   private AtomicLong maxActionId;
 
   private final InMemoryRegistry inMemoryRegistry;
@@ -61,6 +62,7 @@ public class ActionInfoHandler
   public ActionInfoHandler(CmdletManagerContext context) {
     super(context.getMetaStore().actionDao(), "actions");
     this.metaStore = context.getMetaStore();
+    this.actionRegistry = context.getActionRegistry();
     this.inMemoryRegistry = context.getInMemoryRegistry();
   }
 
@@ -181,7 +183,7 @@ public class ActionInfoHandler
   private void updateStorageIfNeeded(ActionInfo info) {
     SmartAction action;
     try {
-      action = ActionRegistry.createAction(info.getActionName());
+      action = actionRegistry.createAction(info.getActionName());
     } catch (ActionException e) {
       LOG.error("Failed to create action from {}", info, e);
       return;
@@ -222,7 +224,7 @@ public class ActionInfoHandler
   private void validateActionNames(CmdletDescriptor cmdletDescriptor) throws SsmParseException {
     List<String> unknownActions = cmdletDescriptor.getActionNames()
         .stream()
-        .filter(name -> !ActionRegistry.registeredAction(name))
+        .filter(name -> !actionRegistry.isRegistered(name))
         .collect(Collectors.toList());
 
     if (!unknownActions.isEmpty()) {
