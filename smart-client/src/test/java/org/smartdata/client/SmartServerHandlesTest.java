@@ -52,6 +52,7 @@ public class SmartServerHandlesTest {
     assertEquals(newActiveServerHandle, serverHandles.activeServer());
   }
 
+
   private SmartServerHandle smartServerHandle(int id) {
     return new SmartServerHandle(null, new InetSocketAddress(id));
   }
