@@ -1,2 +1,5 @@
+* @arenadata/cs-java-dev
 /smart-frontend/** @alatunov @dbardin90 @KuzminIA @MrHalless @remizov-arena @rimakan @workNpp
-
+/smart-integration/ @arenadata/cs-java-dev @arenadata/aqa
+/smart-tests/ @arenadata/aqa
+CODEOWNERS @Asmoday @iamlapa @KuzminIA @AngryX @Vyacheslav-86
