@@ -94,6 +94,7 @@ public class ActionsSuite extends SsmBaseSuite {
         .checkColumnValueInFirstRow(STATUS, SUCCESSFUL.getText());
   }
 
+
   @TmsLink("90538")
   @Story("Actions")
   @Test(description = "Check sorting")
