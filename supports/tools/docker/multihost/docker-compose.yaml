@@ -203,10 +203,8 @@ services:
     container_name: hive-server2
     hostname: hive-server2.demo
     depends_on:
-      hive-metastore:
-        condition: service_started
-      hadoop-namenode:
-        condition: service_healthy
+      - hive-metastore
+      - hadoop-namenode
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true
