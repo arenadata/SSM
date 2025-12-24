@@ -51,21 +51,11 @@
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.arenadata</groupId>
-                <artifactId>java-test-common-jdk8</artifactId>
-                <version>${java-test-common.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>io.arenadata</groupId>
             <artifactId>java-test-common-jdk8</artifactId>
+            <version>${java-test-common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -178,27 +168,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <groupId>io.arenadata</groupId>
-                    <artifactId>java-test-common-jdk8</artifactId>
-                    <packaging>jar</packaging>
-                    <file>${basedir}/lib/java-test-common-jdk8-${java-test-common.version}.jar</file>
-                    <generatePom>false</generatePom>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install-jar-lib</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven-resource-plugin.version}</version>
                 <executions>
@@ -215,35 +184,6 @@
                                     <directory>../supports/tools/docker/multihost/</directory>
                                 </resource>
                             </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>io.arenadata</groupId>
-                                    <artifactId>java-test-common-jdk8</artifactId>
-                                    <version>${java-test-common.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/common-resources</outputDirectory>
-                                    <excludes>io/**,META-INF/**,application.yaml</excludes>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.build.directory}/wars</outputDirectory>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>true</overWriteSnapshots>
                         </configuration>
                     </execution>
                 </executions>
