@@ -34,7 +34,7 @@ import java.net.URI;
 import java.time.Duration;
 
 import static org.smartdata.conf.SmartConfKeys.SMART_CLIENT_CONCURRENT_REPORT_ENABLED;
-import static org.smartdata.ozone.OzoneSmartConf.extractOzoneRpcAddress;
+import static org.smartdata.ozone.OzoneSmartConf.getOzoneDefaultFsUriSetBySsm;
 import static org.smartdata.utils.ConfigUtil.getSsmMasterRpcAddress;
 
 @Slf4j
@@ -76,7 +76,7 @@ public class CachingOfsProvider implements LocalFileSystemProvider<FileSystem> {
 
     @Override
     protected URI getServiceUri(Configuration config) {
-      return extractOzoneRpcAddress(config);
+      return getOzoneDefaultFsUriSetBySsm(config);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class CachingOfsProvider implements LocalFileSystemProvider<FileSystem> {
 
     @Override
     protected URI getServiceUri(Configuration config) {
-      return extractOzoneRpcAddress(config);
+      return getOzoneDefaultFsUriSetBySsm(config);
     }
 
     @Override

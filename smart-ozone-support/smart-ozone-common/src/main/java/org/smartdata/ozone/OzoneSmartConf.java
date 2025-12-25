@@ -17,14 +17,15 @@
  */
 package org.smartdata.ozone;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.ozone.RootedOzoneFileSystem;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
+import static org.apache.hadoop.fs.FileSystem.DEFAULT_FS;
 import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_OZONE_RPC_SERVER_KEY;
 
@@ -50,9 +51,16 @@ public class OzoneSmartConf extends OzoneConfiguration {
     return getInt(OZONE_SNAPSHOT_THREADS_COUNT, OZONE_SNAPSHOT_THREADS_COUNT_DEFAULT);
   }
 
-  public Optional<URI> getOzoneRpcAddress() {
-    return Optional.ofNullable(get("ozone.om.address"))
-        .map(URI::create);
+  public URI getOzoneDefaultFsUri() {
+    return getDefaultFsIfSet()
+        .map(URI::create)
+        .orElseGet(() -> getOzoneDefaultFsFromRpc(this));
+  }
+
+  private Optional<String> getDefaultFsIfSet() {
+    return Optional.ofNullable(get(FS_DEFAULT_NAME_KEY))
+        .filter(StringUtils::isNoneBlank)
+        .filter(fs -> !fs.equals(DEFAULT_FS));
   }
 
   private void loadSystemProperties() {
@@ -64,40 +72,25 @@ public class OzoneSmartConf extends OzoneConfiguration {
     }
   }
 
-  public static String getOzoneDefaultFs(Configuration conf) {
-    OzoneSmartConf ozoneConf = new OzoneSmartConf(conf);
-    return Optional.ofNullable(ozoneConf.get(FS_DEFAULT_NAME_KEY))
-        .orElseGet(() -> getOzoneDefaultFsFromRpc(ozoneConf));
+  private Optional<URI> getOzoneRpcAddress() {
+    return Optional.ofNullable(get("ozone.om.address"))
+        .map(url -> "ofs://" + url)
+        .map(URI::create);
   }
 
-  public static URI extractOzoneRpcAddress(Configuration conf) {
+  public static URI getOzoneDefaultFsUri(Configuration conf) {
+    return new OzoneSmartConf(conf).getOzoneDefaultFsUri();
+  }
+
+  public static URI getOzoneDefaultFsUriSetBySsm(Configuration conf) {
     return Optional.ofNullable(conf.get(SMART_OZONE_RPC_SERVER_KEY))
         .map(URI::create)
-        .orElseGet(() -> new OzoneSmartConf(conf)
-            .getOzoneRpcAddress()
-            .orElseThrow(() -> new IllegalArgumentException("Ozone RPC address is not set.")));
+        .orElseGet(() -> getOzoneDefaultFsUri(conf));
   }
 
-  private static String getOzoneDefaultFsFromRpc(OzoneSmartConf ozoneConf) {
+  private static URI getOzoneDefaultFsFromRpc(OzoneSmartConf ozoneConf) {
     return Optional.ofNullable(ozoneConf)
         .flatMap(OzoneSmartConf::getOzoneRpcAddress)
-        .map(uri -> withScheme(uri, "ofs").toString())
         .orElseThrow(() -> new IllegalArgumentException("Ozone RPC address is not set"));
-  }
-
-  private static URI withScheme(URI uri, String scheme) {
-    try {
-      return new URI(
-          scheme,
-          uri.getUserInfo(),
-          uri.getHost(),
-          uri.getPort(),
-          uri.getPath(),
-          uri.getQuery(),
-          uri.getFragment()
-      );
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

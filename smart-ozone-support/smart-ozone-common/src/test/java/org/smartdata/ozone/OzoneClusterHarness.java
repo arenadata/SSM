@@ -50,6 +50,7 @@ public class OzoneClusterHarness {
   public void init() throws Exception {
     SmartConf smartConf = new SmartConf();
     smartConf.set("ozone.om.address", ozoneContainer.getOmRpcAddress());
+    smartConf.set("fs.defaultFs", "ofs://" + ozoneContainer.getOmRpcAddress());
 
     ozoneConf = new OzoneSmartConf(smartConf);
     ozoneClient = OzoneClientFactory.getRpcClient(ozoneConf).getObjectStore();

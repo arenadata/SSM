@@ -48,6 +48,7 @@ import org.smartdata.utils.ThrowingBiFunction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,6 +68,7 @@ public class HdfsContext extends BaseFileSystemContext {
             (ctx, metastore) -> new HmsSyncScheduler(ctx,
                 metastore.hmsEventDao(), metastore.hmsSyncProgressDao())
         ).map(supplier -> createSafely(supplier, context))
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
