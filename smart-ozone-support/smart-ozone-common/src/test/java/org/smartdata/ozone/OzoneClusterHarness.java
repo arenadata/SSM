@@ -35,6 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Optional;
 
+import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
+
 public class OzoneClusterHarness {
 
   private static final ReplicationConfig REPLICATION_CONFIG =
@@ -50,7 +52,7 @@ public class OzoneClusterHarness {
   public void init() throws Exception {
     SmartConf smartConf = new SmartConf();
     smartConf.set("ozone.om.address", ozoneContainer.getOmRpcAddress());
-    smartConf.set("fs.defaultFs", "ofs://" + ozoneContainer.getOmRpcAddress());
+    smartConf.set(FS_DEFAULT_NAME_KEY, "ofs://" + ozoneContainer.getOmRpcAddress());
 
     ozoneConf = new OzoneSmartConf(smartConf);
     ozoneClient = OzoneClientFactory.getRpcClient(ozoneConf).getObjectStore();
