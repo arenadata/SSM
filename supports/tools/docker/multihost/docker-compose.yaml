@@ -31,7 +31,8 @@ services:
     networks:
       - demo
     depends_on:
-      - hadoop-datanode
+      hadoop-datanode:
+        condition: service_started
 
   hadoop-datanode:
     image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
@@ -73,7 +74,8 @@ services:
     networks:
       - demo
     depends_on:
-      - ssm-server
+      ssm-server:
+        condition: service_started
 
   ssm-server:
     image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.2.0-SNAPSHOT}
@@ -106,8 +108,10 @@ services:
     networks:
       - demo
     depends_on:
-      - ssm-metastore-db
-      - kdc-server
+      ssm-metastore-db:
+        condition: service_started
+      kdc-server:
+        condition: service_started
 
   ssm-metastore-db:
     image: "docker.io/library/postgres:14.0"
@@ -203,8 +207,10 @@ services:
     container_name: hive-server2
     hostname: hive-server2.demo
     depends_on:
-      - hive-metastore
-      - hadoop-namenode
+      hive-metastore:
+        condition: service_started
+      hadoop-namenode:
+        condition: service_healthy
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true
