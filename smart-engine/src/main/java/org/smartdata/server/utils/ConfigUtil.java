@@ -29,7 +29,7 @@ import java.util.Optional;
 import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_OZONE_RPC_SERVER_KEY;
 import static org.smartdata.hdfs.HadoopUtil.getHadoopConfDir;
-import static org.smartdata.hdfs.HadoopUtil.loadResource;
+import static org.smartdata.hdfs.HadoopUtil.loadResourceSafely;
 import static org.smartdata.ozone.OzoneSmartConf.getOzoneDefaultFsUri;
 
 public class ConfigUtil {
@@ -49,9 +49,9 @@ public class ConfigUtil {
       return;
     }
 
-    loadResource(conf, hadoopConfDir.get(), "core-site.xml");
-    loadResource(conf, hadoopConfDir.get(), "ozone-default.xml");
-    loadResource(conf, hadoopConfDir.get(), "ozone-site.xml");
+    loadResourceSafely(conf, hadoopConfDir.get(), "core-site.xml");
+    loadResourceSafely(conf, hadoopConfDir.get(), "ozone-default.xml");
+    loadResourceSafely(conf, hadoopConfDir.get(), "ozone-site.xml");
     String ozoneRpcAddress = getOzoneDefaultFsUri(conf).toString();
     conf.set(SMART_OZONE_RPC_SERVER_KEY, ozoneRpcAddress);
   }
