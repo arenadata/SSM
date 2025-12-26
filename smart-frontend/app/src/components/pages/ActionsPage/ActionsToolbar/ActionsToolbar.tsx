@@ -27,7 +27,8 @@ import FrequencySelect from '@uikit/Table/FrequencySelect/FrequencySelect';
 
 const ActionsToolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const actions = useStore(({ adh }) => adh.actions.actions);
+
+  const totalCount = useStore(({ adh }) => adh.actions.totalCount);
   const paginationParams = useStore(({ adh }) => adh.actionsTable.paginationParams);
   const requestFrequency = useStore(({ adh }) => adh.actionsTable.requestFrequency);
 
@@ -43,8 +44,8 @@ const ActionsToolbar: React.FC = () => {
     <FlexGroup gap="20px" className={s.actionsToolbar}>
       <ActionsResetFilter />
       <Pagination
-        isNextBtn={actions.length === paginationParams.perPage}
         pageData={paginationParams}
+        totalItems={totalCount}
         onChangeData={handlePaginationChange}
         frequencyComponent={<FrequencySelect value={requestFrequency} onChange={handleFrequencyChange} />}
       />

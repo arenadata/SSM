@@ -110,30 +110,30 @@ const Pagination = ({
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
         {totalPages === 0 && (
           <PaginationStepButton
-            arrowVariant={'arrowDouble'}
-            variant={'prev'}
+            arrowVariant="arrowDouble"
+            variant="prev"
             onClick={() => setPageNumber(0)}
             disabled={!hasPrev}
           />
         )}
         <PaginationStepButton
-          arrowVariant={'arrowSingle'}
+          arrowVariant="arrowSingle"
           onClick={() => setPageNumber(pageNumber - 1)}
           disabled={!hasPrev}
           dataTest="pagination-prev-page"
         />
         <PaginationStepButton
-          arrowVariant={'arrowSingle'}
+          arrowVariant="arrowSingle"
           onClick={() => setPageNumber(pageNumber + 1)}
-          variant={'next'}
+          variant="next"
           disabled={!hasNext}
           dataTest="pagination-next-page"
         />
         {totalItems !== 0 && (
           <PaginationStepButton
-            arrowVariant={'arrowDouble'}
+            arrowVariant="arrowDouble"
             onClick={() => setPageNumber(totalItems)}
-            variant={'next'}
+            variant="next"
             disabled={!hasNext}
             dataTest="pagination-last-page"
           />
