@@ -51,21 +51,11 @@
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.arenadata</groupId>
-                <artifactId>java-test-common-jdk8</artifactId>
-                <version>${java-test-common.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>io.arenadata</groupId>
             <artifactId>java-test-common-jdk8</artifactId>
+            <version>${java-test-common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -175,27 +165,6 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <groupId>io.arenadata</groupId>
-                    <artifactId>java-test-common-jdk8</artifactId>
-                    <packaging>jar</packaging>
-                    <file>${basedir}/lib/java-test-common-jdk8-${java-test-common.version}.jar</file>
-                    <generatePom>false</generatePom>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install-jar-lib</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
