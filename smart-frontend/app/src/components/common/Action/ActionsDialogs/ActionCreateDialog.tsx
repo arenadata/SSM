@@ -56,6 +56,7 @@ const ActionCreateDialog: React.FC = () => {
 
   return (
     <FooterDialog
+      data-qa="submit-action-dialog-footer"
       isOpen={isOpen}
       onOpenChange={closeDialog}
       title="Submit action"
@@ -63,6 +64,7 @@ const ActionCreateDialog: React.FC = () => {
       onAction={handleRun}
     >
       <MultilineInput
+        data-qa="submit-action-dialog-multiline-input"
         onKeyDown={handleKeyDown}
         value={actionText}
         onChange={handleChange}

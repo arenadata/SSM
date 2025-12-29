@@ -55,6 +55,7 @@ const RuleCreateDialog: React.FC = () => {
 
   return (
     <FooterDialog
+      data-qa="create-rule-dialog-footer"
       isOpen={isOpen}
       onOpenChange={closeDialog}
       title="Create Rule"
@@ -62,6 +63,7 @@ const RuleCreateDialog: React.FC = () => {
       onAction={handleCreate}
     >
       <MonacoCodeEditor
+        data-qa="create-rule-dialog-monaco-editor"
         language="ssmrule"
         initialValue={ruleText.current}
         theme="ssmruleTheme"

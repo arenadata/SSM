@@ -82,10 +82,10 @@ const CalendarTab = ({ rangeFrom, rangeTo, onApply, onRevert }: CalendarTabProps
       <div className={ts.dateRangePickerTab__right}>
         <div className={ts.dateRangePickerTab__rightInputs}>
           <FormField label="From">
-            <InputDate tabIndex={1} value={localRangeFrom} onChange={setLocalRangeFrom} />
+            <InputDate data-qa="from" tabIndex={1} value={localRangeFrom} onChange={setLocalRangeFrom} />
           </FormField>
           <FormField label="To">
-            <InputDate tabIndex={2} value={localRangeTo} onChange={setLocalRangeTo} />
+            <InputDate data-qa="to" tabIndex={2} value={localRangeTo} onChange={setLocalRangeTo} />
           </FormField>
         </div>
         <TabActions
