@@ -17,8 +17,9 @@
  */
 package org.smartdata.ozone;
 
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.ozone.model.OzoneFileInfo;
 
-public interface OzoneFileInfoDao {
+public interface OzoneFileInfoDao extends GeneralFileInfoSource {
   void insert(OzoneFileInfo fileInfo);
 }

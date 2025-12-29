@@ -54,6 +54,7 @@ import org.smartdata.metastore.db.metadata.DbMetadataProvider;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
 import org.smartdata.metastore.transaction.TransactionRunner;
 import org.smartdata.metastore.utils.MetaStoreUtils;
+import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.BackUpInfo;
 import org.smartdata.model.CachedFileStatus;
@@ -131,6 +132,7 @@ public class MetaStore implements CopyMetaService,
   private final WhitelistDao whitelistDao;
   private final OzoneFileInfoDao ozoneFileInfoDao;
   private final UserActivityDao userActivityDao;
+  private final GeneralFileInfoSource generalFileInfoSource;
   private final DBPool dbPool;
 
   public MetaStore(DBPool pool,
@@ -168,10 +170,7 @@ public class MetaStore implements CopyMetaService,
     hmsIgnoredEventDao = daoProvider.hmsIgnoredEventDao();
     hmsSyncProgressDao = daoProvider.hmsSyncProgressDao();
     ozoneFileInfoDao = daoProvider.ozoneFileInfoDao();
-  }
-
-  public DbMetadataProvider dbMetadataProvider() {
-    return dbMetadataProvider;
+    generalFileInfoSource = daoProvider.generalFileInfoSource();
   }
 
   public UserActivityDao userActivityDao() {
@@ -220,6 +219,10 @@ public class MetaStore implements CopyMetaService,
 
   public OzoneFileInfoDao ozoneFileInfoDao() {
     return ozoneFileInfoDao;
+  }
+
+  public GeneralFileInfoSource generalFileInfoSource() {
+    return generalFileInfoSource;
   }
 
   public PlatformTransactionManager transactionManager() {
@@ -365,7 +368,7 @@ public class MetaStore implements CopyMetaService,
   public Map<String, Long> getFileIDs(Collection<String> paths)
       throws MetaStoreException {
     try {
-      return fileInfoDao.getPathFids(paths);
+      return fileInfoDao.getPathsToIdsMapping(paths);
     } catch (EmptyResultDataAccessException e) {
       return new HashMap<>();
     } catch (Exception e) {
@@ -1475,7 +1478,7 @@ public class MetaStore implements CopyMetaService,
         String[] oldList = fetchedList.split(",");
         lastFetchedDirs.addAll(Arrays.asList(oldList));
       }
-      LOG.info("Last fetch dirs are " + lastFetchedDirs.toString());
+      LOG.info("Last fetch dirs are {}", lastFetchedDirs);
       return lastFetchedDirs;
     } catch (Exception e) {
       throw new MetaStoreException(e);
@@ -1488,7 +1491,7 @@ public class MetaStore implements CopyMetaService,
   public void updateWhitelistTable(String newWhitelist) throws MetaStoreException {
     try {
       whitelistDao.updateTable(newWhitelist);
-      LOG.info("Success to update whitelist table with " + newWhitelist);
+      LOG.info("Success to update whitelist table with {}", newWhitelist);
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }

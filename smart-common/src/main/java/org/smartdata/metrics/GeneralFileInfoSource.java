@@ -15,23 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.ozone.client;
+package org.smartdata.metrics;
 
-import org.apache.hadoop.fs.ozone.OzoneClientAdapter;
-import org.apache.hadoop.fs.ozone.OzoneFileSystem;
-import org.apache.hadoop.hdds.conf.ConfigurationSource;
-import org.apache.hadoop.hdds.conf.OzoneConfiguration;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Map;
 
-import java.io.IOException;
-
-public class SmartOzoneFileSystem extends OzoneFileSystem {
-
-  @Override
-  protected OzoneClientAdapter createAdapter(ConfigurationSource conf, String bucketStr, String volumeStr,
-      String omHost, int omPort) throws IOException {
-    return SmartOzoneClientAdapter.wrap(
-        super.createAdapter(conf, bucketStr, volumeStr, omHost, omPort),
-        OzoneConfiguration.of(conf), volumeStr, bucketStr
-    );
-  }
+public interface GeneralFileInfoSource {
+  Map<String, Long> getPathsToIdsMapping(Collection<String> paths) throws SQLException;
 }

@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao;
 
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.DBType;
 import org.smartdata.metastore.dao.postgres.PostgresDaoProvider;
@@ -24,11 +25,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 public class DaoProviderFactory {
   public DaoProvider createDaoProvider(
-      DBPool dbPool, PlatformTransactionManager transactionManager, DBType dbType) {
+      SmartConf conf, DBPool dbPool, PlatformTransactionManager transactionManager, DBType dbType) {
     switch (dbType) {
       case POSTGRES:
       default:
-        return new PostgresDaoProvider(dbPool, transactionManager);
+        return new PostgresDaoProvider(conf, dbPool, transactionManager);
     }
   }
 }

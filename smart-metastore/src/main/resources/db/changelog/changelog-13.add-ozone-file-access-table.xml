@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2025.12.15_001" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ofile_access"/>
+            </not>
+        </preConditions>
+        <createTable tableName="ofile_access">
+            <column name="fid" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="access_time" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <modifySql dbms="postgresql">
+            <append value=" PARTITION BY RANGE (access_time)"/>
+        </modifySql>
+    </changeSet>
+
+    <changeSet id="2025.12.15_002" author="tmanasyan" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from pg_proc where proname = 'create_file_access_partition'
+                                               AND array_length(proargtypes, 1) = 1
+                                               AND proargtypes[0] = 'timestamp'::regtype;
+            </sqlCheck>
+        </preConditions>
+        <sql>drop function create_file_access_partition(timestamp);</sql>
+    </changeSet>
+
+    <changeSet id="2025.12.15_003" author="tmanasyan" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from pg_proc where proname = 'create_file_access_partition'
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/create_file_access_partition_by_table_name.sql"/>
+        <sql>select create_file_access_partition('ofile_access', cast(now() as date));</sql>
+    </changeSet>
+
+    <changeSet id="2025.12.15_004" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="idx_ofile_access_time"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="ofile_access" indexName="idx_ofile_access_time">
+            <column name="access_time"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

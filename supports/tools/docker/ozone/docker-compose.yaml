@@ -40,9 +40,20 @@ services:
     <<: *image
     ports:
       - 9864
-    command: ["ozone","datanode"]
+    command: [ "ozone","datanode" ]
     environment:
       <<: *common-config
+
+  ozone-fs-client:
+    image: hub.adsw.io/java/hadoop-openjdk8:${HADOOP_VERSION:-3.3.6}
+    restart: unless-stopped
+    entrypoint: [ "/entrypoint.sh" ]
+    volumes:
+      - ./conf:/etc/conf
+      - ./fs-client/common.sh:/common.sh
+      - ./fs-client/entrypoint.sh:/entrypoint.sh
+      - ../../../../smart-ozone-support/target/smart-ozone-fs-client-shaded-2.2.0-SNAPSHOT.jar:/etc/jars/smart-ozone-client.jar
+
   om:
     <<: *image
     ports:
@@ -54,7 +65,8 @@ services:
       CORE-SITE.XML_hadoop.proxyuser.hadoop.groups: "*"
       ENSURE_OM_INITIALIZED: /data/metadata/om/current/VERSION
       WAITFOR: scm:9876
-    command: ["ozone","om"]
+    command: [ "ozone","om" ]
+
   scm:
     <<: *image
     ports:
@@ -62,21 +74,24 @@ services:
     environment:
       <<: *common-config
       ENSURE_SCM_INITIALIZED: /data/metadata/scm/current/VERSION
-    command: ["ozone","scm"]
+    command: [ "ozone","scm" ]
+
   recon:
     <<: *image
     ports:
       - 9888:9888
     environment:
       <<: *common-config
-    command: ["ozone","recon"]
+    command: [ "ozone","recon" ]
+
   s3g:
     <<: *image
     ports:
       - 9878:9878
     environment:
       <<: *common-config
-    command: ["ozone","s3g"]
+    command: [ "ozone","s3g" ]
+
   httpfs:
     <<: *image
     ports:

@@ -54,7 +54,7 @@ public class TestDruid {
         .createDbManager(druidPool, new Configuration());
     PlatformTransactionManager transactionManager =
         new JdbcTransactionManager(druidPool.getDataSource());
-    DaoProvider daoProvider = new PostgresDaoProvider(druidPool, transactionManager);
+    DaoProvider daoProvider = new PostgresDaoProvider(new SmartConf(), druidPool, transactionManager);
     DbMetadataProvider dbMetadataProvider =
         dbHandlersFactory.createDbMetadataProvider(druidPool, DBType.POSTGRES);
     MetaStore adapter = new MetaStore(

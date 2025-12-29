@@ -15,14 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.ozone.client;
+package org.apache.hadoop.fs.ozone;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.ozone.OzoneClientAdapter;
+import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.model.FileState;
+import org.smartdata.ozone.client.SmartOzoneClientAdapter;
 import org.smartdata.protocol.SmartClientProtocol;
 
 import java.io.IOException;
@@ -33,43 +35,43 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class SmartOzoneClientAdapterTest {
 
-  private OzoneClientAdapter delegate;
   private MockSsmClient ssmClient;
 
   @Before
-  public void initMocks() {
-    this.delegate = mock(OzoneClientAdapter.class);
+  public void init() {
     this.ssmClient = new MockSsmClient();
   }
 
   @Test
+  @Ignore("Unignore when testing environment for Ozone will be added (ADH-7291)")
   public void testReportAccessEventOfs() throws IOException {
-    testReportAccessEventInternal();
+    SmartOzoneClientAdapter clientAdapter = new SmartRootedOzoneFileSystem.SmartClientAdapter(
+        "TODO", -1, new OzoneConfiguration(), null, ssmClient);
+    testReportAccessEventInternal(clientAdapter);
   }
 
   @Test
+  @Ignore("Unignore when testing environment for Ozone will be added (ADH-7291)")
   public void testReportAccessEventO3fs() throws IOException {
-    testReportAccessEventInternal("someVolume", "someBucket");
+    SmartOzoneClientAdapter clientAdapter = new SmartOzoneFileSystem.SmartClientAdapter(
+        "TODO", -1, new OzoneConfiguration(), "someVolume", "someBucket", null, ssmClient);
+    testReportAccessEventInternal(clientAdapter);
   }
 
-  public void testReportAccessEventInternal(String... basePathSegments) throws IOException {
-    SmartOzoneClientAdapter ssmOzoneClient = new SmartOzoneClientAdapter(
-        delegate, ssmClient, basePathSegments);
-
-    ssmOzoneClient.createFile("key", (short) 1, false, false);
+  public void testReportAccessEventInternal(SmartOzoneClientAdapter clientAdapter) throws IOException {
+    clientAdapter.createFile("key", (short) 1, false, false);
     assertTrue(ssmClient.accessEvents.isEmpty());
 
-    ssmOzoneClient.getFileStatus("key1", null, null, null);
+    clientAdapter.getFileStatus("key1", null, null, null);
     assertTrue(ssmClient.accessEvents.isEmpty());
 
-    ssmOzoneClient.readFile("someKey");
+    clientAdapter.readFile("someKey");
     assertEquals(1, ssmClient.accessEvents.size());
 
-    ssmOzoneClient.readFile("someDir/anotherKey");
+    clientAdapter.readFile("someDir/anotherKey");
     assertEquals(2, ssmClient.accessEvents.size());
 
     List<String> actualAccessedFiles = ssmClient.accessEvents.stream()
@@ -77,7 +79,7 @@ public class SmartOzoneClientAdapterTest {
         .collect(Collectors.toList());
 
     List<String> expectedAccessFiles = Stream.of("someKey", "someDir/anotherKey")
-        .map(path -> new Path(ssmOzoneClient.getBasePath(), path))
+        .map(path -> new Path(clientAdapter.getBasePath(), path))
         .map(path -> path.toUri().getPath())
         .collect(Collectors.toList());
 

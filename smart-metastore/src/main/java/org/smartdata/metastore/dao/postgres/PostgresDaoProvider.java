@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao.postgres;
 
+import org.smartdata.conf.SmartConf;
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metastore.DBPool;
@@ -30,8 +31,8 @@ import org.smartdata.metastore.dao.impl.DefaultDaoProvider;
 import org.springframework.transaction.PlatformTransactionManager;
 
 public class PostgresDaoProvider extends DefaultDaoProvider {
-  public PostgresDaoProvider(DBPool dbPool, PlatformTransactionManager transactionManager) {
-    super(dbPool, transactionManager);
+  public PostgresDaoProvider(SmartConf smartConf, DBPool dbPool, PlatformTransactionManager transactionManager) {
+    super(smartConf, dbPool, transactionManager);
   }
 
   @Override

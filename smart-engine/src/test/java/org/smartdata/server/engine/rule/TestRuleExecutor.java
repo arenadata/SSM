@@ -19,6 +19,7 @@ package org.smartdata.server.engine.rule;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.dao.MetaStoreHelper;
 
@@ -39,7 +40,7 @@ public class TestRuleExecutor extends TestDaoBase {
     String sql;
     long interval = 60000;
     long currentTimeMillis = System.currentTimeMillis();
-    sql = RuleExecutor.generateSQL(newTable, countFilter, metaStore, currentTimeMillis - interval,
+    sql = RuleExecutor.generateSQL(new SmartConf(), newTable, countFilter, metaStore, currentTimeMillis - interval,
         currentTimeMillis);
     try {
       metaStoreHelper.execute(sql);
@@ -50,7 +51,7 @@ public class TestRuleExecutor extends TestDaoBase {
     }
     // Test with count filter
     countFilter = "> 10";
-    sql = RuleExecutor.generateSQL(newTable, countFilter, metaStore, currentTimeMillis - interval,
+    sql = RuleExecutor.generateSQL(new SmartConf(), newTable, countFilter, metaStore, currentTimeMillis - interval,
         currentTimeMillis);
     try {
       metaStoreHelper.execute(sql);

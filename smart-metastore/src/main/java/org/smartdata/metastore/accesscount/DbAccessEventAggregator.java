@@ -20,9 +20,9 @@ package org.smartdata.metastore.accesscount;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.metastore.accesscount.failover.AccessCountContext;
 import org.smartdata.metastore.accesscount.failover.Failover;
-import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.metastore.model.AggregatedAccessCounts;
 import org.smartdata.metrics.FileAccessEvent;
+import org.smartdata.metrics.GeneralFileInfoSource;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,13 +33,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DbAccessEventAggregator implements AccessEventAggregator {
 
-  private final FileInfoDao fileInfoDao;
+  private final GeneralFileInfoSource fileInfoDao;
   private final FileAccessManager dbTableManager;
   private final Failover<AccessCountContext> accessCountFailover;
 
-  public DbAccessEventAggregator(FileInfoDao fileInfoDao,
-                                 FileAccessManager dbTableManager,
-                                 Failover<AccessCountContext> failover) {
+  public DbAccessEventAggregator(GeneralFileInfoSource fileInfoDao,
+      FileAccessManager dbTableManager,
+      Failover<AccessCountContext> failover) {
     this.fileInfoDao = fileInfoDao;
     this.dbTableManager = dbTableManager;
     this.accessCountFailover = failover;
@@ -75,7 +75,7 @@ public class DbAccessEventAggregator implements AccessEventAggregator {
 
   private Map<String, Long> getFileIdMap(List<String> paths) {
     try {
-      return fileInfoDao.getPathFids(paths);
+      return fileInfoDao.getPathsToIdsMapping(paths);
     } catch (Exception e) {
       log.error("Error fetching file ids for paths {}", paths, e);
       return Collections.emptyMap();
