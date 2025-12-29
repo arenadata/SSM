@@ -40,6 +40,17 @@
   <name>SmartData Project</name>
   <packaging>pom</packaging>
 
+  <repositories>
+    <repository>
+      <id>maven-arenadata-snapshot</id>
+      <url>https://nexus.adsw.io/repository/maven-arenadata-snapshot/</url>
+    </repository>
+    <repository>
+      <id>maven-arenadata-release</id>
+      <url>https://nexus.adsw.io/repository/maven-arenadata-release/</url>
+    </repository>
+  </repositories>
+
   <modules>
     <module>smart-frontend</module>
     <module>smart-common</module>
