@@ -44,7 +44,7 @@ public class FileAccessReportSupport implements Closeable {
   }
 
   public void reportFileAccess(String path) {
-    String pathWithoutAuthority = new Path(basePath, path)
+    String pathWithoutAuthority = new Path(basePath, removeLeadingSlash(path))
         .toUri()
         .getPath();
 
@@ -58,6 +58,10 @@ public class FileAccessReportSupport implements Closeable {
       // todo add retry mechanism for both HDFS and Ozone clients
       log.error("Error reporting file access event", exception);
     }
+  }
+
+  private String removeLeadingSlash(String path) {
+    return path.startsWith("/") ? path.substring(1) : path;
   }
 
   @Override

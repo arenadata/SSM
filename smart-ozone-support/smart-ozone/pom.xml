@@ -36,18 +36,8 @@
     <dependencies>
         <dependency>
             <groupId>org.smartdata</groupId>
-            <artifactId>smart-hadoop-common</artifactId>
+            <artifactId>smart-ozone-common</artifactId>
             <version>2.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.smartdata</groupId>
-            <artifactId>smart-common</artifactId>
-            <version>2.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ozone</groupId>
-            <artifactId>ozone-filesystem-hadoop3</artifactId>
-            <version>${ozone.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -82,6 +72,18 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-ozone-common</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

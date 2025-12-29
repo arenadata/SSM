@@ -22,20 +22,40 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.smartdata</groupId>
-        <artifactId>smartdata-project</artifactId>
+        <artifactId>smart-ozone-support</artifactId>
         <version>2.2.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>smart-ozone-support</artifactId>
+    <artifactId>smart-ozone-common</artifactId>
     <version>2.2.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <modules>
-        <module>smart-ozone</module>
-        <module>smart-ozone-fs-client</module>
-        <module>smart-ozone-common</module>
-    </modules>
+    <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-hadoop-common</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-common</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ozone</groupId>
+            <artifactId>ozone-filesystem-hadoop3</artifactId>
+            <version>${ozone.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

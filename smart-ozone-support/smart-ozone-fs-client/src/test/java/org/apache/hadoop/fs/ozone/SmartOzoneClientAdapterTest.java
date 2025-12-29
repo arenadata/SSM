@@ -18,17 +18,20 @@
 package org.apache.hadoop.fs.ozone;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.model.FileState;
+import org.smartdata.ozone.OzoneClusterHarness;
 import org.smartdata.ozone.client.SmartOzoneClientAdapter;
 import org.smartdata.protocol.SmartClientProtocol;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,54 +39,79 @@ import java.util.stream.Stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class SmartOzoneClientAdapterTest {
+public class SmartOzoneClientAdapterTest extends OzoneClusterHarness {
+  private static final String TEST_VOLUME = "vol1";
+  private static final String TEST_BUCKET = "buck1";
+
+  private static final String TEST_DATA = "data_777";
 
   private MockSsmClient ssmClient;
 
   @Before
-  public void init() {
+  public void initClient() throws IOException {
     this.ssmClient = new MockSsmClient();
+
+    ozoneClient.createVolume(TEST_VOLUME);
+    ozoneClient.getVolume(TEST_VOLUME)
+        .createBucket(TEST_BUCKET);
   }
 
   @Test
-  @Ignore("Unignore when testing environment for Ozone will be added (ADH-7291)")
-  public void testReportAccessEventOfs() throws IOException {
+  public void testReportAccessEventOfs() throws Exception {
     SmartOzoneClientAdapter clientAdapter = new SmartRootedOzoneFileSystem.SmartClientAdapter(
-        "TODO", -1, new OzoneConfiguration(), null, ssmClient);
-    testReportAccessEventInternal(clientAdapter);
+        ozoneContainer.getOmHost(), ozoneContainer.getOmPort(),
+        ozoneConf, null, ssmClient);
+    testReportAccessEventInternal(clientAdapter, TEST_VOLUME, TEST_BUCKET);
   }
 
   @Test
-  @Ignore("Unignore when testing environment for Ozone will be added (ADH-7291)")
-  public void testReportAccessEventO3fs() throws IOException {
+  public void testReportAccessEventO3fs() throws Exception {
     SmartOzoneClientAdapter clientAdapter = new SmartOzoneFileSystem.SmartClientAdapter(
-        "TODO", -1, new OzoneConfiguration(), "someVolume", "someBucket", null, ssmClient);
+        ozoneContainer.getOmHost(), ozoneContainer.getOmPort(),
+        ozoneConf, TEST_VOLUME, TEST_BUCKET, null, ssmClient);
     testReportAccessEventInternal(clientAdapter);
   }
 
-  public void testReportAccessEventInternal(SmartOzoneClientAdapter clientAdapter) throws IOException {
-    clientAdapter.createFile("key", (short) 1, false, false);
+  private void testReportAccessEventInternal(SmartOzoneClientAdapter clientAdapter, String... prefixSegments)
+      throws Exception {
+    String keyPrefix = Arrays.stream(prefixSegments)
+        .collect(Collectors.joining("/", "", "/"));
+
+    createFile(clientAdapter, keyPrefix + "key");
+    createFile(clientAdapter, keyPrefix + "anotherKey");
+    createFile(clientAdapter, keyPrefix + "keyToRemove");
     assertTrue(ssmClient.accessEvents.isEmpty());
 
-    clientAdapter.getFileStatus("key1", null, null, null);
+    clientAdapter.getFileStatus(keyPrefix + "anotherKey",
+        new URI("ofs://test:7070"), new Path(keyPrefix, "anotherKey"), "anon");
     assertTrue(ssmClient.accessEvents.isEmpty());
 
-    clientAdapter.readFile("someKey");
+    clientAdapter.deleteObject(keyPrefix + "keyToRemove");
+    assertTrue(ssmClient.accessEvents.isEmpty());
+
+    clientAdapter.readFile(keyPrefix + "key").close();
     assertEquals(1, ssmClient.accessEvents.size());
 
-    clientAdapter.readFile("someDir/anotherKey");
+    clientAdapter.readFile(keyPrefix + "anotherKey").close();
     assertEquals(2, ssmClient.accessEvents.size());
 
     List<String> actualAccessedFiles = ssmClient.accessEvents.stream()
         .map(FileAccessEvent::getPath)
         .collect(Collectors.toList());
 
-    List<String> expectedAccessFiles = Stream.of("someKey", "someDir/anotherKey")
-        .map(path -> new Path(clientAdapter.getBasePath(), path))
+    List<String> expectedAccessFiles = Stream.of("key", "anotherKey")
+        .map(path -> new Path(new Path("/" + TEST_VOLUME, TEST_BUCKET), path))
         .map(path -> path.toUri().getPath())
         .collect(Collectors.toList());
 
     assertEquals(expectedAccessFiles, actualAccessedFiles);
+  }
+
+  private void createFile(SmartOzoneClientAdapter clientAdapter, String key) throws IOException {
+    try (OzoneFSOutputStream outputStream = clientAdapter.createFile(key, (short) 1, true, true)) {
+      outputStream.write(TEST_DATA.getBytes(StandardCharsets.UTF_8));
+      outputStream.flush();
+    }
   }
 
   private static class MockSsmClient implements SmartClientProtocol {

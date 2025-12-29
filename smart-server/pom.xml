@@ -199,6 +199,13 @@
             <type>test-jar</type>
         </dependency>
         <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-ozone-common</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>jdbc</artifactId>
             <scope>test</scope>
