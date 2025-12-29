@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useStore } from '@hooks';
 import { closeCreateRuleDialog, createRuleWithUpdate } from '@store/adh/rules/rulesActionsSlice';
 import { FooterDialog } from '@uikit';
@@ -28,28 +28,30 @@ const RuleCreateDialog: React.FC = () => {
   const isOpen = useStore(({ adh }) => adh.rulesActions.createDialog.isOpen);
   const isActionInProgress = useStore(({ adh }) => adh.rulesActions.isActionInProgress);
 
-  const ruleText = useRef('');
+  const [rule, setRule] = useState('');
+  const [editorRef, setEditorRef] = useState<IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     // clear when close dialog
-    if (!isOpen) {
-      ruleText.current = '';
+    if (!isOpen && editorRef) {
+      editorRef.setValue('');
     }
-  }, [isOpen]);
+  }, [isOpen, editorRef]);
 
   const closeDialog = () => {
     dispatch(closeCreateRuleDialog());
   };
 
   const handleChange = useCallback((value: string) => {
-    ruleText.current = value;
+    setRule(value);
   }, []);
 
   const handleCreate = () => {
-    dispatch(createRuleWithUpdate(ruleText.current));
+    dispatch(createRuleWithUpdate(rule));
   };
 
   const handleMount = (editor: IStandaloneCodeEditor) => {
+    setEditorRef(editor);
     editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, handleCreate);
   };
 
@@ -63,7 +65,7 @@ const RuleCreateDialog: React.FC = () => {
     >
       <MonacoCodeEditor
         language="ssmrule"
-        initialValue={ruleText.current}
+        initialValue={rule}
         theme="ssmruleTheme"
         showMinimap={false}
         onMount={handleMount}
