@@ -19,33 +19,43 @@ package org.smartdata.server.engine.filesystem;
 
 import org.smartdata.SmartService;
 import org.smartdata.action.ActionFactory;
+import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
 import org.smartdata.hive.action.HiveActionFactory;
+import org.smartdata.hive.action.HmsSyncScheduler;
+import org.smartdata.hive.rule.HmsSyncRulePlugin;
+import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.ozone.OzoneFetcherService;
+import org.smartdata.ozone.action.OzoneActionFactory;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
 import org.smartdata.server.engine.file.NoOpCachedFilesManager;
+import org.smartdata.server.engine.rule.FileCopy2S3Plugin;
+import org.smartdata.utils.ThrowingBiFunction;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class OzoneFileSystemContext extends BaseFileSystemContext {
   @Override
-  public List<ActionSchedulerService> actionSchedulerServices(ServerContext context) {
-    return Collections.emptyList();
-  }
-
-  @Override
   public List<RuleExecutorPlugin> ruleExecutorPlugins(ServerContext context, CmdletManager cmdletManager) {
-    return Collections.emptyList();
+    return Arrays.asList(
+        // TODO ADH-7459
+        // new FileCopyDrPlugin(
+        //    context.getMetaStore(), FileCopyScheduleStrategy.ordered()),
+        new FileCopy2S3Plugin(),
+        new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao())
+    );
   }
 
   @Override
   public List<ActionFactory> actionFactories() {
     return Arrays.asList(
+        new OzoneActionFactory(),
         new HiveActionFactory()
     );
   }
@@ -63,5 +73,16 @@ public class OzoneFileSystemContext extends BaseFileSystemContext {
   @Override
   public CachedFilesManager cachedFilesManager(ServerContext context) {
     return new NoOpCachedFilesManager();
+  }
+
+  @Override
+  protected Stream<ThrowingBiFunction<ServerContext,
+      MetaStore, ActionSchedulerService>> actionSchedulerSuppliers() {
+    return Stream.of(
+        // TODO ADH-7459
+        // CopyScheduler::new,
+        Copy2S3Scheduler::new,
+        (ctx, metastore) -> new HmsSyncScheduler(ctx,
+            metastore.hmsEventDao(), metastore.hmsSyncProgressDao()));
   }
 }

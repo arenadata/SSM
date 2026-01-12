@@ -47,4 +47,12 @@
         <name>smart.rest.server.security.enabled</name>
         <value>false</value>
     </property>
+    <property>
+        <name>ozone.replication</name>
+        <value>ONE</value>
+    </property>
+    <property>
+        <name>ozone.replication.type</name>
+        <value>RATIS</value>
+    </property>
 </configuration>

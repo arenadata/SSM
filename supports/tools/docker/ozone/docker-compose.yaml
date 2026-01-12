@@ -27,11 +27,12 @@ x-common-config:
   OZONE-SITE.XML_ozone.om.http-address: "om:9874"
   OZONE-SITE.XML_ozone.recon.address: "recon:9891"
   OZONE-SITE.XML_ozone.recon.db.dir: "/data/metadata/recon"
-  OZONE-SITE.XML_ozone.replication: "1"
   OZONE-SITE.XML_ozone.scm.block.client.address: "scm"
   OZONE-SITE.XML_ozone.scm.client.address: "scm"
   OZONE-SITE.XML_ozone.scm.datanode.id.dir: "/data/metadata"
   OZONE-SITE.XML_ozone.scm.names: "scm"
+  OZONE-SITE.XML_ozone.replication: "ONE"
+  OZONE-SITE.XML_ozone.replication.type: "RATIS"
   no_proxy: "om,recon,scm,s3g,localhost,127.0.0.1"
 
 version: "3"

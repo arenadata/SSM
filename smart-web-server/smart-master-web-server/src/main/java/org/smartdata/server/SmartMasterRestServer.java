@@ -65,6 +65,7 @@ public class SmartMasterRestServer extends SmartHttpServer {
           "smartPrincipalManager", smartEngine.getSmartPrincipalManager());
       beanFactory.registerSingleton("dbFileAccessManager",
           smartEngine.getFileAccessManager().getFileAccessCountManager());
+      beanFactory.registerSingleton("actionRegistry", smartEngine.getActionRegistry());
     }
   }
 

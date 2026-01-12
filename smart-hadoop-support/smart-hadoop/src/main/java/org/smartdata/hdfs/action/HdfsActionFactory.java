@@ -19,6 +19,7 @@ package org.smartdata.hdfs.action;
 
 import org.smartdata.action.AbstractActionFactory;
 import org.smartdata.action.SmartAction;
+import org.smartdata.action.SyncAction;
 
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,8 @@ public class HdfsActionFactory extends AbstractActionFactory {
         AddErasureCodingPolicy.class,
         RemoveErasureCodingPolicy.class,
         EnableErasureCodingPolicy.class,
-        DisableErasureCodingPolicy.class
+        DisableErasureCodingPolicy.class,
+        SyncAction.class
     );
   }
 }
