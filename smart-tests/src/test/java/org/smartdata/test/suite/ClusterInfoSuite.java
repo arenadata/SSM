@@ -27,7 +27,6 @@ import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.FilesInCacheStep;
 import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
-import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +42,11 @@ import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTable
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
 import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
+import static org.smartdata.test.element.TableElement.getRowByCellValue;
 import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
+import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_NAME;
 
 
 @Feature("Cluster info page")
@@ -67,9 +69,6 @@ public class ClusterInfoSuite extends SsmBaseSuite {
 
   @Autowired
   private FilesInCacheStep filesInCacheStep;
-
-  @Autowired
-  private PaginationStep paginationStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -143,6 +142,14 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   public void testFilesInCachePagination() {
     List<String> fileIdList = prepareDataForFilesInCachePaginationTest();
     filesInCacheStep.checkPagination(fileIdList);
+  }
+
+  @TmsLink("136238")
+  @Story("Cmdlet executors config")
+  @Test(description = "Check Cmdlet executors config")
+  public void testCmdletExecutorsConfig() {
+    tableStep.checkRowColumnValue(getRowByCellValue(ID, SSM_SERVER_HOST_NAME), EXECUTORS, "9")
+        .checkRowColumnValue(getRowByCellValue(ID, DATANODE_HOST_NAME), EXECUTORS, "8");
   }
 
   @Step("Create fake 'Hottest files' rows")

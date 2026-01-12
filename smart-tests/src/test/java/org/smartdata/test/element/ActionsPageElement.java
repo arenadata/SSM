@@ -38,21 +38,23 @@ public interface ActionsPageElement {
 
   @Getter
   enum ActionsTableColumn implements TableColumn {
-    ID("ID", "id"),
-    ACTION("Action", "textRepresentation"),
-    HOST("Host", "execHost"),
-    CREATE_TIME("Create Time", "submissionTime"),
-    FINISH_TIME("Finish Time", "completionTime"),
-    STATUS("Status", "state"),
-    TYPE("Type", "source"),
-    ACTIONS("Actions", "actions");
+    ID("ID", "id", "id"),
+    ACTION("Action", "textRepresentation", ""),
+    HOST("Host", "execHost", "execHost"),
+    CREATE_TIME("Create Time", "submissionTime", "submissionTime"),
+    FINISH_TIME("Finish Time", "completionTime", "completionTime"),
+    STATUS("Status", "state", "state"),
+    TYPE("Type", "source", ""),
+    ACTIONS("Actions", "actions", "actions");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ActionsTableColumn(String name, String headerId) {
+    ActionsTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

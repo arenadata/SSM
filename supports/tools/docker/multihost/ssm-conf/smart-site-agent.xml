@@ -137,6 +137,6 @@
     </property>
     <property>
         <name>smart.cmdlet.executors</name>
-        <value>7</value>
+        <value>8</value>
     </property>
 </configuration>

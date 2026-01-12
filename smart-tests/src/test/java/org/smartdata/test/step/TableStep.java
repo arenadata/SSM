@@ -48,6 +48,7 @@ import static org.smartdata.test.element.TableElement.SORTING_ARROW_XPATH;
 import static org.smartdata.test.element.TableElement.TableType;
 import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
 import static org.smartdata.test.element.TableElement.getAllColumnCells;
+import static org.smartdata.test.element.TableElement.getCellFromRow;
 import static org.smartdata.test.element.TableElement.getCellInFirstRow;
 import static org.smartdata.test.element.TableElement.getFilterButton;
 import static org.smartdata.test.element.TableElement.getFrequencyOption;
@@ -103,6 +104,12 @@ public class TableStep extends BaseWebStep {
   @Step("Check table has row values {expectedValues} in {tableType} table {column} column with table order")
   public TableStep checkColumnValues(TableType tableType, TableColumn column, List<String> expectedValues) {
     getAllColumnCells(tableType, column).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    return this;
+  }
+
+  @Step("Check table has row value {expectedValue} in {column} column")
+  public TableStep checkRowColumnValue(SelenideElement row, TableColumn column, String expectedValue) {
+    waitTextEquals(getCellFromRow(row, column), expectedValue);
     return this;
   }
 

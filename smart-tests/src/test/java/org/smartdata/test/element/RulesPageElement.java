@@ -42,21 +42,23 @@ public interface RulesPageElement {
 
   @Getter
   enum RulesTableColumn implements TableColumn {
-    ID("ID", "id"),
-    RULE_TEXT("Rule Text", "textRepresentation"),
-    SUBMISSION_TIME("Submission Time", "submitTime"),
-    LAST_CHECK_TIME("Last Check Time", "lastActivationTime"),
-    CHECKED_NUMBER("Checked number", "activationCount"),
-    CMDLETS_GENERATED("Cmdlets Generated", "cmdletsGenerated"),
-    STATUS("Status", "state"),
-    ACTIONS("Actions", "actions");
+    ID("ID", "id", "id"),
+    RULE_TEXT("Rule Text", "textRepresentation", ""),
+    SUBMISSION_TIME("Submission Time", "submitTime", "submitTime"),
+    LAST_CHECK_TIME("Last Check Time", "lastActivationTime", "lastActivationTime"),
+    CHECKED_NUMBER("Checked number", "activationCount", "activationCount"),
+    CMDLETS_GENERATED("Cmdlets Generated", "cmdletsGenerated", "cmdletsGenerated"),
+    STATUS("Status", "state", "state"),
+    ACTIONS("Actions", "actions", "actions");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    RulesTableColumn(String name, String headerId) {
+    RulesTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

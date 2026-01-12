@@ -26,7 +26,8 @@ import static com.codeborne.selenide.Selenide.$x;
 public interface ActionsDetailsPageElement {
   SelenideElement ACTION_DETAILS_RESULT_BUTTON = $x("//*[contains(@class, 'tabsBlock')]//*[.='Result']");
   SelenideElement ACTION_DETAILS_LOG_BUTTON = $x("//*[contains(@class, 'tabsBlock')]//*[.='Log']");
-  SelenideElement ACTION_DETAILS_LOG_VIEW = $x("//*[contains(@class, 'simpleLogView') and not(contains(@class, 'actionExecutionInfo'))]");
+  SelenideElement ACTION_DETAILS_LOG_VIEW =
+      $x("//*[contains(@class, 'simpleLogView') and not(contains(@class, 'actionExecutionInfo'))]");
   SelenideElement HEADER_TITLE_ACTION = $x("//*[contains(@class, 'actionHeader')]//h1");
   SelenideElement HEADER_TITLE_PARAMS = $x("//*[contains(@class, 'actionHeader') and contains(@class, 'text')]");
   SelenideElement HEADER_SUCCESSFUL_ICON = $x("//*[name()='use' and @*='#status-ok']");
@@ -34,21 +35,23 @@ public interface ActionsDetailsPageElement {
 
   @Getter
   enum ActionsDetailsTableColumn implements TableColumn {
-    ID("ID", "id"),
-    CREATE_TIME("Create Time", "submissionTime"),
-    FINISH_TIME("Finish Time", "completionTime"),
-    RUNNING_TIME("Running Time", "runningTime"),
-    STATUS("Status", "state"),
-    TYPE("Type", "source"),
-    HOST("Host", "execHost"),
-    ACTIONS("Actions", "actions");
+    ID("ID", "id", "id"),
+    CREATE_TIME("Create Time", "submissionTime", "submissionTime"),
+    FINISH_TIME("Finish Time", "completionTime", "completionTime"),
+    RUNNING_TIME("Running Time", "runningTime", ""),
+    STATUS("Status", "state", "state"),
+    TYPE("Type", "source", ""),
+    HOST("Host", "execHost", "execHost"),
+    ACTIONS("Actions", "actions", "actions");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ActionsDetailsTableColumn(String name, String headerId) {
+    ActionsDetailsTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

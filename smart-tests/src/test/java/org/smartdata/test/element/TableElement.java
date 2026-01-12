@@ -43,6 +43,7 @@ public interface TableElement {
   String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
   String BLUE_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_blue')]";
   String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
+  String TABLE_ROW_XPATH_BY_CELL_VALUE = ".//tbody//tr[td[@data-qa='%s']//*[text()='%s']]";
 
   static ElementsCollection getTableRows() {
     return getTableRows(PRIMARY);
@@ -98,6 +99,10 @@ public interface TableElement {
 
   static SelenideElement getResetFilterButton(SelenideElement baseElement) {
     return findFromBaseElement(baseElement, RESET_FILTER_BUTTON_XPATH);
+  }
+
+  static SelenideElement getRowByCellValue(TableColumn tableColumn, String value) {
+    return $x(String.format(TABLE_ROW_XPATH_BY_CELL_VALUE, tableColumn.getCellId(), value));
   }
 
   @Getter
