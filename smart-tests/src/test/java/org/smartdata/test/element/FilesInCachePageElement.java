@@ -29,18 +29,20 @@ public interface FilesInCachePageElement {
 
   @Getter
   enum ClusterInfoFilesInCacheTableColumn implements TableColumn {
-    ID("ID", "id"),
-    FILE_PATH("File path", "path"),
-    CACHED_TIME("Cached Time", "cachedTime"),
-    LAST_ACCESSED_TIME("Last Accessed Time", "lastAccessTime"),
-    ACCESS_COUNT("Access count", "accessCount");
+    ID("ID", "id", "id"),
+    FILE_PATH("File path", "path", "path"),
+    CACHED_TIME("Cached Time", "cachedTime", "cachedTime"),
+    LAST_ACCESSED_TIME("Last Accessed Time", "lastAccessTime", "lastAccessTime"),
+    ACCESS_COUNT("Access count", "accessCount", "accessCount");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ClusterInfoFilesInCacheTableColumn(String name, String headerId) {
+    ClusterInfoFilesInCacheTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

@@ -29,16 +29,18 @@ public interface ClusterInfoPageElement {
 
   @Getter
   enum ClusterInfoTableColumn implements TableColumn {
-    ID("ID", "id"),
-    REGISTER_TIME("Register Time", "registrationTime"),
-    EXECUTORS("Executors", "executorsCount");
+    ID("ID", "id", "id"),
+    REGISTER_TIME("Register Time", "registrationTime", "registrationTime"),
+    EXECUTORS("Executors", "executorsCount", "executorsCount");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ClusterInfoTableColumn(String name, String headerId) {
+    ClusterInfoTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

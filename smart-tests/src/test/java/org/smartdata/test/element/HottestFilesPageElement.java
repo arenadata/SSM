@@ -29,16 +29,18 @@ public interface HottestFilesPageElement {
 
   @Getter
   enum ClusterInfoHottestFilesTableColumn implements TableColumn {
-    ID("ID", "id"),
-    FILE_PATH("File path", "path"),
-    ACCESS_COUNT("Access count", "accessCount");
+    ID("ID", "id", "id"),
+    FILE_PATH("File path", "path", "path"),
+    ACCESS_COUNT("Access count", "accessCount", "accessCount");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ClusterInfoHottestFilesTableColumn(String name, String headerId) {
+    ClusterInfoHottestFilesTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

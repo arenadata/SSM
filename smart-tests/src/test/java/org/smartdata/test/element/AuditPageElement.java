@@ -24,20 +24,22 @@ public interface AuditPageElement {
 
   @Getter
   enum AuditTableColumn implements TableColumn {
-    ID("ID", "id"),
-    USER("User", "username"),
-    DATE("Date", "timestamp"),
-    OBJECT_TYPE("Object Type", "objectType"),
-    OBJECT_ID("Object ID", "objectId"),
-    OPERATION("Operation", "operation"),
-    RESULT("Result", "result");
+    ID("ID", "id", "id"),
+    USER("User", "username", "username"),
+    DATE("Date", "timestamp", "timestamp"),
+    OBJECT_TYPE("Object Type", "objectType", "objectType"),
+    OBJECT_ID("Object ID", "objectId", "objectId"),
+    OPERATION("Operation", "operation", "operation"),
+    RESULT("Result", "result", "state");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    AuditTableColumn(String name, String headerId) {
+    AuditTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override
