@@ -172,6 +172,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
   private CompletableFuture<Void> handleKey(FileStatus fileStatus) {
     Path filePath = getOriginalFilePath(fileStatus.getPath());
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
+        .isDir(fileStatus.isDirectory())
         .path(pathWithoutAuthority(filePath));
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> handleChildrenIfDirectory(fileStatus), executor);

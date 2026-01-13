@@ -20,6 +20,7 @@ package org.smartdata.server.engine.filesystem;
 import org.smartdata.SmartService;
 import org.smartdata.action.ActionFactory;
 import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
+import org.smartdata.hdfs.scheduler.CopyScheduler;
 import org.smartdata.hive.action.HiveActionFactory;
 import org.smartdata.hive.action.HmsSyncScheduler;
 import org.smartdata.hive.rule.HmsSyncRulePlugin;
@@ -33,6 +34,8 @@ import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
 import org.smartdata.server.engine.file.NoOpCachedFilesManager;
 import org.smartdata.server.engine.rule.FileCopy2S3Plugin;
+import org.smartdata.server.engine.rule.copy.FileCopyDrPlugin;
+import org.smartdata.server.engine.rule.copy.FileCopyScheduleStrategy;
 import org.smartdata.utils.ThrowingBiFunction;
 
 import java.util.Arrays;
@@ -44,9 +47,8 @@ public class OzoneFileSystemContext extends BaseFileSystemContext {
   @Override
   public List<RuleExecutorPlugin> ruleExecutorPlugins(ServerContext context, CmdletManager cmdletManager) {
     return Arrays.asList(
-        // TODO ADH-7459
-        // new FileCopyDrPlugin(
-        //    context.getMetaStore(), FileCopyScheduleStrategy.ordered()),
+        new FileCopyDrPlugin(
+            context.getMetaStore(), FileCopyScheduleStrategy.ordered()),
         new FileCopy2S3Plugin(),
         new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao())
     );
@@ -79,8 +81,7 @@ public class OzoneFileSystemContext extends BaseFileSystemContext {
   protected Stream<ThrowingBiFunction<ServerContext,
       MetaStore, ActionSchedulerService>> actionSchedulerSuppliers() {
     return Stream.of(
-        // TODO ADH-7459
-        // CopyScheduler::new,
+        CopyScheduler::new,
         Copy2S3Scheduler::new,
         (ctx, metastore) -> new HmsSyncScheduler(ctx,
             metastore.hmsEventDao(), metastore.hmsSyncProgressDao()));

@@ -19,6 +19,7 @@ package org.smartdata.ozone.action;
 
 import org.smartdata.action.AbstractActionFactory;
 import org.smartdata.action.SmartAction;
+import org.smartdata.action.SyncAction;
 import org.smartdata.hdfs.action.Copy2S3Action;
 import org.smartdata.hdfs.action.CopyDirectoryAction;
 import org.smartdata.hdfs.action.CopyFileAction;
@@ -45,8 +46,7 @@ public class OzoneActionFactory extends AbstractActionFactory {
         ListFileAction.class,
         ReadFileAction.class,
         WriteFileAction.class,
-        // TODO ADH-7459
-        // SyncAction.class,
+        SyncAction.class,
         DistCpAction.class,
         CopyDirectoryAction.class,
         MetaDataAction.class

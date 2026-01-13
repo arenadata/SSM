@@ -17,10 +17,17 @@
  */
 package org.smartdata.metrics;
 
+import org.smartdata.model.BaseFileInfo;
+
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface GeneralFileInfoSource {
   Map<String, Long> getPathsToIdsMapping(Collection<String> paths) throws SQLException;
+
+  List<String> getFilePathsByPrefix(String path);
+
+  BaseFileInfo getBaseFileInfo(String path);
 }

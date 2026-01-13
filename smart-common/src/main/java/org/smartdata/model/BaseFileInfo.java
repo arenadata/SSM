@@ -15,20 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hdfs.file.equality;
+package org.smartdata.model;
 
-import org.apache.hadoop.fs.FileStatus;
-import org.smartdata.model.BaseFileInfo;
+public interface BaseFileInfo {
+  String getPath();
 
-import java.util.Optional;
+  long getLength();
 
-public class LengthFileEqualityStrategy implements FileEqualityStrategy {
-
-  @Override
-  public boolean areEqual(BaseFileInfo srcFileInfo, FileStatus destFileStatus) {
-    return Optional.ofNullable(destFileStatus)
-        .map(FileStatus::getLen)
-        .filter(length -> length == srcFileInfo.getLength())
-        .isPresent();
-  }
+  boolean isDir();
 }

@@ -36,6 +36,7 @@ import org.smartdata.hdfs.file.equality.FileEqualityStrategy;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
+import org.smartdata.model.BaseFileInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CompressionFileState;
 import org.smartdata.model.FileDiff;
@@ -44,16 +45,15 @@ import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.LaunchAction;
+import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
-import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +91,6 @@ import static org.smartdata.model.FileDiffState.MERGED;
 import static org.smartdata.model.FileDiffState.PENDING;
 import static org.smartdata.model.FileDiffState.isTerminalState;
 import static org.smartdata.model.FileDiffType.DELETE;
-import static org.smartdata.utils.ConfigUtil.toRemoteClusterConfig;
 import static org.smartdata.utils.FileDiffUtils.getDest;
 import static org.smartdata.utils.FileDiffUtils.getLength;
 import static org.smartdata.utils.FileDiffUtils.getOffset;
@@ -256,7 +255,7 @@ public class CopyScheduler extends ActionSchedulerService {
         if (preserveAttributes != null) {
           action.getArgs().put(CopyFileAction.PRESERVE, preserveAttributes);
         }
-          if (rateLimiter != null) {
+        if (rateLimiter != null) {
           String strLen = getLength(fileDiff);
           if (strLen != null) {
             int appendLen = (int) (Long.parseLong(strLen) >> 20);
@@ -465,74 +464,15 @@ public class CopyScheduler extends ActionSchedulerService {
     }
   }
 
-  private List<FileStatus> listFileStatusesOfDirs(String dirName) {
-    List<FileStatus> fileStatuses = new ArrayList<>();
-    try {
-      // We simply use local HDFS conf for getting remote file system.
-      // The smart file system configured for local HDFS should not be
-      // introduced to remote file system.
-      Configuration remoteConf = toRemoteClusterConfig(conf);
-      FileSystem fs = FileSystem.get(URI.create(dirName), remoteConf);
-
-      FileStatus[] directoryFileStatuses = fs.listStatus(new Path(dirName));
-      for (FileStatus fileStatus : directoryFileStatuses) {
-        // add directory
-        fileStatuses.add(fileStatus);
-
-        if (!fileStatus.isDirectory()) {
-          continue;
-        }
-
-        //all the file in this fileStatuses
-        // todo replace recursion with queue
-        List<FileStatus> childFileStatuses = listFileStatusesOfDirs(fileStatus.getPath().getName());
-        if (!childFileStatuses.isEmpty()) {
-          fileStatuses.addAll(childFileStatuses);
-        }
-      }
-    } catch (IOException e) {
-      LOG.debug("Fetch remote file list error!", e);
-    }
-    return fileStatuses;
-  }
-
   private void initialSync(String srcDir, String destDir) throws MetaStoreException {
-    List<FileInfo> srcFiles = metaStore.getFilesByPrefix(srcDir);
+    List<String> srcFiles = metaStore.getFilePathsByPrefix(srcDir);
     LOG.info("Directory initial sync {} files", srcFiles.size());
 
-    // <file name, fileInfo>
-    Map<String, FileInfo> filesToSync = new HashMap<>();
-    for (FileInfo fileInfo : srcFiles) {
-      // Remove prefix/parent
-      filesToSync.put(fileInfo.getPath().replaceFirst(srcDir, ""), fileInfo);
+    for (String srcFile : srcFiles) {
+      String dest = srcFile.replaceFirst(srcDir, destDir);
+      initialSyncQueue.put(srcFile, dest);
     }
 
-    // recursively file lists
-    List<FileStatus> fileStatuses = listFileStatusesOfDirs(destDir);
-    if (fileStatuses.isEmpty()) {
-      LOG.debug("Remote directory is empty!");
-    } else {
-      LOG.debug("Remote directory contains {} files!", fileStatuses.size());
-      for (FileStatus fileStatus : fileStatuses) {
-        // only get file name
-        // todo it can be buggy because of .getPath().getName()
-        String destName = fileStatus.getPath().getName();
-        if (filesToSync.containsKey(destName)) {
-          FileInfo fileInfo = filesToSync.get(destName);
-          String src = fileInfo.getPath();
-          String dest = src.replaceFirst(srcDir, destDir);
-          initialSyncQueue.put(src, dest);
-          filesToSync.remove(destName);
-        }
-      }
-    }
-
-    LOG.debug("Directory Base Sync {} files", filesToSync.size());
-    for (FileInfo fileInfo : filesToSync.values()) {
-      String src = fileInfo.getPath();
-      String dest = src.replaceFirst(srcDir, destDir);
-      initialSyncQueue.put(src, dest);
-    }
     runBatchInitialSync();
   }
 
@@ -562,7 +502,8 @@ public class CopyScheduler extends ActionSchedulerService {
   }
 
   private FileDiff runFileInitialSync(String src, String dest) throws MetaStoreException {
-    FileInfo srcFileInfo = metaStore.getFile(src);
+    // todo
+    BaseFileInfo srcFileInfo = metaStore.getBaseFileInfo(src);
     if (srcFileInfo == null || fileLocks.contains(src)) {
       // Primary file doesn't exist or file is syncing
       return null;
@@ -589,7 +530,7 @@ public class CopyScheduler extends ActionSchedulerService {
   }
 
   private FileDiff createAppendFileDiff(
-      FileInfo srcFileInfo, FileStatus remoteFileStatus, long copyStartOffset) {
+      BaseFileInfo srcFileInfo, FileStatus remoteFileStatus, long copyStartOffset) {
 
     FileDiff fileDiff = new FileDiff(FileDiffType.APPEND, FileDiffState.PENDING);
     fileDiff.setSrc(srcFileInfo.getPath());

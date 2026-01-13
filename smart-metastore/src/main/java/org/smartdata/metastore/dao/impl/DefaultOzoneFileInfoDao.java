@@ -39,6 +39,7 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
   private static final String IS_VOLUME_FIELD = "is_volume";
   private static final String IS_BUCKET_FIELD = "is_bucket";
   private static final String IS_S3_FIELD = "is_s3";
+  private static final String IS_DIR_FIELD = "is_dir";
   private static final String OWNER_FIELD = "owner";
   private static final String OWNER_GROUP_FIELD = "owner_group";
   private static final String PERMISSION_FIELD = "permission";
@@ -70,6 +71,7 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
     parameters.put(IS_VOLUME_FIELD, fileInfo.isVolume());
     parameters.put(IS_BUCKET_FIELD, fileInfo.isBucket());
     parameters.put(IS_S3_FIELD, fileInfo.isS3());
+    parameters.put(IS_DIR_FIELD, fileInfo.isDir());
     parameters.put(OWNER_FIELD, fileInfo.getOwner());
     parameters.put(OWNER_GROUP_FIELD, fileInfo.getGroup());
     parameters.put(PERMISSION_FIELD, fileInfo.getPermission());

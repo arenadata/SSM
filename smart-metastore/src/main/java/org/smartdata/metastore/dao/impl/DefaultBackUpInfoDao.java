@@ -51,20 +51,20 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
   @Override
   public BackUpInfo getByRid(long rid) {
     return jdbcTemplate.queryForObject("SELECT * FROM backup_file WHERE rid = ?",
-        new Object[] {rid}, new BackUpInfoRowMapper());
+        new Object[]{rid}, new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getBySrc(String src) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE src = ?", new Object[] {src},
+        "SELECT * FROM backup_file WHERE src = ?", new Object[]{src},
         new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getByDest(String dest) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE dest = ?", new Object[] {dest},
+        "SELECT * FROM backup_file WHERE dest = ?", new Object[]{dest},
         new BackUpInfoRowMapper());
   }
 
@@ -110,14 +110,13 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
 
     @Override
     public BackUpInfo mapRow(ResultSet resultSet, int i) throws SQLException {
-      BackUpInfo backUpInfo = new BackUpInfo();
-      backUpInfo.setRid(resultSet.getLong("rid"));
-      backUpInfo.setSrc(resultSet.getString("src"));
-      backUpInfo.setDest(resultSet.getString("dest"));
-      backUpInfo.setPeriod(resultSet.getLong("period"));
-      backUpInfo.setSrcPattern(resultSet.getString("src_pattern"));
-
-      return backUpInfo;
+      return BackUpInfo.builder()
+          .rid(resultSet.getLong("rid"))
+          .src(resultSet.getString("src"))
+          .dest(resultSet.getString("dest"))
+          .period(resultSet.getLong("period"))
+          .srcPattern(resultSet.getString("src_pattern"))
+          .build();
     }
   }
 }
