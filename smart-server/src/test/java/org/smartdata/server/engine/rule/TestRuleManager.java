@@ -65,6 +65,7 @@ public class TestRuleManager extends TestDaoBase {
         new NoOpAuditService(),
         new ActionRegistry(fsContext.actionFactories()),
         principalManager,
+        fsContext.smartObjectSupplier(),
         fsContext.ruleExecutorPlugins(serverContext, null));
     ruleManager.init();
     ruleManager.start();

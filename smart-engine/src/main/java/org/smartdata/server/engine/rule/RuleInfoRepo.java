@@ -26,6 +26,7 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.model.rule.RuleTranslationResult;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.rule.parser.SmartRuleStringParser;
 import org.smartdata.rule.parser.TranslationContext;
 import org.smartdata.server.engine.RuleManager;
@@ -44,6 +45,8 @@ public class RuleInfoRepo {
   private final RuleDao ruleDao;
   private final SmartConf conf;
   private final List<RuleExecutorPlugin> executorPlugins;
+  private final SmartObjectSupplier smartObjectSupplier;
+
   private RuleExecutor ruleExecutor;
 
   private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -51,10 +54,12 @@ public class RuleInfoRepo {
   public RuleInfoRepo(RuleInfo ruleInfo,
       MetaStore metaStore,
       SmartConf conf,
+      SmartObjectSupplier smartObjectSupplier,
       List<RuleExecutorPlugin> executorPlugins) {
     this.ruleInfo = ruleInfo;
     this.metaStore = metaStore;
     this.ruleDao = metaStore.ruleDao();
+    this.smartObjectSupplier = smartObjectSupplier;
     this.executorPlugins = executorPlugins;
     this.conf = conf;
   }
@@ -149,7 +154,8 @@ public class RuleInfoRepo {
           ruleInfo.getId(), ruleInfo.getSubmitTime());
       RuleTranslationResult translationResult = ruleExecutor != null
           ? ruleExecutor.getOriginalTranslateResult()
-          : new SmartRuleStringParser(ruleInfo.getRuleText(), translationCtx, conf).translate();
+          : new SmartRuleStringParser(ruleInfo.getRuleText(),
+          translationCtx, smartObjectSupplier, conf).translate();
 
       ruleExecutor = new RuleExecutor(
           conf,

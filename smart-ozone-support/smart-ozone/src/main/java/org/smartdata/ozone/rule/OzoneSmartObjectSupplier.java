@@ -15,25 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.rule.objects;
+package org.smartdata.ozone.rule;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.google.common.collect.ImmutableMap;
+import org.smartdata.rule.objects.HmsObject;
+import org.smartdata.rule.objects.SmartObject;
+import org.smartdata.rule.objects.StaticMapSmartObjectSupplier;
 
 import java.util.Map;
 
-/**
- * Acts as base of SSM objects.
- */
-@Getter
-@RequiredArgsConstructor
-public abstract class SmartObject {
+public class OzoneSmartObjectSupplier extends StaticMapSmartObjectSupplier {
+  private final static Map<String, SmartObject> SUPPORTED_OBJECTS = ImmutableMap.of(
+      "file", new OzoneFileObject(),
+      "hms", new HmsObject()
+  );
 
-  private final ObjectType type;
-  private final Map<String, Property> properties;
-  private final String baseTableName;
-
-  public Property getProperty(String propertyName) {
-    return properties.get(propertyName);
+  public OzoneSmartObjectSupplier() {
+    super(SUPPORTED_OBJECTS);
   }
 }

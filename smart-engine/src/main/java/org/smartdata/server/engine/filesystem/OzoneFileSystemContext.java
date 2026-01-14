@@ -29,6 +29,8 @@ import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.ozone.OzoneFetcherService;
 import org.smartdata.ozone.action.OzoneActionFactory;
+import org.smartdata.ozone.rule.OzoneSmartObjectSupplier;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
@@ -75,6 +77,11 @@ public class OzoneFileSystemContext extends BaseFileSystemContext {
   @Override
   public CachedFilesManager cachedFilesManager(ServerContext context) {
     return new NoOpCachedFilesManager();
+  }
+
+  @Override
+  public SmartObjectSupplier smartObjectSupplier() {
+    return new OzoneSmartObjectSupplier();
   }
 
   @Override

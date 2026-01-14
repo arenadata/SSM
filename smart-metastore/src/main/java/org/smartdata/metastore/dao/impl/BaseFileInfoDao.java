@@ -68,7 +68,10 @@ public abstract class BaseFileInfoDao extends AbstractDao implements GeneralFile
 
   @Override
   public BaseFileInfo getBaseFileInfo(String path) {
-    return jdbcTemplate.queryForObject("SELECT * FROM file WHERE path = ?",
+    return jdbcTemplate.queryForObject(
+        "SELECT * FROM "
+                + tableName
+                + " WHERE path = ?",
         this::toBaseFileInfo, path);
   }
 

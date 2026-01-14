@@ -18,31 +18,17 @@
 package org.smartdata.rule.objects;
 
 import com.google.common.collect.ImmutableMap;
-import org.smartdata.rule.parser.ValueType;
 
-import java.util.Collections;
 import java.util.Map;
 
-/**
- * Definition of rule object 'Storage'.
- */
-public class StorageObject extends SmartObject {
-  public static final Map<String, Property> PROPERTIES = ImmutableMap.of(
-      "capacity",
-      new Property("capacity", ValueType.LONG,
-          Collections.singletonList(ValueType.STRING), "storage", "capacity",
-          "type = $0 AND capacity"),
-      "free",
-      new Property("free", ValueType.LONG,
-          Collections.singletonList(ValueType.STRING), "storage", "free",
-          "type = $0 AND free"),
-      "utilization",
-      new Property("utilization", ValueType.LONG,
-          Collections.singletonList(ValueType.STRING), "storage", "free",
-          "type = $0 AND (capacity - free) * 100.0 / capacity")
+public class DefaultSmartObjectSupplier extends StaticMapSmartObjectSupplier {
+  private static final Map<String, SmartObject> SUPPORTED_OBJECTS = ImmutableMap.of(
+      "file", new FileObject(),
+      "hms", new HmsObject(),
+      "storage", new StorageObject()
   );
 
-  public StorageObject() {
-    super(ObjectType.STORAGE, PROPERTIES, "storage");
+  public DefaultSmartObjectSupplier() {
+    super(SUPPORTED_OBJECTS);
   }
 }

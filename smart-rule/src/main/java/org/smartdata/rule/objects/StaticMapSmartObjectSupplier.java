@@ -17,23 +17,17 @@
  */
 package org.smartdata.rule.objects;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * Acts as base of SSM objects.
- */
-@Getter
 @RequiredArgsConstructor
-public abstract class SmartObject {
+public class StaticMapSmartObjectSupplier implements SmartObjectSupplier {
+  private final Map<String, SmartObject> objects;
 
-  private final ObjectType type;
-  private final Map<String, Property> properties;
-  private final String baseTableName;
-
-  public Property getProperty(String propertyName) {
-    return properties.get(propertyName);
+  @Override
+  public Optional<SmartObject> get(String name) {
+    return Optional.ofNullable(objects.get(name));
   }
 }

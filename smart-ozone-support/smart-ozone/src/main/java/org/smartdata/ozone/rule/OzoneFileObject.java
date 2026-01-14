@@ -15,25 +15,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.rule.objects;
-
+package org.smartdata.ozone.rule;
 
 import com.google.common.collect.ImmutableMap;
+import org.smartdata.ozone.OzoneFileInfoDao;
+import org.smartdata.rule.objects.ObjectType;
+import org.smartdata.rule.objects.Property;
+import org.smartdata.rule.objects.SmartObject;
 import org.smartdata.rule.parser.ValueType;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Definition of rule object 'File'.
- */
-public class FileObject extends SmartObject {
+public class OzoneFileObject extends SmartObject {
 
   private static final Map<String, Property> PROPERTIES =
       ImmutableMap.<String, Property>builder()
           .put("path",
-              new Property("path", ValueType.STRING, null, "file", "path"))
+              new Property("path", ValueType.STRING,
+                  null, OzoneFileInfoDao.TABLE_NAME, "path"))
+          .put("length",
+              new Property("length", ValueType.LONG,
+                  null, OzoneFileInfoDao.TABLE_NAME, "length"))
+          .put("blocksize",
+              new Property("blocksize", ValueType.LONG,
+                  null, OzoneFileInfoDao.TABLE_NAME, "block_size"))
+          .put("age",
+              new Property("age", ValueType.TIMEINTVAL,
+                  null, OzoneFileInfoDao.TABLE_NAME, null,
+                  "($NOW - modification_time)"))
+          .put("mtime",
+              new Property("mtime", ValueType.TIMEPOINT,
+                  null, OzoneFileInfoDao.TABLE_NAME, "modification_time"))
+          .put("atime",
+              new Property("atime", ValueType.TIMEPOINT,
+                  null, OzoneFileInfoDao.TABLE_NAME, "access_time"))
+          .put("isDir",
+              new Property("isDir", ValueType.BOOLEAN,
+                  null, OzoneFileInfoDao.TABLE_NAME, "is_dir"))
+          .put("unsynced",
+                  new Property("unsynced", ValueType.BOOLEAN,
+                          null, "file_diff", null,
+                          "state = 0"))
           .put("accessCount",
               new Property("accessCount", ValueType.LONG,
                   Collections.singletonList(ValueType.TIMEINTVAL),
@@ -58,51 +82,9 @@ public class FileObject extends SmartObject {
               new Property("acBot", ValueType.LONG,
                   Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG),
                   "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"))
-          .put("acTopSp",
-              new Property("acTopSp", ValueType.LONG,
-                  Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG, ValueType.STRING),
-                  "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"))
-          .put("acBotSp",
-              new Property("acBotSp", ValueType.LONG,
-                  Arrays.asList(ValueType.TIMEINTVAL, ValueType.LONG, ValueType.STRING),
-                  "VIRTUAL_ACCESS_COUNT_TABLE", "", "count"))
-          .put("length",
-              new Property("length", ValueType.LONG,
-                  null, "file", "length"))
-          .put("blocksize",
-              new Property("blocksize", ValueType.LONG,
-                  null, "file", "block_size"))
-          .put("inCache",
-              new Property("inCache", ValueType.BOOLEAN,
-                  null, "cached_file", null))
-          .put("age",
-              new Property("age", ValueType.TIMEINTVAL,
-                  null, "file", null,
-                  "($NOW - modification_time)"))
-          .put("mtime",
-              new Property("mtime", ValueType.TIMEPOINT,
-                  null, "file", "modification_time"))
-          .put("atime",
-              new Property("atime", ValueType.TIMEPOINT,
-                  null, "file", "access_time"))
-          .put("storagePolicy",
-              new Property("storagePolicy", ValueType.STRING,
-                  null, "file", null,
-                  "(SELECT policy_name FROM storage_policy WHERE sid = file.sid)"))
-          .put("unsynced",
-              new Property("unsynced", ValueType.BOOLEAN,
-                  null, "file_diff", null,
-                  "state = 0"))
-          .put("isDir",
-              new Property("isDir", ValueType.BOOLEAN,
-                  null, "file", "is_dir"))
-          .put("ecPolicy",
-              new Property("ecPolicy", ValueType.STRING,
-                  null, "file", null,
-                  "(SELECT policy_name FROM ec_policy WHERE id = file.ec_policy_id)"))
           .build();
 
-  public FileObject() {
-    super(ObjectType.FILE, PROPERTIES, "file");
+  public OzoneFileObject() {
+    super(ObjectType.FILE, PROPERTIES, OzoneFileInfoDao.TABLE_NAME);
   }
 }

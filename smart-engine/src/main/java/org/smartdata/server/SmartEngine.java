@@ -105,6 +105,7 @@ public class SmartEngine extends AbstractService {
         .actionRegistry(actionRegistry)
         .smartPrincipalManager(smartPrincipalManager)
         .executorPlugins(fsContext.ruleExecutorPlugins(serverContext, cmdletManager))
+        .smartObjectSupplier(fsContext.smartObjectSupplier())
         .build();
 
     services.add(ruleManager);

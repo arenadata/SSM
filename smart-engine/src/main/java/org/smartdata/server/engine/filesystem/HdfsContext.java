@@ -34,6 +34,8 @@ import org.smartdata.hive.rule.HmsSyncRulePlugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.rule.RuleExecutorPlugin;
+import org.smartdata.rule.objects.DefaultSmartObjectSupplier;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
@@ -82,6 +84,11 @@ public class HdfsContext extends BaseFileSystemContext {
   @Override
   public CachedFilesManager cachedFilesManager(ServerContext context) {
     return new DbCachedFilesManager(context.getMetaStore().cacheFileDao());
+  }
+
+  @Override
+  public SmartObjectSupplier smartObjectSupplier() {
+    return new DefaultSmartObjectSupplier();
   }
 
   @Override

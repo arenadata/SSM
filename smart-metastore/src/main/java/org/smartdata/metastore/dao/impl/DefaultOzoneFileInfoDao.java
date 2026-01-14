@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFileInfoDao {
-  private static final String TABLE_NAME = "ofile";
-
   private static final String FILE_ID_FIELD = "fid";
   private static final String PATH_FIELD = "path";
   private static final String LENGTH_FIELD = "length";
@@ -52,6 +50,11 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
   @Override
   public void insert(OzoneFileInfo fileInfo) {
     insert(fileInfo, this::toMap);
+  }
+
+  @Override
+  public void clear() {
+    jdbcTemplate.update("DELETE FROM ofile");
   }
 
   @Override

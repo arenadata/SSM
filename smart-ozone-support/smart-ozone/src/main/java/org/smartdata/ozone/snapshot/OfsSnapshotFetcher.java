@@ -149,6 +149,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
   private CompletableFuture<Void> handleVolume(FileStatus fileStatus) {
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
         .path(pathWithoutAuthority(fileStatus.getPath()))
+        .isDir(true)
         .isVolume(true);
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> executeInParallel(
@@ -159,6 +160,7 @@ public class OfsSnapshotFetcher implements AutoCloseable {
   private CompletableFuture<Void> handleBucket(FileStatus fileStatus) {
     OzoneFileInfo.Builder fileBuilder = OzoneFileInfo.builder()
         .path(pathWithoutAuthority(fileStatus.getPath()))
+        .isDir(true)
         .isBucket(true);
     return saveFile(fileStatus, fileBuilder)
         .thenComposeAsync(ignore -> createBucketSnapshot(fileStatus), executor)
