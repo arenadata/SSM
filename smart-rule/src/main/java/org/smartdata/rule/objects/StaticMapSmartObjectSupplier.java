@@ -20,14 +20,13 @@ package org.smartdata.rule.objects;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public class StaticMapSmartObjectSupplier implements SmartObjectSupplier {
   private final Map<String, SmartObject> objects;
 
   @Override
-  public Optional<SmartObject> get(String name) {
-    return Optional.ofNullable(objects.get(name));
+  public SmartObject get(String name) {
+    return objects.get(name);
   }
 }

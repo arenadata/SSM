@@ -86,22 +86,18 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   @Override
   public TreeNode visitObjTypeOnly(SmartRuleParser.ObjTypeOnlyContext ctx) {
     String objName = ctx.OBJECTTYPE().getText();
-    smartObjectSupplier.get(objName)
-        .ifPresent(object -> {
-          objects.put(objName, object);
-          objects.put("Default", object);
-        });
+    SmartObject object = smartObjectSupplier.get(objName);
+    objects.put(objName, object);
+    objects.put("Default", object);
     return null;
   }
 
   @Override
   public TreeNode visitObjTypeWith(SmartRuleParser.ObjTypeWithContext ctx) {
     String objName = ctx.OBJECTTYPE().getText();
-    smartObjectSupplier.get(objName)
-        .ifPresent(object -> {
-          objects.put(objName, object);
-          objects.put("Default", object);
-        });
+    SmartObject object = smartObjectSupplier.get(objName);
+    objects.put(objName, object);
+    objects.put("Default", object);
     objFilter = visit(ctx.objfilter());
     return null;
   }
@@ -278,14 +274,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   }
 
   private SmartObject createIfNotExist(String objName) {
-    SmartObject obj = objects.get(objName);
-    if (obj == null) {
-      smartObjectSupplier.get(objName)
-          .ifPresent(object ->
-              objects.put(objName, object)
-          );
-    }
-    return obj;
+    return objects.computeIfAbsent(objName, smartObjectSupplier::get);
   }
 
   // ID

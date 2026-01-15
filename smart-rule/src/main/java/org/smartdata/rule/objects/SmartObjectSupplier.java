@@ -17,8 +17,6 @@
  */
 package org.smartdata.rule.objects;
 
-import java.util.Optional;
-
 public interface SmartObjectSupplier {
-  Optional<SmartObject> get(String name);
+  SmartObject get(String name);
 }
