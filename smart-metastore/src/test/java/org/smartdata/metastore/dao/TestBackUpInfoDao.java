@@ -91,7 +91,7 @@ public class TestBackUpInfoDao extends TestDaoBase {
     backUpInfoDao.update(1, 2);
 
     backUpInfo = backUpInfo.toBuilder()
-        .rid(2)
+        .period(2)
         .build();
 
     Assert.assertEquals(backUpInfo, backUpInfoDao.getByRid(1));
