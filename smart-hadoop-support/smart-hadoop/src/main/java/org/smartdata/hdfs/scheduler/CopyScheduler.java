@@ -502,7 +502,6 @@ public class CopyScheduler extends ActionSchedulerService {
   }
 
   private FileDiff runFileInitialSync(String src, String dest) throws MetaStoreException {
-    // todo
     BaseFileInfo srcFileInfo = metaStore.getBaseFileInfo(src);
     if (srcFileInfo == null || fileLocks.contains(src)) {
       // Primary file doesn't exist or file is syncing
