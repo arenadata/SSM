@@ -3,4 +3,4 @@ set -e
 
 HDFS_VERSION=$1
 
-mvn clean install -Pdist,web-ui,hadoop-"${HDFS_VERSION}" -DskipTests
+mvn clean install -Pdist,web-ui,withDocker,hadoop-"${HDFS_VERSION}" -DskipTests
