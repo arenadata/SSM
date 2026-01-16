@@ -17,6 +17,7 @@
  */
 package org.smartdata.hive.action.function;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.messaging.CreateFunctionMessage;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
@@ -52,6 +53,10 @@ public class HmsCreateFunctionAction extends HmsAction {
   }
 
   private void updateResourceLocations(Function function) {
+    if (CollectionUtils.isEmpty(function.getResourceUris())) {
+      return;
+    }
+
     function.getResourceUris()
         .forEach(resourceUri ->
             resourceUri.setUri(renameNameService(resourceUri.getUri())));
