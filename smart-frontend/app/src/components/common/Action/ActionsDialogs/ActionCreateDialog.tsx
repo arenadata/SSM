@@ -56,7 +56,6 @@ const ActionCreateDialog: React.FC = () => {
 
   return (
     <FooterDialog
-      data-qa="submit-action-dialog-footer"
       isOpen={isOpen}
       onOpenChange={closeDialog}
       title="Submit action"

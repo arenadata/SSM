@@ -41,7 +41,7 @@ const RenderNumberButtons = ({ items, setPageNumber, currentPageNumber }: render
       {items.map((item) =>
         item.type === 'page' ? (
           <PaginationNumButton
-            data-qa="page-number"
+            dataTest="page-number"
             key={`numberBtn_${item.key}`}
             onClick={() => setPageNumber(item.pageNumber)}
             selected={currentPageNumber === item.pageNumber}

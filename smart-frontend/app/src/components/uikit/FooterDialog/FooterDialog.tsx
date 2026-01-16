@@ -62,7 +62,7 @@ const FooterDialog: React.FC<FooterDialogProps> = ({
 
   return (
     <FloatingPortal>
-      <div className={cn(s.dialog, className, { [s.dialog__shown]: isOpen })}>
+      <div className={cn(s.dialog, className, { [s.dialog__shown]: isOpen })} data-qa={title}>
         <FlexGroup gap="20px" className={s.dialog__header}>
           {title && (
             <Title variant="h1" component="div">

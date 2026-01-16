@@ -32,7 +32,7 @@ const LegendCard: React.FC<LegendCardProps> = ({ title, count = 0, icon, variant
   const classes = cn(s.legendCard, s[`legendCard_${variant}`]);
 
   return (
-    <div className={classes}>
+    <div className={classes} data-qa={title}>
       <Icon name={icon} size={32} />
       <div className={s.legendCard__title}>{title}</div>
       <div className={s.legendCard__count}>{count}</div>
