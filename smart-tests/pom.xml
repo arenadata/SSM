@@ -44,7 +44,7 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.13-jdk8</java-test-common.version>
+        <java-test-common.version>1.13-jdk8-restart</java-test-common.version>
         <postgresql.version>42.7.7</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>6.6.0</openapi.generator.version>
@@ -67,6 +67,12 @@
             <artifactId>HikariCP</artifactId>
             <version>${hikari.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -75,6 +81,9 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+            <properties>
+                <COMPOSE_FILE_NAME>target/test-classes/env/multihost/docker-compose.yaml</COMPOSE_FILE_NAME>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -96,6 +105,73 @@
                             </argLine>
                             <suiteXmlFiles>
                                 <suiteXmlFile>src/test/resources/web-tests.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.aspectj</groupId>
+                                <artifactId>aspectjweaver</artifactId>
+                                <version>${aspectj.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.apache.maven.surefire</groupId>
+                                <artifactId>surefire-testng</artifactId>
+                                <version>${maven.surefire.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <version>${exec-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>Pull selenoid browser images</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>/bin/bash</executable>
+                                    <arguments>
+                                        <argument>target/common-resources/selenoid/pull-browser-image.sh</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>hms-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <COMPOSE_FILE_NAME>target/test-classes/env/demo-cluster/docker-compose.yaml</COMPOSE_FILE_NAME>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <goal>verify</goal>
+                            <parallel>none</parallel>
+                            <testFailureIgnore>false</testFailureIgnore>
+                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                            <systemPropertyVariables>
+                                <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                                <useSystemClassLoader>true</useSystemClassLoader>
+                            </systemPropertyVariables>
+                            <argLine>
+                                -ea -Xmx4G -XX:MaxMetaspaceSize=2G
+                                -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+                            </argLine>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>src/test/resources/hms-tests.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>
                         <dependencies>
@@ -172,7 +248,7 @@
                 <version>${maven-resource-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-resources-multihost</id>
                         <phase>initialize</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -182,6 +258,21 @@
                             <resources>
                                 <resource>
                                     <directory>../supports/tools/docker/multihost/</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-demo</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/test-classes/env/demo-cluster</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../.demo/docker/ssm-cluster</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -298,6 +389,13 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
 
         <testResources>
             <testResource>

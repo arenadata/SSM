@@ -15,29 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.model;
+package org.smartdata.test.configuration;
 
-import io.arenadata.test.model.Component;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Getter
-@AllArgsConstructor
-public enum SsmComponent implements Component {
-  HADOOP_NAMENODE("hadoop-namenode", 8020),
-  HADOOP_DATANODE("hadoop-datanode", 7051),
-  SSM_SERVER("ssm-server", 8081),
-  SSM_METASTORE_DB("ssm-metastore-db", 5432),
-  KDC_SERVER("kdc-server", 749),
-  SAMBA("samba", 389),
-  HIVE_SERVER_2("hive-server2", 10000),
-  HIVE_METASTORE("hive-metastore", 9083),
-  PROMETHEUS("prometheus", 9090);
+import javax.sql.DataSource;
 
-  private final String name;
-  private final int port;
+@Configuration
+public class HiveDataSourceConfiguration {
 
-  public static SsmComponent fromName(String name) {
-    return SsmComponent.valueOf(name.toUpperCase().replace("-", "_"));
+  @Bean
+  @ConfigurationProperties("hive-db.datasource")
+  public DataSource hiveDataSource() {
+    return DataSourceBuilder.create().build();
   }
 }

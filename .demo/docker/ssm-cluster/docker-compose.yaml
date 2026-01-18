@@ -1,6 +1,5 @@
 version: "3.8"
 services:
-  ##### SOURCE CLUSTER
 
   hadoop-namenode:
     image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
@@ -47,7 +46,7 @@ services:
       - ./conf:/opt/ssm/conf
       - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
       - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
-    entrypoint: ["/hadoop-datanode-entrypoint.sh"]
+    entrypoint: [ "/hadoop-datanode-entrypoint.sh" ]
     ports:
       - "9864:9864"
       - "7048:7048"
@@ -83,7 +82,7 @@ services:
       - ./ssm-conf/smart-site-master.xml:/opt/ssm/conf/smart-site.xml
       - ./common.sh:/common.sh
       - ./ssm/ssm-server-entrypoint.sh:/ssm-server-entrypoint.sh
-    entrypoint: ["/ssm-server-entrypoint.sh"]
+    entrypoint: [ "/ssm-server-entrypoint.sh" ]
     ports:
       - "7042:7042"
       - "8081:8081"
@@ -149,18 +148,15 @@ services:
     networks:
       - demo
     depends_on:
-      ssm-metastore-db:
-        condition: service_healthy
+      - ssm-metastore-db
 
   hive-server2:
     image: apache/hive:4.0.1
     container_name: hive-server2
     hostname: hive-server2.demo
     depends_on:
-      hive-metastore:
-        condition: service_started
-      hadoop-namenode:
-        condition: service_healthy
+      - hive-metastore
+      - hadoop-namenode
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true
@@ -181,8 +177,6 @@ services:
       - "10002:10002"
     networks:
       - demo
-
-  ##### TARGET CLUSTER
 
   target-namenode:
     image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
@@ -225,7 +219,7 @@ services:
       - ./target-conf:/opt/ssm/conf
       - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
       - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
-    entrypoint: ["/hadoop-datanode-entrypoint.sh"]
+    entrypoint: [ "/hadoop-datanode-entrypoint.sh" ]
     environment:
       SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
     env_file:
@@ -243,8 +237,7 @@ services:
     container_name: target-hive-metastore
     hostname: target-hive-metastore.demo
     depends_on:
-      ssm-metastore-db:
-        condition: service_healthy
+      - ssm-metastore-db
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
@@ -269,10 +262,8 @@ services:
     container_name: target-hive-server2
     hostname: target-hive-server2.demo
     depends_on:
-      target-hive-metastore:
-        condition: service_started
-      target-namenode:
-        condition: service_healthy
+      - target-hive-metastore
+      - target-namenode
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true

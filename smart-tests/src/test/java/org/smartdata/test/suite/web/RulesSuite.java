@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.suite;
+package org.smartdata.test.suite.web;
 
 import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
@@ -29,6 +29,7 @@ import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.RulesStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.suite.SsmBaseSuite;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
