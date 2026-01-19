@@ -145,6 +145,11 @@ services:
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
     ports:
       - "9083:9083"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo -n \"\" > /dev/tcp/localhost/9083'"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
     networks:
       - demo
     depends_on:
@@ -254,6 +259,11 @@ services:
       - ./target-conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./target-conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
       - ./target-conf/core-site.xml:/opt/hive/conf/core-site.xml
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo -n \"\" > /dev/tcp/localhost/9083'"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
     networks:
       - demo
 

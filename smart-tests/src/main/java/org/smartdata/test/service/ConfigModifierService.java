@@ -40,7 +40,8 @@ import java.util.Map;
 @Service
 public class ConfigModifierService {
 
-    private final String CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
+//    private final String CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
+    private final String CONFIG_DIR = "target/test-classes/env/demo-cluster/ssm-conf";
     private final Map<String, Map<String, String>> originalValues = new HashMap<>();
 
     /**

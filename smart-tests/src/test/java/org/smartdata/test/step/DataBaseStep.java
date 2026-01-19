@@ -21,6 +21,7 @@ package org.smartdata.test.step;
 import io.arenadata.test.util.FileUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.smartdata.test.repository.HiveRepository;
 import org.smartdata.test.repository.MetastoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class DataBaseStep {
 
   @Autowired
   private MetastoreRepository metastoreRepository;
+  private HiveRepository  hiveRepository;
 
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";

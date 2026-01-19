@@ -1,7 +1,7 @@
 general:
   # env-type: docker|remote
-  env-type: ${ENV_TYPE:docker}
-  use-selenoid: ${CI:true}
+  env-type: ${ENV_TYPE:remote}
+  use-selenoid: ${CI:false}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
 docker-compose-service:
@@ -88,5 +88,5 @@ ssm-metastore-db:
 
 hive-db:
   datasource:
-    jdbc-url: jdbc:postgresql://${METASTORE_DB_HOST:localhost}:10000
+    jdbc-url: jdbc:hive2://${METASTORE_DB_HOST:localhost}:10000/default
     driver-class-name: org.apache.hive.jdbc.HiveDriver
