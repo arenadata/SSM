@@ -45,11 +45,17 @@
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
         <java-test-common.version>1.13-jdk8-restart</java-test-common.version>
-        <postgresql.version>42.7.7</postgresql.version>
+        <postgresql.version>42.7.4</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>6.6.0</openapi.generator.version>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <jooq.version>3.19.13</jooq.version>
+        <metastore.db.host>localhost</metastore.db.host>
+        <metastore.db.port>5432</metastore.db.port>
+        <metastore.db.name>metastore</metastore.db.name>
+        <metastore.db.username>ssm</metastore.db.username>
+        <metastore.db.password>ssm</metastore.db.password>
     </properties>
     <dependencies>
         <dependency>
@@ -83,6 +89,11 @@
             <artifactId>libthrift</artifactId>
             <version>0.22.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>${jooq.version}</version>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>org.apache.hadoop</groupId>-->
@@ -364,6 +375,7 @@
                         <configuration>
                             <sources>
                                 <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                                <source>${project.build.directory}/generated-sources/jooq</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -401,6 +413,105 @@
                             <modelNameSuffix>Dto</modelNameSuffix>
                             <enablePostProcessFile>true</enablePostProcessFile>
                             <skipOperationExample>true</skipOperationExample>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.jooq</groupId>-->
+<!--                <artifactId>jooq-codegen-maven</artifactId>-->
+<!--                <version>${jooq.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>generate-jooq-sources</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>generate</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--                <dependencies>-->
+<!--                    <dependency>-->
+<!--                        <groupId>org.postgresql</groupId>-->
+<!--                        <artifactId>postgresql</artifactId>-->
+<!--                        <version>${postgresql.version}</version>-->
+<!--                    </dependency>-->
+<!--                </dependencies>-->
+<!--                <configuration>-->
+<!--                    <jdbc>-->
+<!--                        <driver>org.postgresql.Driver</driver>-->
+<!--                        <url>jdbc:postgresql://localhost:5432/metastore</url>-->
+<!--                        <user>ssm</user>-->
+<!--                        <password>ssm</password>-->
+<!--                    </jdbc>-->
+<!--                    <generator>-->
+<!--                        <database>-->
+<!--                            <name>org.jooq.meta.postgres.PostgresDatabase</name>-->
+<!--                            <includes>.*</includes>-->
+<!--                            <excludes></excludes>-->
+<!--                            <inputSchema>public</inputSchema>-->
+<!--                        </database>-->
+<!--                        <generate>-->
+<!--                            <records>true</records>-->
+<!--                            <pojos>false</pojos>-->
+<!--                            <daos>false</daos>-->
+<!--                            <interfaces>false</interfaces>-->
+<!--                            <immutablePojos>false</immutablePojos>-->
+<!--                            <fluentSetters>false</fluentSetters>-->
+<!--                        </generate>-->
+<!--                        <target>-->
+<!--                            <packageName>org.smartdata.test.jooq</packageName>-->
+<!--                            <directory>${project.build.directory}/generated-sources/jooq</directory>-->
+<!--                        </target>-->
+<!--                    </generator>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+            <plugin>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-jooq-codegen-maven-plugin</artifactId>
+                <version>0.0.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.testcontainers</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${testcontainers.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>generate-jooq-sources</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <database>
+                                <type>POSTGRES</type>
+                                <containerImage>postgres:14.0</containerImage> <!-- optional -->
+                            </database>
+                            <liquibase>
+                                <changeLogDirectory>../smart-metastore/src/main/resources/</changeLogDirectory>
+                                <changeLogPath>db/changelog/changelog-root.xml</changeLogPath>
+                            </liquibase>
+                            <!-- Generator parameters -->
+                            <jooq>
+                                <generator>
+                                    <database>
+                                        <includes>.*</includes>
+                                        <excludes>DATABASECHANGELOG.*</excludes>
+                                        <inputSchema>public</inputSchema>
+                                    </database>
+                                    <target>
+                                        <packageName>org.smartdata.test.jooq</packageName>
+                                        <directory>target/generated-sources/jooq</directory>
+                                    </target>
+                                </generator>
+                            </jooq>
                         </configuration>
                     </execution>
                 </executions>

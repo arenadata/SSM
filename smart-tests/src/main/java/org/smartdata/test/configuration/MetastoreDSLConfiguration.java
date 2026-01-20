@@ -17,6 +17,10 @@
  */
 package org.smartdata.test.configuration;
 
+import org.jooq.ConnectionProvider;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -24,12 +28,24 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
+import static org.jooq.SQLDialect.POSTGRES;
+
 @Configuration
-public class MetastoreDataSourceConfiguration {
+public class MetastoreDSLConfiguration {
 
   @Bean
   @ConfigurationProperties("ssm-metastore-db.datasource")
   public DataSource dataSource() {
     return DataSourceBuilder.create().build();
+  }
+
+  @Bean
+  public ConnectionProvider metastoreConnectionProvider(DataSource dataSource) {
+    return new DataSourceConnectionProvider(dataSource);
+  }
+
+  @Bean
+  public DSLContext dslContext(ConnectionProvider metastoreConnectionProvider) {
+    return DSL.using(metastoreConnectionProvider, POSTGRES);
   }
 }

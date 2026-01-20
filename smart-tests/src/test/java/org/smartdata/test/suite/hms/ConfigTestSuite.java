@@ -33,11 +33,10 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.sql.ResultSet;
-
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.TableElement.getRowByCellValue;
+import static org.smartdata.test.model.SsmComponent.HADOOP_DATANODE;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
 
@@ -105,12 +104,13 @@ public class ConfigTestSuite extends SsmBaseSuite {
     hiveRepository.executeSql("create table db1.t3(i int)");
 
 
-    ResultSet rs = metastoreRepository.getConnection().createStatement().executeQuery("SELECT * FROM public.hive_metastore_event");
-    System.out.println(rs.getMetaData().getColumnCount());
+
+//    ResultSet rs = metastoreRepository.getConnection().createStatement().executeQuery("SELECT * FROM public.hive_metastore_event");
+//    System.out.println(rs.getMetaData().getColumnCount());
 
     tableStep.checkRowColumnValue(getRowByCellValue(ID, DATANODE_HOST_NAME), EXECUTORS, "7");
     configModifierService.setProperty("smart-site-agent.xml", "smart.cmdlet.executors", "4");
-//    containerManager.restart(HADOOP_DATANODE);
+    containerManager.restart(HADOOP_DATANODE);
     containerManager.restart(SSM_SERVER);
     clusterInfoStep.refreshPage();
     loginStep.loginAs(UserRole.OWNER);

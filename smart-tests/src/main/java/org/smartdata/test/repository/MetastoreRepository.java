@@ -18,34 +18,24 @@
 package org.smartdata.test.repository;
 
 import io.arenadata.test.util.FileUtils;
+import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import javax.sql.DataSource;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 @Repository
 public class MetastoreRepository {
 
   @Autowired
-  private DataSource dataSource;
+  private DSLContext dslContext;
 
-  public Connection getConnection() throws SQLException {
-    return dataSource.getConnection();
+  public void executeSql(String sql) {
+    dslContext.execute(sql);
   }
 
-  public void executeSql(String sql) throws SQLException {
-    try (Connection connection = dataSource.getConnection();
-         Statement statement = connection.createStatement()) {
-      statement.execute(sql);
-    }
-  }
-
-  public void executeSqlFile(String path) throws SQLException {
+  public void executeSqlFile(String path) {
     String sql = FileUtils.readFile(path);
     executeSql(sql);
   }
+
+//  public HiveMetastoreEvent
 }

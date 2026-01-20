@@ -1,7 +1,7 @@
 general:
   # env-type: docker|remote
-  env-type: ${ENV_TYPE:remote}
-  use-selenoid: ${CI:false}
+  env-type: ${ENV_TYPE:docker}
+  use-selenoid: ${CI:true}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
 docker-compose-service:
