@@ -25,6 +25,7 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.hdfs.HadoopUtil;
+import org.smartdata.model.BaseFileInfo;
 import org.smartdata.model.FileInfo;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class ChecksumFileEqualityStrategy implements FileEqualityStrategy {
   }
 
   @Override
-  public boolean areEqual(FileInfo srcFileInfo, FileStatus destFileStatus) {
+  public boolean areEqual(BaseFileInfo srcFileInfo, FileStatus destFileStatus) {
     if (!filesLengthComparator.areEqual(srcFileInfo, destFileStatus)) {
       // we don't need to fetch and compare checksums
       // if the files are obviously not equal.

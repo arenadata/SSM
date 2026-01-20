@@ -15,22 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.action;
+package org.smartdata.server.mappers;
 
-import java.util.Map;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+import org.smartdata.action.ActionMetadata;
+import org.smartdata.server.generated.model.ActionMetadataDto;
+import org.smartdata.server.generated.model.ActionsMetadataDto;
+
+import java.util.List;
 import java.util.Set;
 
-/**
- * Action factory interface. Either built-in or user defined actions will be
- * provided via an action factory.
- */
-public interface ActionFactory {
 
-  /**
-   * Get all the smart actions supported and provided by this factory.
-   * @return supported actions
-   */
-  Map<String, Class<? extends SmartAction>> getSupportedActions();
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+public interface ActionMetadataMapper extends SmartMapper {
 
-  Set<ActionMetadata> getActionMetadata();
+  List<ActionMetadataDto> toActionMetadataDtos(Set<ActionMetadata> metadataSet);
+
+  default ActionsMetadataDto toActionsMetadataDto(Set<ActionMetadata> metadataSet) {
+    return new ActionsMetadataDto()
+        .items(toActionMetadataDtos(metadataSet));
+  }
 }

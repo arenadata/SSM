@@ -15,22 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.action;
+package org.smartdata.rule.objects;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
-import java.util.Set;
 
-/**
- * Action factory interface. Either built-in or user defined actions will be
- * provided via an action factory.
- */
-public interface ActionFactory {
+@RequiredArgsConstructor
+public class StaticMapSmartObjectSupplier implements SmartObjectSupplier {
+  private final Map<String, SmartObject> objects;
 
-  /**
-   * Get all the smart actions supported and provided by this factory.
-   * @return supported actions
-   */
-  Map<String, Class<? extends SmartAction>> getSupportedActions();
-
-  Set<ActionMetadata> getActionMetadata();
+  @Override
+  public SmartObject get(String name) {
+    return objects.get(name);
+  }
 }

@@ -65,6 +65,8 @@ public class SmartEngine extends AbstractService {
   private SmartPrincipalManager smartPrincipalManager;
   @Getter
   private CachedFilesManager cachedFilesManager;
+  @Getter
+  private ActionRegistry actionRegistry;
 
   private final List<SmartService> services;
 
@@ -85,7 +87,7 @@ public class SmartEngine extends AbstractService {
 
     FileSystemContext fsContext = FileSystemContext.fromConfig(conf);
 
-    ActionRegistry actionRegistry = new ActionRegistry(fsContext.actionFactories());
+    actionRegistry = new ActionRegistry(fsContext.actionFactories());
 
     cmdletManager = CmdletManager.builder()
         .context(serverContext)
@@ -103,6 +105,7 @@ public class SmartEngine extends AbstractService {
         .actionRegistry(actionRegistry)
         .smartPrincipalManager(smartPrincipalManager)
         .executorPlugins(fsContext.ruleExecutorPlugins(serverContext, cmdletManager))
+        .smartObjectSupplier(fsContext.smartObjectSupplier())
         .build();
 
     services.add(ruleManager);

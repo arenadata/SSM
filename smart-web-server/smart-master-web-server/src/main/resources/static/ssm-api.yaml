@@ -16,6 +16,7 @@ tags:
 - name: Cluster
 - name: Audit
 - name: System
+- name: Metadata
 paths:
   /api/v2/rules:
     get:
@@ -770,6 +771,21 @@ paths:
       summary: Get current logged in user
       tags:
       - System
+  /api/v2/metadata/actions:
+    get:
+      operationId: getActionsMetadata
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionsMetadata'
+          description: OK
+        "401":
+          description: Unauthorized
+      summary: List all actions metadata
+      tags:
+      - Metadata
 components:
   parameters:
     page-request:
@@ -1638,6 +1654,22 @@ components:
       - name
       title: UserInfo
       type: object
+    ActionMetadata:
+      example:
+        usage: usage
+        name: name
+      properties:
+        name:
+          description: SSM host on which this action is running
+          type: string
+        usage:
+          description: SSM host on which this action is running
+          nullable: true
+          type: string
+      required:
+      - name
+      title: ActionMetadata
+      type: object
     ExecutorType:
       description: Type of the cmdlet executor
       enum:
@@ -1984,6 +2016,21 @@ components:
           timestamp: 1
           objectType: null
       title: AuditEvents
+    ActionsMetadata:
+      example:
+        items:
+        - usage: usage
+          name: name
+        - usage: usage
+          name: name
+      properties:
+        items:
+          description: List of actions metadata
+          items:
+            $ref: '#/components/schemas/ActionMetadata'
+          type: array
+      title: ActionsMetadata
+      type: object
   securitySchemes:
     basicAuth:
       scheme: basic

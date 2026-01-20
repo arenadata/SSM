@@ -17,20 +17,10 @@
  */
 package org.smartdata.action;
 
-import java.util.Map;
-import java.util.Set;
+import lombok.Data;
 
-/**
- * Action factory interface. Either built-in or user defined actions will be
- * provided via an action factory.
- */
-public interface ActionFactory {
-
-  /**
-   * Get all the smart actions supported and provided by this factory.
-   * @return supported actions
-   */
-  Map<String, Class<? extends SmartAction>> getSupportedActions();
-
-  Set<ActionMetadata> getActionMetadata();
+@Data
+public class ActionMetadata {
+  private final String name;
+  private final String usage;
 }

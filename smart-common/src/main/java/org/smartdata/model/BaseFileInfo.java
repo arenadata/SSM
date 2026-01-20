@@ -15,22 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.action;
+package org.smartdata.model;
 
-import java.util.Map;
-import java.util.Set;
+public interface BaseFileInfo {
+  String getPath();
 
-/**
- * Action factory interface. Either built-in or user defined actions will be
- * provided via an action factory.
- */
-public interface ActionFactory {
+  long getLength();
 
-  /**
-   * Get all the smart actions supported and provided by this factory.
-   * @return supported actions
-   */
-  Map<String, Class<? extends SmartAction>> getSupportedActions();
-
-  Set<ActionMetadata> getActionMetadata();
+  boolean isDir();
 }

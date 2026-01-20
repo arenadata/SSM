@@ -67,6 +67,7 @@ public class TestRuleLifecycleLogger extends TestDaoBase {
         serverContext, null, auditService,
         new ActionRegistry(fsContext.actionFactories()),
         principalManager,
+        fsContext.smartObjectSupplier(),
         fsContext.ruleExecutorPlugins(serverContext, null));
     ruleManager.init();
     ruleManager.start();

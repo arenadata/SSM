@@ -19,6 +19,7 @@ package org.smartdata.hive.action;
 
 import org.smartdata.action.AbstractActionFactory;
 import org.smartdata.action.SmartAction;
+import org.smartdata.action.SyncAction;
 import org.smartdata.hive.action.constraint.HmsCreateConstraintAction;
 import org.smartdata.hive.action.constraint.HmsDropConstraintAction;
 import org.smartdata.hive.action.db.HmsAlterDbAction;
@@ -67,7 +68,9 @@ public class HiveActionFactory extends AbstractActionFactory {
         HmsAlterPartitionColumnStatsAction.class,
         HmsAlterTableColumnStatsAction.class,
         HmsDropPartitionColumnStatsAction.class,
-        HmsDropTableColumnStatsAction.class
+        HmsDropTableColumnStatsAction.class,
+
+        SyncAction.class
     );
   }
 }

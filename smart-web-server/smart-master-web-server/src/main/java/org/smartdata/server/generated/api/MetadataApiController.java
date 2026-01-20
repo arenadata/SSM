@@ -15,20 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hdfs.file.equality;
+package org.smartdata.server.generated.api;
 
-import org.apache.hadoop.fs.FileStatus;
-import org.smartdata.model.BaseFileInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Generated;
 
 import java.util.Optional;
 
-public class LengthFileEqualityStrategy implements FileEqualityStrategy {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@RestController
+@RequestMapping("${openapi.sSMAPIDocumentation.base-path:}")
+public class MetadataApiController implements MetadataApi {
+
+  private final MetadataApiDelegate delegate;
+
+  public MetadataApiController(@Autowired(required = false) MetadataApiDelegate delegate) {
+    this.delegate = Optional.ofNullable(delegate).orElse(new MetadataApiDelegate() {});
+  }
 
   @Override
-  public boolean areEqual(BaseFileInfo srcFileInfo, FileStatus destFileStatus) {
-    return Optional.ofNullable(destFileStatus)
-        .map(FileStatus::getLen)
-        .filter(length -> length == srcFileInfo.getLength())
-        .isPresent();
+  public MetadataApiDelegate getDelegate() {
+    return delegate;
   }
+
 }

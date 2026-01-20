@@ -21,5 +21,9 @@ import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.ozone.model.OzoneFileInfo;
 
 public interface OzoneFileInfoDao extends GeneralFileInfoSource {
+  String TABLE_NAME = "ofile";
+
   void insert(OzoneFileInfo fileInfo);
+
+  void clear();
 }

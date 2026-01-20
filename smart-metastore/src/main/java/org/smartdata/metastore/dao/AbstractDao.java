@@ -72,7 +72,7 @@ public class AbstractDao {
   }
 
   protected int update(Map<String, Object> entityProperties,
-                       String filter, Object... filterArguments) {
+      String filter, Object... filterArguments) {
     return updateInternal(entityProperties, " WHERE " + filter, filterArguments);
   }
 
@@ -81,11 +81,11 @@ public class AbstractDao {
   }
 
   protected int updateInternal(Map<String, Object> entityProperties,
-                               String filter, Object... filterArguments) {
+      String filter, Object... filterArguments) {
     StringJoiner updateSql = new StringJoiner(", ", "UPDATE " + tableName + " SET ", filter);
     List<Object> setArguments = new ArrayList<>();
 
-    for (Map.Entry<String, Object> property: entityProperties.entrySet()) {
+    for (Map.Entry<String, Object> property : entityProperties.entrySet()) {
       if (property.getValue() == null) {
         continue;
       }

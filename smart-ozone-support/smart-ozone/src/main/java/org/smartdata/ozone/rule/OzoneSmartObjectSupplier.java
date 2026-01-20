@@ -15,22 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.action;
+package org.smartdata.ozone.rule;
+
+import com.google.common.collect.ImmutableMap;
+import org.smartdata.rule.objects.HmsObject;
+import org.smartdata.rule.objects.SmartObject;
+import org.smartdata.rule.objects.StaticMapSmartObjectSupplier;
 
 import java.util.Map;
-import java.util.Set;
 
-/**
- * Action factory interface. Either built-in or user defined actions will be
- * provided via an action factory.
- */
-public interface ActionFactory {
+public class OzoneSmartObjectSupplier extends StaticMapSmartObjectSupplier {
+  private final static Map<String, SmartObject> SUPPORTED_OBJECTS = ImmutableMap.of(
+      "file", new OzoneFileObject(),
+      "hms", new HmsObject()
+  );
 
-  /**
-   * Get all the smart actions supported and provided by this factory.
-   * @return supported actions
-   */
-  Map<String, Class<? extends SmartAction>> getSupportedActions();
-
-  Set<ActionMetadata> getActionMetadata();
+  public OzoneSmartObjectSupplier() {
+    super(SUPPORTED_OBJECTS);
+  }
 }

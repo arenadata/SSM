@@ -15,25 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.server.controller;
 
-import lombok.Builder;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.smartdata.action.ActionMetadata;
+import org.smartdata.action.ActionRegistry;
+import org.smartdata.server.generated.api.MetadataApiDelegate;
+import org.smartdata.server.generated.model.ActionsMetadataDto;
+import org.smartdata.server.mappers.ActionMetadataMapper;
+import org.springframework.stereotype.Component;
 
-import static org.smartdata.utils.StringUtil.ssmPatternToRegex;
+import java.util.Set;
 
-@Data
+@Component
 @RequiredArgsConstructor
-@Builder(toBuilder = true)
-public class BackUpInfo {
-  private final long rid;
-  private final String src;
-  private final String dest;
-  private final long period; // in milliseconds
-  private final String srcPattern;
+public class MetadataControllerDelegate implements MetadataApiDelegate {
 
-  public BackUpInfo(long rid, String src, String dest, long period) {
-    this(rid, src, dest, period, ssmPatternToRegex(src + "*"));
+  private final ActionRegistry actionRegistry;
+  private final ActionMetadataMapper actionMetadataMapper;
+
+  @Override
+  public ActionsMetadataDto getActionsMetadata() {
+    Set<ActionMetadata> actionMetadata = actionRegistry.getActionMetadata();
+    return actionMetadataMapper.toActionsMetadataDto(actionMetadata);
   }
 }

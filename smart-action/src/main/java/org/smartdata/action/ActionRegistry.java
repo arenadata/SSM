@@ -17,10 +17,12 @@
  */
 package org.smartdata.action;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,12 +31,21 @@ import java.util.Set;
  */
 @Slf4j
 public class ActionRegistry {
-  private final Map<String, Class<? extends SmartAction>> actions = new HashMap<>();
+  @Getter
+  private final Set<ActionMetadata> actionMetadata;
+  private final Map<String, Class<? extends SmartAction>> actions;
 
   public ActionRegistry(Collection<ActionFactory> factories) {
+    this.actions = new HashMap<>();
+    this.actionMetadata = new HashSet<>();
+
     factories.stream()
         .map(ActionFactory::getSupportedActions)
         .forEach(actions::putAll);
+
+    factories.stream()
+        .map(ActionFactory::getActionMetadata)
+        .forEach(actionMetadata::addAll);
   }
 
   public Set<String> registeredActions() {
