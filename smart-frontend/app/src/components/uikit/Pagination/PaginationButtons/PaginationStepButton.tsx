@@ -53,7 +53,7 @@ const PaginationStepButton = ({
   );
 
   return (
-    <Button variant="tertiary" onClick={onClick} className={btnClasses} disabled={disabled} data-test={dataTest}>
+    <Button variant="tertiary" onClick={onClick} className={btnClasses} disabled={disabled} data-qa={dataTest}>
       <Icon size={getArrowSize(arrowVariant)} name={getArrowIconName(arrowVariant)} />
     </Button>
   );

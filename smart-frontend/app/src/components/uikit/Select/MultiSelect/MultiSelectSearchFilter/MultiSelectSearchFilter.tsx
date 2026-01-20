@@ -39,7 +39,7 @@ const MultiSelectSearchFilter: React.FC = <T,>() => {
   };
 
   return (
-    <div className={s.multiSelectSearchFilter} data-test="search-filter">
+    <div className={s.multiSelectSearchFilter} data-qa="search-filter">
       <CommonSelectSearchFilter
         originalOptions={originalOptions}
         setOptions={setOptions}

@@ -84,7 +84,7 @@ function SelectComponent<T>(
         placement={placement}
         offset={offset}
       >
-        <PopoverPanelDefault data-test={dataTest}>
+        <PopoverPanelDefault data-qa={dataTest}>
           <SingleSelectPanel
             options={options}
             value={value}

@@ -22,7 +22,7 @@ import Breadcrumbs from '@layouts/partials/Breadcrumbs/Breadcrumbs';
 
 const MainHeader: React.FC = () => {
   return (
-    <header className={s.mainHeader} data-test="header-container">
+    <header className={s.mainHeader} data-qa="header-container">
       <Breadcrumbs />
       <HeaderToolbar />
     </header>

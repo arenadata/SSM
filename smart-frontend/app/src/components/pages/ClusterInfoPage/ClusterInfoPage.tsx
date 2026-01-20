@@ -27,7 +27,7 @@ const ClusterInfoPage: React.FC = () => {
   useRequestClusterInfo();
 
   return (
-    <div>
+    <div data-qa="cluster-info-table">
       <Title variant="h1">Cluster info</Title>
       <ClusterInfoCards />
       <ClusterInfoToolbar />

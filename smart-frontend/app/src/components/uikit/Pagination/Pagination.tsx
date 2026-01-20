@@ -106,8 +106,8 @@ const Pagination = ({
   }, [totalItems, pageNumber, perPage, setPageNumber]);
 
   return (
-    <div className={paginationWrapperClasses} data-test={dataTest}>
-      <div className={s.pagination__buttonWrapper} data-test="pagination-button-container">
+    <div className={paginationWrapperClasses} data-qa={dataTest}>
+      <div className={s.pagination__buttonWrapper} data-qa="pagination-button-container">
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
         {totalPages === 0 && (
           <PaginationStepButton

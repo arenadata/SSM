@@ -36,7 +36,7 @@ const PaginationNumButton = ({ onClick, children, selected = false, dataTest }: 
   };
 
   return (
-    <Button variant="tertiary" onClick={handleClick} className={btnClasses} data-test={dataTest}>
+    <Button variant="tertiary" onClick={handleClick} className={btnClasses} data-qa={dataTest}>
       {children}
     </Button>
   );
