@@ -86,7 +86,7 @@ public class AddErasureCodingPolicy extends HdfsAction {
     ECSchema ecSchema = new ECSchema(codecName, numDataUnits, numParityUnits);
     ErasureCodingPolicy ecPolicy = new ErasureCodingPolicy(ecSchema, cellSize);
     AddErasureCodingPolicyResponse addEcResponse =
-        localFileSystem.addErasureCodingPolicies(new ErasureCodingPolicy[]{ecPolicy})[0];
+        localDfs.addErasureCodingPolicies(new ErasureCodingPolicy[]{ecPolicy})[0];
 
     if (!addEcResponse.isSucceed()) {
       appendLog("Failed to add the given EC policy!");

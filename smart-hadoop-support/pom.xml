@@ -37,6 +37,7 @@
         <module>smart-hadoop</module>
         <module>smart-hadoop-common</module>
         <module>smart-inputstream</module>
+        <module>smart-hadoop-action-common</module>
     </modules>
 
     <profiles>

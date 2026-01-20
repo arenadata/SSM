@@ -49,7 +49,7 @@ public class CheckErasureCodingPolicy extends HdfsAction {
     validateNonEmptyArg(FILE_PATH);
 
     String result = Optional.ofNullable(
-            localFileSystem.getErasureCodingPolicy(srcPath))
+            localDfs.getErasureCodingPolicy(srcPath))
         .map(ErasureCodingPolicy::toString)
         .orElse(RESULT_OF_NULL_EC_POLICY);
 

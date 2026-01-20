@@ -50,4 +50,8 @@ public interface SmartService {
    * @throws IOException
    */
   void stop() throws IOException;
+
+  default boolean inSafeMode() {
+    return false;
+  }
 }

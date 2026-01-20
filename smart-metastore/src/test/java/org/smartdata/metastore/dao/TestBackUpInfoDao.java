@@ -36,15 +36,16 @@ public class TestBackUpInfoDao extends TestDaoBase {
 
   @Test
   public void testInsertAndGetSingleRecord() {
-    BackUpInfo backUpInfo = new BackUpInfo();
-    backUpInfo.setRid(1);
-    backUpInfo.setPeriod(1);
-    backUpInfo.setDest("");
-    backUpInfo.setSrc("");
-    backUpInfo.setSrcPattern("");
-    backUpInfoDao.insert(backUpInfo);
+    BackUpInfo backUpInfo = BackUpInfo.builder()
+        .rid(1)
+        .period(1)
+        .dest("")
+        .src("")
+        .srcPattern("")
+        .build();
 
-    Assert.assertTrue(backUpInfoDao.getByRid(1).equals(backUpInfo));
+    backUpInfoDao.insert(backUpInfo);
+    Assert.assertEquals(backUpInfo, backUpInfoDao.getByRid(1));
   }
 
   @Test
@@ -78,17 +79,22 @@ public class TestBackUpInfoDao extends TestDaoBase {
 
   @Test
   public void testUpdate() {
-    BackUpInfo backUpInfo = new BackUpInfo();
-    backUpInfo.setRid(1);
-    backUpInfo.setSrc("test");
-    backUpInfo.setDest("test");
-    backUpInfo.setPeriod(1);
-    backUpInfo.setSrcPattern("");
+    BackUpInfo backUpInfo = BackUpInfo.builder()
+        .rid(1)
+        .src("test")
+        .dest("test")
+        .period(1)
+        .srcPattern("")
+        .build();
 
     backUpInfoDao.insert(backUpInfo);
     backUpInfoDao.update(1, 2);
-    backUpInfo.setPeriod(2);
-    Assert.assertTrue(backUpInfoDao.getByRid(1).equals(backUpInfo));
+
+    backUpInfo = backUpInfo.toBuilder()
+        .period(2)
+        .build();
+
+    Assert.assertEquals(backUpInfo, backUpInfoDao.getByRid(1));
   }
 
   @Test

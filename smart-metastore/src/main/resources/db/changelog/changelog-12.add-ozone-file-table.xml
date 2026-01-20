@@ -26,6 +26,7 @@
             <column name="is_volume" type="BOOLEAN"/>
             <column name="is_bucket" type="BOOLEAN"/>
             <column name="is_s3" type="BOOLEAN"/>
+            <column name="is_dir" type="BOOLEAN"/>
             <column name="owner" type="VARCHAR(255)"/>
             <column name="owner_group" type="VARCHAR(255)"/>
             <column name="permission" type="SMALLINT"/>

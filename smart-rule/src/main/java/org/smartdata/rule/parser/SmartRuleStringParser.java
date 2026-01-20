@@ -17,6 +17,7 @@
  */
 package org.smartdata.rule.parser;
 
+import com.google.common.collect.ImmutableMap;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -29,61 +30,48 @@ import org.smartdata.conf.SmartConf;
 import org.smartdata.exception.SsmParseException;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.rule.RuleTranslationResult;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /** Parser a rule string and translate it. */
 public class SmartRuleStringParser {
-  private String rule;
-  private TranslationContext ctx = null;
-  private SmartConf conf;
+  private static final Map<String, String> CONDITION_REWRITES =
+      ImmutableMap.<String, String>builder()
+          .put("allssd", "storagePolicy != \"ALL_SSD\"")
+          .put("onessd", "storagePolicy != \"ONE_SSD\"")
+          .put("archive", "storagePolicy != \"COLD\"")
+          .put("alldisk", "storagePolicy != \"HOT\"")
+          .put("onedisk", "storagePolicy != \"WARM\"")
+          .put("ramdisk", "storagePolicy != \"LAZY_PERSIST\"")
+          .put("cache", "not inCache")
+          .put("uncache", "inCache")
+          .put("sync", "unsynced")
+          .put("ec", "1")
+          .put("unec", "1")
+          .build();
 
-  private static Map<String, String> optCond = new HashMap<>();
 
-  static {
-    optCond.put("allssd", "storagePolicy != \"ALL_SSD\"");
-    optCond.put("onessd", "storagePolicy != \"ONE_SSD\"");
-    optCond.put("archive", "storagePolicy != \"COLD\"");
-    optCond.put("alldisk", "storagePolicy != \"HOT\"");
-    optCond.put("onedisk", "storagePolicy != \"WARM\"");
-    optCond.put("ramdisk", "storagePolicy != \"LAZY_PERSIST\"");
-    optCond.put("cache", "not inCache");
-    optCond.put("uncache", "inCache");
-    optCond.put("sync", "unsynced");
-    optCond.put("ec", "1");
-    optCond.put("unec", "1");
-  }
+  private final String rule;
+  private final SmartConf conf;
+  private final TranslationContext ctx;
+  private final SmartObjectSupplier smartObjectSupplier;
+  private final List<RecognitionException> parseErrors = new ArrayList<>();
 
-  List<RecognitionException> parseErrors = new ArrayList<RecognitionException>();
-  String parserErrorMessage = "";
+  private String parserErrorMessage = "";
 
-  public class SSMRuleErrorListener extends BaseErrorListener {
-    @Override
-    public void syntaxError(
-        Recognizer<?, ?> recognizer,
-        Object offendingSymbol,
-        int line,
-        int charPositionInLine,
-        String msg,
-        RecognitionException e) {
-      List<String> stack = ((Parser) recognizer).getRuleInvocationStack();
-      Collections.reverse(stack);
-      parserErrorMessage += "Line " + line + ", Char " + charPositionInLine + " : " + msg + "\n";
-      parseErrors.add(e);
-    }
-  }
-
-  public SmartRuleStringParser(String rule, TranslationContext ctx, SmartConf conf) {
+  public SmartRuleStringParser(String rule, TranslationContext ctx,
+      SmartObjectSupplier smartObjectSupplier, SmartConf conf) {
     this.rule = rule;
     this.ctx = ctx;
     this.conf = conf;
+    this.smartObjectSupplier = smartObjectSupplier;
   }
 
   public RuleTranslationResult translate() throws IOException {
@@ -93,11 +81,11 @@ public class SmartRuleStringParser {
       throw new IOException("No cmdlet specified in Rule");
     }
     String actName = cmdDes.getActionName(0);
-    if (cmdDes.getActionSize() != 1 || optCond.get(actName) == null) {
+    if (cmdDes.getActionSize() != 1 || CONDITION_REWRITES.get(actName) == null) {
       return tr;
     }
 
-    String repl = optCond.get(actName);
+    String repl = CONDITION_REWRITES.get(actName);
     if (cmdDes.getActionName(0).equals("ec") || cmdDes.getActionName(0).equals("unec")) {
       String policy;
       if (cmdDes.getActionName(0).equals("ec")) {
@@ -134,13 +122,30 @@ public class SmartRuleStringParser {
       throw new SsmParseException(parserErrorMessage);
     }
 
-    SmartRuleVisitTranslator visitor = new SmartRuleVisitTranslator(ctx);
+    SmartRuleVisitTranslator visitor = new SmartRuleVisitTranslator(ctx, smartObjectSupplier);
     try {
       visitor.visit(tree);
     } catch (RuntimeException e) {
-      throw new SsmParseException(e.getMessage());
+      throw new SsmParseException(e.getMessage(), e);
     }
 
     return visitor.generateSql();
   }
+
+  public class SSMRuleErrorListener extends BaseErrorListener {
+    @Override
+    public void syntaxError(
+        Recognizer<?, ?> recognizer,
+        Object offendingSymbol,
+        int line,
+        int charPositionInLine,
+        String msg,
+        RecognitionException e) {
+      List<String> stack = ((Parser) recognizer).getRuleInvocationStack();
+      Collections.reverse(stack);
+      parserErrorMessage += "Line " + line + ", Char " + charPositionInLine + " : " + msg + "\n";
+      parseErrors.add(e);
+    }
+  }
 }
+

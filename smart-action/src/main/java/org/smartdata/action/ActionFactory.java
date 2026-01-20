@@ -18,6 +18,7 @@
 package org.smartdata.action;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Action factory interface. Either built-in or user defined actions will be
@@ -30,4 +31,6 @@ public interface ActionFactory {
    * @return supported actions
    */
   Map<String, Class<? extends SmartAction>> getSupportedActions();
+
+  Set<ActionMetadata> getActionMetadata();
 }

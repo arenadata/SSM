@@ -18,10 +18,11 @@
 package org.smartdata.hdfs;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.ipc.RemoteException;
@@ -49,6 +50,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.smartdata.utils.PathUtil.addPathSeparator;
 import static org.smartdata.utils.PathUtil.getRawPath;
 
 /**
@@ -155,6 +157,61 @@ public class HadoopUtil {
     }
   }
 
+  public static Optional<URL> getHadoopConfDir(String hadoopConfPath)
+      throws IOException {
+    if (StringUtils.isBlank(hadoopConfPath)) {
+      LOG.warn("Hadoop configuration path is not set");
+      return Optional.empty();
+    }
+
+    URL hadoopConfDir;
+    hadoopConfPath = addPathSeparator(hadoopConfPath);
+    try {
+      hadoopConfDir = new URL(hadoopConfPath);
+    } catch (MalformedURLException e) {
+      hadoopConfDir = new URL("file://" + hadoopConfPath);
+    }
+    Path hadoopConfDirPath;
+    try {
+      hadoopConfDirPath = Paths.get(hadoopConfDir.toURI());
+    } catch (URISyntaxException e) {
+      throw new IOException(e);
+    }
+
+    if (Files.exists(hadoopConfDirPath) &&
+        Files.isDirectory(hadoopConfDirPath)) {
+      LOG.debug("Hadoop configuration path = {}", hadoopConfPath);
+    } else {
+      throw new IOException("Hadoop configuration path doesn't exist or is not a directory: "
+          + hadoopConfPath);
+    }
+
+    return Optional.of(hadoopConfDir);
+  }
+
+  public static void loadResource(Configuration config, URL configDir, String resource) throws IOException {
+    try {
+      URL coreConfFile = new URL(configDir, resource);
+      Path filePath = Paths.get(coreConfFile.toURI());
+      if (Files.exists(filePath)) {
+        config.addResource(coreConfFile);
+        LOG.debug("Hadoop configuration file [{}] is loaded", coreConfFile.toExternalForm());
+      } else {
+        throw new IOException("Hadoop configuration file doesn't exist: " + coreConfFile.toExternalForm());
+      }
+    } catch (Exception exception) {
+      throw new IOException("Error loading configuration file " + resource, exception);
+    }
+  }
+
+  public static void loadResourceSafely(Configuration config, URL configDir, String resource) {
+    try {
+      loadResource(config, configDir, resource);
+    } catch (Exception exception) {
+      LOG.warn("Error loading resource {}: {}", resource, exception.getMessage());
+    }
+  }
+
   /**
    * Get hadoop configuration from the configure files in the given directory.
    *
@@ -162,65 +219,15 @@ public class HadoopUtil {
    */
   public static HdfsConfiguration getHadoopConf(String hadoopConfPath)
       throws IOException {
-    if (hadoopConfPath == null || hadoopConfPath.isEmpty()) {
-      LOG.warn("Hadoop configuration path is not set");
+    Optional<URL> hadoopConfDir = getHadoopConfDir(hadoopConfPath);
+    if (!hadoopConfDir.isPresent()) {
       return null;
-    } else {
-      URL hadoopConfDir;
-      HdfsConfiguration hadoopConf = new HdfsConfiguration();
-      try {
-        if (!hadoopConfPath.endsWith("/")) {
-          hadoopConfPath += "/";
-        }
-        try {
-          hadoopConfDir = new URL(hadoopConfPath);
-        } catch (MalformedURLException e) {
-          hadoopConfDir = new URL("file://" + hadoopConfPath);
-        }
-        Path hadoopConfDirPath = Paths.get(hadoopConfDir.toURI());
-        if (Files.exists(hadoopConfDirPath) &&
-            Files.isDirectory(hadoopConfDirPath)) {
-          LOG.debug("Hadoop configuration path = " + hadoopConfPath);
-        } else {
-          throw new IOException("Hadoop configuration path [" + hadoopConfPath
-              + "] doesn't exist or is not a directory");
-        }
-
-        try {
-          URL coreConfFile = new URL(hadoopConfDir, "core-site.xml");
-          Path coreFilePath = Paths.get(coreConfFile.toURI());
-          if (Files.exists(coreFilePath)) {
-            hadoopConf.addResource(coreConfFile);
-            LOG.debug("Hadoop configuration file [" +
-                coreConfFile.toExternalForm() + "] is loaded");
-          } else {
-            throw new IOException("Hadoop configuration file [" +
-                coreConfFile.toExternalForm() + "] doesn't exist");
-          }
-        } catch (MalformedURLException e1) {
-          throw new IOException("Access hadoop configuration file core-site.xml failed", e1);
-        }
-
-        try {
-          URL hdfsConfFile = new URL(hadoopConfDir, "hdfs-site.xml");
-          Path hdfsFilePath = Paths.get(hdfsConfFile.toURI());
-          if (Files.exists(hdfsFilePath)) {
-            hadoopConf.addResource(hdfsConfFile);
-            LOG.debug("Hadoop configuration file [" +
-                hdfsConfFile.toExternalForm() + "] is loaded");
-          } else {
-            throw new IOException("Hadoop configuration file [" +
-                hdfsConfFile.toExternalForm() + "] doesn't exist");
-          }
-        } catch (MalformedURLException e1) {
-          throw new IOException("Access hadoop configuration file hdfs-site.xml failed", e1);
-        }
-      } catch (URISyntaxException e) {
-        throw new IOException("Access hadoop configuration path [" + hadoopConfPath
-            + "] failed" + e);
-      }
-      return hadoopConf;
     }
+
+    HdfsConfiguration conf = new HdfsConfiguration();
+    loadResource(conf, hadoopConfDir.get(), "core-site.xml");
+    loadResource(conf, hadoopConfDir.get(), "hdfs-site.xml");
+    return conf;
   }
 
   public static URI getNameNodeUri(Configuration conf)
@@ -329,7 +336,7 @@ public class HadoopUtil {
   }
 
   public static FileState getFileState(
-      DistributedFileSystem fileSystem,
+      FileSystem fileSystem,
       org.apache.hadoop.fs.Path filePath)
       throws IOException {
     try {

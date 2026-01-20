@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFileInfoDao {
-  private static final String TABLE_NAME = "ofile";
-
   private static final String FILE_ID_FIELD = "fid";
   private static final String PATH_FIELD = "path";
   private static final String LENGTH_FIELD = "length";
@@ -39,6 +37,7 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
   private static final String IS_VOLUME_FIELD = "is_volume";
   private static final String IS_BUCKET_FIELD = "is_bucket";
   private static final String IS_S3_FIELD = "is_s3";
+  private static final String IS_DIR_FIELD = "is_dir";
   private static final String OWNER_FIELD = "owner";
   private static final String OWNER_GROUP_FIELD = "owner_group";
   private static final String PERMISSION_FIELD = "permission";
@@ -51,6 +50,11 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
   @Override
   public void insert(OzoneFileInfo fileInfo) {
     insert(fileInfo, this::toMap);
+  }
+
+  @Override
+  public void clear() {
+    jdbcTemplate.update("DELETE FROM ofile");
   }
 
   @Override
@@ -70,6 +74,7 @@ public class DefaultOzoneFileInfoDao extends BaseFileInfoDao implements OzoneFil
     parameters.put(IS_VOLUME_FIELD, fileInfo.isVolume());
     parameters.put(IS_BUCKET_FIELD, fileInfo.isBucket());
     parameters.put(IS_S3_FIELD, fileInfo.isS3());
+    parameters.put(IS_DIR_FIELD, fileInfo.isDir());
     parameters.put(OWNER_FIELD, fileInfo.getOwner());
     parameters.put(OWNER_GROUP_FIELD, fileInfo.getGroup());
     parameters.put(PERMISSION_FIELD, fileInfo.getPermission());

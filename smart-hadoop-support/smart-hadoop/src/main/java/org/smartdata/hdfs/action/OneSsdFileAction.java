@@ -25,7 +25,7 @@ import org.smartdata.action.annotation.ActionSignature;
 @ActionSignature(
     actionId = "onessd",
     displayName = "onessd",
-    usage = HdfsAction.FILE_PATH + " $file "
+    usage = HadoopAction.FILE_PATH + " $file "
 )
 public class OneSsdFileAction extends MoveFileAction {
 

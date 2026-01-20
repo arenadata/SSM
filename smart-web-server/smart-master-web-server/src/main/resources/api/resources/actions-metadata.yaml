@@ -1,0 +1,21 @@
+get:
+  tags:
+    - Metadata
+  summary: List all actions metadata
+  operationId: getActionsMetadata
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            title: ActionsMetadata
+            properties:
+              items:
+                type: array
+                description: List of actions metadata
+                items:
+                  $ref: '../schemas/metadata/ActionMetadata.yaml'
+    '401':
+      description: Unauthorized

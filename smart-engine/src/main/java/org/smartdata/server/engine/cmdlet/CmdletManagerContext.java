@@ -19,6 +19,7 @@ package org.smartdata.server.engine.cmdlet;
 
 import com.google.common.collect.ListMultimap;
 import lombok.Getter;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metrics.MetricsFactory;
@@ -30,6 +31,8 @@ import java.util.List;
 public class CmdletManagerContext extends ServerContext {
   @Getter
   private final InMemoryRegistry inMemoryRegistry;
+  @Getter
+  private final ActionRegistry actionRegistry;
   private final ListMultimap<String, ActionScheduler> schedulers;
 
   public CmdletManagerContext(
@@ -37,10 +40,12 @@ public class CmdletManagerContext extends ServerContext {
       MetaStore metaStore,
       MetricsFactory metricsFactory,
       InMemoryRegistry inMemoryRegistry,
+      ActionRegistry actionRegistry,
       ListMultimap<String, ActionScheduler> schedulers) {
     super(conf, metaStore, metricsFactory);
     this.inMemoryRegistry = inMemoryRegistry;
     this.schedulers = schedulers;
+    this.actionRegistry = actionRegistry;
   }
 
   public List<ActionScheduler> getSchedulers(String action) {

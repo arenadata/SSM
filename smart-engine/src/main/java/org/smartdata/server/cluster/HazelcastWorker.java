@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.action.ActionException;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.impersonation.UserImpersonationStrategy;
@@ -40,6 +41,7 @@ import org.smartdata.server.engine.cmdlet.CmdletExecutor;
 import org.smartdata.server.engine.cmdlet.CmdletFactory;
 import org.smartdata.server.engine.cmdlet.HazelcastExecutorService;
 import org.smartdata.server.engine.cmdlet.StatusReportTask;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.io.Serializable;
 import java.util.concurrent.Executors;
@@ -60,7 +62,9 @@ public class HazelcastWorker implements StatusReporter {
     this.smartConf = smartContext.getConf();
     UserImpersonationStrategy userImpersonationStrategy =
         UserImpersonationStrategyFactory.from(smartConf);
-    this.factory = new CmdletFactory(smartContext, userImpersonationStrategy);
+    ActionRegistry actionRegistry =
+        new ActionRegistry(FileSystemContext.fromConfig(smartConf).actionFactories());
+    this.factory = new CmdletFactory(smartContext, userImpersonationStrategy, actionRegistry);
     this.cmdletExecutor = new CmdletExecutor(smartContext.getConf(), userImpersonationStrategy);
     this.executorService = Executors.newSingleThreadScheduledExecutor();
     HazelcastInstance instance = HazelcastInstanceProvider.getInstance(smartConf);

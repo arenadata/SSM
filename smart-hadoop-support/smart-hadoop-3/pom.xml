@@ -78,6 +78,11 @@
             <version>2.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-hadoop-action-common</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>

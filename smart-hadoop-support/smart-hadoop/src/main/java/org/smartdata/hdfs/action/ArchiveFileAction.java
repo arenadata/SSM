@@ -25,7 +25,7 @@ import org.smartdata.action.annotation.ActionSignature;
 @ActionSignature(
     actionId = "archive",
     displayName = "archive",
-    usage = HdfsAction.FILE_PATH + " $file "
+    usage = HadoopAction.FILE_PATH + " $file "
 )
 public class ArchiveFileAction extends MoveFileAction {
 

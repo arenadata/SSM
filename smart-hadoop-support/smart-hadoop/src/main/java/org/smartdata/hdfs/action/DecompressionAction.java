@@ -39,7 +39,7 @@ import static org.smartdata.hdfs.action.CompressionAction.BUF_SIZE;
 @ActionSignature(
     actionId = "decompress",
     displayName = "decompress",
-    usage = HdfsAction.FILE_PATH
+    usage = HadoopAction.FILE_PATH
         + " $file "
         + BUF_SIZE
         + " $bufSize "
@@ -73,7 +73,7 @@ public class DecompressionAction extends HdfsAction {
     }
 
     // Consider directory case.
-    if (localFileSystem.getFileStatus(filePath).isDirectory()) {
+    if (localDfs.getFileStatus(filePath).isDirectory()) {
       throw new ActionException("Decompression is not applicable to a directory.");
     }
   }
@@ -86,17 +86,17 @@ public class DecompressionAction extends HdfsAction {
       throw new ActionException("File is not compressed: " + filePath);
     }
 
-    FileStatus compressedFileStatus = localFileSystem.getFileStatus(filePath);
+    FileStatus compressedFileStatus = localDfs.getFileStatus(filePath);
 
-    try (InputStream in = localFileSystem.open(filePath);
+    try (InputStream in = localDfs.open(filePath);
          // No need to lock the file by append operation,
          // since compressed file cannot be modified.
-         OutputStream out = localFileSystem.create(compressTmpPath, true)) {
+         OutputStream out = localDfs.create(compressTmpPath, true)) {
 
       // Keep storage policy consistent.
-      String storagePolicyName = localFileSystem.getStoragePolicy(filePath).getName();
+      String storagePolicyName = localDfs.getStoragePolicy(filePath).getName();
       if (!storagePolicyName.equals("UNDEF")) {
-        localFileSystem.setStoragePolicy(compressTmpPath, storagePolicyName);
+        localDfs.setStoragePolicy(compressTmpPath, storagePolicyName);
       }
 
       StreamCopyHandler.of(in, out)
@@ -108,11 +108,11 @@ public class DecompressionAction extends HdfsAction {
           .runCopy();
 
       // Overwrite the original file with decompressed data
-      localFileSystem.setOwner(compressTmpPath,
+      localDfs.setOwner(compressTmpPath,
           compressedFileStatus.getOwner(),
           compressedFileStatus.getGroup());
-      localFileSystem.setPermission(compressTmpPath, compressedFileStatus.getPermission());
-      localFileSystem.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
+      localDfs.setPermission(compressTmpPath, compressedFileStatus.getPermission());
+      localDfs.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
       appendLog("The given file is successfully decompressed by codec: " +
           ((CompressionFileState) fileState).getCompressionImpl());
     }

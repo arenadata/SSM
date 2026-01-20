@@ -17,9 +17,37 @@
  */
 package org.smartdata.server;
 
+import org.junit.After;
+import org.junit.Before;
+import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.ozone.OzoneClusterHarness;
 
-// TODO init SmartServer when ADH-7056 will be completed
+import java.io.IOException;
+
+import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
+
 public class OzoneSmartClusterHarness extends OzoneClusterHarness {
   protected SmartServer ssm;
+  protected SmartConf smartConf;
+
+  @Before
+  public void initSsm() throws Exception {
+    // Set db used
+    smartConf = new SmartConf(ozoneConf);
+    smartConf.set(SMART_FS_TYPE, SmartFsType.OZONE.toString());
+    smartConf.set(SmartConfKeys.SMART_OZONE_RPC_SERVER_KEY,
+        ozoneContainer.getOmRpcAddress());
+
+    // rpcServer start in SmartServer
+    ssm = SmartServer.launchWith(smartConf);
+  }
+
+  @After
+  public void shutdown() throws IOException {
+    if (ssm != null) {
+      ssm.shutdown();
+    }
+  }
 }

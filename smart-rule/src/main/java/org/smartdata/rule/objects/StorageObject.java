@@ -17,36 +17,32 @@
  */
 package org.smartdata.rule.objects;
 
+import com.google.common.collect.ImmutableMap;
 import org.smartdata.rule.parser.ValueType;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Definition of rule object 'Storage'.
  */
 public class StorageObject extends SmartObject {
-  public static final Map<String, Property> PROPERTIES;
-
-  static {
-    PROPERTIES = new HashMap<>();
-    PROPERTIES.put("capacity", new Property("capacity", ValueType.LONG,
-        Collections.singletonList(ValueType.STRING), "storage", "capacity",
-        "type = $0 AND capacity"));
-    PROPERTIES.put("free", new Property("free", ValueType.LONG,
-        Collections.singletonList(ValueType.STRING), "storage", "free",
-        "type = $0 AND free"));
-    PROPERTIES.put("utilization", new Property("utilization", ValueType.LONG,
-        Collections.singletonList(ValueType.STRING), "storage", "free",
-        "type = $0 AND (capacity - free) * 100.0 / capacity"));
-  }
+  public static final Map<String, Property> PROPERTIES = ImmutableMap.of(
+      "capacity",
+      new Property("capacity", ValueType.LONG,
+          Collections.singletonList(ValueType.STRING), "storage", "capacity",
+          "type = $0 AND capacity"),
+      "free",
+      new Property("free", ValueType.LONG,
+          Collections.singletonList(ValueType.STRING), "storage", "free",
+          "type = $0 AND free"),
+      "utilization",
+      new Property("utilization", ValueType.LONG,
+          Collections.singletonList(ValueType.STRING), "storage", "free",
+          "type = $0 AND (capacity - free) * 100.0 / capacity")
+  );
 
   public StorageObject() {
-    super(ObjectType.STORAGE, "storage");
-  }
-
-  public Map<String, Property> getProperties() {
-    return PROPERTIES;
+    super(ObjectType.STORAGE, PROPERTIES, "storage");
   }
 }

@@ -30,25 +30,10 @@ import java.util.Map;
 public abstract class SmartObject {
 
   private final ObjectType type;
+  private final Map<String, Property> properties;
   private final String baseTableName;
 
-  public static SmartObject getInstance(String typeName) {
-    // TODO: create through class name
-    switch (typeName) {
-      case "file":
-        return new FileObject();
-      case "storage":
-        return new StorageObject();
-      case "hms":
-        return new HmsObject();
-      default:
-        return null;
-    }
-  }
-
   public Property getProperty(String propertyName) {
-    return getProperties().get(propertyName);
+    return properties.get(propertyName);
   }
-
-  public abstract Map<String, Property> getProperties();
 }

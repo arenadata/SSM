@@ -20,11 +20,12 @@ package org.smartdata.ozone.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.smartdata.model.BaseFileInfo;
 
 @Data
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class OzoneFileInfo implements FsObjectStreamRecord {
+public class OzoneFileInfo implements FsObjectStreamRecord, BaseFileInfo {
   private String path;
   private long fileId;
   private long length;
@@ -35,6 +36,7 @@ public class OzoneFileInfo implements FsObjectStreamRecord {
   private boolean isVolume;
   private boolean isBucket;
   private boolean isS3;
+  private boolean isDir;
   private String owner;
   private String group;
   private short permission;

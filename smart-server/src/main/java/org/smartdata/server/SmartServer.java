@@ -30,7 +30,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.smartdata.SmartServiceState;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.http.SmartHttpServer;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metrics.MetricsFactory;
@@ -38,7 +37,7 @@ import org.smartdata.server.cluster.ClusterNodesManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
-import org.smartdata.server.engine.StatesManager;
+import org.smartdata.server.engine.file.FileAccessManager;
 import org.smartdata.server.utils.GenericOptionsParser;
 
 import java.io.File;
@@ -52,6 +51,7 @@ import java.util.Scanner;
 
 import static org.smartdata.SmartConstants.NUMBER_OF_SMART_AGENT;
 import static org.smartdata.metastore.utils.MetaStoreUtils.getDBAdapter;
+import static org.smartdata.server.utils.ConfigUtil.enrichSmartConf;
 
 /**
  * From this Smart Storage Management begins.
@@ -81,7 +81,7 @@ public class SmartServer implements AutoCloseable {
   private void initWith(MetaStore metaStore) throws IOException {
     LOG.info("Start Init Smart Server");
 
-    HadoopUtil.setSmartConfByHadoop(conf);
+    enrichSmartConf(conf);
 
     MetricsFactory metricsFactory = MetricsFactory.from(conf, SMART_SERVER_BASE_TAGS);
     metaStore.dbPool().bindMetrics(metricsFactory);
@@ -100,8 +100,8 @@ public class SmartServer implements AutoCloseable {
         address.getHostString() + ":" + address.getPort());
   }
 
-  public StatesManager getStatesManager() {
-    return engine.getStatesManager();
+  public FileAccessManager getFileAccessManager() {
+    return engine.getFileAccessManager();
   }
 
   public RuleManager getRuleManager() {
@@ -206,7 +206,7 @@ public class SmartServer implements AutoCloseable {
   }
 
   private static boolean parseHelpArgument(String[] args,
-                                           String helpDescription, PrintStream out) {
+      String helpDescription, PrintStream out) {
     try {
       CommandLineParser parser = new PosixParser();
       CommandLine cmdLine = parser.parse(helpOptions, args);

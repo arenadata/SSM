@@ -28,7 +28,7 @@ import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.HadoopUtil;
 import org.smartdata.hdfs.action.CompressionAction;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.hdfs.action.DecompressionAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -111,7 +111,7 @@ public class CompressionScheduler extends ActionSchedulerService {
         !actionInfo.getActionName().equals(DECOMPRESSION_ACTION_ID)) {
       return;
     }
-    String filePath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String filePath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     fileLock.add(filePath);
   }
 
@@ -168,7 +168,7 @@ public class CompressionScheduler extends ActionSchedulerService {
   }
 
   private String createTmpName(LaunchAction action) {
-    String path = action.getArgs().get(HdfsAction.FILE_PATH);
+    String path = action.getArgs().get(HadoopAction.FILE_PATH);
     String fileName;
     int index = path.lastIndexOf("/");
     if (index == path.length() - 1) {
@@ -188,7 +188,7 @@ public class CompressionScheduler extends ActionSchedulerService {
 
   @Override
   public boolean onSubmit(CmdletInfo cmdletInfo, ActionInfo actionInfo) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
 
     if (!actions.contains(actionInfo.getActionName())) {
       return false;
@@ -233,7 +233,7 @@ public class CompressionScheduler extends ActionSchedulerService {
   }
 
   public void afterSchedule(ActionInfo actionInfo) {
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     // lock the file only if ec or unec action is scheduled
     fileLock.add(srcPath);
     try {
@@ -249,7 +249,7 @@ public class CompressionScheduler extends ActionSchedulerService {
    */
   @Override
   public boolean isSuccessfulBySpeculation(ActionInfo actionInfo) {
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String path = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     try {
       FileState fileState = HadoopUtil.getFileState(dfsClient, path);
       FileState.FileType fileType = fileState.getFileType();
@@ -282,7 +282,7 @@ public class CompressionScheduler extends ActionSchedulerService {
       return;
     }
     List<Long> oids = new ArrayList<>();
-    String path = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String path = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     try {
       oids.add(dfsClient.getFileInfo(path).getFileId());
     } catch (IOException e) {
@@ -297,7 +297,7 @@ public class CompressionScheduler extends ActionSchedulerService {
     if (!actionInfo.isFinished()) {
       return;
     }
-    String srcPath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+    String srcPath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
     try {
       // Compression Action failed
       if (actionInfo.getActionName().equals(COMPRESSION_ACTION_ID) &&
@@ -335,7 +335,7 @@ public class CompressionScheduler extends ActionSchedulerService {
    */
   public void takeOverAccessCount(ActionInfo actionInfo) {
     try {
-      String filePath = actionInfo.getArgs().get(HdfsAction.FILE_PATH);
+      String filePath = actionInfo.getArgs().get(HadoopAction.FILE_PATH);
       long oldFid = actionInfo.getOldFileIds().get(0);
       // The new fid may have not been updated in metastore, so
       // we get it from dfs client.
@@ -376,6 +376,6 @@ public class CompressionScheduler extends ActionSchedulerService {
       return;
     }
     // Delete the record from compression_file table
-    metaStore.deleteFileState(actionInfo.getArgs().get(HdfsAction.FILE_PATH));
+    metaStore.deleteFileState(actionInfo.getArgs().get(HadoopAction.FILE_PATH));
   }
 }

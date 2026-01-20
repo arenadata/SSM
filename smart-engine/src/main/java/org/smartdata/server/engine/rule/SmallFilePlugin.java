@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartFilePermission;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.hdfs.action.HdfsAction;
+import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.hdfs.action.SmallFileCompactAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -232,7 +232,7 @@ public class SmallFilePlugin implements RuleExecutorPlugin {
       final RuleInfo ruleInfo, RuleTranslationResult tResult, CmdletDescriptor descriptor) {
     for (int i = 0; i < descriptor.getActionSize(); i++) {
       if (COMPACT_ACTION_NAME.equals(descriptor.getActionName(i))) {
-        String smallFiles = descriptor.getActionArgs(i).get(HdfsAction.FILE_PATH);
+        String smallFiles = descriptor.getActionArgs(i).get(HadoopAction.FILE_PATH);
         if (smallFiles != null && !smallFiles.isEmpty()) {
           // Check if small file list is empty
           ArrayList<String> smallFileList = new Gson().fromJson(
@@ -274,7 +274,7 @@ public class SmallFilePlugin implements RuleExecutorPlugin {
               i, SmallFileCompactAction.CONTAINER_FILE_PERMISSION,
               new Gson().toJson(args.containerFilePermission));
           descriptor.addActionArg(
-              i, HdfsAction.FILE_PATH, new Gson().toJson(args.smartFiles));
+              i, HadoopAction.FILE_PATH, new Gson().toJson(args.smartFiles));
         }
       }
     }

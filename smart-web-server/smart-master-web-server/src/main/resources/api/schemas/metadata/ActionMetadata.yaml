@@ -1,0 +1,13 @@
+title: ActionMetadata
+type: object
+properties:
+  name:
+    type: string
+    description: SSM host on which this action is running
+  usage:
+    type: string
+    nullable: true
+    default: null
+    description: SSM host on which this action is running
+required:
+  - name

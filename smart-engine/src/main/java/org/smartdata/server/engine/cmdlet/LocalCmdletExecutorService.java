@@ -68,7 +68,9 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
 
     UserImpersonationStrategy userImpersonationStrategy =
         UserImpersonationStrategyFactory.from(smartConf);
-    this.cmdletFactory = new CmdletFactory(cmdletManager.getContext(), userImpersonationStrategy);
+    this.cmdletFactory = new CmdletFactory(cmdletManager.getContext(),
+        userImpersonationStrategy,
+        cmdletManager.getActionRegistry());
     this.cmdletExecutor = new CmdletExecutor(smartConf, userImpersonationStrategy);
     this.executorService = Executors.newSingleThreadScheduledExecutor();
   }

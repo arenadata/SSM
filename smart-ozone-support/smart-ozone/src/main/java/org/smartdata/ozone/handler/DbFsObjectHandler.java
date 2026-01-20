@@ -29,7 +29,7 @@ public class DbFsObjectHandler implements FsObjectHandler {
   private final OzoneFileInfoDao ozoneFileInfoDao;
 
   @Override
-  public void handle(FsObjectStreamRecord record) throws Exception {
+  public void handle(FsObjectStreamRecord record) {
     if (record instanceof OzoneFileInfo) {
       ozoneFileInfoDao.insert((OzoneFileInfo) record);
     } else {

@@ -11,6 +11,7 @@ tags:
   - name: Cluster
   - name: Audit
   - name: System
+  - name: Metadata
 
 servers:
   - url: http://localhost:8081
@@ -60,6 +61,10 @@ paths:
   # System
   /api/v2/system/current-user:
     $ref: './resources/current-user.yaml'
+
+  # Metadata
+  /api/v2/metadata/actions:
+    $ref: './resources/actions-metadata.yaml'
 
 components:
   securitySchemes:

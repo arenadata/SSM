@@ -17,73 +17,57 @@
  */
 package org.smartdata.action;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdata.action.annotation.ActionSignature;
-import org.smartdata.model.ActionDescriptor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Actions registry. Singleton.
  */
+@Slf4j
 public class ActionRegistry {
-  static final Logger LOG = LoggerFactory.getLogger(ActionRegistry.class);
-  private static final Map<String, Class<? extends SmartAction>> ACTIONS = new ConcurrentHashMap<>();
+  @Getter
+  private final Set<ActionMetadata> actionMetadata;
+  private final Map<String, Class<? extends SmartAction>> actions;
 
-  static {
-    try {
-      ServiceLoader<ActionFactory> actionFactories = ServiceLoader.load(ActionFactory.class);
-      for (ActionFactory fact : actionFactories) {
-        ACTIONS.putAll(fact.getSupportedActions());
-      }
-    } catch (ServiceConfigurationError e) {
-      LOG.error("Load actions failed from factory");
-    }
+  public ActionRegistry(Collection<ActionFactory> factories) {
+    this.actions = new HashMap<>();
+    this.actionMetadata = new HashSet<>();
+
+    factories.stream()
+        .map(ActionFactory::getSupportedActions)
+        .forEach(actions::putAll);
+
+    factories.stream()
+        .map(ActionFactory::getActionMetadata)
+        .forEach(actionMetadata::addAll);
   }
 
-  public static Set<String> registeredActions() {
-    return Collections.unmodifiableSet(ACTIONS.keySet());
+  public Set<String> registeredActions() {
+    return actions.keySet();
   }
 
-  public static boolean registeredAction(String name) {
-    return ACTIONS.containsKey(name);
+  public boolean isRegistered(String name) {
+    return actions.containsKey(name);
   }
 
-  public static List<ActionDescriptor> supportedActions() {
-    List<ActionDescriptor> actionDescriptors = new ArrayList<>();
-    for (Class<? extends SmartAction> clazz : ACTIONS.values()) {
-      ActionSignature signature = clazz.getAnnotation(ActionSignature.class);
-      if (signature != null) {
-        actionDescriptors.add(fromSignature(signature));
-      }
-    }
-    return actionDescriptors;
-  }
-
-  public static SmartAction createAction(String name) throws ActionException {
-    if (!registeredAction(name)) {
+  public SmartAction createAction(String name) throws ActionException {
+    if (!isRegistered(name)) {
       throw new ActionException("Unregistered action " + name);
     }
+
     try {
-      SmartAction smartAction = ACTIONS.get(name).newInstance();
+      SmartAction smartAction = actions.get(name).newInstance();
       smartAction.setName(name);
       return smartAction;
     } catch (Exception e) {
-      LOG.error("Create {} action failed", name, e);
+      log.error("Create {} action failed", name, e);
       throw new ActionException(e);
     }
-  }
-
-  private static ActionDescriptor fromSignature(ActionSignature signature) {
-    return new ActionDescriptor(
-        signature.actionId(), signature.displayName(), signature.usage(), signature.description());
   }
 }

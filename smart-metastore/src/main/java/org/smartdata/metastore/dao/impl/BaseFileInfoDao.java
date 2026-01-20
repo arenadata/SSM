@@ -18,8 +18,10 @@
 package org.smartdata.metastore.dao.impl;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metrics.GeneralFileInfoSource;
+import org.smartdata.model.BaseFileInfo;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -55,6 +57,24 @@ public abstract class BaseFileInfoDao extends AbstractDao implements GeneralFile
             GeneralFileInfo::getId));
   }
 
+  @Override
+  public List<String> getFilePathsByPrefix(String path) {
+    return jdbcTemplate.query(
+        "SELECT * FROM "
+            + tableName
+            + " WHERE path LIKE ?",
+        this::extractPath, path + "%");
+  }
+
+  @Override
+  public BaseFileInfo getBaseFileInfo(String path) {
+    return jdbcTemplate.queryForObject(
+        "SELECT * FROM "
+                + tableName
+                + " WHERE path = ?",
+        this::toBaseFileInfo, path);
+  }
+
   private GeneralFileInfo mapRow(ResultSet resultSet, int i) throws SQLException {
     return new GeneralFileInfo(
         resultSet.getLong("fid"),
@@ -62,9 +82,29 @@ public abstract class BaseFileInfoDao extends AbstractDao implements GeneralFile
     );
   }
 
+  private String extractPath(ResultSet resultSet, int i) throws SQLException {
+    return resultSet.getString("path");
+  }
+
+  private BaseFileInfo toBaseFileInfo(ResultSet resultSet, int i) throws SQLException {
+    return new BaseFileInfoImpl(
+        resultSet.getString("path"),
+        resultSet.getLong("length"),
+        resultSet.getBoolean("is_dir")
+    );
+  }
+
   @Data
   private static class GeneralFileInfo {
     private final long id;
     private final String path;
+  }
+
+  @RequiredArgsConstructor
+  @Data
+  private static class BaseFileInfoImpl implements BaseFileInfo {
+    private final String path;
+    private final long length;
+    private final boolean isDir;
   }
 }

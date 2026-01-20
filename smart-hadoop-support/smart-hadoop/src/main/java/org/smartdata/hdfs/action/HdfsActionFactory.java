@@ -18,49 +18,59 @@
 package org.smartdata.hdfs.action;
 
 import org.smartdata.action.AbstractActionFactory;
+import org.smartdata.action.SmartAction;
+import org.smartdata.action.SyncAction;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Built-in smart actions for HDFS system.
  */
 public class HdfsActionFactory extends AbstractActionFactory {
-  static {
-    addAction(AllSsdFileAction.class);
-    addAction(AllDiskFileAction.class);
-    addAction(OneSsdFileAction.class);
-    addAction(OneDiskFileAction.class);
-    addAction(RamDiskFileAction.class);
-    addAction(ArchiveFileAction.class);
-    addAction(CacheFileAction.class);
-    addAction(UncacheFileAction.class);
-    addAction(ReadFileAction.class);
-    addAction(WriteFileAction.class);
-    addAction(CheckStorageAction.class);
-    addAction(SetXAttrAction.class);
-    addAction(CopyFileAction.class);
-    addAction(CopyDirectoryAction.class);
-    addAction(DeleteFileAction.class);
-    addAction(RenameFileAction.class);
-    addAction(ListFileAction.class);
-    addAction(ConcatFileAction.class);
-    addAction(AppendFileAction.class);
-    addAction(MergeFileAction.class);
-    addAction(MetaDataAction.class);
-    addAction(Copy2S3Action.class);
-    addAction(CompressionAction.class);
-    addAction(DecompressionAction.class);
-    addAction(CheckCompressAction.class);
-    addAction(TruncateAction.class);
-    addAction(SmallFileCompactAction.class);
-    addAction(SmallFileUncompactAction.class);
-    addAction(CheckSumAction.class);
-    addAction(DistCpAction.class);
-    addAction(ListErasureCodingPolicy.class);
-    addAction(CheckErasureCodingPolicy.class);
-    addAction(ErasureCodingAction.class);
-    addAction(UnErasureCodingAction.class);
-    addAction(AddErasureCodingPolicy.class);
-    addAction(RemoveErasureCodingPolicy.class);
-    addAction(EnableErasureCodingPolicy.class);
-    addAction(DisableErasureCodingPolicy.class);
+
+  @Override
+  protected List<Class<? extends SmartAction>> supportedActionClasses() {
+    return Arrays.asList(
+        AllSsdFileAction.class,
+        AllDiskFileAction.class,
+        OneSsdFileAction.class,
+        OneDiskFileAction.class,
+        RamDiskFileAction.class,
+        ArchiveFileAction.class,
+        CacheFileAction.class,
+        UncacheFileAction.class,
+        ReadFileAction.class,
+        WriteFileAction.class,
+        CheckStorageAction.class,
+        SetXAttrAction.class,
+        CopyFileAction.class,
+        CopyDirectoryAction.class,
+        DeleteFileAction.class,
+        RenameFileAction.class,
+        ListFileAction.class,
+        ConcatFileAction.class,
+        AppendFileAction.class,
+        MergeFileAction.class,
+        MetaDataAction.class,
+        Copy2S3Action.class,
+        CompressionAction.class,
+        DecompressionAction.class,
+        CheckCompressAction.class,
+        TruncateAction.class,
+        SmallFileCompactAction.class,
+        SmallFileUncompactAction.class,
+        CheckSumAction.class,
+        DistCpAction.class,
+        ListErasureCodingPolicy.class,
+        CheckErasureCodingPolicy.class,
+        ErasureCodingAction.class,
+        UnErasureCodingAction.class,
+        AddErasureCodingPolicy.class,
+        RemoveErasureCodingPolicy.class,
+        EnableErasureCodingPolicy.class,
+        DisableErasureCodingPolicy.class,
+        SyncAction.class
+    );
   }
 }

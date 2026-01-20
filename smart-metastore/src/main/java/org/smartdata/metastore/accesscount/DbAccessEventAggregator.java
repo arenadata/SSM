@@ -34,11 +34,11 @@ import java.util.stream.Collectors;
 public class DbAccessEventAggregator implements AccessEventAggregator {
 
   private final GeneralFileInfoSource fileInfoDao;
-  private final FileAccessManager dbTableManager;
+  private final DbFileAccessCountManager dbTableManager;
   private final Failover<AccessCountContext> accessCountFailover;
 
   public DbAccessEventAggregator(GeneralFileInfoSource fileInfoDao,
-      FileAccessManager dbTableManager,
+      DbFileAccessCountManager dbTableManager,
       Failover<AccessCountContext> failover) {
     this.fileInfoDao = fileInfoDao;
     this.dbTableManager = dbTableManager;

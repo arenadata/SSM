@@ -21,7 +21,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConf;
+import org.smartdata.conf.SmartFsType;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.model.SearchResult;
@@ -38,6 +40,7 @@ import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.audit.AuditService;
+import org.smartdata.server.engine.filesystem.FileSystemContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -57,8 +60,13 @@ public class TestRuleManager extends TestDaoBase {
     ServerContext serverContext = new ServerContext(smartConf, metaStore);
     SmartPrincipalManager principalManager = new ThreadScopeSmartPrincipalManager(
         new AnonymousDefaultPrincipalProvider());
+    FileSystemContext fsContext = FileSystemContext.fromFsType(SmartFsType.HDFS);
     ruleManager = new RuleManager(serverContext, null,
-        null, new NoOpAuditService(), principalManager);
+        new NoOpAuditService(),
+        new ActionRegistry(fsContext.actionFactories()),
+        principalManager,
+        fsContext.smartObjectSupplier(),
+        fsContext.ruleExecutorPlugins(serverContext, null));
     ruleManager.init();
     ruleManager.start();
   }
@@ -238,7 +246,7 @@ public class TestRuleManager extends TestDaoBase {
 
     long start = System.currentTimeMillis();
 
-    Thread[] threads = new Thread[] {
+    Thread[] threads = new Thread[]{
         new Thread(new RuleInfoUpdater(rid, 3)),
 //        new Thread(new RuleInfoUpdater(rid, 7)),
 //        new Thread(new RuleInfoUpdater(rid, 11)),

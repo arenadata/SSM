@@ -31,7 +31,7 @@ import java.util.Map;
 @ActionSignature(
     actionId = "checkcompress",
     displayName = "checkcompress",
-    usage = HdfsAction.FILE_PATH
+    usage = HadoopAction.FILE_PATH
         + " $file "
 )
 public class CheckCompressAction extends HdfsAction {

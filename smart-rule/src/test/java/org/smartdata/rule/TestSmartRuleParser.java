@@ -27,6 +27,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.model.rule.RuleTranslationResult;
+import org.smartdata.rule.objects.DefaultSmartObjectSupplier;
 import org.smartdata.rule.parser.SmartRuleLexer;
 import org.smartdata.rule.parser.SmartRuleParser;
 import org.smartdata.rule.parser.SmartRuleVisitTranslator;
@@ -123,7 +124,8 @@ public class TestSmartRuleParser {
     System.out.println("Parser tree: " + tree.toStringTree(parser));
     System.out.println("Total number of errors: " + parseErrors.size());
 
-    SmartRuleVisitTranslator visitor = new SmartRuleVisitTranslator();
+    SmartRuleVisitTranslator visitor = new SmartRuleVisitTranslator(
+        new DefaultSmartObjectSupplier());
     visitor.visit(tree);
 
     System.out.println("\nQuery:");

@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.smartdata.metastore.queries.PageRequest;
 import org.smartdata.metastore.queries.sort.CachedFilesSortField;
 import org.smartdata.model.request.CachedFileSearchRequest;
-import org.smartdata.server.engine.CachedFilesManager;
+import org.smartdata.server.engine.file.CachedFilesManager;
 import org.smartdata.server.generated.model.CachedFileSortDto;
 import org.smartdata.server.generated.model.CachedFilesDto;
 import org.smartdata.server.generated.model.CachedTimeIntervalDto;

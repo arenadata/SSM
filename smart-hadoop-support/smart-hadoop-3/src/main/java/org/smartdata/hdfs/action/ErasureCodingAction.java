@@ -65,7 +65,7 @@ public class ErasureCodingAction extends ErasureCodingBase {
     validateNonEmptyArgs(FILE_PATH);
 
     // keep attribute consistent
-    HdfsFileStatus fileStatus = (HdfsFileStatus) localFileSystem.getFileStatus(srcPath);
+    HdfsFileStatus fileStatus = (HdfsFileStatus) localDfs.getFileStatus(srcPath);
 
     validateEcPolicy(ecPolicyName);
     ErasureCodingPolicy srcEcPolicy = fileStatus.getErasureCodingPolicy();
@@ -79,7 +79,7 @@ public class ErasureCodingAction extends ErasureCodingBase {
     }
 
     if (fileStatus.isDir()) {
-      localFileSystem.setErasureCodingPolicy(srcPath, ecPolicyName);
+      localDfs.setErasureCodingPolicy(srcPath, ecPolicyName);
       this.progress = 1.0F;
       appendLog(DIR_RESULT);
       return;
@@ -90,13 +90,13 @@ public class ErasureCodingAction extends ErasureCodingBase {
       // a file only with replication policy can be appended.
       if (srcEcPolicy == null) {
         // append the file to acquire the lock to avoid modifying, real appending wouldn't occur.
-        outputStream = localFileSystem.append(srcPath, bufferSize);
+        outputStream = localDfs.append(srcPath, bufferSize);
       }
       convert(fileStatus);
       // The append operation will change the modification time accordingly,
       // so we use the FileStatus obtained before append to set ecTmp file's most attributes
       setAttributes(fileStatus);
-      localFileSystem.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
+      localDfs.rename(ecTmpPath, srcPath, Options.Rename.OVERWRITE);
       appendLog(CONVERT_RESULT);
       if (srcEcPolicy == null) {
         appendLog("The previous EC policy is replication.");
@@ -106,8 +106,8 @@ public class ErasureCodingAction extends ErasureCodingBase {
       appendLog("The current EC policy is " + ecPolicyName);
     } catch (ActionException ex) {
       try {
-        if (localFileSystem.exists(ecTmpPath)) {
-          localFileSystem.delete(ecTmpPath, false);
+        if (localDfs.exists(ecTmpPath)) {
+          localDfs.delete(ecTmpPath, false);
         }
       } catch (IOException e) {
         appendLog("Failed to delete tmp file created during the conversion!" + ex.getMessage());
@@ -125,7 +125,7 @@ public class ErasureCodingAction extends ErasureCodingBase {
   }
 
   public void validateEcPolicy(String ecPolicyName) throws Exception {
-    ErasureCodingPolicyState ecPolicyState = localFileSystem.getAllErasureCodingPolicies()
+    ErasureCodingPolicyState ecPolicyState = localDfs.getAllErasureCodingPolicies()
         .stream()
         .filter(policyInfo -> policyInfo.getPolicy().getName().equals(ecPolicyName))
         .map(ErasureCodingPolicyInfo::getState)

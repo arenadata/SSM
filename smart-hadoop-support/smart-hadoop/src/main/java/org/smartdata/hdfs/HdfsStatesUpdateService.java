@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartConstants;
 import org.smartdata.SmartContext;
-import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.hdfs.metric.fetcher.CachedListFetcher;
 import org.smartdata.hdfs.metric.fetcher.DataNodeInfoFetcher;
 import org.smartdata.hdfs.metric.fetcher.InotifyEventFetcher;
@@ -71,21 +70,13 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
    *
    * @return true if initialized successfully
    */
-  //@TODO: remove loadHadoopConf because it is done in Smart Server
   @Override
   public void init() throws IOException {
     LOG.info("Initializing ...");
     SmartContext context = getContext();
-    final Configuration conf = context.getConf();
-    String hadoopConfPath = getContext().getConf()
-        .get(SmartConfKeys.SMART_HADOOP_CONF_DIR_KEY);
-    try {
-      HadoopUtil.loadHadoopConf(hadoopConfPath, conf);
-    } catch (IOException e) {
-      throw new IOException("Fail to load Hadoop configuration for : " + e.getMessage());
-    }
+    Configuration conf = context.getConf();
     final URI nnUri = HadoopUtil.getNameNodeUri(context.getConf());
-    LOG.debug("Final Namenode URL:" + nnUri.toString());
+    LOG.debug("Final Namenode URL: {}", nnUri);
     client = HadoopUtil.getDFSClient(nnUri, conf);
     checkAndCreateIdFiles(nnUri, context.getConf());
     this.executorService = Executors.newScheduledThreadPool(4);
@@ -206,7 +197,7 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
   }
 
   private FSDataOutputStream checkAndMarkRunning(URI namenodeURI, Configuration conf,
-                                                 String filePath)
+      String filePath)
       throws IOException {
     Path path = new Path(filePath);
     DistributedFileSystem fs = (DistributedFileSystem) FileSystem.get(namenodeURI, conf);

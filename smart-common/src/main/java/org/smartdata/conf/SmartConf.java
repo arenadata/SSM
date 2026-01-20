@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE;
 import static org.smartdata.conf.SmartConfKeys.SMART_FS_TYPE_DEFAULT;
 
@@ -48,11 +49,17 @@ public class SmartConf extends Configuration {
   private Set<String> agentHosts;
   private Set<String> serverHosts;
 
-  public SmartConf() {
+  public SmartConf(Configuration conf) {
+    super(conf);
+
     Configuration.addDefaultResource("smart-default.xml");
     Configuration.addDefaultResource("smart-site.xml");
 
     parseHostsFiles();
+  }
+
+  public SmartConf() {
+    this(new Configuration());
   }
 
   public List<String> getCoverDirs() {
@@ -117,10 +124,6 @@ public class SmartConf extends Configuration {
         : stringCollection;
   }
 
-  public Map<String, String> asMap() {
-    return asMap(key -> true);
-  }
-
   private void parseHostsFiles() {
     SsmHostsFileReader ssmHostsFileReader = new SsmHostsFileReader();
 
@@ -131,6 +134,11 @@ public class SmartConf extends Configuration {
       // In some unit tests, these files may be missing. So such exception is tolerable.
       LOG.error("Error parsing SSM servers/agents hosts file: {}", exception.getMessage());
     }
+  }
+
+  public String getDefaultFs() {
+    return Optional.ofNullable(get(FS_DEFAULT_NAME_KEY))
+        .orElseGet(this::getRpcAddress);
   }
 
   public SmartFsType getFsType() {
@@ -145,5 +153,11 @@ public class SmartConf extends Configuration {
 
     Path hostsFilePath = Paths.get(configDir, fileName);
     return hostFileReader.parse(hostsFilePath);
+  }
+
+  private String getRpcAddress() {
+    return getFsType() == SmartFsType.HDFS
+        ? get(SmartConfKeys.SMART_DFS_NAMENODE_RPCSERVER_KEY)
+        : get(SmartConfKeys.SMART_OZONE_RPC_SERVER_KEY);
   }
 }

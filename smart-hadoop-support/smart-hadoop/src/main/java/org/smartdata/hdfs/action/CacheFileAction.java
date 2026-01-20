@@ -32,7 +32,7 @@ import java.util.Optional;
 @ActionSignature(
     actionId = "cache",
     displayName = "cache",
-    usage = HdfsAction.FILE_PATH + " $file "
+    usage = HadoopAction.FILE_PATH + " $file "
         + CacheFileAction.REPLICA + " $replica "
 )
 public class CacheFileAction extends HdfsAction {
@@ -57,7 +57,7 @@ public class CacheFileAction extends HdfsAction {
 
     // set cache replication as the replication number of the file if not set
     if (replication == 0) {
-      FileStatus fileStatus = localFileSystem.getFileStatus(filePath);
+      FileStatus fileStatus = localDfs.getFileStatus(filePath);
       replication = fileStatus.isDirectory() ? 1 : fileStatus.getReplication();
     }
     executeCacheAction();
@@ -67,7 +67,7 @@ public class CacheFileAction extends HdfsAction {
     CacheDirectiveInfo filter = new CacheDirectiveInfo.Builder()
         .setPath(filePath)
         .build();
-    return localFileSystem.listCacheDirectives(filter).hasNext();
+    return localDfs.listCacheDirectives(filter).hasNext();
   }
 
   private void executeCacheAction() throws Exception {
@@ -87,6 +87,6 @@ public class CacheFileAction extends HdfsAction {
         .setReplication(replication)
         .build();
 
-    localFileSystem.addCacheDirective(filter);
+    localDfs.addCacheDirective(filter);
   }
 }

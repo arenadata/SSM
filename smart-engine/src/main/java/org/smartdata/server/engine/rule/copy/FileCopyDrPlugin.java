@@ -152,14 +152,13 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
         PATTERN_BASE_DIRS_DELIMITER,
         getPathPatternBaseDirs(pathPatterns));
 
-    BackUpInfo backUpInfo = new BackUpInfo();
-    backUpInfo.setRid(ruleId);
-    backUpInfo.setSrc(patternBaseDirs);
-    backUpInfo.setSrcPattern(ssmPatternsToRegex(pathPatterns));
-    backUpInfo.setDest(dest);
-    backUpInfo.setPeriod(tResult.getScheduleInfo().getMinimalEvery());
-
-    return backUpInfo;
+    return BackUpInfo.builder()
+        .rid(ruleId)
+        .src(patternBaseDirs)
+        .srcPattern(ssmPatternsToRegex(pathPatterns))
+        .dest(dest)
+        .period(tResult.getScheduleInfo().getMinimalEvery())
+        .build();
   }
 
   private void validatePreserveArg(String rawPreserveArg) {
@@ -167,7 +166,7 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
       return;
     }
 
-    for (String attribute: rawPreserveArg.split(",")) {
+    for (String attribute : rawPreserveArg.split(",")) {
       CopyFileAction.validatePreserveArg(attribute);
     }
   }

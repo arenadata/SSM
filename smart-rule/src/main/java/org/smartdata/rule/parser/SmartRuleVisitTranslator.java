@@ -31,6 +31,7 @@ import org.smartdata.rule.exceptions.RuleParserException;
 import org.smartdata.rule.objects.Property;
 import org.smartdata.rule.objects.PropertyRealParas;
 import org.smartdata.rule.objects.SmartObject;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.rule.parser.SmartRuleParser.TimeintvalexprContext;
 import org.smartdata.utils.StringUtil;
 
@@ -58,6 +59,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   private final TranslationContext transCtx;
 
   private final CmdletParser cmdletParser;
+  private final SmartObjectSupplier smartObjectSupplier;
 
   private TreeNode objFilter;
   private TreeNode conditions;
@@ -67,12 +69,14 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   private int[] condPosition;
   private long minTimeInterval;
 
-  public SmartRuleVisitTranslator() {
-    this(null);
+  public SmartRuleVisitTranslator(SmartObjectSupplier smartObjectSupplier) {
+    this(null, smartObjectSupplier);
   }
 
-  public SmartRuleVisitTranslator(TranslationContext transCtx) {
+  public SmartRuleVisitTranslator(TranslationContext transCtx,
+      SmartObjectSupplier smartObjectSupplier) {
     this.transCtx = transCtx;
+    this.smartObjectSupplier = smartObjectSupplier;
     this.objects = new HashMap<>();
     this.pathCheckGlob = new ArrayList<>();
     this.minTimeInterval = Long.MAX_VALUE;
@@ -82,18 +86,18 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   @Override
   public TreeNode visitObjTypeOnly(SmartRuleParser.ObjTypeOnlyContext ctx) {
     String objName = ctx.OBJECTTYPE().getText();
-    SmartObject obj = SmartObject.getInstance(objName);
-    objects.put(objName, obj);
-    objects.put("Default", obj);
+    SmartObject object = smartObjectSupplier.get(objName);
+    objects.put(objName, object);
+    objects.put("Default", object);
     return null;
   }
 
   @Override
   public TreeNode visitObjTypeWith(SmartRuleParser.ObjTypeWithContext ctx) {
     String objName = ctx.OBJECTTYPE().getText();
-    SmartObject obj = SmartObject.getInstance(objName);
-    objects.put(objName, obj);
-    objects.put("Default", obj);
+    SmartObject object = smartObjectSupplier.get(objName);
+    objects.put(objName, object);
+    objects.put("Default", object);
     objFilter = visit(ctx.objfilter());
     return null;
   }
@@ -270,12 +274,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
   }
 
   private SmartObject createIfNotExist(String objName) {
-    SmartObject obj = objects.get(objName);
-    if (obj == null) {
-      obj = SmartObject.getInstance(objName);
-      objects.put(objName, obj);
-    }
-    return obj;
+    return objects.computeIfAbsent(objName, smartObjectSupplier::get);
   }
 
   // ID
@@ -682,10 +681,10 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
     switch (object.getType()) {
       case DIRECTORY:
       case FILE:
-        ret = "SELECT path FROM file";
+        ret = "SELECT path FROM " + object.getBaseTableName();
         break;
       case HMS:
-        ret = "SELECT id FROM hive_metastore_event";
+        ret = "SELECT id FROM " + object.getBaseTableName();
         break;
       default:
         throw new IOException(

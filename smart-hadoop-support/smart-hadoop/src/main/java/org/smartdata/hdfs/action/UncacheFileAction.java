@@ -31,7 +31,7 @@ import java.util.Map;
 @ActionSignature(
     actionId = "uncache",
     displayName = "uncache",
-    usage = HdfsAction.FILE_PATH + " $file "
+    usage = HadoopAction.FILE_PATH + " $file "
 )
 public class UncacheFileAction extends HdfsAction {
   private Path filePath;
@@ -52,7 +52,7 @@ public class UncacheFileAction extends HdfsAction {
           "So there is no need to execute this action.", filePath));
       return;
     }
-    localFileSystem.removeCacheDirective(id);
+    localDfs.removeCacheDirective(id);
   }
 
   private Long getCacheId() throws Exception {
@@ -61,7 +61,7 @@ public class UncacheFileAction extends HdfsAction {
         .build();
 
     RemoteIterator<CacheDirectiveEntry> directiveEntries =
-        localFileSystem.listCacheDirectives(filter);
+        localDfs.listCacheDirectives(filter);
     if (!directiveEntries.hasNext()) {
       return null;
     }

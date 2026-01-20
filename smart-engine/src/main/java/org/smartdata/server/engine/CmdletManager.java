@@ -20,6 +20,7 @@ package org.smartdata.server.engine;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.action.ActionException;
+import org.smartdata.action.ActionRegistry;
 import org.smartdata.cmdlet.parser.CmdletParser;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
 import org.smartdata.conf.SmartConfKeys;
@@ -35,14 +37,6 @@ import org.smartdata.exception.ActionRejectedException;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.QueueFullException;
 import org.smartdata.exception.SsmParseException;
-import org.smartdata.hdfs.scheduler.CacheScheduler;
-import org.smartdata.hdfs.scheduler.CompressionScheduler;
-import org.smartdata.hdfs.scheduler.Copy2S3Scheduler;
-import org.smartdata.hdfs.scheduler.CopyScheduler;
-import org.smartdata.hdfs.scheduler.ErasureCodingScheduler;
-import org.smartdata.hdfs.scheduler.MoverScheduler;
-import org.smartdata.hdfs.scheduler.SmallFileScheduler;
-import org.smartdata.hive.action.HmsSyncScheduler;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
@@ -94,15 +88,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
@@ -151,12 +142,18 @@ public class CmdletManager extends AbstractService
   private final SmartPrincipalManager smartPrincipalManager;
   private final PathChecker pathChecker;
   private final List<ActionSchedulerService> schedulerServices;
+  @Getter
+  private final ActionRegistry actionRegistry;
+
   private CmdletDispatcher dispatcher;
 
+  @lombok.Builder
   public CmdletManager(
       ServerContext context,
       AuditService auditService,
-      SmartPrincipalManager smartPrincipalManager) throws IOException {
+      SmartPrincipalManager smartPrincipalManager,
+      ActionRegistry actionRegistry,
+      List<ActionSchedulerService> schedulerServices) throws IOException {
     super(context);
 
     this.metaStore = context.getMetaStore();
@@ -168,7 +165,7 @@ public class CmdletManager extends AbstractService
     this.scheduledCmdlets = new LinkedBlockingQueue<>();
     this.idToLaunchCmdlets = new ConcurrentHashMap<>();
     this.schedulers = ArrayListMultimap.create();
-    this.schedulerServices = createSchedulerServices(context);
+    this.schedulerServices = schedulerServices;
     this.ruleCmdletTracker = new RuleCmdletTracker();
     this.dispatcher = new CmdletDispatcher(context, this,
         scheduledCmdlets, idToLaunchCmdlets, runningCmdlets, schedulers);
@@ -182,8 +179,9 @@ public class CmdletManager extends AbstractService
     this.cmdletPurgeTask = new DeleteTerminatedCmdletsTask(getContext().getConf(), metaStore);
     this.inMemoryRegistry = new InMemoryRegistry(context, ruleCmdletTracker, executorService);
 
+    this.actionRegistry = actionRegistry;
     CmdletManagerContext cmdletManagerContext = new CmdletManagerContext(
-        context.getConf(), metaStore, context.getMetricsFactory(), inMemoryRegistry, schedulers);
+        context.getConf(), metaStore, context.getMetricsFactory(), inMemoryRegistry, actionRegistry, schedulers);
     this.detectTimeoutActionsTask =
         new DetectTimeoutActionsTask(cmdletManagerContext, this, idToLaunchCmdlets.keySet());
     this.actionInfoHandler = new ActionInfoHandler(cmdletManagerContext);
@@ -833,32 +831,6 @@ public class CmdletManager extends AbstractService
       CmdletStatus cmdletStatus =
           new CmdletStatus(cmdletId, actionInfo.getFinishTime(), CmdletState.DONE);
       onCmdletStatusUpdate(cmdletStatus);
-    }
-  }
-
-  private List<ActionSchedulerService> createSchedulerServices(ServerContext context) {
-    return Stream.of(
-            createSafely(() -> new MoverScheduler(context)),
-            createSafely(() -> new CopyScheduler(context, context.getMetaStore())),
-            createSafely(() -> new Copy2S3Scheduler(context, context.getMetaStore())),
-            createSafely(() -> new SmallFileScheduler(context, context.getMetaStore())),
-            createSafely(() -> new CompressionScheduler(context, context.getMetaStore())),
-            createSafely(() -> new ErasureCodingScheduler(context, context.getMetaStore())),
-            createSafely(() -> new CacheScheduler(context)),
-            createSafely(() -> new HmsSyncScheduler(context,
-                context.getMetaStore().hmsEventDao(),
-                context.getMetaStore().hmsSyncProgressDao()))
-        ).filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
-
-  private ActionSchedulerService createSafely(
-      Callable<ActionSchedulerService> schedulerSupplier) {
-    try {
-      return schedulerSupplier.call();
-    } catch (Exception e) {
-      log.error("Create scheduler service failed.", e);
-      return null;
     }
   }
 

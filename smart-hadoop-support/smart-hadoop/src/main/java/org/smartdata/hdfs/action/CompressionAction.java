@@ -51,7 +51,7 @@ import static org.smartdata.utils.PathUtil.getRawPath;
     actionId = "compress",
     displayName = "compress",
     usage =
-        HdfsAction.FILE_PATH
+        HadoopAction.FILE_PATH
             + " $file "
             + CompressionAction.BUF_SIZE
             + " $bufSize "
@@ -116,12 +116,12 @@ public class CompressionAction extends HdfsAction {
           "Compression Action failed due to unsupported codec: " + compressCodec);
     }
 
-    if (!localFileSystem.exists(filePath)) {
+    if (!localDfs.exists(filePath)) {
       throw new ActionException(
           "Failed to execute Compression Action: the given file doesn't exist!");
     }
 
-    FileStatus srcFileStatus = localFileSystem.getFileStatus(filePath);
+    FileStatus srcFileStatus = localDfs.getFileStatus(filePath);
     // Consider directory case.
     if (srcFileStatus.isDirectory()) {
       appendLog("Compression is not applicable to a directory.");
@@ -139,10 +139,10 @@ public class CompressionAction extends HdfsAction {
           // SmartDFSClient will fail to open compressing file with PROCESSING FileStage
           // set by Compression scheduler. But considering DfsClient may be used, we use
           // append operation to lock the file to avoid any modification.
-          OutputStream lockStream = localFileSystem.append(filePath, bufferSize);
+          OutputStream lockStream = localDfs.append(filePath, bufferSize);
 
-          FSDataInputStream in = localFileSystem.open(filePath);
-          OutputStream out = localFileSystem.create(compressTmpPath,
+          FSDataInputStream in = localDfs.open(filePath);
+          OutputStream out = localDfs.create(compressTmpPath,
               true,
               getLocalDfsClient().getConf().getIoBufferSize(),
               srcFileStatus.getReplication(),
@@ -152,15 +152,15 @@ public class CompressionAction extends HdfsAction {
         appendLog("File length: " + srcFileStatus.getLen());
         bufferSize = getActualBuffSize(srcFileStatus.getLen());
 
-        String storagePolicyName = localFileSystem.getStoragePolicy(filePath).getName();
+        String storagePolicyName = localDfs.getStoragePolicy(filePath).getName();
         if (!storagePolicyName.equals("UNDEF")) {
-          localFileSystem.setStoragePolicy(compressTmpPath, storagePolicyName);
+          localDfs.setStoragePolicy(compressTmpPath, storagePolicyName);
         }
 
         compress(in, out);
-        FileStatus destFileStatus = localFileSystem.getFileStatus(compressTmpPath);
-        localFileSystem.setOwner(compressTmpPath, srcFileStatus.getOwner(), srcFileStatus.getGroup());
-        localFileSystem.setPermission(compressTmpPath, srcFileStatus.getPermission());
+        FileStatus destFileStatus = localDfs.getFileStatus(compressTmpPath);
+        localDfs.setOwner(compressTmpPath, srcFileStatus.getOwner(), srcFileStatus.getGroup());
+        localDfs.setPermission(compressTmpPath, srcFileStatus.getPermission());
         compressionFileState.setCompressedLength(destFileStatus.getLen());
         appendLog("Compressed file length: " + destFileStatus.getLen());
         compressionFileInfo =
@@ -179,7 +179,7 @@ public class CompressionAction extends HdfsAction {
       setXAttr(compressTmpPath, compressionFileState);
       // Rename operation is moved from CompressionScheduler.
       // Thus, modification for original file will be avoided.
-      localFileSystem.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
+      localDfs.rename(compressTmpPath, filePath, Options.Rename.OVERWRITE);
     } else {
       // Add to raw path
       setXAttr(filePath, compressionFileState);
@@ -213,7 +213,7 @@ public class CompressionAction extends HdfsAction {
   }
 
   private void setXAttr(Path path, CompressionFileState compressionFileState) throws IOException {
-    localFileSystem.setXAttr(path, SMART_FILE_STATE_XATTR_NAME,
+    localDfs.setXAttr(path, SMART_FILE_STATE_XATTR_NAME,
         SerializationUtils.serialize(compressionFileState),
         EnumSet.of(XAttrSetFlag.CREATE));
   }

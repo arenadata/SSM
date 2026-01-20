@@ -1,0 +1,56 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.smartdata.server.engine.filesystem;
+
+import lombok.extern.slf4j.Slf4j;
+import org.smartdata.metastore.MetaStore;
+import org.smartdata.model.action.ActionSchedulerService;
+import org.smartdata.server.engine.ServerContext;
+import org.smartdata.utils.ThrowingBiFunction;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@Slf4j
+public abstract class BaseFileSystemContext implements FileSystemContext {
+
+  @Override
+  public List<ActionSchedulerService> actionSchedulerServices(ServerContext context) {
+    return actionSchedulerSuppliers()
+        .map(supplier -> createSafely(supplier, context))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  protected abstract Stream<ThrowingBiFunction<ServerContext,
+      MetaStore, ActionSchedulerService>> actionSchedulerSuppliers();
+
+  protected ActionSchedulerService createSafely(
+      ThrowingBiFunction<ServerContext, MetaStore, ActionSchedulerService> schedulerSupplier,
+      ServerContext smartContext) {
+    try {
+      return schedulerSupplier.apply(smartContext, smartContext.getMetaStore());
+    } catch (Exception e) {
+      log.error("Create scheduler service failed.", e);
+      return null;
+    }
+  }
+
+}

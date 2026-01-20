@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 @ActionSignature(
     actionId = "concat",
     displayName = "concat",
-    usage = HdfsAction.FILE_PATH + " $src " + ConcatFileAction.DEST_PATH + " $dest"
+    usage = HadoopAction.FILE_PATH + " $src " + ConcatFileAction.DEST_PATH + " $dest"
 )
 public class ConcatFileAction extends HdfsAction {
   public static final String DEST_PATH = "-dest";
@@ -68,14 +68,14 @@ public class ConcatFileAction extends HdfsAction {
     }
 
     for (Path sourcePath : srcPaths) {
-      if (localFileSystem.getFileStatus(sourcePath).isDirectory()) {
+      if (localDfs.getFileStatus(sourcePath).isDirectory()) {
         throw new IllegalArgumentException("File parameter is not file");
       }
     }
 
     Path firstPath = srcPaths.removeFirst();
     Path[] restPaths = srcPaths.toArray(new Path[0]);
-    localFileSystem.concat(firstPath, restPaths);
-    localFileSystem.rename(firstPath, targetPath, Options.Rename.OVERWRITE);
+    localDfs.concat(firstPath, restPaths);
+    localDfs.rename(firstPath, targetPath, Options.Rename.OVERWRITE);
   }
 }

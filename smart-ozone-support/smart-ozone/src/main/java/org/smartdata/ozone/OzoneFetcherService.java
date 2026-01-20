@@ -19,6 +19,7 @@ package org.smartdata.ozone;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.ozone.RootedOzoneFileSystem;
 import org.apache.hadoop.ozone.client.OzoneClientFactory;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
@@ -65,12 +66,20 @@ public class OzoneFetcherService extends AbstractService {
         ozoneSmartConf.getSnapshotFetcherThreadsCount());
 
     return new OfsSnapshotFetcher(
-        FileSystem.get(ozoneSmartConf),
+        buildOzoneFileSystem(),
         OzoneClientFactory.getRpcClient(ozoneSmartConf).getObjectStore(),
         ozoneSmartConf,
         executorService,
         ozoneSmartConf.getFetchBatchSize()
     );
+  }
+
+  private FileSystem buildOzoneFileSystem() throws IOException {
+    // create RootedOzoneFileSystem directly because we don't need
+    // a ssm client here
+    RootedOzoneFileSystem fileSystem = new RootedOzoneFileSystem();
+    fileSystem.initialize(ozoneSmartConf.getOzoneDefaultFsUri(), ozoneSmartConf);
+    return fileSystem;
   }
 
   private FsObjectStreamHandler buildStreamHandler() {
@@ -86,6 +95,8 @@ public class OzoneFetcherService extends AbstractService {
 
   @Override
   public void start() {
+    // todo clear the file table every time until ADH-7258 is resolved
+    ozoneFileInfoDao.clear();
     BlockingQueue<FsObjectStreamRecord> fsObjectStream = ofsSnapshotFetcher.runSnapshot();
     eventStreamHandler.collectAsync(fsObjectStream);
   }

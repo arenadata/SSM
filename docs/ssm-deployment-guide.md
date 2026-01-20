@@ -532,7 +532,7 @@ Note: To make the scripts work, you have to set up SSH password-less connections
 ```
    2017-07-15 00:38:28,619 INFO org.smartdata.hdfs.HdfsStatesUpdateService.init 68: Initializing ...
    2017-07-15 00:38:29,350 ERROR org.smartdata.hdfs.HdfsStatesUpdateService.checkAndMarkRunning 138: Unable to lock 'mover', please stop 'mover' first.
-   2017-07-15 00:38:29,350 INFO org.smartdata.server.engine.StatesManager.initStatesUpdaterService 180: Failed to create states updater service.
+   2017-07-15 00:38:29,350 INFO org.smartdata.server.engine.HdfsStatesManager.initStatesUpdaterService 180: Failed to create states updater service.
 ```
 
 Notes
