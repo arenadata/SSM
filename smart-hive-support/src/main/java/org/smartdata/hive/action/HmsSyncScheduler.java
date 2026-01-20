@@ -184,7 +184,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     ruleState.clearRetryState(event);
 
     actionInfo.getArgs().put(HmsSyncAction.ENTITY_NAME, event.getFullName());
-    actionInfo.getArgs().put(HmsSyncAction.TABLE_NAME, event.getTableName());
+    Optional.ofNullable(event.getTableName())
+        .ifPresent(tableName -> actionInfo.getArgs().put(HmsSyncAction.TABLE_NAME, tableName));
 
     try {
       handleEvent(event, action);

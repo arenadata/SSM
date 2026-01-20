@@ -24,6 +24,8 @@ import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.hive.action.HmsAction;
 import org.smartdata.hive.action.constraint.HmsCreateConstraintAction;
 
+import java.util.Objects;
+
 @ActionSignature(
     actionId = HmsAlterPartitionAction.NAME,
     displayName = HmsAlterPartitionAction.NAME,
@@ -48,11 +50,22 @@ public class HmsAlterPartitionAction extends HmsAction {
 
     renameNameService(partition.getSd());
 
-    getMetastoreClient().alter_partition(
-        oldPartition.getDbName(),
-        oldPartition.getTableName(),
-        partition
-    );
+    if (Objects.equals(oldPartition.getValues(), partition.getValues())) {
+      getMetastoreClient().alter_partition(
+            oldPartition.getDbName(),
+            oldPartition.getTableName(),
+            partition
+      );
+    } else {
+      getMetastoreClient().renamePartition(
+            oldPartition.getCatName(),
+            oldPartition.getDbName(),
+            oldPartition.getTableName(),
+            oldPartition.getValues(),
+            partition,
+            null
+      );
+    }
 
     appendLog("Partitions was successfully altered");
   }
