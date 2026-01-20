@@ -19,7 +19,7 @@ import HottestFilesToolbar from './HottestFilesToolbar/HottestFilesToolbar';
 import HottestFilesTable from './HottestFilesTable/HottestFilesTable';
 
 const HottestFiles = () => (
-  <div data-qa="hottest-files-table">
+  <div data-qa="hottest-files">
     <HottestFilesToolbar />
     <HottestFilesTable />
   </div>
