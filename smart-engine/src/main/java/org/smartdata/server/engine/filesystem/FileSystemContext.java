@@ -23,6 +23,7 @@ import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartFsType;
 import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.rule.RuleExecutorPlugin;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
@@ -41,6 +42,8 @@ public interface FileSystemContext {
   List<SmartService> additionalServices(ServerContext context);
 
   CachedFilesManager cachedFilesManager(ServerContext context);
+
+  SmartObjectSupplier smartObjectSupplier();
 
   static FileSystemContext fromConfig(SmartConf conf) {
     return fromFsType(conf.getFsType());

@@ -50,6 +50,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.smartdata.utils.PathUtil.addPathSeparator;
 import static org.smartdata.utils.PathUtil.getRawPath;
 
 /**
@@ -164,6 +165,7 @@ public class HadoopUtil {
     }
 
     URL hadoopConfDir;
+    hadoopConfPath = addPathSeparator(hadoopConfPath);
     try {
       hadoopConfDir = new URL(hadoopConfPath);
     } catch (MalformedURLException e) {
@@ -199,6 +201,14 @@ public class HadoopUtil {
       }
     } catch (Exception exception) {
       throw new IOException("Error loading configuration file " + resource, exception);
+    }
+  }
+
+  public static void loadResourceSafely(Configuration config, URL configDir, String resource) {
+    try {
+      loadResource(config, configDir, resource);
+    } catch (Exception exception) {
+      LOG.warn("Error loading resource {}: {}", resource, exception.getMessage());
     }
   }
 

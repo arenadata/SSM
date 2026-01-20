@@ -95,6 +95,8 @@ public class OzoneFetcherService extends AbstractService {
 
   @Override
   public void start() {
+    // todo clear the file table every time until ADH-7258 is resolved
+    ozoneFileInfoDao.clear();
     BlockingQueue<FsObjectStreamRecord> fsObjectStream = ofsSnapshotFetcher.runSnapshot();
     eventStreamHandler.collectAsync(fsObjectStream);
   }

@@ -14,6 +14,6 @@
     </property>
     <property>
         <name>smart.server.rpc.address</name>
-        <value>localhost:8081</value>
+        <value>ssm-server:7042</value>
     </property>
 </configuration>

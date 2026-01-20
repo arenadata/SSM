@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder(setterPrefix = "set")
-public class FileInfo {
+public class FileInfo implements BaseFileInfo {
   private String path;
   private long fileId;
   private long length;

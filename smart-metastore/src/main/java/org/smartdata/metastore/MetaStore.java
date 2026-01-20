@@ -57,6 +57,7 @@ import org.smartdata.metastore.utils.MetaStoreUtils;
 import org.smartdata.metrics.GeneralFileInfoSource;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.BackUpInfo;
+import org.smartdata.model.BaseFileInfo;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.ClusterConfig;
 import org.smartdata.model.ClusterInfo;
@@ -310,6 +311,17 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
+  public BaseFileInfo getBaseFileInfo(String path) throws MetaStoreException {
+    updateCache();
+    try {
+      return generalFileInfoSource.getBaseFileInfo(path);
+    } catch (EmptyResultDataAccessException e) {
+      return null;
+    } catch (Exception e) {
+      throw new MetaStoreException(e);
+    }
+  }
+
   public FileInfo getFile(String path) throws MetaStoreException {
     updateCache();
     try {
@@ -332,10 +344,10 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public List<FileInfo> getFilesByPrefix(String path) throws MetaStoreException {
+  public List<String> getFilePathsByPrefix(String path) throws MetaStoreException {
     updateCache();
     try {
-      return fileInfoDao.getFilesByPrefix(path);
+      return generalFileInfoSource.getFilePathsByPrefix(path);
     } catch (EmptyResultDataAccessException e) {
       return new ArrayList<>();
     } catch (Exception e) {

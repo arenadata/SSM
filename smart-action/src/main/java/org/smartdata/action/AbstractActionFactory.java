@@ -22,9 +22,11 @@ import org.smartdata.action.annotation.ActionSignature;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A common action factory for action providers to use.
@@ -34,11 +36,8 @@ public abstract class AbstractActionFactory implements ActionFactory {
   private static final List<Class<? extends SmartAction>> COMMON_ACTIONS = Arrays.asList(
       EchoAction.class,
       SleepAction.class,
-      SyncAction.class,
       ExecAction.class
   );
-
-  protected abstract List<Class<? extends SmartAction>> supportedActionClasses();
 
   @Override
   public Map<String, Class<? extends SmartAction>> getSupportedActions() {
@@ -51,12 +50,33 @@ public abstract class AbstractActionFactory implements ActionFactory {
     return supportedActions;
   }
 
+  @Override
+  public Set<ActionMetadata> getActionMetadata() {
+    Set<ActionMetadata> actionMetadata = new HashSet<>();
+    COMMON_ACTIONS.forEach(action ->
+        toActionMetadata(action).ifPresent(actionMetadata::add));
+    supportedActionClasses().forEach(action ->
+        toActionMetadata(action).ifPresent(actionMetadata::add));
+
+    return actionMetadata;
+  }
+
+  protected abstract List<Class<? extends SmartAction>> supportedActionClasses();
+
+  private Optional<ActionMetadata> toActionMetadata(Class<? extends SmartAction> actionClass) {
+    return actionSignature(actionClass)
+        .map(signature -> new ActionMetadata(signature.actionId(), signature.usage()));
+  }
+
   private void addActionInfo(
       Map<String, Class<? extends SmartAction>> supportedActions,
       Class<? extends SmartAction> actionClass) {
-
-    Optional.ofNullable(actionClass.getAnnotation(ActionSignature.class))
+    actionSignature(actionClass)
         .map(ActionSignature::actionId)
         .ifPresent(actionId -> supportedActions.put(actionId, actionClass));
+  }
+
+  private Optional<ActionSignature> actionSignature(Class<? extends SmartAction> actionClass) {
+    return Optional.ofNullable(actionClass.getAnnotation(ActionSignature.class));
   }
 }

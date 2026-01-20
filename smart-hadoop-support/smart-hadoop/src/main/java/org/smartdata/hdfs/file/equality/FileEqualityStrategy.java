@@ -21,6 +21,7 @@ import java.util.Objects;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.model.BaseFileInfo;
 import org.smartdata.model.FileInfo;
 
 public interface FileEqualityStrategy {
@@ -29,7 +30,7 @@ public interface FileEqualityStrategy {
     CHECKSUM
   }
 
-  boolean areEqual(FileInfo srcFileInfo, FileStatus destFileStatus);
+  boolean areEqual(BaseFileInfo srcFileInfo, FileStatus destFileStatus);
 
   static FileEqualityStrategy from(Configuration conf) {
     String rawStrategy = conf.get(

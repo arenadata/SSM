@@ -23,8 +23,24 @@ import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.utils.ThrowingBiFunction;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Slf4j
 public abstract class BaseFileSystemContext implements FileSystemContext {
+
+  @Override
+  public List<ActionSchedulerService> actionSchedulerServices(ServerContext context) {
+    return actionSchedulerSuppliers()
+        .map(supplier -> createSafely(supplier, context))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  protected abstract Stream<ThrowingBiFunction<ServerContext,
+      MetaStore, ActionSchedulerService>> actionSchedulerSuppliers();
 
   protected ActionSchedulerService createSafely(
       ThrowingBiFunction<ServerContext, MetaStore, ActionSchedulerService> schedulerSupplier,

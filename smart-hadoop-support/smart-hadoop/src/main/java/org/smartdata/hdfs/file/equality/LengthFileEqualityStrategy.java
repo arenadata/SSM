@@ -17,14 +17,15 @@
  */
 package org.smartdata.hdfs.file.equality;
 
-import java.util.Optional;
 import org.apache.hadoop.fs.FileStatus;
-import org.smartdata.model.FileInfo;
+import org.smartdata.model.BaseFileInfo;
+
+import java.util.Optional;
 
 public class LengthFileEqualityStrategy implements FileEqualityStrategy {
 
   @Override
-  public boolean areEqual(FileInfo srcFileInfo, FileStatus destFileStatus) {
+  public boolean areEqual(BaseFileInfo srcFileInfo, FileStatus destFileStatus) {
     return Optional.ofNullable(destFileStatus)
         .map(FileStatus::getLen)
         .filter(length -> length == srcFileInfo.getLength())

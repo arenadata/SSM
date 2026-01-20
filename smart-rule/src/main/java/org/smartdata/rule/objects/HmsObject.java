@@ -18,10 +18,10 @@
 package org.smartdata.rule.objects;
 
 
+import com.google.common.collect.ImmutableMap;
 import org.smartdata.rule.parser.ValueType;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,27 +29,19 @@ import java.util.Map;
  */
 public class HmsObject extends SmartObject {
 
-  public static final Map<String, Property> PROPERTIES;
-
-  static {
-    PROPERTIES = new HashMap<>();
-    PROPERTIES.put("name",
-        new Property(
-            "name",
-            ValueType.STRING,
-            Collections.singletonList(ValueType.STRING),
-            "hive_metastore_event",
-            "entity_name",
-            "(entity_name LIKE SUBSTRING($0 FROM 1 FOR "
-                + "NULLIF(POSITION('.' IN $0), 0) - 1)) or entity_name",
-            true));
-  }
+  private static final Map<String, Property> PROPERTIES = ImmutableMap.of(
+      "name", new Property(
+          "name",
+          ValueType.STRING,
+          Collections.singletonList(ValueType.STRING),
+          "hive_metastore_event",
+          "entity_name",
+          "(entity_name LIKE SUBSTRING($0 FROM 1 FOR "
+              + "NULLIF(POSITION('.' IN $0), 0) - 1)) or entity_name",
+          true)
+  );
 
   public HmsObject() {
-    super(ObjectType.HMS, "hive_metastore_event");
-  }
-
-  public Map<String, Property> getProperties() {
-    return PROPERTIES;
+    super(ObjectType.HMS, PROPERTIES, "hive_metastore_event");
   }
 }

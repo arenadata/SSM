@@ -41,6 +41,7 @@ import org.smartdata.model.rule.RuleExecutorPlugin;
 import org.smartdata.model.rule.RulePluginManager;
 import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.model.rule.TimeBasedScheduleInfo;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.rule.parser.SmartRuleStringParser;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.server.engine.audit.AuditService;
@@ -86,6 +87,7 @@ public class RuleManager
   private final RuleDao ruleDao;
   private final RuleInfoHandler ruleInfoHandler;
   private final List<RuleExecutorPlugin> executorPlugins;
+  private final SmartObjectSupplier smartObjectSupplier;
 
   private volatile boolean isClosed = false;
 
@@ -100,6 +102,7 @@ public class RuleManager
       AuditService auditService,
       ActionRegistry actionRegistry,
       SmartPrincipalManager smartPrincipalManager,
+      SmartObjectSupplier smartObjectSupplier,
       List<RuleExecutorPlugin> executorPlugins) {
     super(context);
 
@@ -121,6 +124,7 @@ public class RuleManager
     this.pathChecker = new PathChecker(context.getConf());
     this.executorPlugins = executorPlugins;
     this.actionRegistry = actionRegistry;
+    this.smartObjectSupplier = smartObjectSupplier;
   }
 
   public RuleInfo submitRule(String rule) throws IOException {
@@ -166,7 +170,8 @@ public class RuleManager
 
     metaStore.insertNewRule(ruleInfo);
 
-    RuleInfoRepo infoRepo = new RuleInfoRepo(ruleInfo, metaStore, serverContext.getConf(), executorPlugins);
+    RuleInfoRepo infoRepo = new RuleInfoRepo(ruleInfo, metaStore,
+        serverContext.getConf(), smartObjectSupplier, executorPlugins);
     mapRules.put(ruleInfo.getId(), infoRepo);
     submitRuleToScheduler(infoRepo.launchExecutor(this));
 
@@ -188,7 +193,8 @@ public class RuleManager
   }
 
   private RuleTranslationResult doCheckRule(String rule) throws IOException {
-    SmartRuleStringParser parser = new SmartRuleStringParser(rule, null, serverContext.getConf());
+    SmartRuleStringParser parser = new SmartRuleStringParser(
+        rule, null, smartObjectSupplier, serverContext.getConf());
     return parser.translate();
   }
 
@@ -294,7 +300,8 @@ public class RuleManager
       return;
     }
     for (RuleInfo rule : rules) {
-      mapRules.put(rule.getId(), new RuleInfoRepo(rule, metaStore, serverContext.getConf(), executorPlugins));
+      mapRules.put(rule.getId(), new RuleInfoRepo(rule, metaStore,
+          serverContext.getConf(), smartObjectSupplier, executorPlugins));
     }
     LOG.info("Initialized. Totally " + rules.size() + " rules loaded from DataBase.");
     if (LOG.isDebugEnabled()) {

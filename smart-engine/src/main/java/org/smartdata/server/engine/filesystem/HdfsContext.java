@@ -34,6 +34,8 @@ import org.smartdata.hive.rule.HmsSyncRulePlugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.rule.RuleExecutorPlugin;
+import org.smartdata.rule.objects.DefaultSmartObjectSupplier;
+import org.smartdata.rule.objects.SmartObjectSupplier;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.file.CachedFilesManager;
@@ -48,29 +50,9 @@ import org.smartdata.utils.ThrowingBiFunction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HdfsContext extends BaseFileSystemContext {
-
-  @Override
-  public List<ActionSchedulerService> actionSchedulerServices(ServerContext context) {
-    return Stream.<ThrowingBiFunction<ServerContext, MetaStore, ActionSchedulerService>>of(
-            (ctx, metastore) -> new MoverScheduler(ctx),
-            CopyScheduler::new,
-            Copy2S3Scheduler::new,
-            SmallFileScheduler::new,
-            CompressionScheduler::new,
-            ErasureCodingScheduler::new,
-            Copy2S3Scheduler::new,
-            (ctx, metastore) -> new CacheScheduler(ctx),
-            (ctx, metastore) -> new HmsSyncScheduler(ctx,
-                metastore.hmsEventDao(), metastore.hmsSyncProgressDao())
-        ).map(supplier -> createSafely(supplier, context))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
 
   @Override
   public List<RuleExecutorPlugin> ruleExecutorPlugins(ServerContext context, CmdletManager cmdletManager) {
@@ -102,5 +84,25 @@ public class HdfsContext extends BaseFileSystemContext {
   @Override
   public CachedFilesManager cachedFilesManager(ServerContext context) {
     return new DbCachedFilesManager(context.getMetaStore().cacheFileDao());
+  }
+
+  @Override
+  public SmartObjectSupplier smartObjectSupplier() {
+    return new DefaultSmartObjectSupplier();
+  }
+
+  @Override
+  protected Stream<ThrowingBiFunction<
+      ServerContext, MetaStore, ActionSchedulerService>> actionSchedulerSuppliers() {
+    return Stream.of(
+        (ctx, metastore) -> new MoverScheduler(ctx),
+        CopyScheduler::new,
+        Copy2S3Scheduler::new,
+        SmallFileScheduler::new,
+        CompressionScheduler::new,
+        ErasureCodingScheduler::new,
+        (ctx, metastore) -> new CacheScheduler(ctx),
+        (ctx, metastore) -> new HmsSyncScheduler(ctx,
+            metastore.hmsEventDao(), metastore.hmsSyncProgressDao()));
   }
 }

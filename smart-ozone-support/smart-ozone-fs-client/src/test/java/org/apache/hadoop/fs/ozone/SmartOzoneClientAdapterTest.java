@@ -27,7 +27,6 @@ import org.smartdata.ozone.client.SmartOzoneClientAdapter;
 import org.smartdata.protocol.SmartClientProtocol;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

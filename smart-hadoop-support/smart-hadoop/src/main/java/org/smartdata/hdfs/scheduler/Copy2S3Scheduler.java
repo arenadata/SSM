@@ -25,6 +25,7 @@ import org.smartdata.hdfs.action.HadoopAction;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.ActionInfo;
+import org.smartdata.model.BaseFileInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
@@ -123,8 +124,8 @@ public class Copy2S3Scheduler extends ActionSchedulerService {
 
   private Optional<Long> getFileLength(String fileName) {
     try {
-      return Optional.ofNullable(metaStore.getFile(fileName))
-          .map(FileInfo::getLength);
+      return Optional.ofNullable(metaStore.getBaseFileInfo(fileName))
+          .map(BaseFileInfo::getLength);
     } catch (MetaStoreException e) {
       LOG.warn("Error fetching info about file: {}", fileName, e);
       return Optional.empty();
