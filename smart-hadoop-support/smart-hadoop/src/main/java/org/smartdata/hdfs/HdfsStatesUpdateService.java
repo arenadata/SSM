@@ -76,7 +76,7 @@ public class HdfsStatesUpdateService extends StatesUpdateService {
     SmartContext context = getContext();
     Configuration conf = context.getConf();
     final URI nnUri = HadoopUtil.getNameNodeUri(context.getConf());
-    LOG.debug("Final Namenode URL:" + nnUri);
+    LOG.debug("Final Namenode URL: {}", nnUri);
     client = HadoopUtil.getDFSClient(nnUri, conf);
     checkAndCreateIdFiles(nnUri, context.getConf());
     this.executorService = Executors.newScheduledThreadPool(4);
