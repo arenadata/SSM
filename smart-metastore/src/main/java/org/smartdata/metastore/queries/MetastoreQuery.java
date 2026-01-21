@@ -179,7 +179,8 @@ public class MetastoreQuery {
     String columnsSql = sortColumns.stream()
         .map(Sorting::toString)
         .collect(Collectors.joining(", "));
-    queryBuilder.append(columnsSql).append("\n");
+    queryBuilder.append(columnsSql)
+        .append(" NULLS LAST\n");
 
     return this;
   }
