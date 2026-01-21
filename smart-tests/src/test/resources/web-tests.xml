@@ -4,7 +4,7 @@
 <suite name="SSM Web Test Suites" verbose="1" configfailurepolicy="continue" data-provider-thread-count="3">
     <test name="Web tests" annotations="JDK" thread-count="1">
         <packages>
-            <package name="org.smartdata.test.suite"/>
+            <package name="org.smartdata.test.suite.web"/>
         </packages>
     </test>
 </suite>

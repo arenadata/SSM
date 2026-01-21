@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,8 @@ import org.smartdata.test.repository.MetastoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
+
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -39,6 +41,9 @@ public class DataBaseStep {
 
   @Autowired
   private MetastoreRepository metastoreRepository;
+
+  @Autowired
+  private DataSource ssmMetastoreDataSource;
 
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
@@ -95,7 +100,7 @@ public class DataBaseStep {
   public DataBaseStep insertDataForRulesFilterTest() {
     String firstRule = "file: every 1s | path matches \"/*\" | sleep -ms 100";
     String secondRule = "file: every 1s | path matches \"/*\" | read";
-    try (PreparedStatement ps = metastoreRepository.getConnection().prepareStatement(RULES_FILTER_TEMPLATE)) {
+    try (PreparedStatement ps = ssmMetastoreDataSource.getConnection().prepareStatement(RULES_FILTER_TEMPLATE)) {
       ps.setInt(1, 0);
       ps.setString(2, firstRule);
       ps.setLong(3, Instant.now().toEpochMilli());

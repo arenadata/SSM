@@ -25,11 +25,17 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration
-public class MetastoreDataSourceConfiguration {
+public class DataSourceConfiguration {
+
+  @Bean
+  @ConfigurationProperties("hive-server2-db.datasource")
+  public DataSource hiveServer2DataSource() {
+    return DataSourceBuilder.create().build();
+  }
 
   @Bean
   @ConfigurationProperties("ssm-metastore-db.datasource")
-  public DataSource dataSource() {
+  public DataSource ssmMetastoreDataSource() {
     return DataSourceBuilder.create().build();
   }
 }
