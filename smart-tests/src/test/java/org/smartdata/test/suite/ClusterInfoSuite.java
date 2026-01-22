@@ -41,7 +41,7 @@ import static java.lang.String.valueOf;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
-import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
+import static org.smartdata.test.element.TableElement.TableType.CLUSTER_INFO;
 import static org.smartdata.test.element.TableElement.getRowByCellValue;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
@@ -156,7 +156,7 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   private void prepareDataForHottestFilesTest() {
     dataBaseStep.insertFakeDataForHottestFilesTest();
     tableStep.refreshPage();
-    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
   }
 
   @Step("Create 'Hottest files' rows for pagination test")
@@ -176,7 +176,7 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     dataBaseStep.insertFakeDataForFilesInCacheTest();
     clusterInfoStep.refreshPage();
     clusterInfoStep.openFilesInCacheTab();
-    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
   }
 
   @Step("Create 'Files in cache' rows for pagination test")

@@ -108,8 +108,10 @@ public interface TableElement {
   @Getter
   @RequiredArgsConstructor
   enum TableType {
-    PRIMARY("//*[@data-qa='table'][1]"),
-    SECONDARY("//*[@data-qa='table'][2]");
+    PRIMARY("//*[@data-qa='table']"),
+    CLUSTER_INFO("//*[@data-qa='cluster-info']"),
+    HOTTEST_FILES("//*[@data-qa='hottest-files']"),
+    FILES_IN_CACHE("//*[@data-qa='files-in-cache']");
 
     private final String tableXpath;
 

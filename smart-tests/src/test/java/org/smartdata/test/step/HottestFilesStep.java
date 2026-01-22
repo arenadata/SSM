@@ -29,7 +29,7 @@ import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHott
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.FILE_PATH;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ID;
 import static org.smartdata.test.element.HottestFilesPageElement.HOTTEST_FILES_TOOLBAR;
-import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
+import static org.smartdata.test.element.TableElement.TableType.HOTTEST_FILES;
 import static org.smartdata.test.model.SortOrder.ASC;
 
 @Slf4j
@@ -47,29 +47,29 @@ public class HottestFilesStep extends BaseWebStep {
 
   @Step("Check 'Hottest files' sorting")
   public HottestFilesStep checkSorting() {
-    tableStep.checkSelectedSorting(SECONDARY, ACCESS_COUNT, ASC)
-        .checkColumnValuesIsSorted(SECONDARY, ACCESS_COUNT, ASC)
-        .checkSorting(SECONDARY, ID)
-        .checkSorting(SECONDARY, FILE_PATH)
-        .checkSorting(SECONDARY, ACCESS_COUNT);
+    tableStep.checkSelectedSorting(HOTTEST_FILES, ACCESS_COUNT, ASC)
+        .checkColumnValuesIsSorted(HOTTEST_FILES, ACCESS_COUNT, ASC)
+        .checkSorting(HOTTEST_FILES, ID)
+        .checkSorting(HOTTEST_FILES, FILE_PATH)
+        .checkSorting(HOTTEST_FILES, ACCESS_COUNT);
     return this;
   }
 
   @Step("Check filtration by 'File path'")
   public HottestFilesStep checkFilePathFiltration() {
-    tableStep.clickFilterButton(SECONDARY, FILE_PATH);
+    tableStep.clickFilterButton(HOTTEST_FILES, FILE_PATH);
     tableFilterPopupStep.setTextPopupInput("file2");
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "file2.txt")
+    tableStep.checkTableRowsCountIs(HOTTEST_FILES, 1)
+        .checkColumnValueInFirstRow(HOTTEST_FILES, FILE_PATH, "file2.txt")
         .clickResetFilterButton(HOTTEST_FILES_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2);
+        .checkTableRowsCountIs(HOTTEST_FILES, 2);
     return this;
   }
 
   @Step("Check 'Hottest files' pagination")
   public HottestFilesStep checkPagination(List<String> expectedFilePathList) {
-    tableStep.clickOnSortingColumn(SECONDARY, ID);
-    paginationStep.checkPaginationFixture(SECONDARY, FILE_PATH, expectedFilePathList, HOTTEST_FILES_TOOLBAR);
+    tableStep.clickOnSortingColumn(HOTTEST_FILES, ID);
+    paginationStep.checkPaginationFixture(HOTTEST_FILES, FILE_PATH, expectedFilePathList, HOTTEST_FILES_TOOLBAR);
     return this;
   }
 }

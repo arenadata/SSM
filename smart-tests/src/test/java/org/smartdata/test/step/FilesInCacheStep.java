@@ -34,7 +34,7 @@ import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFile
 import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCacheTableColumn.ID;
 import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCacheTableColumn.LAST_ACCESSED_TIME;
 import static org.smartdata.test.element.FilesInCachePageElement.FILES_IN_CACHE_TOOLBAR;
-import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
+import static org.smartdata.test.element.TableElement.TableType.FILES_IN_CACHE;
 import static org.smartdata.test.model.SortOrder.ASC;
 
 @Slf4j
@@ -52,71 +52,71 @@ public class FilesInCacheStep extends BaseWebStep {
 
   @Step("Check 'Files in cache' sorting")
   public FilesInCacheStep checkSorting() {
-    tableStep.checkSelectedSorting(SECONDARY, ACCESS_COUNT, ASC)
-        .checkColumnValuesIsSorted(SECONDARY, ACCESS_COUNT, ASC)
-        .checkSorting(SECONDARY, ID)
-        .checkSorting(SECONDARY, FILE_PATH)
-        .checkSorting(SECONDARY, CACHED_TIME, new UiDateTimeComparator())
-        .checkSorting(SECONDARY, LAST_ACCESSED_TIME, new UiDateTimeComparator())
-        .checkSorting(SECONDARY, ACCESS_COUNT);
+    tableStep.checkSelectedSorting(FILES_IN_CACHE, ACCESS_COUNT, ASC)
+        .checkColumnValuesIsSorted(FILES_IN_CACHE, ACCESS_COUNT, ASC)
+        .checkSorting(FILES_IN_CACHE, ID)
+        .checkSorting(FILES_IN_CACHE, FILE_PATH)
+        .checkSorting(FILES_IN_CACHE, CACHED_TIME, new UiDateTimeComparator())
+        .checkSorting(FILES_IN_CACHE, LAST_ACCESSED_TIME, new UiDateTimeComparator())
+        .checkSorting(FILES_IN_CACHE, ACCESS_COUNT);
     return this;
   }
 
   @Step("Check 'Files in cache' pagination")
   public FilesInCacheStep checkPagination(List<String> expectedFileIdList) {
-    tableStep.clickOnSortingColumn(SECONDARY, ID);
-    paginationStep.checkPaginationFixture(SECONDARY, ID, expectedFileIdList, FILES_IN_CACHE_TOOLBAR);
+    tableStep.clickOnSortingColumn(FILES_IN_CACHE, ID);
+    paginationStep.checkPaginationFixture(FILES_IN_CACHE, ID, expectedFileIdList, FILES_IN_CACHE_TOOLBAR);
     return this;
   }
 
   @Step("Check 'File path' filtration")
   public FilesInCacheStep checkFilePathFiltration() {
-    tableStep.clickFilterButton(SECONDARY, FILE_PATH);
+    tableStep.clickFilterButton(FILES_IN_CACHE, FILE_PATH);
     tableFilterPopupStep.setTextPopupInput("file2");
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "/file2.txt")
+    tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
+        .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file2.txt")
         .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2);
+        .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
 
   @Step("Check 'Cached Time' filtration")
   public FilesInCacheStep checkCachedTimeFiltration() {
-    tableStep.clickFilterButton(SECONDARY, CACHED_TIME);
+    tableStep.clickFilterButton(FILES_IN_CACHE, CACHED_TIME);
     tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "/file1.txt")
+    tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
+        .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
         .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2)
-        .clickFilterButton(SECONDARY, CACHED_TIME);
+        .checkTableRowsCountIs(FILES_IN_CACHE, 2)
+        .clickFilterButton(FILES_IN_CACHE, CACHED_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
         .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(1), LocalDateTime.now(UTC))
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "/file1.txt")
+    tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
+        .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
         .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2);
+        .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
 
   @Step("Check 'Last Accessed Time' filtration")
   public FilesInCacheStep checkLastAccessedTimeFiltration() {
-    tableStep.clickFilterButton(SECONDARY, LAST_ACCESSED_TIME);
+    tableStep.clickFilterButton(FILES_IN_CACHE, LAST_ACCESSED_TIME);
     tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "/file1.txt")
+    tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
+        .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
         .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2)
-        .clickFilterButton(SECONDARY, LAST_ACCESSED_TIME);
+        .checkTableRowsCountIs(FILES_IN_CACHE, 2)
+        .clickFilterButton(FILES_IN_CACHE, LAST_ACCESSED_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
         .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusHours(1), LocalDateTime.now(UTC))
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(SECONDARY, 1)
-        .checkColumnValueInFirstRow(SECONDARY, FILE_PATH, "/file1.txt")
+    tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
+        .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
         .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
-        .checkTableRowsCountIs(SECONDARY, 2);
+        .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
 }
