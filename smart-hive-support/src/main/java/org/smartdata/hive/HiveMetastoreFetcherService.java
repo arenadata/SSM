@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
+import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncoder;
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
@@ -32,7 +33,9 @@ import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
 import org.smartdata.hive.fetch.composite.CompositeHmsEventSource;
-import org.smartdata.hive.fetch.enrich.HmsEventNameSetter;
+import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
+import org.smartdata.hive.fetch.enrich.HmsFkRelatedResourcesSetter;
+import org.smartdata.hive.fetch.enrich.HmsFunctionNameSetter;
 import org.smartdata.hive.fetch.filter.CompositeHmsEventFilter;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.hive.handler.AsyncHmsEventStreamHandler;
@@ -50,7 +53,8 @@ import org.smartdata.retry.RetrySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -196,8 +200,11 @@ public class HiveMetastoreFetcherService extends AbstractService {
   private HmsInFlightEventSource buildInFlightEventSource(
       Supplier<IMetaStoreClient> metaStoreClientSupplier,
       HmsEventFilter eventFilter) {
-    HmsEventNameSetter eventNameSetter =
-        new HmsEventNameSetter(GzipJSONMessageEncoder.getInstance());
+    MessageEncoder messageEncoder = GzipJSONMessageEncoder.getInstance();
+    List<HmsEventEnricher> eventEnrichers = Arrays.asList(
+        new HmsFunctionNameSetter(messageEncoder),
+        new HmsFkRelatedResourcesSetter(messageEncoder)
+    );
 
     return HmsInFlightEventSource.builder()
         .metaStoreClientSupplier(metaStoreClientSupplier)
@@ -205,7 +212,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
         .eventFilter(eventFilter)
         .fetchPeriodMs(hiveSmartConf.getFetchPeriodMs())
         .eventBatchSize(hiveSmartConf.getFetchBatchSize())
-        .eventEnrichers(Collections.singletonList(eventNameSetter))
+        .eventEnrichers(eventEnrichers)
         .build();
   }
 
