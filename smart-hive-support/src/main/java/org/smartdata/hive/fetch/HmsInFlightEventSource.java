@@ -23,12 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
-import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
-import org.smartdata.hive.fetch.enrich.HmsEventNameSetter;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
