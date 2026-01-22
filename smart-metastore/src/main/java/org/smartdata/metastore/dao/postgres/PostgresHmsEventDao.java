@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore.dao.postgres;
 
+import org.apache.commons.compress.utils.Sets;
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.metastore.dao.AbstractDao;
@@ -32,9 +33,11 @@ import javax.sql.DataSource;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
@@ -54,6 +57,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
   private static final String TABLE_NAME_FIELD = "table_name";
   private static final String MESSAGE_FIELD = "message";
   private static final String MESSAGE_FORMAT_FIELD = "message_format";
+  private static final String RELATED_RESOURCES_FIELD = "related_resources";
 
   private final MetastoreQueryExecutor queryExecutor;
   private final PostgresInsertSupport insertSupport;
@@ -129,6 +133,8 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
         .tableName(resultSet.getString(TABLE_NAME_FIELD))
         .message(resultSet.getString(MESSAGE_FIELD))
         .messageFormat(resultSet.getString(MESSAGE_FORMAT_FIELD))
+        .relatedResources(deserializeRelatedResources(
+            resultSet.getString(RELATED_RESOURCES_FIELD)))
         .build();
   }
 
@@ -144,7 +150,21 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
     parameters.put(TABLE_NAME_FIELD, event.getTableName());
     parameters.put(MESSAGE_FIELD, event.getMessage());
     parameters.put(MESSAGE_FORMAT_FIELD, event.getMessageFormat());
+    parameters.put(RELATED_RESOURCES_FIELD, serializeRelatedResources(event));
     return parameters;
+  }
+
+  private String serializeRelatedResources(HiveNotificationEvent event) {
+    return Optional.ofNullable(event.getRelatedResources())
+        .map(resources -> String.join(",", resources))
+        .orElse(null);
+  }
+
+  private Set<String> deserializeRelatedResources(String rawResources) {
+    return Optional.ofNullable(rawResources)
+        .map(resources -> resources.split(","))
+        .map(resources -> (Set<String>) Sets.newHashSet(resources))
+        .orElseGet(Collections::emptySet);
   }
 
   public static PostgresHmsEventDao baseEventsDao(

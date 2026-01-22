@@ -27,13 +27,15 @@ import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 
 @Slf4j
-public class HmsFkTableSetter extends HmsEventModifier {
-  public HmsFkTableSetter(MessageEncoder messageEncoder) {
+public class HmsFkRelatedResourcesSetter extends HmsEventModifier {
+  public HmsFkRelatedResourcesSetter(MessageEncoder messageEncoder) {
     super(messageEncoder, HiveEntity.FOREIGN_KEY);
   }
 
@@ -49,11 +51,12 @@ public class HmsFkTableSetter extends HmsEventModifier {
           return event;
         }
 
+        Set<String> relatedResources = foreignKeys.stream()
+            .map(key -> fullResourceName(key.getFktable_db(), key.getFktable_name()))
+            .collect(Collectors.toSet());
+
         return event.toBuilder()
-            .fullName(fullResourceName(foreignKeys.get(0).getFktable_db(),
-                    foreignKeys.get(0).getFktable_name()))
-            .dbName(foreignKeys.get(0).getFktable_db())
-            .tableName(foreignKeys.get(0).getFktable_name())
+            .relatedResources(relatedResources)
             .build();
       }
     } catch (Exception e) {

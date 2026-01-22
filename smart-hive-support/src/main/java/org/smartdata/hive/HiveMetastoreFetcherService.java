@@ -34,7 +34,7 @@ import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
 import org.smartdata.hive.fetch.composite.CompositeHmsEventSource;
 import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
-import org.smartdata.hive.fetch.enrich.HmsFkTableSetter;
+import org.smartdata.hive.fetch.enrich.HmsFkRelatedResourcesSetter;
 import org.smartdata.hive.fetch.enrich.HmsFunctionNameSetter;
 import org.smartdata.hive.fetch.filter.CompositeHmsEventFilter;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
@@ -203,7 +203,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
     MessageEncoder messageEncoder = GzipJSONMessageEncoder.getInstance();
     List<HmsEventEnricher> eventEnrichers = Arrays.asList(
         new HmsFunctionNameSetter(messageEncoder),
-        new HmsFkTableSetter(messageEncoder)
+        new HmsFkRelatedResourcesSetter(messageEncoder)
     );
 
     return HmsInFlightEventSource.builder()
