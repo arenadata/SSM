@@ -189,6 +189,6 @@ public class PaginationStep extends BaseWebStep {
 
   private int getNumberedButtonsQuantity(int testColumnValuesSize, int pageSize) {
     int pages = (testColumnValuesSize + pageSize - 1) / pageSize;
-    return Math.min(pages, 9);
+    return Math.min(pages, 8);
   }
 }

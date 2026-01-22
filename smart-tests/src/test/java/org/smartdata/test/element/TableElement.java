@@ -118,5 +118,9 @@ public interface TableElement {
     public ElementsCollection getTableRows() {
       return $x(tableXpath).$$x(TABLE_ROWS_XPATH);
     }
+
+    public SelenideElement getTableElement() {
+      return $x(tableXpath);
+    }
   }
 }

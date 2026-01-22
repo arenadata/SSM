@@ -25,15 +25,15 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public interface RulesPageElement {
   SelenideElement CREATE_RULE_BUTTON = $x("//button[.='Create rule']");
-  SelenideElement CREATE_RULE_DIALOG_TITLE = $x("//*[contains(@class, 'title') and .='Create Rule']");
-  SelenideElement CREATE_RULE_DIALOG_INPUT = $x("//*[@data-mode-id='ssmrule']//textarea");
-  SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON =
-      $x("//*[@data-qa='footer-dialog-control']//*[@data-qa='btn-accept']");
-  SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON =
-      $x("//*[@data-qa='footer-dialog-control']//*[@data-qa='btn-reject']");
+  SelenideElement CREATE_RULE_DIALOG = $x("//*[@data-qa='Create Rule']");
+  SelenideElement CREATE_RULE_DIALOG_TITLE =
+      CREATE_RULE_DIALOG.$x(".//*[contains(@class, 'title') and .='Create Rule']");
+  SelenideElement CREATE_RULE_DIALOG_INPUT = CREATE_RULE_DIALOG.$x(".//textarea");
+  SelenideElement CREATE_RULE_DIALOG_CREATE_BUTTON = CREATE_RULE_DIALOG.$x(".//*[@data-qa='btn-accept']");
+  SelenideElement CREATE_RULE_DIALOG_CANCEL_BUTTON = CREATE_RULE_DIALOG.$x(".//*[@data-qa='btn-reject']");
   SelenideElement RULES_COUNTER_CARD =
       $x("//*[@data-qa='Rules']//*[contains(@class, 'count')]");
-  SelenideElement RULE_MODAL_DIALOG = $x("//*[@data-qa='Create Rule']");
+  SelenideElement RULE_MODAL_DIALOG = $x("//*[@data-qa='dialog-container']");
   SelenideElement RULE_MODAL_DIALOG_ACCEPT_BUTTON = RULE_MODAL_DIALOG.$x(".//*[@data-qa='btn-accept']");
   SelenideElement RULE_MODAL_DIALOG_CANCEL_BUTTON = RULE_MODAL_DIALOG.$x(".//*[@data-qa='btn-reject']");
   SelenideElement START_RULE_BUTTON = $x("//*[@data-qa='action-start']");

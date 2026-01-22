@@ -28,7 +28,6 @@ import java.util.List;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ACCESS_COUNT;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.FILE_PATH;
 import static org.smartdata.test.element.HottestFilesPageElement.ClusterInfoHottestFilesTableColumn.ID;
-import static org.smartdata.test.element.HottestFilesPageElement.HOTTEST_FILES_TOOLBAR;
 import static org.smartdata.test.element.TableElement.TableType.HOTTEST_FILES;
 import static org.smartdata.test.model.SortOrder.ASC;
 
@@ -61,7 +60,7 @@ public class HottestFilesStep extends BaseWebStep {
     tableFilterPopupStep.setTextPopupInput("file2");
     tableStep.checkTableRowsCountIs(HOTTEST_FILES, 1)
         .checkColumnValueInFirstRow(HOTTEST_FILES, FILE_PATH, "file2.txt")
-        .clickResetFilterButton(HOTTEST_FILES_TOOLBAR)
+        .clickResetFilterButton(HOTTEST_FILES.getTableElement())
         .checkTableRowsCountIs(HOTTEST_FILES, 2);
     return this;
   }
@@ -69,7 +68,8 @@ public class HottestFilesStep extends BaseWebStep {
   @Step("Check 'Hottest files' pagination")
   public HottestFilesStep checkPagination(List<String> expectedFilePathList) {
     tableStep.clickOnSortingColumn(HOTTEST_FILES, ID);
-    paginationStep.checkPaginationFixture(HOTTEST_FILES, FILE_PATH, expectedFilePathList, HOTTEST_FILES_TOOLBAR);
+    paginationStep.checkPaginationFixture(HOTTEST_FILES, FILE_PATH, expectedFilePathList,
+        HOTTEST_FILES.getTableElement());
     return this;
   }
 }

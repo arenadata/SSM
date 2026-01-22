@@ -79,18 +79,18 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Story("Cluster info. Hosts")
   @Test(description = "Check 'Hosts' sorting")
   public void testHostsSorting() {
-    tableStep.checkSelectedSorting(ID, ASC)
-        .checkColumnValuesIsSorted(ID, ASC)
-        .checkSorting(EXECUTORS)
-        .checkSorting(REGISTER_TIME, new UiDateTimeComparator())
-        .checkSorting(ID);
+    tableStep.checkSelectedSorting(CLUSTER_INFO, ID, ASC)
+        .checkColumnValuesIsSorted(CLUSTER_INFO, ID, ASC)
+        .checkSorting(CLUSTER_INFO, EXECUTORS)
+        .checkSorting(CLUSTER_INFO, REGISTER_TIME, new UiDateTimeComparator())
+        .checkSorting(CLUSTER_INFO, ID);
   }
 
   @TmsLink("91393")
   @Story("Cluster info. Hosts")
   @Test(description = "Check 'Hosts' filtration")
   public void testHostsFiltration() {
-    tableStep.checkTableRowsCountIs(2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
     clusterInfoStep.checkClusterInfoRegisterTimeFiltration();
   }
 

@@ -33,7 +33,6 @@ import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFile
 import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCacheTableColumn.FILE_PATH;
 import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCacheTableColumn.ID;
 import static org.smartdata.test.element.FilesInCachePageElement.ClusterInfoFilesInCacheTableColumn.LAST_ACCESSED_TIME;
-import static org.smartdata.test.element.FilesInCachePageElement.FILES_IN_CACHE_TOOLBAR;
 import static org.smartdata.test.element.TableElement.TableType.FILES_IN_CACHE;
 import static org.smartdata.test.model.SortOrder.ASC;
 
@@ -65,7 +64,7 @@ public class FilesInCacheStep extends BaseWebStep {
   @Step("Check 'Files in cache' pagination")
   public FilesInCacheStep checkPagination(List<String> expectedFileIdList) {
     tableStep.clickOnSortingColumn(FILES_IN_CACHE, ID);
-    paginationStep.checkPaginationFixture(FILES_IN_CACHE, ID, expectedFileIdList, FILES_IN_CACHE_TOOLBAR);
+    paginationStep.checkPaginationFixture(FILES_IN_CACHE, ID, expectedFileIdList, FILES_IN_CACHE.getTableElement());
     return this;
   }
 
@@ -75,7 +74,7 @@ public class FilesInCacheStep extends BaseWebStep {
     tableFilterPopupStep.setTextPopupInput("file2");
     tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
         .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file2.txt")
-        .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
+        .clickResetFilterButton(FILES_IN_CACHE.getTableElement())
         .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
@@ -87,7 +86,7 @@ public class FilesInCacheStep extends BaseWebStep {
         .clickOnDataPickerApplyButton();
     tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
         .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
-        .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
+        .clickResetFilterButton(FILES_IN_CACHE.getTableElement())
         .checkTableRowsCountIs(FILES_IN_CACHE, 2)
         .clickFilterButton(FILES_IN_CACHE, CACHED_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
@@ -95,7 +94,7 @@ public class FilesInCacheStep extends BaseWebStep {
         .clickOnDataPickerApplyButton();
     tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
         .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
-        .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
+        .clickResetFilterButton(FILES_IN_CACHE.getTableElement())
         .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
@@ -107,7 +106,7 @@ public class FilesInCacheStep extends BaseWebStep {
         .clickOnDataPickerApplyButton();
     tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
         .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
-        .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
+        .clickResetFilterButton(FILES_IN_CACHE.getTableElement())
         .checkTableRowsCountIs(FILES_IN_CACHE, 2)
         .clickFilterButton(FILES_IN_CACHE, LAST_ACCESSED_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
@@ -115,7 +114,7 @@ public class FilesInCacheStep extends BaseWebStep {
         .clickOnDataPickerApplyButton();
     tableStep.checkTableRowsCountIs(FILES_IN_CACHE, 1)
         .checkColumnValueInFirstRow(FILES_IN_CACHE, FILE_PATH, "/file1.txt")
-        .clickResetFilterButton(FILES_IN_CACHE_TOOLBAR)
+        .clickResetFilterButton(FILES_IN_CACHE.getTableElement())
         .checkTableRowsCountIs(FILES_IN_CACHE, 2);
     return this;
   }
