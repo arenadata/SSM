@@ -50,7 +50,7 @@ public class ClusterInfoStep extends BaseWebStep {
     tableStep.checkTableRowsCountIs(2)
         .clickResetFilterButton()
         .checkTableRowsCountIs(2)
-        .clickFilterButton(REGISTER_TIME);
+        .openFilterPanel(REGISTER_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
         .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusDays(2), LocalDateTime.now(UTC).minusDays(1))
         .clickOnDataPickerApplyButton();

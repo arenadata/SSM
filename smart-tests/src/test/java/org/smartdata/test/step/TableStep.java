@@ -55,6 +55,7 @@ import static org.smartdata.test.element.TableElement.getFrequencyOption;
 import static org.smartdata.test.element.TableElement.getResetFilterButton;
 import static org.smartdata.test.element.TableElement.getSortingColumnHeader;
 import static org.smartdata.test.element.TableElement.getTableRows;
+import static org.smartdata.test.element.TableFilterPopupElement.DATA_PICKER_PANEL;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
 import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_FORMATTER_UI;
@@ -241,6 +242,15 @@ public class TableStep extends BaseWebStep {
   @Step("Click on {tableColumn} column filter button")
   public TableStep clickFilterButton(TableColumn tableColumn) {
     clickFilterButton(PRIMARY, tableColumn);
+    return this;
+  }
+
+  @Step("Open {tableColumn} column filter panel")
+  public TableStep openFilterPanel(TableColumn tableColumn) {
+    waitUntil(() -> {
+      clickFilterButton(PRIMARY, tableColumn);
+      waitVisibility(DATA_PICKER_PANEL);
+    }, SHORT_WAIT_PARAMS);
     return this;
   }
 
