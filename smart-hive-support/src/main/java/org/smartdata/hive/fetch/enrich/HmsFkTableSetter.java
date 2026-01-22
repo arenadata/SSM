@@ -28,6 +28,7 @@ import org.smartdata.hive.fetch.HiveOperation;
 
 import java.util.List;
 
+import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 
 @Slf4j
@@ -49,6 +50,8 @@ public class HmsFkTableSetter extends HmsEventModifier {
         }
 
         return event.toBuilder()
+            .fullName(fullResourceName(foreignKeys.get(0).getFktable_db(),
+                    foreignKeys.get(0).getFktable_name()))
             .dbName(foreignKeys.get(0).getFktable_db())
             .tableName(foreignKeys.get(0).getFktable_name())
             .build();
