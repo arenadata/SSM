@@ -17,33 +17,41 @@
  */
 package org.smartdata.test.util.comparator;
 
+import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Comparator;
 
-public class DashIsMaxComparator implements Comparator<String> {
-  private final Comparator<String> comparator;
+public class DashAlwaysBottomComparator implements Comparator<String> {
+  private static final String DASH = "-";
+  private final Comparator<String> additionalComparator;
 
-  public DashIsMaxComparator(Comparator<String> additionalComparator) {
-    this.comparator = additionalComparator;
+  public DashAlwaysBottomComparator() {
+    this(Comparator.naturalOrder());
   }
 
-  public DashIsMaxComparator() {
-    this.comparator = null;
+  public DashAlwaysBottomComparator(Comparator<String> additionalComparator) {
+    this.additionalComparator = additionalComparator;
   }
 
   @Override
-  public int compare(String o1, String o2) {
-    if (o1 == null || o2 == null) {
-      throw new IllegalArgumentException("Arguments must not be null");
-    }
-    if ("-".equals(o1) && "-".equals(o2)) {
+  public int compare(@NonNull String o1, @NonNull String o2) {
+    boolean o1IsDash = DASH.equals(o1);
+    boolean o2IsDash = DASH.equals(o2);
+    if (o1IsDash && o2IsDash) {
       return 0;
     }
-    if ("-".equals(o1)) {
+    if (o1IsDash) {
       return 1;
     }
-    if ("-".equals(o2)) {
+    if (o2IsDash) {
       return -1;
     }
-    return comparator != null ? comparator.compare(o1, o2) : o1.compareTo(o2);
+    return additionalComparator.compare(o1, o2);
+  }
+
+  @Override
+  public @NotNull Comparator<String> reversed() {
+    return new DashAlwaysBottomComparator(additionalComparator.reversed());
   }
 }
