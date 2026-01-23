@@ -63,6 +63,7 @@ const ActionCreateDialog: React.FC = () => {
       onAction={handleRun}
     >
       <MultilineInput
+        data-qa="submit-action-dialog-multiline-input"
         onKeyDown={handleKeyDown}
         value={actionText}
         onChange={handleChange}

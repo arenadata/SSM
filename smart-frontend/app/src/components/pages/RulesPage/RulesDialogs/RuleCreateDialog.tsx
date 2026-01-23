@@ -62,6 +62,7 @@ const RuleCreateDialog: React.FC = () => {
       onAction={handleCreate}
     >
       <MonacoCodeEditor
+        dataTest="create-rule-dialog-monaco-editor"
         language="ssmrule"
         initialValue={ruleText.current}
         theme="ssmruleTheme"

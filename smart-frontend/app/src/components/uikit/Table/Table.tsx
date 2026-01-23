@@ -69,13 +69,13 @@ const Table = <Filter extends EmptyTableFilter = EmptyTableFilter>({
   ) as TableContextOptions<EmptyTableFilter>;
 
   return (
-    <div className={cn(className, s.tableWrapper, 'scroll')} {...props} data-test={dataTest}>
+    <div className={cn(className, s.tableWrapper, 'scroll')} {...props} data-qa={dataTest}>
       <TableContext.Provider value={contextData}>
         <table className={tableClasses} style={{ width: width }}>
           {columns?.length && <TableHead columns={columns} />}
           <TableBody>
             {isLoading && (
-              <EmptyRow data-test="loading" columnCount={defaultEmptyRowLength}>
+              <EmptyRow data-qa="loading" columnCount={defaultEmptyRowLength}>
                 {spinner}
               </EmptyRow>
             )}
@@ -85,7 +85,7 @@ const Table = <Filter extends EmptyTableFilter = EmptyTableFilter>({
                 //
                 columnCount={defaultEmptyRowLength}
                 className={s.table__row_noData}
-                data-test="no-data"
+                data-qa="no-data"
               >
                 {noData}
               </EmptyRow>

@@ -26,9 +26,10 @@ interface InputDateProps {
   tabIndex?: number;
   onChange: (date: Date) => void;
   setHasError?: (hasError: boolean) => void;
+  dataTest?: string;
 }
 
-const InputDate = ({ value, tabIndex, onChange }: InputDateProps) => {
+const InputDate = ({ value, tabIndex, onChange, dataTest }: InputDateProps) => {
   const [day, setDay] = useState(value ? format(value, 'dd') : '--');
   const [month, setMonth] = useState(value ? format(value, 'MM') : '--');
   const [year, setYear] = useState(value ? format(value, 'yyyy') : '--');
@@ -114,7 +115,7 @@ const InputDate = ({ value, tabIndex, onChange }: InputDateProps) => {
   const { fieldClasses } = useFieldStyles({ hasError: false, disabled: false });
 
   return (
-    <div onBlur={handleBlur} className={s.InputDate}>
+    <div onBlur={handleBlur} className={s.InputDate} data-qa={dataTest}>
       <span className={cn(fieldClasses, s.InputDate__inputs)}>
         <span className={s.InputDate__date}>
           <input

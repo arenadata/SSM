@@ -27,7 +27,7 @@ interface ActionActionTextCellProps {
 
 const ActionActionTextCell = ({ action: { textRepresentation, id } }: ActionActionTextCellProps) => {
   return (
-    <TableCell>
+    <TableCell data-qa="textRepresentation">
       <Link to={`/actions/${id}`} className="text-link">
         <CellBigTextWrapper text={textRepresentation} />
       </Link>

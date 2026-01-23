@@ -44,7 +44,7 @@ export const rulesColumns: TableColumnSchema[] = [
     schema: {
       cellRenderer: (rule: AdhRule) => {
         return (
-          <TableCell>
+          <TableCell data-qa="textRepresentation">
             <SmartRuleHighlighter rule={rule.textRepresentation} />
           </TableCell>
         );

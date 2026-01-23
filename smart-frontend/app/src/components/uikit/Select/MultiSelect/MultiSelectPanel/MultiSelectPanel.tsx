@@ -36,7 +36,7 @@ const MultiSelectContent = <T,>() => {
           className={cn(s.multiSelectPanel__section, {
             [s.multiSelectPanel__section_compactMode]: compactMode,
           })}
-          data-test="check-all"
+          data-qa="check-all"
         >
           <MultiSelectFullCheckAll />
         </div>
@@ -47,7 +47,7 @@ const MultiSelectContent = <T,>() => {
         })}
       >
         {isSearchable && <MultiSelectSearchFilter />}
-        <div data-test="options-container">{isShowOptions ? <MultiSelectList /> : <CommonSelectNoResult />}</div>
+        <div data-qa="options-container">{isShowOptions ? <MultiSelectList /> : <CommonSelectNoResult />}</div>
       </div>
     </>
   );

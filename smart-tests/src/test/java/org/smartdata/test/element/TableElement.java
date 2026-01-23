@@ -29,20 +29,20 @@ import static org.smartdata.test.element.TableElement.TableType.PRIMARY;
 import static org.smartdata.test.util.WebElementUtil.findFromBaseElement;
 
 public interface TableElement {
-  SelenideElement NODATA_ROW = $x("//*[@data-test='table']//*[@data-test='no-data']");
+  SelenideElement NODATA_ROW = $x("//*[@data-qa='table']//*[@data-qa='no-data']");
   SelenideElement CHANGE_FREQUENCY_SELECT = $x("//*[contains(@class, 'frequencySelect')]//input");
   String RESET_FILTER_BUTTON_XPATH = ".//*[.='Reset filter']";
-  String TABLE_ROWS_XPATH = ".//tbody//tr[not(@data-test='no-data')]";
-  String SORTING_COLUMN_HEADERS = ".//*[@data-test='sorting']";
+  String TABLE_ROWS_XPATH = ".//tbody//tr[not(@data-qa='no-data')]";
+  String SORTING_COLUMN_HEADERS = ".//*[@data-qa='sorting']";
   String ROW_CELL_WITH_INDEX_XPATH = "td[%d]";
-  String ALL_COLUMN_CELL_BY_INDEX_XPATH = ".//tbody//tr[not(@data-test='no-data')]//td[%d]";
+  String ALL_COLUMN_CELL_BY_INDEX_XPATH = ".//tbody//tr[not(@data-qa='no-data')]//td[%d]";
   String SORTING_ARROW_XPATH = ".//*[contains(@class, 'sortingLabel')]";
-  String COLUMN_HEADER_XPATH = ".//th[@data-test='%s']";
+  String COLUMN_HEADER_XPATH = ".//th[@data-qa='%s']";
   String FILTER_BUTTON_XPATH = ".//button[contains(@class, 'tableFilter')]";
   String GREEN_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_green')]";
   String GRAY_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_gray')]";
   String BLUE_STATUS_MARKER_XPATH = ".//*[contains(@class, 'statusMarker_blue')]";
-  String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-test='options']//li[.='%s sec']";
+  String CHANGE_FREQUENCY_OPTION_XPATH = "//*[@data-qa='options']//li[.='%s sec']";
   String TABLE_ROW_XPATH_BY_CELL_VALUE = ".//tbody//tr[td[@data-qa='%s']//*[text()='%s']]";
 
   static ElementsCollection getTableRows() {
@@ -108,13 +108,19 @@ public interface TableElement {
   @Getter
   @RequiredArgsConstructor
   enum TableType {
-    PRIMARY("//*[@data-test='table'][1]"),
-    SECONDARY("//*[@data-test='table'][2]");
+    PRIMARY("//*[@data-qa='table']"),
+    CLUSTER_INFO("//*[@data-qa='cluster-info']"),
+    HOTTEST_FILES("//*[@data-qa='hottest-files']"),
+    FILES_IN_CACHE("//*[@data-qa='files-in-cache']");
 
     private final String tableXpath;
 
     public ElementsCollection getTableRows() {
       return $x(tableXpath).$$x(TABLE_ROWS_XPATH);
+    }
+
+    public SelenideElement getTableElement() {
+      return $x(tableXpath);
     }
   }
 }

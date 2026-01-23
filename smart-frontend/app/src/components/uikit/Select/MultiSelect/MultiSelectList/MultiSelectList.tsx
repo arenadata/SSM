@@ -47,7 +47,7 @@ const MultiSelectList = <T,>() => {
   };
 
   return (
-    <ul className={cn(s.multiSelectList, 'scroll')} style={{ maxHeight }} data-test="options">
+    <ul className={cn(s.multiSelectList, 'scroll')} style={{ maxHeight }} data-qa="options">
       {options.map(({ value, label, disabled, title }) => (
         <ConditionalWrapper
           key={label?.toString() + value}

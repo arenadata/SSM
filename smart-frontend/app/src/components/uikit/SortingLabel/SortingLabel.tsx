@@ -47,7 +47,7 @@ const SortingLabel: React.FC<SortingLabelProps> = ({ children, onSorting, name, 
   };
 
   return (
-    <div className={wrapClasses} onClick={handleClick} data-test="sorting">
+    <div className={wrapClasses} onClick={handleClick} data-qa="sorting">
       <div className={s.sortingLabel__label}>{children}</div>
       <Icon name="arrow-sorting" size={14} className={arrowClasses} />
     </div>

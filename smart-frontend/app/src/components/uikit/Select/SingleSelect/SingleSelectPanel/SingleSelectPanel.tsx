@@ -44,7 +44,7 @@ const SingleSelectContent = <T,>() => {
   return (
     <>
       {isSearchable && (
-        <div data-test="search-filter">
+        <div data-qa="search-filter">
           <SingleSelectSearchFilter />
         </div>
       )}

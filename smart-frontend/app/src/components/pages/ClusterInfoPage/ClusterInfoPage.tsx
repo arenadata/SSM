@@ -27,13 +27,15 @@ const ClusterInfoPage: React.FC = () => {
   useRequestClusterInfo();
 
   return (
-    <div>
+    <>
       <Title variant="h1">Cluster info</Title>
       <ClusterInfoCards />
-      <ClusterInfoToolbar />
-      <ClusterInfoTable />
+      <div data-qa="cluster-info">
+        <ClusterInfoToolbar />
+        <ClusterInfoTable />
+      </div>
       <ClusterFiles />
-    </div>
+    </>
   );
 };
 
