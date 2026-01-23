@@ -54,19 +54,14 @@ import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.smartdata.hive.HiveSmartConf.HMS_SYNC_PROGRESS_FLUSH_INTERVAL_MS;
@@ -184,6 +179,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     ruleState.clearRetryState(event);
 
     actionInfo.getArgs().put(HmsSyncAction.ENTITY_NAME, event.getFullName());
+    Optional.ofNullable(event.rawRelatedResources())
+        .ifPresent(resources -> actionInfo.getArgs().put(HmsSyncAction.RELATED_RESOURCES, resources));
     Optional.ofNullable(event.getTableName())
         .ifPresent(tableName -> actionInfo.getArgs().put(HmsSyncAction.TABLE_NAME, tableName));
 
@@ -283,6 +280,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   private void removeLock(RuleState ruleState, ActionInfo actionInfo) {
     String entityName = getEntityName(actionInfo);
     ruleState.removeLock(entityName);
+    getRelatedResources(actionInfo).forEach(ruleState::removeLock);
   }
 
   private long eventId(ActionInfo actionInfo) {
@@ -302,6 +300,12 @@ public class HmsSyncScheduler extends ActionSchedulerService {
         .computeIfAbsent(HmsSyncAction.ENTITY_NAME, key -> {
           throw new IllegalArgumentException("Missing entity name");
         });
+  }
+
+  private Set<String> getRelatedResources(ActionInfo actionInfo) {
+    return Optional.ofNullable(actionInfo.getArgs().get(HmsSyncAction.RELATED_RESOURCES))
+        .map(HiveNotificationEvent::toRelatedResources)
+        .orElseGet(Collections::emptySet);
   }
 
   private RuleState getRuleState(ActionInfo actionInfo) {
@@ -355,9 +359,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     private final Trie<String, Long> retryEntityLocks = Trie.synchronize(new DefaultTrie<>());
 
     void putEntityLock(HiveNotificationEvent event) {
-      entityLocks.putIfNoIntersectingLocks(trieKey(event), true);
-      event.getRelatedResources().forEach(relatedResource ->
-          entityLocks.putIfNoIntersectingLocks(trieKey(relatedResource), true));
+      forEntityAndRelatedResources(event, resource ->
+              entityLocks.putIfNoIntersectingLocks(trieKey(resource), true));
     }
 
     boolean isLocked(String resourceName) {
@@ -373,24 +376,26 @@ public class HmsSyncScheduler extends ActionSchedulerService {
 
     void addRetryState(HiveNotificationEvent event) {
       retryEvents.add(event.getId());
-      event.getRelatedResources()
-          .forEach(relatedResource ->
-              retryEntityLocks.putIfNoIntersectingLocks(trieKey(relatedResource), event.getId()));
-      retryEntityLocks.putIfNoIntersectingLocks(trieKey(event), event.getId());
+      forEntityAndRelatedResources(event, resource ->
+              retryEntityLocks.putIfNoIntersectingLocks(trieKey(resource), event.getId()));
     }
 
     void clearRetryState(HiveNotificationEvent event) {
       retryEvents.remove(event.getId());
-      event.getRelatedResources()
-          .forEach(relatedResource -> retryEntityLocks.remove(trieKey(relatedResource)));
-      retryEntityLocks.remove(trieKey(event));
+      forEntityAndRelatedResources(event,
+          resource -> retryEntityLocks.remove(trieKey(resource)));
     }
 
     void clearEventState(HiveNotificationEvent event) {
       eventsInProcessing.remove(event.getId());
-      removeLock(event.getFullName());
-      event.getRelatedResources().forEach(this::removeLock);
+      forEntityAndRelatedResources(event, this::removeLock);
       clearRetryState(event);
+    }
+
+    void forEntityAndRelatedResources(HiveNotificationEvent event,
+                                      Consumer<String> resourceConsumer) {
+      resourceConsumer.accept(event.getFullName());
+      event.getRelatedResources().forEach(resourceConsumer);
     }
 
     void removeLock(String entityName) {

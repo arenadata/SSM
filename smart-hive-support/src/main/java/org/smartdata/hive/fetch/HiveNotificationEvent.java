@@ -19,13 +19,10 @@ package org.smartdata.hive.fetch;
 
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.compress.utils.Sets;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -70,5 +67,18 @@ public class HiveNotificationEvent implements HmsEventStreamRecord {
     return Arrays.stream(nameParts)
         .filter(Objects::nonNull)
         .collect(Collectors.joining("."));
+  }
+
+  public String rawRelatedResources() {
+    return Optional.ofNullable(relatedResources)
+            .map(resources -> String.join(",", resources))
+            .orElse(null);
+  }
+
+  public static Set<String> toRelatedResources(String rawRelatedResources) {
+    return Optional.ofNullable(rawRelatedResources)
+            .map(resources -> resources.split(","))
+            .map(resources -> (Set<String>) Sets.newHashSet(resources))
+            .orElseGet(Collections::emptySet);
   }
 }
