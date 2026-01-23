@@ -51,6 +51,7 @@ export interface MonacoCodeEditorProps {
   onChange: (value: string, event: monaco.editor.IModelContentChangedEvent) => void;
   onModelChange?: (model: ITextModel) => Promise<void>;
   onMarkersChange?: (markers: IMarker[]) => void;
+  dataTest?: string;
 }
 
 const modelUri = 'http://myserver/foo.json';
@@ -71,6 +72,7 @@ const MonacoCodeEditor = ({
   onChange,
   onModelChange,
   onMarkersChange,
+  dataTest,
 }: MonacoCodeEditorProps) => {
   const editorRef = useRef<IStandaloneCodeEditor | null>();
   const modelRef = useRef<ITextModel>();
@@ -163,7 +165,7 @@ const MonacoCodeEditor = ({
   }, []);
 
   return (
-    <div className={s.editorWrapper}>
+    <div className={s.editorWrapper} data-qa={dataTest}>
       <div className={s.editor} ref={containerRef} />
       <CodeEditorV3Problems markers={markers} onProblemClick={handleProblemClick} />
       <CodeEditorV3Widgets widgets={widgets} />

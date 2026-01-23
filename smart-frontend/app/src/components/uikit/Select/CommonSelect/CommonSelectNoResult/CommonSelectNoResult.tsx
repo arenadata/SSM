@@ -19,7 +19,7 @@ import React from 'react';
 import s from './CommonSelectNoResult.module.scss';
 
 const CommonSelectNoResult: React.FC = () => (
-  <div className={s.commonSelectNoResult} data-test="no-options">
+  <div className={s.commonSelectNoResult} data-qa="no-options">
     No results found
   </div>
 );

@@ -50,7 +50,7 @@ const TableHeadCell: React.FC<TableHeadCellProps> = ({
   });
 
   return (
-    <TableCell data-test={name} {...props} align={headerAlign} tag="th" className={thClasses} ref={ref}>
+    <TableCell data-qa={name} {...props} align={headerAlign} tag="th" className={thClasses} ref={ref}>
       <ConditionalWrapper
         Component={SortingLabel}
         isWrap={isSortable}

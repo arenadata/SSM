@@ -49,6 +49,7 @@ const HottestFilesTable: React.FC = () => {
       onFiltering={handleFiltering}
       sortParams={sortParams}
       onSorting={handleSorting}
+      dataTest="hottest-files-table"
     >
       {hottestFiles.map((file) => (
         <TableRow key={file.id}>

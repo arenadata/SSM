@@ -36,8 +36,8 @@ import static org.smartdata.test.element.TableFilterPopupElement.getMultiselectC
 @Slf4j
 @Service
 public class TableFilterPopupStep extends BaseWebStep {
-  private static final String FROM_TIME_INPUT_LABEL = "From";
-  private static final String TO_TIME_INPUT_LABEL = "To";
+  private static final String FROM_TIME_INPUT_LABEL = "from";
+  private static final String TO_TIME_INPUT_LABEL = "to";
   private static final String DAY_TIME_UNIT_NAME = "day";
   private static final String MONTH_TIME_UNIT_NAME = "month";
   private static final String YEAR_TIME_UNIT_NAME = "year";

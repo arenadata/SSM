@@ -23,14 +23,13 @@ import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
 
 public interface TableFilterPopupElement {
-  SelenideElement DATA_PICKER_PANEL = $x("//*[@data-test='data-picker-panel']");
+  SelenideElement DATA_PICKER_PANEL = $x("//*[@data-qa='data-picker-panel']");
   SelenideElement TEXT_FILTER_INPUT = $x("//*[contains(@class, 'tableSearchFilter')]//input");
   SelenideElement DATA_PICKER_APPLY_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Apply']");
   SelenideElement DATA_PICKER_CALENDAR_TAB_BUTTON = DATA_PICKER_PANEL.$x(".//button[.='Calendar']");
-  String MULTISELECT_CHECKBOX_XPATH = "//*[@data-test='options-container']//label[.='%s']//input[@type='checkbox']";
-  String DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH = ".//*[contains(@class, 'formField') and .//label='%s']//input";
-  String DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH =
-      ".//*[contains(@class, 'formField') and .//label='%s']//input[@data-input-id='%s']";
+  String MULTISELECT_CHECKBOX_XPATH = "//*[@data-qa='options-container']//label[.='%s']//input[@type='checkbox']";
+  String DATA_PICKER_RANGE_INPUT_TEMPLATE_XPATH = ".//input[@data-qa='%s']";
+  String DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH = ".//*[@data-qa='%s']//input[@data-input-id='%s']";
 
   static SelenideElement getDatePickerCalendarInput(String inputName, String timeUnitName) {
     return DATA_PICKER_PANEL.$x(format(DATA_PICKER_CALENDAR_INPUT_TEMPLATE_XPATH, inputName, timeUnitName));
