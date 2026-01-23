@@ -66,7 +66,7 @@ const Modal: React.FC<ModalProps> = ({
               {...getFloatingProps()}
               className={cn(s.modal, className)}
               style={style}
-              data-test={dataTest}
+              data-qa={dataTest}
             >
               {children}
             </div>

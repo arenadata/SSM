@@ -50,6 +50,7 @@ const ClusterInfoTable: React.FC = () => {
       onFiltering={handleFiltering}
       sortParams={sortParams}
       onSorting={handleSorting}
+      dataTest="cluster-info-table"
     >
       {nodes.map((node) => (
         <TableRow key={node.id}>

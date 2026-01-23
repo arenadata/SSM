@@ -41,6 +41,7 @@ const RenderNumberButtons = ({ items, setPageNumber, currentPageNumber }: render
       {items.map((item) =>
         item.type === 'page' ? (
           <PaginationNumButton
+            dataTest="page-number"
             key={`numberBtn_${item.key}`}
             onClick={() => setPageNumber(item.pageNumber)}
             selected={currentPageNumber === item.pageNumber}
@@ -105,8 +106,8 @@ const Pagination = ({
   }, [totalItems, pageNumber, perPage, setPageNumber]);
 
   return (
-    <div className={paginationWrapperClasses} data-test={dataTest}>
-      <div className={s.pagination__buttonWrapper} data-test="pagination-button-container">
+    <div className={paginationWrapperClasses} data-qa={dataTest}>
+      <div className={s.pagination__buttonWrapper} data-qa="pagination-button-container">
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
         {totalPages === 0 && (
           <PaginationStepButton

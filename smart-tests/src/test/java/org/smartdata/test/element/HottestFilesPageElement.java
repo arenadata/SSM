@@ -17,15 +17,10 @@
  */
 package org.smartdata.test.element;
 
-import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 import org.smartdata.test.model.TableColumn;
 
-import static com.codeborne.selenide.Selenide.$x;
-
 public interface HottestFilesPageElement {
-
-  SelenideElement HOTTEST_FILES_TOOLBAR = $x("//*[contains(@class, 'hottestFilesToolbar')]");
 
   @Getter
   enum ClusterInfoHottestFilesTableColumn implements TableColumn {

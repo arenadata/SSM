@@ -30,7 +30,7 @@ interface ActionStatusCellProps {
 }
 
 const ActionSourceCell: React.FC<ActionStatusCellProps> = ({ action }) => {
-  return <TableCell data-qa="state">{actionSourceToStatus[action.source]}</TableCell>;
+  return <TableCell data-qa="source">{actionSourceToStatus[action.source]}</TableCell>;
 };
 
 export default ActionSourceCell;

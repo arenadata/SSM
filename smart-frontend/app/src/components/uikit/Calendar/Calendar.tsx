@@ -41,10 +41,10 @@ const Calendar = ({ date, rangeFrom, rangeTo, onDateClick }: CalendarProps) => {
 
   return (
     <div className={s.calendar}>
-      <div className={s.calendar__section} data-test="calendar-header">
+      <div className={s.calendar__section} data-qa="calendar-header">
         <CalendarHeader onMonthChange={handleMonthChange} month={selectedMonth} />
       </div>
-      <div className={s.calendar__section} data-test="calendar-days">
+      <div className={s.calendar__section} data-qa="calendar-days">
         <CalendarGrid
           calendarMap={calendarMap}
           onDateClick={onDateClick}

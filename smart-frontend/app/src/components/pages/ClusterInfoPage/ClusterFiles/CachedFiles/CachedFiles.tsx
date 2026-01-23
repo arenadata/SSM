@@ -19,10 +19,10 @@ import CachedFilesToolbar from './CachedFilesToolbar/CachedFilesToolbar';
 import CachedFilesTable from './CachedFilesTable/CachedFilesTable';
 
 const CachedFiles = () => (
-  <>
+  <div data-qa="files-in-cache">
     <CachedFilesToolbar />
     <CachedFilesTable />
-  </>
+  </div>
 );
 
 export default CachedFiles;

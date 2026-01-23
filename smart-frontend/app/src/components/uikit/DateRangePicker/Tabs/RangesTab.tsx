@@ -61,10 +61,10 @@ const RangesTab = ({ range, onApply, onRevert, rangesPreset }: RangesTabProps) =
       <div className={ts.dateRangePickerTab__right}>
         <div className={ts.dateRangePickerTab__rightInputs}>
           <FormField label="From">
-            <Input size="small" value={selectedRangeId} readOnly />
+            <Input data-qa="from" size="small" value={selectedRangeId} readOnly />
           </FormField>
           <FormField label="To">
-            <Input size="small" value="now" readOnly />
+            <Input data-qa="to" size="small" value="now" readOnly />
           </FormField>
         </div>
         <TabActions onApply={handleApply} onRevert={onRevert} />
