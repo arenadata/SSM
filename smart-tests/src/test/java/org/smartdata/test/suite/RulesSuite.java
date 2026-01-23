@@ -94,10 +94,11 @@ public class RulesSuite extends SsmBaseSuite {
         .checkEditorVisible()
         .insertRuleText(TEST_RULE_TEXT)
         .clickCancelButton()
-        .checkEditorNotVisible()
-        .refreshPage();
+        .checkEditorNotVisible();
     tableStep.checkTableIsEmpty();
     rulesStep.clickCreateRuleButton()
+        .checkEditorVisible()
+        .checkEditorEmpty()
         .insertRuleText(TEST_RULE_TEXT)
         .clickCreateButton();
     tableStep.checkTableRowsCountIs(1)
