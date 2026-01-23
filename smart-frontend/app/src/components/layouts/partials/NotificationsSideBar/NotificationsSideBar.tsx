@@ -61,7 +61,7 @@ const NotificationsSideBar: React.FC = () => {
   const notifications = useStore((s) => s.notifications.notifications);
 
   return (
-    <div className={s.notificationsSideBar} data-test="notification-container">
+    <div className={s.notificationsSideBar} data-qa="notification-container">
       {notifications.map((item) => {
         return <NotificationItem key={item.id} {...item} />;
       })}

@@ -159,4 +159,8 @@
         <name>metastore.connect.retries</name>
         <value>15</value>
     </property>
+    <property>
+        <name>smart.cmdlet.executors</name>
+        <value>9</value>
+    </property>
 </configuration>

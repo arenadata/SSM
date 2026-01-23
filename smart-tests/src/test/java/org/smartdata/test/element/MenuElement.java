@@ -29,9 +29,9 @@ public interface MenuElement {
   SelenideElement ACTIONS_BUTTON = LEFT_BAR_MENU.$x(".//*[.='Actions']");
   SelenideElement AUDIT_BUTTON = LEFT_BAR_MENU.$x(".//*[.='Audit']");
   SelenideElement LOGOUT_BUTTON = $x("//*[contains(@class, 'systemMenu')]//button[.='Log Out']");
-  SelenideElement LOGOUT_CONFIRMATION_MODAL = $x("//*[@data-test='dialog-container']");
+  SelenideElement LOGOUT_CONFIRMATION_MODAL = $x("//*[@data-qa='dialog-container']");
   SelenideElement LOGOUT_CONFIRMATION_MESSAGE = LOGOUT_CONFIRMATION_MODAL.$x(".//h2");
-  SelenideElement LOGOUT_ACCEPT_BUTTON = LOGOUT_CONFIRMATION_MODAL.$x(".//button[@data-test='btn-accept']");
-  SelenideElement LOGOUT_REJECT_BUTTON = LOGOUT_CONFIRMATION_MODAL.$x(".//button[@data-test='btn-reject']");
+  SelenideElement LOGOUT_ACCEPT_BUTTON = LOGOUT_CONFIRMATION_MODAL.$x(".//button[@data-qa='btn-accept']");
+  SelenideElement LOGOUT_REJECT_BUTTON = LOGOUT_CONFIRMATION_MODAL.$x(".//button[@data-qa='btn-reject']");
   SelenideElement LOGOUT_CONFIRMATION_MODAL_X_BUTTON = LOGOUT_CONFIRMATION_MODAL.$x(".//button[contains(@class, 'dialog__close')]");
 }

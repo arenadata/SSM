@@ -27,7 +27,6 @@ import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.FilesInCacheStep;
 import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
-import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,12 @@ import static java.lang.String.valueOf;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
-import static org.smartdata.test.element.TableElement.TableType.SECONDARY;
+import static org.smartdata.test.element.TableElement.TableType.CLUSTER_INFO;
+import static org.smartdata.test.element.TableElement.getRowByCellValue;
 import static org.smartdata.test.model.SortOrder.ASC;
+import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
+import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_NAME;
 
 
 @Feature("Cluster info page")
@@ -68,9 +70,6 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Autowired
   private FilesInCacheStep filesInCacheStep;
 
-  @Autowired
-  private PaginationStep paginationStep;
-
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
@@ -80,18 +79,18 @@ public class ClusterInfoSuite extends SsmBaseSuite {
   @Story("Cluster info. Hosts")
   @Test(description = "Check 'Hosts' sorting")
   public void testHostsSorting() {
-    tableStep.checkSelectedSorting(ID, ASC)
-        .checkColumnValuesIsSorted(ID, ASC)
-        .checkSorting(EXECUTORS)
-        .checkSorting(REGISTER_TIME, new UiDateTimeComparator())
-        .checkSorting(ID);
+    tableStep.checkSelectedSorting(CLUSTER_INFO, ID, ASC)
+        .checkColumnValuesIsSorted(CLUSTER_INFO, ID, ASC)
+        .checkSorting(CLUSTER_INFO, EXECUTORS)
+        .checkSorting(CLUSTER_INFO, REGISTER_TIME, new UiDateTimeComparator())
+        .checkSorting(CLUSTER_INFO, ID);
   }
 
   @TmsLink("91393")
   @Story("Cluster info. Hosts")
   @Test(description = "Check 'Hosts' filtration")
   public void testHostsFiltration() {
-    tableStep.checkTableRowsCountIs(2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
     clusterInfoStep.checkClusterInfoRegisterTimeFiltration();
   }
 
@@ -145,11 +144,19 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     filesInCacheStep.checkPagination(fileIdList);
   }
 
+  @TmsLink("136238")
+  @Story("Cmdlet executors config")
+  @Test(description = "Check Cmdlet executors config")
+  public void testCmdletExecutorsConfig() {
+    tableStep.checkRowColumnValue(getRowByCellValue(ID, SSM_SERVER_HOST_NAME), EXECUTORS, "9")
+        .checkRowColumnValue(getRowByCellValue(ID, DATANODE_HOST_NAME), EXECUTORS, "8");
+  }
+
   @Step("Create fake 'Hottest files' rows")
   private void prepareDataForHottestFilesTest() {
     dataBaseStep.insertFakeDataForHottestFilesTest();
     tableStep.refreshPage();
-    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
   }
 
   @Step("Create 'Hottest files' rows for pagination test")
@@ -169,7 +176,7 @@ public class ClusterInfoSuite extends SsmBaseSuite {
     dataBaseStep.insertFakeDataForFilesInCacheTest();
     clusterInfoStep.refreshPage();
     clusterInfoStep.openFilesInCacheTab();
-    tableStep.checkTableRowsCountIs(SECONDARY, 2);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2);
   }
 
   @Step("Create 'Files in cache' rows for pagination test")

@@ -25,34 +25,36 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public interface ActionsPageElement {
   SelenideElement SUBMIT_ACTION_BUTTON = $x("//button[.='Submit action']");
-  SelenideElement SUBMIT_ACTION_DIALOG = $x("//*[.='Submit action']//ancestor::*[contains(@class, 'dialog')]");
+  SelenideElement SUBMIT_ACTION_DIALOG = $x("//*[@data-qa='Submit action']");
   SelenideElement SUBMIT_ACTION_DIALOG_INPUT = SUBMIT_ACTION_DIALOG.$x(".//textarea");
-  SelenideElement SUBMIT_ACTION_DIALOG_CREATE_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-test='btn-accept']");
-  SelenideElement SUBMIT_ACTION_DIALOG_CANCEL_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-test='btn-reject']");
-  SelenideElement REPEAT_ACTION_DIALOG = $x("//*[.='Repeat action']//ancestor::*[contains(@class, 'dialog')]");
+  SelenideElement SUBMIT_ACTION_DIALOG_CREATE_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-qa='btn-accept']");
+  SelenideElement SUBMIT_ACTION_DIALOG_CANCEL_BUTTON = SUBMIT_ACTION_DIALOG.$x(".//*[@data-qa='btn-reject']");
+  SelenideElement REPEAT_ACTION_DIALOG = $x("//*[@data-qa='Repeat action']");
   SelenideElement REPEAT_ACTION_DIALOG_INPUT = REPEAT_ACTION_DIALOG.$x(".//textarea");
-  SelenideElement REPEAT_ACTION_DIALOG_RUN_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-test='btn-accept']");
-  SelenideElement REPEAT_ACTION_DIALOG_CANCEL_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-test='btn-reject']");
+  SelenideElement REPEAT_ACTION_DIALOG_RUN_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-qa='btn-accept']");
+  SelenideElement REPEAT_ACTION_DIALOG_CANCEL_BUTTON = REPEAT_ACTION_DIALOG.$x(".//*[@data-qa='btn-reject']");
   String REPEAT_ACTION_BUTTON_XPATH = ".//*[@data-qa='action-refresh']";
   String ACTION_DETAILS_LINK_XPATH = ".//*[@class='text-link']";
 
   @Getter
   enum ActionsTableColumn implements TableColumn {
-    ID("ID", "id"),
-    ACTION("Action", "textRepresentation"),
-    HOST("Host", "execHost"),
-    CREATE_TIME("Create Time", "submissionTime"),
-    FINISH_TIME("Finish Time", "completionTime"),
-    STATUS("Status", "state"),
-    TYPE("Type", "source"),
-    ACTIONS("Actions", "actions");
+    ID("ID", "id", "id"),
+    ACTION("Action", "textRepresentation", "textRepresentation"),
+    HOST("Host", "execHost", "execHost"),
+    CREATE_TIME("Create Time", "submissionTime", "submissionTime"),
+    FINISH_TIME("Finish Time", "completionTime", "completionTime"),
+    STATUS("Status", "state", "state"),
+    TYPE("Type", "source", "source"),
+    ACTIONS("Actions", "actions", "actions");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ActionsTableColumn(String name, String headerId) {
+    ActionsTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

@@ -112,7 +112,7 @@ public class HmsCreateConstraintAction extends HmsAction {
 
   private void handleCheckConstraint() throws Exception {
     AddCheckConstraintMessage message = parseEventMessage(
-        EventMessage.EventType.ADD_DEFAULTCONSTRAINT);
+        EventMessage.EventType.ADD_CHECKCONSTRAINT);
 
     appendLog("Creating check constraint");
     getMetastoreClient().addCheckConstraint(message.getCheckConstraints());

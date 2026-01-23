@@ -17,28 +17,25 @@
  */
 package org.smartdata.test.element;
 
-import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 import org.smartdata.test.model.TableColumn;
 
-import static com.codeborne.selenide.Selenide.$x;
-
 public interface HottestFilesPageElement {
-
-  SelenideElement HOTTEST_FILES_TOOLBAR = $x("//*[contains(@class, 'hottestFilesToolbar')]");
 
   @Getter
   enum ClusterInfoHottestFilesTableColumn implements TableColumn {
-    ID("ID", "id"),
-    FILE_PATH("File path", "path"),
-    ACCESS_COUNT("Access count", "accessCount");
+    ID("ID", "id", "id"),
+    FILE_PATH("File path", "path", "path"),
+    ACCESS_COUNT("Access count", "accessCount", "accessCount");
 
     private final String name;
     private final String headerId;
+    private final String cellId;
 
-    ClusterInfoHottestFilesTableColumn(String name, String headerId) {
+    ClusterInfoHottestFilesTableColumn(String name, String headerId, String cellId) {
       this.name = name;
       this.headerId = headerId;
+      this.cellId = cellId;
     }
 
     @Override

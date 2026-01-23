@@ -18,6 +18,7 @@
 package org.smartdata.utils;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.StringJoiner;
 
 public class FormattingUtil {
@@ -34,10 +35,16 @@ public class FormattingUtil {
   }
 
   private static String formatArg(String arg) {
+    return Optional.ofNullable(arg)
+            .map(FormattingUtil::formatArgInternal)
+            .orElse("");
+  }
+
+  private static String formatArgInternal(String arg) {
     String formattedArg = arg.replace("\\", "\\\\")
-        .replace("\"", "\\\"");
+            .replace("\"", "\\\"");
     return formattedArg.matches(".*\\s.*")
-        ? "\"" + formattedArg + "\""
-        : formattedArg;
+            ? "\"" + formattedArg + "\""
+            : formattedArg;
   }
 }
