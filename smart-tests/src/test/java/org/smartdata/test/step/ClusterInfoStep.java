@@ -30,6 +30,7 @@ import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEME
 import static java.time.ZoneOffset.UTC;
 import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.REGISTER_TIME;
 import static org.smartdata.test.element.ClusterInfoPageElement.FILES_IN_CACHE_TAB;
+import static org.smartdata.test.element.TableElement.TableType.CLUSTER_INFO;
 
 
 @Slf4j
@@ -44,19 +45,19 @@ public class ClusterInfoStep extends BaseWebStep {
 
   @Step("Check filtration by 'Register Time'")
   public ClusterInfoStep checkClusterInfoRegisterTimeFiltration() {
-    tableStep.clickFilterButton(REGISTER_TIME);
+    tableStep.clickFilterButton(CLUSTER_INFO, REGISTER_TIME);
     tableFilterPopupStep.checkDataPickerRangeValues("now-1h", "now")
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(2)
-        .clickResetFilterButton()
-        .checkTableRowsCountIs(2)
-        .clickFilterButton(REGISTER_TIME);
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 2)
+        .clickResetFilterButton(CLUSTER_INFO.getTableElement())
+        .checkTableRowsCountIs(CLUSTER_INFO, 2)
+        .clickFilterButton(CLUSTER_INFO, REGISTER_TIME);
     tableFilterPopupStep.clickOnCalendarTabButton()
         .setDataPickerCalendarValues(LocalDateTime.now(UTC).minusDays(2), LocalDateTime.now(UTC).minusDays(1))
         .clickOnDataPickerApplyButton();
-    tableStep.checkTableRowsCountIs(0)
+    tableStep.checkTableRowsCountIs(CLUSTER_INFO, 0)
         .clickResetFilterButton()
-        .checkTableRowsCountIs(2);
+        .checkTableRowsCountIs(CLUSTER_INFO, 2);
     return this;
   }
 

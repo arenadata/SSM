@@ -38,9 +38,9 @@ public interface ActionsDetailsPageElement {
     ID("ID", "id", "id"),
     CREATE_TIME("Create Time", "submissionTime", "submissionTime"),
     FINISH_TIME("Finish Time", "completionTime", "completionTime"),
-    RUNNING_TIME("Running Time", "runningTime", ""),
+    RUNNING_TIME("Running Time", "runningTime", "passedTime"),
     STATUS("Status", "state", "state"),
-    TYPE("Type", "source", ""),
+    TYPE("Type", "source", "source"),
     HOST("Host", "execHost", "execHost"),
     ACTIONS("Actions", "actions", "actions");
 

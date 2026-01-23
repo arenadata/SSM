@@ -49,6 +49,7 @@ const CachedFilesTable: React.FC = () => {
       onFiltering={handleFiltering}
       sortParams={sortParams}
       onSorting={handleSorting}
+      dataTest="files-in-cache-table"
     >
       {cachedFiles.map((file) => (
         <TableRow key={file.id}>
