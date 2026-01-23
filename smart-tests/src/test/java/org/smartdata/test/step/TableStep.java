@@ -246,9 +246,9 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Open {tableColumn} column filter panel")
-  public TableStep openFilterPanel(TableColumn tableColumn) {
+  public TableStep openFilterPanel(TableType tableType, TableColumn tableColumn) {
     waitUntil(() -> {
-      clickFilterButton(PRIMARY, tableColumn);
+      clickFilterButton(tableType, tableColumn);
       waitVisibility(DATA_PICKER_PANEL);
     }, SHORT_WAIT_PARAMS);
     return this;
