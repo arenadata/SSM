@@ -18,6 +18,7 @@
 package org.smartdata.hive.action;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
@@ -51,10 +52,9 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.*;
 import static org.junit.Assert.assertEquals;
-import static org.smartdata.hive.NotificationEventFactory.newAlterDbEvent;
-import static org.smartdata.hive.NotificationEventFactory.newCreateDbEvent;
-import static org.smartdata.hive.NotificationEventFactory.newCreateTableEvent;
+import static org.smartdata.hive.NotificationEventFactory.*;
 import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE;
 import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE_FORMAT;
 import static org.smartdata.hive.action.HmsSyncAction.ENTITY_NAME;
@@ -121,6 +121,43 @@ public class HmsSyncSchedulerTest {
         actionInfo(EVENT_ID, 2L),
         launchCmdlet(EVENT_ID, 2L),
         launchAction(EVENT_ID, 2L)
+    );
+    assertEquals(SUCCESS, scheduleResult);
+  }
+
+  @Test
+  public void testProcessEntityWithRelatedResources() {
+    eventDao.insert(
+            ssmEvent(newEvent(1L, "hive.db.t1", ADD_PRIMARYKEY)),
+            ssmEvent(newEvent(2L, "hive.db.t1", ADD_FOREIGNKEY), "hive.db.t2"),
+            ssmEvent(newEvent(3L, "hive.db.t1", DROP_CONSTRAINT))
+    );
+
+    ActionInfo tableActionInfo = actionInfo(1L, RULE_ID);
+    ScheduleResult scheduleResult = scheduler.onSchedule(
+            cmdletInfo(),
+            tableActionInfo,
+            launchCmdlet(1L, RULE_ID),
+            launchAction(1L, RULE_ID)
+    );
+    assertEquals(SUCCESS, scheduleResult);
+
+    ActionInfo pkActionInfo = actionInfo(1L, RULE_ID);
+    scheduleResult = scheduler.onSchedule(
+            cmdletInfo(),
+            pkActionInfo,
+            launchCmdlet(2L, RULE_ID),
+            launchAction(2L, RULE_ID)
+    );
+    assertEquals(RETRY, scheduleResult);
+
+    scheduler.onActionFinished(cmdletInfo(), tableActionInfo);
+
+    scheduleResult = scheduler.onSchedule(
+        cmdletInfo(),
+        pkActionInfo,
+        launchCmdlet(2L, RULE_ID),
+        launchAction(2L, RULE_ID)
     );
     assertEquals(SUCCESS, scheduleResult);
   }
@@ -440,11 +477,12 @@ public class HmsSyncSchedulerTest {
     );
   }
 
-  private HiveNotificationEvent ssmEvent(NotificationEvent event) {
+  private HiveNotificationEvent ssmEvent(NotificationEvent event, String... relatedResources) {
     EventOperation eventOperation = new EventOperationBuilder().from(event);
     return HiveNotificationEvent.fromMetastoreEvent(event)
         .id(event.getEventId())
         .entityType(eventOperation.getEntity().toString())
+        .relatedResources(Sets.newHashSet(relatedResources))
         .eventType(eventOperation.getOperation() == HiveOperation.UNKNOWN
             ? event.getEventType()
             : eventOperation.getOperation().toString()
