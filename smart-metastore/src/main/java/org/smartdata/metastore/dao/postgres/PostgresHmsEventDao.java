@@ -121,6 +121,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
 
   private HiveNotificationEvent mapRow(ResultSet resultSet, int rowNum) throws SQLException {
     return HiveNotificationEvent.builder()
+        .id(resultSet.getLong(ID_FIELD))
         .externalId(resultSet.getLong(EXTERNAL_ID_FIELD))
         .eventTime(resultSet.getLong(EVENT_TIME_FIELD))
         .eventType(resultSet.getString(EVENT_TYPE_FIELD))
