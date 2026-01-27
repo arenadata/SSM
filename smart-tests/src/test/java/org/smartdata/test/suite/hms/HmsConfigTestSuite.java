@@ -88,11 +88,9 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     configModifierService.addProperty("smart-site-master.xml", "smart.hive.event.sync.full", "true");
     containerManager.restart(SSM_SERVER);
 
-    String sql = "create database db1;" +
-        "create table db1.t1(i int);" +
-        "create table db1.t2(i int);";
-
-    hiveRepository.executeSql(sql);
+    hiveRepository.executeSql("create database db1");
+    hiveRepository.executeSql("create table db1.t1(i int)");
+    hiveRepository.executeSql("create table db1.t2(i int)");
 
     waitUntil(() -> {
       List<HiveMetastoreEventEntity> entities = hiveMetastoreEventDao.findAll();
