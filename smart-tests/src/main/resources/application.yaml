@@ -6,7 +6,7 @@ general:
 
 docker-compose-service:
   selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
-  compose-file-name: ${COMPOSE_FILE_NAME}
+  compose-file-name: target/test-classes/env/demo-cluster/docker-compose.yaml
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 

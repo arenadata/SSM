@@ -84,17 +84,28 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   @Story("HMS Configuration")
   @Test(description = "Check smart.hive.event.sync.full=true")
-  public void testMasterCmdletExecutorsChange() throws Exception {
+  public void testHiveEventSyncFullTrue() throws Exception {
     configModifierService.addProperty("smart-site-master.xml", "smart.hive.event.sync.full", "true");
     containerManager.restart(SSM_SERVER);
 
-    hiveRepository.executeSql("create database db1");
-    hiveRepository.executeSql("create table db1.t1(i int)");
+    String sql = "create database db1;" +
+        "create table db1.t1(i int);" +
+        "create table db1.t2(i int);";
+
+    hiveRepository.executeSql(sql);
 
     waitUntil(() -> {
-      List<HiveMetastoreEventEntity> entitys = hiveMetastoreEventDao.findAll();
+      List<HiveMetastoreEventEntity> entities = hiveMetastoreEventDao.findAll();
 
-      assertThat(entitys).hasSize(3);
+      assertThat(entities).hasSize(4);
+    }, SHORT_WAIT_PARAMS);
+
+    containerManager.restart(SSM_SERVER);
+
+    waitUntil(() -> {
+      List<HiveMetastoreEventEntity> entities = hiveMetastoreEventDao.findAll();
+
+      assertThat(entities).hasSize(4);
     }, SHORT_WAIT_PARAMS);
   }
 }

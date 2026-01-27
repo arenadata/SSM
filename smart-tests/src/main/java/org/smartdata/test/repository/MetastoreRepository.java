@@ -18,7 +18,6 @@
 package org.smartdata.test.repository;
 
 import io.arenadata.test.util.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -30,8 +29,11 @@ import java.sql.Statement;
 @Repository
 public class MetastoreRepository {
 
-  @Autowired
-  private DataSource ssmMetastoreDataSource;
+  private final DataSource ssmMetastoreDataSource;
+
+  public MetastoreRepository(DataSource ssmMetastoreDataSource) {
+    this.ssmMetastoreDataSource = ssmMetastoreDataSource;
+  }
 
   public Connection getConnection() throws SQLException {
     return ssmMetastoreDataSource.getConnection();

@@ -18,7 +18,6 @@
 package org.smartdata.test.repository;
 
 import io.arenadata.test.util.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -30,8 +29,11 @@ import java.sql.Statement;
 @Repository
 public class HiveRepository {
 
-  @Autowired
-  private DataSource hiveServer2DataSource;
+  private final DataSource hiveServer2DataSource;
+
+  public HiveRepository(DataSource hiveServer2DataSource) {
+    this.hiveServer2DataSource = hiveServer2DataSource;
+  }
 
   public Connection getConnection() throws SQLException {
     return hiveServer2DataSource.getConnection();
