@@ -21,6 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
@@ -28,14 +29,19 @@ import javax.sql.DataSource;
 public class DataSourceConfiguration {
 
   @Bean
-  @ConfigurationProperties("hive-server2-db.datasource")
-  public DataSource hiveServer2DataSource() {
+  @ConfigurationProperties("ssm-metastore-db.datasource")
+  public DataSource ssmMetastoreDataSource() {
     return DataSourceBuilder.create().build();
   }
 
   @Bean
-  @ConfigurationProperties("ssm-metastore-db.datasource")
-  public DataSource ssmMetastoreDataSource() {
+  public JdbcTemplate ssmMetastoreJdbcTemplate() {
+    return new JdbcTemplate(ssmMetastoreDataSource());
+  }
+
+  @Bean
+  @ConfigurationProperties("hive-server2-db.datasource")
+  public DataSource hiveServer2DataSource() {
     return DataSourceBuilder.create().build();
   }
 }

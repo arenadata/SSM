@@ -21,8 +21,9 @@ import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
+import org.smartdata.test.dao.HiveMetastoreEventDaoImpl;
+import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.repository.HiveRepository;
-import org.smartdata.test.repository.MetastoreRepository;
 import org.smartdata.test.service.ConfigModifierService;
 import org.smartdata.test.step.ClusterInfoStep;
 import org.smartdata.test.step.LoginStep;
@@ -33,15 +34,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.EXECUTORS;
-import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTableColumn.ID;
-import static org.smartdata.test.element.TableElement.getRowByCellValue;
-import static org.smartdata.test.model.SsmComponent.HADOOP_DATANODE;
-import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
-import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAME;
+import java.util.List;
 
-@Feature("Configuration changes during tests")
-public class ConfigTestSuite extends SsmBaseSuite {
+import static io.arenadata.test.util.Utils.waitUntil;
+import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
+
+@Feature("HMS replication")
+public class HmsConfigTestSuite extends SsmBaseSuite {
 
   @Autowired
   private ConfigModifierService configModifierService;
@@ -62,7 +63,7 @@ public class ConfigTestSuite extends SsmBaseSuite {
   private HiveRepository hiveRepository;
 
   @Autowired
-  private MetastoreRepository metastoreRepository;
+  private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
 
   @BeforeMethod
   public void testPrepare() {
@@ -81,36 +82,19 @@ public class ConfigTestSuite extends SsmBaseSuite {
     configModifierService.restoreOriginalFile("smart-site-agent.xml");
   }
 
-//  @Story("Configuration. Cmdlet executors")
-//  @Test(description = "Test changing master cmdlet executors from 9 to 5 and verify UI reflects change")
-//  public void testMasterCmdletExecutorsChange() throws Exception {
-//    tableStep.checkRowColumnValue(getRowByCellValue(ID, SSM_SERVER_HOST_NAME), EXECUTORS, "10");
-//
-//    configModifierService.setProperty("smart-site-master.xml", "smart.cmdlet.executors", "5");
-//    containerManager.restart(SSM_SERVER);
-//
-//    clusterInfoStep.refreshPage();
-//    loginStep.loginAs(UserRole.OWNER);
-//    tableStep.checkRowColumnValue(getRowByCellValue(ID, SSM_SERVER_HOST_NAME), EXECUTORS, "5");
-//  }
+  @Story("HMS Configuration")
+  @Test(description = "Check smart.hive.event.sync.full=true")
+  public void testMasterCmdletExecutorsChange() throws Exception {
+    configModifierService.addProperty("smart-site-master.xml", "smart.hive.event.sync.full", "true");
+    containerManager.restart(SSM_SERVER);
 
-  @Story("Configuration. Cmdlet executors")
-  @Test(description = "Test changing agent cmdlet executors from 8 to 4 and verify UI reflects change")
-  public void testAgentCmdletExecutorsChange() throws Exception {
-    // TEST
     hiveRepository.executeSql("create database db1");
     hiveRepository.executeSql("create table db1.t1(i int)");
-    hiveRepository.executeSql("create table db1.t2(i int)");
-    hiveRepository.executeSql("create table db1.t3(i int)");
 
-//    assertThat(metastoreRepository.getHiveMetastoreEventByEntityName("db1").getEventType()).isEqualTo("CREATE");
+    waitUntil(() -> {
+      List<HiveMetastoreEventEntity> entitys = hiveMetastoreEventDao.findAll();
 
-    tableStep.checkRowColumnValue(getRowByCellValue(ID, DATANODE_HOST_NAME), EXECUTORS, "7");
-    configModifierService.setProperty("smart-site-agent.xml", "smart.cmdlet.executors", "4");
-    containerManager.restart(HADOOP_DATANODE);
-    containerManager.restart(SSM_SERVER);
-    clusterInfoStep.refreshPage();
-    loginStep.loginAs(UserRole.OWNER);
-    tableStep.checkRowColumnValue(getRowByCellValue(ID, DATANODE_HOST_NAME), EXECUTORS, "4");
+      assertThat(entitys).hasSize(3);
+    }, SHORT_WAIT_PARAMS);
   }
 }
