@@ -166,7 +166,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <COMPOSE_FILE_NAME>target/test-classes/env/demo-cluster/docker-compose.yaml</COMPOSE_FILE_NAME>
+                <COMPOSE_FILE_NAME>target/test-classes/env/hms-cluster/docker-compose.yaml</COMPOSE_FILE_NAME>
             </properties>
             <build>
                 <plugins>
@@ -286,10 +286,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>target/test-classes/env/demo-cluster</outputDirectory>
+                            <outputDirectory>target/test-classes/env/hms-cluster</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../.demo/docker/ssm-cluster</directory>
+                                    <directory>../supports/tools/docker/hms-cluster/</directory>
                                 </resource>
                             </resources>
                         </configuration>

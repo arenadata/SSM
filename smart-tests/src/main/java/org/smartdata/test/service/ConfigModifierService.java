@@ -44,7 +44,7 @@ public class ConfigModifierService {
     private String composeFileName;
 
     private static final String SSM_METASTORE_CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
-    private static final String HMS_CONFIG_DIR = "target/test-classes/env/demo-cluster/ssm-conf";
+    private static final String HMS_CONFIG_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
     private static final String BACKUP_SUFFIX = ".backup";
 
     /**
