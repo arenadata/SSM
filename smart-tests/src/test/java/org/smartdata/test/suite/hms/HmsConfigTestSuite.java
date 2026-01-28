@@ -21,13 +21,11 @@ import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
-import org.smartdata.test.dao.HiveMetastoreEventDaoImpl;
+import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.repository.HiveRepository;
 import org.smartdata.test.service.ConfigModifierService;
-import org.smartdata.test.step.ClusterInfoStep;
 import org.smartdata.test.step.LoginStep;
-import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
@@ -35,10 +33,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.arenadata.test.util.Utils.waitUntil;
-import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
+import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WAIT_PARAMS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 
 @Feature("HMS replication")
@@ -52,12 +52,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   @Autowired
   private LoginStep loginStep;
-
-  @Autowired
-  private TableStep tableStep;
-
-  @Autowired
-  private ClusterInfoStep clusterInfoStep;
 
   @Autowired
   private HiveRepository hiveRepository;
@@ -87,23 +81,34 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   public void testHiveEventSyncFullTrue() throws Exception {
     configModifierService.addProperty("smart-site-master.xml", "smart.hive.event.sync.full", "true");
     containerManager.restart(SSM_SERVER);
-
     hiveRepository.executeSql("create database db1");
     hiveRepository.executeSql("create table db1.t1(i int)");
     hiveRepository.executeSql("create table db1.t2(i int)");
-
-    waitUntil(() -> {
-      List<HiveMetastoreEventEntity> entities = hiveMetastoreEventDao.findAll();
-
-      assertThat(entities).hasSize(4);
-    }, SHORT_WAIT_PARAMS);
-
+    waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(4), DEFAULT_WAIT_PARAMS);
+    List<HiveMetastoreEventEntity> events = hiveMetastoreEventDao.findAll();
+    List<Long> eventsIds = hiveMetastoreEventDao.findAll().stream()
+        .map(HiveMetastoreEventEntity::getId)
+        .collect(Collectors.toList());
+    assertThat(events)
+        .extracting(HiveMetastoreEventEntity::getEntityName, HiveMetastoreEventEntity::getEntityType,
+            HiveMetastoreEventEntity::getEventType)
+        .containsExactlyInAnyOrder(
+            tuple("default", "DATABASE", "CREATE"),
+            tuple("db1", "DATABASE", "CREATE"),
+            tuple("db1.t1", "TABLE", "CREATE"),
+            tuple("db1.t2", "TABLE", "CREATE"));
     containerManager.restart(SSM_SERVER);
-
-    waitUntil(() -> {
-      List<HiveMetastoreEventEntity> entities = hiveMetastoreEventDao.findAll();
-
-      assertThat(entities).hasSize(4);
-    }, SHORT_WAIT_PARAMS);
+    List<HiveMetastoreEventEntity> eventsAfterRestart = hiveMetastoreEventDao.findAll();
+    assertThat(eventsAfterRestart)
+        .extracting(HiveMetastoreEventEntity::getEntityName, HiveMetastoreEventEntity::getEntityType,
+            HiveMetastoreEventEntity::getEventType)
+        .containsExactlyInAnyOrder(
+            tuple("default", "DATABASE", "CREATE"),
+            tuple("db1", "DATABASE", "CREATE"),
+            tuple("db1.t1", "TABLE", "CREATE"),
+            tuple("db1.t2", "TABLE", "CREATE"));
+    assertThat(eventsAfterRestart)
+        .extracting(HiveMetastoreEventEntity::getId)
+        .doesNotContainAnyElementsOf(eventsIds);
   }
 }
