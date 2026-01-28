@@ -41,6 +41,8 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
+import static org.smartdata.test.util.constant.CommonConstants.AGENT_CONF_NAME;
+import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS replication")
 public class HmsConfigTestSuite extends SsmBaseSuite {
@@ -57,20 +59,20 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   @BeforeMethod
   public void cleanConfig() throws Exception {
-    configModifierService.restoreOriginalFile("smart-site-master.xml");
-    configModifierService.restoreOriginalFile("smart-site-agent.xml");
+    configModifierService.restoreOriginalFile(MASTER_CONF_NAME);
+    configModifierService.restoreOriginalFile(AGENT_CONF_NAME);
   }
 
   @AfterMethod
   public void restoreConfig() throws Exception {
-    configModifierService.restoreOriginalFile("smart-site-master.xml");
-    configModifierService.restoreOriginalFile("smart-site-agent.xml");
+    configModifierService.restoreOriginalFile(MASTER_CONF_NAME);
+    configModifierService.restoreOriginalFile(AGENT_CONF_NAME);
   }
 
   @Story("HMS Configuration")
   @Test(description = "Check smart.hive.event.sync.full=true")
   public void testHiveEventSyncFullTrue() throws Exception {
-    configModifierService.addProperty("smart-site-master.xml", "smart.hive.event.sync.full", "true");
+    configModifierService.addProperty(MASTER_CONF_NAME, "smart.hive.event.sync.full", "true");
     containerManager.restart(SSM_SERVER);
     int testTableQuantity = 2;
     createTestDataInHiveMetaStore(testTableQuantity);

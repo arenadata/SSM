@@ -37,6 +37,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import static org.smartdata.test.util.constant.CommonConstants.HMS_CLUSTER_COMPOSE;
+import static org.smartdata.test.util.constant.CommonConstants.MULTIHOST_CLUSTER_COMPOSE;
+
 @Service
 public class ConfigModifierService {
 
@@ -46,8 +49,8 @@ public class ConfigModifierService {
   private static final String PROPERTY_TAG = "property";
   private static final String NAME_TAG = "name";
   private static final String VALUE_TAG = "value";
-  private static final String SSM_METASTORE_CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
-  private static final String HMS_CONFIG_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
+  private static final String MULTIHOST_CONF_DIR = "target/test-classes/env/multihost/ssm-conf";
+  private static final String HMS_CONF_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
   private static final String BACKUP_SUFFIX = ".backup";
 
   /**
@@ -218,8 +221,14 @@ public class ConfigModifierService {
   }
 
   private String getConfigDirectory() {
-    return composeFileName.contains("multihost")
-        ? SSM_METASTORE_CONFIG_DIR
-        : HMS_CONFIG_DIR;
+    switch (composeFileName) {
+      case MULTIHOST_CLUSTER_COMPOSE:
+        return MULTIHOST_CONF_DIR;
+      case HMS_CLUSTER_COMPOSE:
+        return HMS_CONF_DIR;
+      default: {
+        throw new IllegalArgumentException("Unknown compose name: " + composeFileName);
+      }
+    }
   }
 }

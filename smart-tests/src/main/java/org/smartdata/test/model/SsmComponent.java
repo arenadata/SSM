@@ -24,6 +24,9 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.smartdata.test.util.constant.CommonConstants.HMS_CLUSTER_COMPOSE;
+import static org.smartdata.test.util.constant.CommonConstants.MULTIHOST_CLUSTER_COMPOSE;
+
 @Getter
 @AllArgsConstructor
 public enum SsmComponent implements Component {
@@ -73,13 +76,15 @@ public enum SsmComponent implements Component {
     return SsmComponent.valueOf(name.toUpperCase().replace("-", "_"));
   }
 
-  public static List<Component> getComponentsByCompose(String composeName) {
-    if (composeName.contains("multihost")) {
-      return DEFAULT_COMPONENTS;
-    } else if (composeName.contains("hms-cluster")) {
-      return HMS_COMPONENTS;
-    } else {
-      throw new IllegalArgumentException("Unknown compose name: " + composeName);
+  public static List<Component> getComponentsByCompose(String composeFileName) {
+    switch (composeFileName) {
+      case MULTIHOST_CLUSTER_COMPOSE:
+        return DEFAULT_COMPONENTS;
+      case HMS_CLUSTER_COMPOSE:
+        return HMS_COMPONENTS;
+      default: {
+        throw new IllegalArgumentException("Unknown compose name: " + composeFileName);
+      }
     }
   }
 }
