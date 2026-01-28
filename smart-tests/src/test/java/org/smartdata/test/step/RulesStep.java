@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static com.codeborne.selenide.Condition.empty;
+import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WEB_ELEMENT_TIMEOUT;
 import static java.time.ZoneOffset.UTC;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_BUTTON;
 import static org.smartdata.test.element.RulesPageElement.CREATE_RULE_DIALOG_CANCEL_BUTTON;
@@ -72,6 +74,12 @@ public class RulesStep extends BaseWebStep {
     waitDisappear(CREATE_RULE_DIALOG_TITLE);
     waitDisappear(CREATE_RULE_DIALOG_CREATE_BUTTON);
     waitDisappear(CREATE_RULE_DIALOG_CANCEL_BUTTON);
+    return this;
+  }
+
+  @Step("Check Create Rule dialog is empty")
+  public RulesStep checkEditorEmpty() {
+    CREATE_RULE_DIALOG_INPUT.shouldBe(empty, DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 
