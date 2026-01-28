@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -52,6 +53,7 @@ public class ConfigModifierService {
   private static final String MULTIHOST_CONF_DIR = "target/test-classes/env/multihost/ssm-conf";
   private static final String HMS_CONF_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
   private static final String BACKUP_SUFFIX = ".backup";
+  private static final int INDENT_AMOUNT = 4;
 
   /**
    * Gets the current value of a property.
@@ -59,12 +61,16 @@ public class ConfigModifierService {
    * @param configFileName The name of the config file
    * @param propertyName The property name
    * @return The current value, or null if not found
-   * @throws Exception if file operations fail
+   * @throws IOException if file operations fail
    */
-  public String getProperty(String configFileName, String propertyName) throws Exception {
-    Document doc = loadDocument(configFileName);
-    Element property = findProperty(doc, propertyName);
-    return property != null ? getPropertyValue(property) : null;
+  public String getProperty(String configFileName, String propertyName) throws IOException {
+    try {
+      Document doc = loadDocument(configFileName);
+      Element property = findProperty(doc, propertyName);
+      return property != null ? getPropertyValue(property) : null;
+    } catch (Exception e) {
+      throw new IOException("Failed to read property from config file: " + configFileName, e);
+    }
   }
 
   /**
@@ -74,66 +80,75 @@ public class ConfigModifierService {
    * @param configFileName The name of the config file (e.g., "smart-site-master.xml")
    * @param propertyName The property name (e.g., "smart.cmdlet.executors")
    * @param newValue The new value to set
-   * @throws Exception if file operations fail
+   * @throws IOException if file operations fail
    */
-  // TODO Reduce duplication in setProperty and addProperty add allowUpdate flag
-  public void setProperty(String configFileName, String propertyName, String newValue) throws Exception {
-    Path configPath = getConfigPath(configFileName);
-    createBackupIfNeeded(configPath);
-
-    Document doc = loadDocument(configFileName);
-    Element property = findProperty(doc, propertyName);
-
-    if (property != null) {
-      updatePropertyValue(property, newValue);
-    } else {
-      addNewProperty(doc, propertyName, newValue);
-    }
-
-    saveDocument(doc, configPath);
+  public void setProperty(String configFileName, String propertyName, String newValue) throws IOException {
+    modifyProperty(configFileName, propertyName, newValue, true);
   }
 
   /**
    * Adds a new property to the configuration file.
+   * Throws an exception if the property already exists.
    *
    * @param configFileName The name of the config file
    * @param propertyName The property name
    * @param value The property value
-   * @throws Exception if file operations fail
+   * @throws IOException if file operations fail
    */
-  public void addProperty(String configFileName, String propertyName, String value) throws Exception {
-    Path configPath = getConfigPath(configFileName);
-    createBackupIfNeeded(configPath);
-
-    Document doc = loadDocument(configFileName);
-
-    if (findProperty(doc, propertyName) != null) {
-      throw new IllegalArgumentException("Property already exists: " + propertyName);
-    }
-
-    addNewProperty(doc, propertyName, value);
-    saveDocument(doc, configPath);
+  public void addProperty(String configFileName, String propertyName, String value) throws IOException {
+    modifyProperty(configFileName, propertyName, value, false);
   }
 
   /**
    * Restores the original config file from backup.
    *
    * @param configFileName The name of the config file
+   * @throws IllegalArgumentException if config file is not found
    * @throws IOException if file operations fail
    */
   public void restoreOriginalFile(String configFileName) throws IOException {
-    Path configPath = getConfigPath(configFileName);
+    Path configPath = validateAndGetConfigPath(configFileName);
     Path backupPath = getBackupPath(configPath);
-
     if (Files.exists(backupPath)) {
       Files.copy(backupPath, configPath, StandardCopyOption.REPLACE_EXISTING);
       Files.delete(backupPath);
     }
   }
 
-  private Path getConfigPath(String configFileName) {
+  /**
+   * Core method for modifying properties in configuration files.
+   * Handles both adding new properties and updating existing ones.
+   *
+   * @param configFileName The name of the config file
+   * @param propertyName The property name
+   * @param value The property value
+   * @param allowUpdate If true, updates existing properties; if false, throws exception if property exists
+   * @throws IOException if file operations fail
+   */
+  private void modifyProperty(String configFileName, String propertyName, String value, boolean allowUpdate)
+      throws IOException {
+    try {
+      Path configPath = validateAndGetConfigPath(configFileName);
+      createBackupIfNeeded(configPath);
+      Document doc = loadDocument(configFileName);
+      Element property = findProperty(doc, propertyName);
+      if (property != null) {
+        if (!allowUpdate) {
+          throw new IllegalArgumentException("Property already exists: " + propertyName);
+        }
+        updatePropertyValue(property, value);
+      } else {
+        addNewProperty(doc, propertyName, value);
+      }
+      saveDocument(doc, configPath);
+    } catch (Exception e) {
+      throw new IOException("Failed to modify property in config file: " + configFileName, e);
+    }
+  }
+
+  private Path validateAndGetConfigPath(String configFileName) {
     Path path = Paths.get(getConfigDirectory(), configFileName);
-    if (!Files.exists(path)) {
+    if (Files.notExists(path)) {
       throw new IllegalArgumentException("Config file not found: " + path);
     }
     return path;
@@ -145,13 +160,13 @@ public class ConfigModifierService {
 
   private void createBackupIfNeeded(Path configPath) throws IOException {
     Path backupPath = getBackupPath(configPath);
-    if (!Files.exists(backupPath)) {
+    if (Files.notExists(backupPath)) {
       Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
     }
   }
 
   private Document loadDocument(String configFileName) throws Exception {
-    Path configPath = getConfigPath(configFileName);
+    Path configPath = validateAndGetConfigPath(configFileName);
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     return builder.parse(configPath.toFile());
@@ -159,16 +174,13 @@ public class ConfigModifierService {
 
   private Element findProperty(Document doc, String propertyName) {
     NodeList properties = doc.getElementsByTagName(PROPERTY_TAG);
-
     for (int i = 0; i < properties.getLength(); i++) {
       Element property = (Element) properties.item(i);
       String name = getPropertyName(property);
-
       if (propertyName.equals(name)) {
         return property;
       }
     }
-
     return null;
   }
 
@@ -195,17 +207,14 @@ public class ConfigModifierService {
 
   private void addNewProperty(Document doc, String propertyName, String value) {
     Element root = doc.getDocumentElement();
-
+    root.appendChild(doc.createTextNode(StringUtils.repeat(" ", INDENT_AMOUNT)));
     Element property = doc.createElement(PROPERTY_TAG);
-
     Element name = doc.createElement(NAME_TAG);
     name.setTextContent(propertyName);
     property.appendChild(name);
-
     Element valueElement = doc.createElement(VALUE_TAG);
     valueElement.setTextContent(value);
     property.appendChild(valueElement);
-
     root.appendChild(property);
   }
 
@@ -213,8 +222,7 @@ public class ConfigModifierService {
     TransformerFactory transformerFactory = TransformerFactory.newInstance();
     Transformer transformer = transformerFactory.newTransformer();
     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(INDENT_AMOUNT));
     DOMSource source = new DOMSource(doc);
     StreamResult result = new StreamResult(configPath.toFile());
     transformer.transform(source, result);

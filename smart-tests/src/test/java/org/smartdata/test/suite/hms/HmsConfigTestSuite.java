@@ -30,7 +30,6 @@ import org.smartdata.test.service.ConfigModifierService;
 import org.smartdata.test.suite.SsmBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -59,12 +58,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   private static final String DEFAULT_DATABASE = "default";
   private static final String TEST_DATABASE = "db1";
-
-  @BeforeMethod
-  public void cleanConfig() throws Exception {
-    configModifierService.restoreOriginalFile(MASTER_CONF_NAME);
-    configModifierService.restoreOriginalFile(AGENT_CONF_NAME);
-  }
 
   @AfterMethod
   public void restoreConfig() throws Exception {
