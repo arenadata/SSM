@@ -40,177 +40,177 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class ConfigModifierService {
 
-    @Value("${docker-compose-service.compose-file-name}")
-    private String composeFileName;
+  @Value("${docker-compose-service.compose-file-name}")
+  private String composeFileName;
 
-    private static final String SSM_METASTORE_CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
-    private static final String HMS_CONFIG_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
-    private static final String BACKUP_SUFFIX = ".backup";
+  private static final String SSM_METASTORE_CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
+  private static final String HMS_CONFIG_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
+  private static final String BACKUP_SUFFIX = ".backup";
 
-    /**
-     * Gets the current value of a property.
-     *
-     * @param configFileName The name of the config file
-     * @param propertyName The property name
-     * @return The current value, or null if not found
-     * @throws Exception if file operations fail
-     */
-    public String getProperty(String configFileName, String propertyName) throws Exception {
-        Document doc = loadDocument(configFileName);
-        Element property = findProperty(doc, propertyName);
-        return property != null ? getPropertyValue(property) : null;
+  /**
+   * Gets the current value of a property.
+   *
+   * @param configFileName The name of the config file
+   * @param propertyName The property name
+   * @return The current value, or null if not found
+   * @throws Exception if file operations fail
+   */
+  public String getProperty(String configFileName, String propertyName) throws Exception {
+    Document doc = loadDocument(configFileName);
+    Element property = findProperty(doc, propertyName);
+    return property != null ? getPropertyValue(property) : null;
+  }
+
+  /**
+   * Sets a property value in the specified XML configuration file.
+   * Creates a backup if it doesn't exist. Updates existing property or creates new one.
+   *
+   * @param configFileName The name of the config file (e.g., "smart-site-master.xml")
+   * @param propertyName The property name (e.g., "smart.cmdlet.executors")
+   * @param newValue The new value to set
+   * @throws Exception if file operations fail
+   */
+  public void setProperty(String configFileName, String propertyName, String newValue) throws Exception {
+    Path configPath = getConfigPath(configFileName);
+    createBackupIfNeeded(configPath);
+
+    Document doc = loadDocument(configFileName);
+    Element property = findProperty(doc, propertyName);
+
+    if (property != null) {
+      updatePropertyValue(property, newValue);
+    } else {
+      addNewProperty(doc, propertyName, newValue);
     }
 
-    /**
-     * Sets a property value in the specified XML configuration file.
-     * Creates a backup if it doesn't exist. Updates existing property or creates new one.
-     *
-     * @param configFileName The name of the config file (e.g., "smart-site-master.xml")
-     * @param propertyName The property name (e.g., "smart.cmdlet.executors")
-     * @param newValue The new value to set
-     * @throws Exception if file operations fail
-     */
-    public void setProperty(String configFileName, String propertyName, String newValue) throws Exception {
-        Path configPath = getConfigPath(configFileName);
-        createBackupIfNeeded(configPath);
+    saveDocument(doc, configPath);
+  }
 
-        Document doc = loadDocument(configFileName);
-        Element property = findProperty(doc, propertyName);
+  /**
+   * Adds a new property to the configuration file.
+   *
+   * @param configFileName The name of the config file
+   * @param propertyName The property name
+   * @param value The property value
+   * @throws Exception if file operations fail
+   */
+  public void addProperty(String configFileName, String propertyName, String value) throws Exception {
+    Path configPath = getConfigPath(configFileName);
+    createBackupIfNeeded(configPath);
 
-        if (property != null) {
-            updatePropertyValue(property, newValue);
-        } else {
-            addNewProperty(doc, propertyName, newValue);
-        }
+    Document doc = loadDocument(configFileName);
 
-        saveDocument(doc, configPath);
+    if (findProperty(doc, propertyName) != null) {
+      throw new IllegalArgumentException("Property already exists: " + propertyName);
     }
 
-    /**
-     * Adds a new property to the configuration file.
-     *
-     * @param configFileName The name of the config file
-     * @param propertyName The property name
-     * @param value The property value
-     * @throws Exception if file operations fail
-     */
-    public void addProperty(String configFileName, String propertyName, String value) throws Exception {
-        Path configPath = getConfigPath(configFileName);
-        createBackupIfNeeded(configPath);
+    addNewProperty(doc, propertyName, value);
+    saveDocument(doc, configPath);
+  }
 
-        Document doc = loadDocument(configFileName);
+  /**
+   * Restores the original config file from backup.
+   *
+   * @param configFileName The name of the config file
+   * @throws IOException if file operations fail
+   */
+  public void restoreOriginalFile(String configFileName) throws IOException {
+    Path configPath = getConfigPath(configFileName);
+    Path backupPath = getBackupPath(configPath);
 
-        if (findProperty(doc, propertyName) != null) {
-            throw new IllegalArgumentException("Property already exists: " + propertyName);
-        }
+    if (Files.exists(backupPath)) {
+      Files.copy(backupPath, configPath, StandardCopyOption.REPLACE_EXISTING);
+      Files.delete(backupPath);
+    }
+  }
 
-        addNewProperty(doc, propertyName, value);
-        saveDocument(doc, configPath);
+  private Path getConfigPath(String configFileName) {
+    String configDir = composeFileName.contains("multihost") ? SSM_METASTORE_CONFIG_DIR : HMS_CONFIG_DIR;
+    Path path = Paths.get(configDir, configFileName);
+    if (!Files.exists(path)) {
+      throw new IllegalArgumentException("Config file not found: " + path);
+    }
+    return path;
+  }
+
+  private Path getBackupPath(Path configPath) {
+    return configPath.getParent().resolve(configPath.getFileName() + BACKUP_SUFFIX);
+  }
+
+  private void createBackupIfNeeded(Path configPath) throws IOException {
+    Path backupPath = getBackupPath(configPath);
+    if (!Files.exists(backupPath)) {
+      Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
+    }
+  }
+
+  private Document loadDocument(String configFileName) throws Exception {
+    Path configPath = getConfigPath(configFileName);
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    return builder.parse(configPath.toFile());
+  }
+
+  private Element findProperty(Document doc, String propertyName) {
+    NodeList properties = doc.getElementsByTagName("property");
+
+    for (int i = 0; i < properties.getLength(); i++) {
+      Element property = (Element) properties.item(i);
+      String name = getPropertyName(property);
+
+      if (propertyName.equals(name)) {
+        return property;
+      }
     }
 
-    /**
-     * Restores the original config file from backup.
-     *
-     * @param configFileName The name of the config file
-     * @throws IOException if file operations fail
-     */
-    public void restoreOriginalFile(String configFileName) throws IOException {
-        Path configPath = getConfigPath(configFileName);
-        Path backupPath = getBackupPath(configPath);
+    return null;
+  }
 
-        if (Files.exists(backupPath)) {
-            Files.copy(backupPath, configPath, StandardCopyOption.REPLACE_EXISTING);
-            Files.delete(backupPath);
-        }
+  private String getPropertyName(Element property) {
+    NodeList nameNodes = property.getElementsByTagName("name");
+    return nameNodes.getLength() > 0 ? nameNodes.item(0).getTextContent().trim() : null;
+  }
+
+  private String getPropertyValue(Element property) {
+    NodeList valueNodes = property.getElementsByTagName("value");
+    return valueNodes.getLength() > 0 ? valueNodes.item(0).getTextContent() : null;
+  }
+
+  private void updatePropertyValue(Element property, String newValue) {
+    NodeList valueNodes = property.getElementsByTagName("value");
+    if (valueNodes.getLength() > 0) {
+      valueNodes.item(0).setTextContent(newValue);
+    } else {
+      Element valueElement = property.getOwnerDocument().createElement("value");
+      valueElement.setTextContent(newValue);
+      property.appendChild(valueElement);
     }
+  }
 
-    private Path getConfigPath(String configFileName) {
-        String configDir = composeFileName.contains("multihost") ? SSM_METASTORE_CONFIG_DIR : HMS_CONFIG_DIR ;
-        Path path = Paths.get(configDir, configFileName);
-        if (!Files.exists(path)) {
-            throw new IllegalArgumentException("Config file not found: " + path);
-        }
-        return path;
-    }
+  private void addNewProperty(Document doc, String propertyName, String value) {
+    Element root = doc.getDocumentElement();
 
-    private Path getBackupPath(Path configPath) {
-        return configPath.getParent().resolve(configPath.getFileName() + BACKUP_SUFFIX);
-    }
+    Element property = doc.createElement("property");
 
-    private void createBackupIfNeeded(Path configPath) throws IOException {
-        Path backupPath = getBackupPath(configPath);
-        if (!Files.exists(backupPath)) {
-            Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
+    Element name = doc.createElement("name");
+    name.setTextContent(propertyName);
+    property.appendChild(name);
 
-    private Document loadDocument(String configFileName) throws Exception {
-        Path configPath = getConfigPath(configFileName);
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(configPath.toFile());
-    }
+    Element valueElement = doc.createElement("value");
+    valueElement.setTextContent(value);
+    property.appendChild(valueElement);
 
-    private Element findProperty(Document doc, String propertyName) {
-        NodeList properties = doc.getElementsByTagName("property");
+    root.appendChild(property);
+  }
 
-        for (int i = 0; i < properties.getLength(); i++) {
-            Element property = (Element) properties.item(i);
-            String name = getPropertyName(property);
+  private void saveDocument(Document doc, Path configPath) throws Exception {
+    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    Transformer transformer = transformerFactory.newTransformer();
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
-            if (propertyName.equals(name)) {
-                return property;
-            }
-        }
-
-        return null;
-    }
-
-    private String getPropertyName(Element property) {
-        NodeList nameNodes = property.getElementsByTagName("name");
-        return nameNodes.getLength() > 0 ? nameNodes.item(0).getTextContent().trim() : null;
-    }
-
-    private String getPropertyValue(Element property) {
-        NodeList valueNodes = property.getElementsByTagName("value");
-        return valueNodes.getLength() > 0 ? valueNodes.item(0).getTextContent() : null;
-    }
-
-    private void updatePropertyValue(Element property, String newValue) {
-        NodeList valueNodes = property.getElementsByTagName("value");
-        if (valueNodes.getLength() > 0) {
-            valueNodes.item(0).setTextContent(newValue);
-        } else {
-            Element valueElement = property.getOwnerDocument().createElement("value");
-            valueElement.setTextContent(newValue);
-            property.appendChild(valueElement);
-        }
-    }
-
-    private void addNewProperty(Document doc, String propertyName, String value) {
-        Element root = doc.getDocumentElement();
-
-        Element property = doc.createElement("property");
-
-        Element name = doc.createElement("name");
-        name.setTextContent(propertyName);
-        property.appendChild(name);
-
-        Element valueElement = doc.createElement("value");
-        valueElement.setTextContent(value);
-        property.appendChild(valueElement);
-
-        root.appendChild(property);
-    }
-
-    private void saveDocument(Document doc, Path configPath) throws Exception {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(configPath.toFile());
-        transformer.transform(source, result);
-    }
+    DOMSource source = new DOMSource(doc);
+    StreamResult result = new StreamResult(configPath.toFile());
+    transformer.transform(source, result);
+  }
 }

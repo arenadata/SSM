@@ -76,7 +76,7 @@ public enum SsmComponent implements Component {
   public static List<Component> getComponentsByCompose(String composeName) {
     if (composeName.contains("multihost")) {
       return DEFAULT_COMPONENTS;
-    } else if (composeName.contains("demo-cluster")) {
+    } else if (composeName.contains("hms-cluster")) {
       return HMS_COMPONENTS;
     } else {
       throw new IllegalArgumentException("Unknown compose name: " + composeName);
