@@ -25,8 +25,6 @@ import org.smartdata.test.repository.MetastoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
-
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -41,9 +39,6 @@ public class DataBaseStep {
 
   @Autowired
   private MetastoreRepository metastoreRepository;
-
-  @Autowired
-  private DataSource ssmMetastoreDataSource;
 
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
@@ -100,7 +95,7 @@ public class DataBaseStep {
   public DataBaseStep insertDataForRulesFilterTest() {
     String firstRule = "file: every 1s | path matches \"/*\" | sleep -ms 100";
     String secondRule = "file: every 1s | path matches \"/*\" | read";
-    try (PreparedStatement ps = ssmMetastoreDataSource.getConnection().prepareStatement(RULES_FILTER_TEMPLATE)) {
+    try (PreparedStatement ps = metastoreRepository.getConnection().prepareStatement(RULES_FILTER_TEMPLATE)) {
       ps.setInt(1, 0);
       ps.setString(2, firstRule);
       ps.setLong(3, Instant.now().toEpochMilli());
