@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.dao;
+package org.smartdata.test.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.smartdata.test.dao.HiveMetastoreEventDao;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
