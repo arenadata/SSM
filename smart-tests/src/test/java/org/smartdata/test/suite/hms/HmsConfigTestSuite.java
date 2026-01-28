@@ -23,6 +23,8 @@ import io.qameta.allure.Story;
 import org.assertj.core.groups.Tuple;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
+import org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType;
+import org.smartdata.test.entity.HiveMetastoreEventEntity.EventType;
 import org.smartdata.test.repository.HiveRepository;
 import org.smartdata.test.service.ConfigModifierService;
 import org.smartdata.test.suite.SsmBaseSuite;
@@ -55,6 +57,7 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   @Autowired
   private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
 
+  private static final String DEFAULT_DATABASE = "default";
   private static final String TEST_DATABASE = "db1";
 
   @BeforeMethod
@@ -99,10 +102,10 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   private void assertEventsContainExpectedEntities(List<HiveMetastoreEventEntity> events, int testTableQuantity) {
     List<Tuple> expectedEvents = new ArrayList<>();
-    expectedEvents.add(tuple("default", "DATABASE", "CREATE"));
-    expectedEvents.add(tuple(TEST_DATABASE, "DATABASE", "CREATE"));
+    expectedEvents.add(tuple(DEFAULT_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
+    expectedEvents.add(tuple(TEST_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
     for (int i = 0; i < testTableQuantity; i++) {
-      expectedEvents.add(tuple(format("%s.t%s", TEST_DATABASE, i), "TABLE", "CREATE"));
+      expectedEvents.add(tuple(format("%s.t%s", TEST_DATABASE, i), EntityType.TABLE.name(), EventType.CREATE.name()));
     }
     assertThat(events)
         .extracting(HiveMetastoreEventEntity::getEntityName,
