@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.smartdata.hive.fetch.HiveNotificationEvent.extractRelatedResources;
 import static org.smartdata.metastore.queries.MetastoreQuery.selectAll;
 import static org.smartdata.metastore.queries.expression.MetastoreQueryDsl.equal;
 
@@ -54,6 +55,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
   private static final String TABLE_NAME_FIELD = "table_name";
   private static final String MESSAGE_FIELD = "message";
   private static final String MESSAGE_FORMAT_FIELD = "message_format";
+  private static final String RELATED_RESOURCES_FIELD = "related_resources";
 
   private final MetastoreQueryExecutor queryExecutor;
   private final PostgresInsertSupport insertSupport;
@@ -119,6 +121,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
 
   private HiveNotificationEvent mapRow(ResultSet resultSet, int rowNum) throws SQLException {
     return HiveNotificationEvent.builder()
+        .id(resultSet.getLong(ID_FIELD))
         .externalId(resultSet.getLong(EXTERNAL_ID_FIELD))
         .eventTime(resultSet.getLong(EVENT_TIME_FIELD))
         .eventType(resultSet.getString(EVENT_TYPE_FIELD))
@@ -129,6 +132,8 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
         .tableName(resultSet.getString(TABLE_NAME_FIELD))
         .message(resultSet.getString(MESSAGE_FIELD))
         .messageFormat(resultSet.getString(MESSAGE_FORMAT_FIELD))
+        .relatedResources(extractRelatedResources(
+            resultSet.getString(RELATED_RESOURCES_FIELD)))
         .build();
   }
 
@@ -144,6 +149,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
     parameters.put(TABLE_NAME_FIELD, event.getTableName());
     parameters.put(MESSAGE_FIELD, event.getMessage());
     parameters.put(MESSAGE_FORMAT_FIELD, event.getMessageFormat());
+    parameters.put(RELATED_RESOURCES_FIELD, event.rawRelatedResources());
     return parameters;
   }
 

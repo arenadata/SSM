@@ -29,6 +29,7 @@ import org.smartdata.action.annotation.ActionSignature;
 public class HmsSyncAction extends HmsAction {
   public static final String NAME = "hms-sync";
   public static final String ENTITY_NAME = "-entityName";
+  public static final String RELATED_RESOURCES = "-relatedResources";
 
   @Override
   protected void execute() throws Exception {

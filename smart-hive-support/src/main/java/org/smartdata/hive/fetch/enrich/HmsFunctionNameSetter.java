@@ -17,10 +17,7 @@
  */
 package org.smartdata.hive.fetch.enrich;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.metastore.messaging.CreateFunctionMessage;
 import org.apache.hadoop.hive.metastore.messaging.DropFunctionMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
@@ -28,64 +25,41 @@ import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
 import static org.smartdata.hive.fetch.HiveOperation.CREATE;
 import static org.smartdata.hive.fetch.HiveOperation.DROP;
 import static org.smartdata.hive.snapshot.HiveNotificationEventFactory.fullName;
 
 @Slf4j
-@RequiredArgsConstructor
-public class HmsEventNameSetter implements HmsEventEnricher {
-  private final MessageEncoder messageEncoder;
+public class HmsFunctionNameSetter extends HmsEventModifier {
+  public HmsFunctionNameSetter(MessageEncoder messageEncoder) {
+    super(messageEncoder, HiveEntity.FUNCTION);
+  }
 
   @Override
-  public HiveNotificationEvent enrich(HiveNotificationEvent event) {
-    String newName = extractFullName(event);
-    return Objects.equals(newName, event.getFullName())
-        ? event
-        : event.toBuilder()
-        .fullName(newName)
-        .build();
-  }
-
-  private String extractFullName(HiveNotificationEvent event) {
-    return Optional.ofNullable(event.getEntityType())
-        .map(type -> EnumUtils.getEnum(HiveEntity.class, type))
-        .filter(HiveEntity.FUNCTION::equals)
-        .flatMap(ignore -> extractFunctionName(event))
-        .orElseGet(event::getFullName);
-  }
-
-  private Optional<String> extractFunctionName(HiveNotificationEvent event) {
-    return Optional.ofNullable(event.getEventType())
-        .map(type -> EnumUtils.getEnum(HiveOperation.class, type))
-        .map(operation -> extractFunctionName(event, operation));
-  }
-
-  private String extractFunctionName(HiveNotificationEvent event, HiveOperation operation) {
-    if (StringUtils.isBlank(event.getMessage())) {
-      return event.getFullName();
-    }
-
+  protected HiveNotificationEvent modifyEvent(HiveNotificationEvent event, HiveOperation operation) {
     try {
       if (operation == CREATE) {
         CreateFunctionMessage msg = messageEncoder.getDeserializer()
             .getCreateFunctionMessage(event.getMessage());
-        return fullName(msg.getFunctionObj());
+        return withNewName(event, fullName(msg.getFunctionObj()));
       }
 
       if (operation == DROP) {
         DropFunctionMessage msg = messageEncoder.getDeserializer()
             .getDropFunctionMessage(event.getMessage());
-        return fullResourceName(msg.getDB(), msg.getFunctionName());
+        return withNewName(event, fullResourceName(msg.getDB(), msg.getFunctionName()));
       }
     } catch (Exception e) {
       log.error("Failed to parse event message {}", event, e);
     }
 
-    return event.getFullName();
+    return event;
+  }
+
+  private HiveNotificationEvent withNewName(HiveNotificationEvent event, String newName) {
+    return event.toBuilder()
+        .fullName(newName)
+        .build();
   }
 }
