@@ -43,6 +43,9 @@ public class ConfigModifierService {
   @Value("${docker-compose-service.compose-file-name}")
   private String composeFileName;
 
+  private static final String PROPERTY_TAG = "property";
+  private static final String NAME_TAG = "name";
+  private static final String VALUE_TAG = "value";
   private static final String SSM_METASTORE_CONFIG_DIR = "target/test-classes/env/multihost/ssm-conf";
   private static final String HMS_CONFIG_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
   private static final String BACKUP_SUFFIX = ".backup";
@@ -70,6 +73,7 @@ public class ConfigModifierService {
    * @param newValue The new value to set
    * @throws Exception if file operations fail
    */
+  // TODO Reduce duplication in setProperty and addProperty add allowUpdate flag
   public void setProperty(String configFileName, String propertyName, String newValue) throws Exception {
     Path configPath = getConfigPath(configFileName);
     createBackupIfNeeded(configPath);
@@ -125,8 +129,7 @@ public class ConfigModifierService {
   }
 
   private Path getConfigPath(String configFileName) {
-    String configDir = composeFileName.contains("multihost") ? SSM_METASTORE_CONFIG_DIR : HMS_CONFIG_DIR;
-    Path path = Paths.get(configDir, configFileName);
+    Path path = Paths.get(getConfigDirectory(), configFileName);
     if (!Files.exists(path)) {
       throw new IllegalArgumentException("Config file not found: " + path);
     }
@@ -152,7 +155,7 @@ public class ConfigModifierService {
   }
 
   private Element findProperty(Document doc, String propertyName) {
-    NodeList properties = doc.getElementsByTagName("property");
+    NodeList properties = doc.getElementsByTagName(PROPERTY_TAG);
 
     for (int i = 0; i < properties.getLength(); i++) {
       Element property = (Element) properties.item(i);
@@ -167,21 +170,21 @@ public class ConfigModifierService {
   }
 
   private String getPropertyName(Element property) {
-    NodeList nameNodes = property.getElementsByTagName("name");
+    NodeList nameNodes = property.getElementsByTagName(NAME_TAG);
     return nameNodes.getLength() > 0 ? nameNodes.item(0).getTextContent().trim() : null;
   }
 
   private String getPropertyValue(Element property) {
-    NodeList valueNodes = property.getElementsByTagName("value");
+    NodeList valueNodes = property.getElementsByTagName(VALUE_TAG);
     return valueNodes.getLength() > 0 ? valueNodes.item(0).getTextContent() : null;
   }
 
   private void updatePropertyValue(Element property, String newValue) {
-    NodeList valueNodes = property.getElementsByTagName("value");
+    NodeList valueNodes = property.getElementsByTagName(VALUE_TAG);
     if (valueNodes.getLength() > 0) {
       valueNodes.item(0).setTextContent(newValue);
     } else {
-      Element valueElement = property.getOwnerDocument().createElement("value");
+      Element valueElement = property.getOwnerDocument().createElement(VALUE_TAG);
       valueElement.setTextContent(newValue);
       property.appendChild(valueElement);
     }
@@ -190,13 +193,13 @@ public class ConfigModifierService {
   private void addNewProperty(Document doc, String propertyName, String value) {
     Element root = doc.getDocumentElement();
 
-    Element property = doc.createElement("property");
+    Element property = doc.createElement(PROPERTY_TAG);
 
-    Element name = doc.createElement("name");
+    Element name = doc.createElement(NAME_TAG);
     name.setTextContent(propertyName);
     property.appendChild(name);
 
-    Element valueElement = doc.createElement("value");
+    Element valueElement = doc.createElement(VALUE_TAG);
     valueElement.setTextContent(value);
     property.appendChild(valueElement);
 
@@ -212,5 +215,11 @@ public class ConfigModifierService {
     DOMSource source = new DOMSource(doc);
     StreamResult result = new StreamResult(configPath.toFile());
     transformer.transform(source, result);
+  }
+
+  private String getConfigDirectory() {
+    return composeFileName.contains("multihost")
+        ? SSM_METASTORE_CONFIG_DIR
+        : HMS_CONFIG_DIR;
   }
 }

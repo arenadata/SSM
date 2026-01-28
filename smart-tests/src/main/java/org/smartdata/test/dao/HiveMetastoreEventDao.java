@@ -20,7 +20,6 @@ package org.smartdata.test.dao;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * DAO interface for accessing hive_metastore_event table.
@@ -28,25 +27,9 @@ import java.util.Optional;
 public interface HiveMetastoreEventDao {
 
   /**
-   * Find a hive metastore event by ID.
-   *
-   * @param id the event ID
-   * @return Optional containing the event if found, empty otherwise
-   */
-  Optional<HiveMetastoreEventEntity> findById(Long id);
-
-  /**
    * Find all hive metastore events.
    *
    * @return list of all events
    */
   List<HiveMetastoreEventEntity> findAll();
-
-  /**
-   * Delete a hive metastore event by ID.
-   *
-   * @param id the event ID to delete
-   * @return number of rows affected
-   */
-  int deleteById(Long id);
 }

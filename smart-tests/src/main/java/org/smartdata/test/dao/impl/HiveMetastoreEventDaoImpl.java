@@ -22,7 +22,6 @@ import org.smartdata.test.dao.HiveMetastoreEventDao;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Implementation of HiveMetastoreEventDao using Spring JDBC Template.
@@ -38,22 +36,11 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class HiveMetastoreEventDaoImpl implements HiveMetastoreEventDao {
-
   private static final String TABLE_NAME = "hive_metastore_event";
-  
-  private static final String SELECT_BY_ID = 
+  private static final String SELECT_ALL =
       "SELECT id, external_id, event_time, event_type, entity_name, entity_type, " +
-      "catalog_name, db_name, table_name, message, message_format " +
-      "FROM " + TABLE_NAME + " WHERE id = ?";
-  
-  private static final String SELECT_ALL = 
-      "SELECT id, external_id, event_time, event_type, entity_name, entity_type, " +
-      "catalog_name, db_name, table_name, message, message_format " +
-      "FROM " + TABLE_NAME;
-  
-  private static final String DELETE_BY_ID = 
-      "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
-
+          "catalog_name, db_name, table_name, message, message_format " +
+          "FROM " + TABLE_NAME;
   private final JdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -62,37 +49,14 @@ public class HiveMetastoreEventDaoImpl implements HiveMetastoreEventDao {
   }
 
   @Override
-  public Optional<HiveMetastoreEventEntity> findById(Long id) {
-    try {
-      HiveMetastoreEventEntity event = jdbcTemplate.queryForObject(
-          SELECT_BY_ID, 
-          new HiveMetastoreEventRowMapper(), 
-          id
-      );
-      return Optional.ofNullable(event);
-    } catch (EmptyResultDataAccessException e) {
-      log.debug("No hive metastore event found with id: {}", id);
-      return Optional.empty();
-    }
-  }
-
-  @Override
   public List<HiveMetastoreEventEntity> findAll() {
     return jdbcTemplate.query(SELECT_ALL, new HiveMetastoreEventRowMapper());
-  }
-
-  @Override
-  public int deleteById(Long id) {
-    int rowsAffected = jdbcTemplate.update(DELETE_BY_ID, id);
-    log.debug("Deleted {} hive metastore event(s) with id: {}", rowsAffected, id);
-    return rowsAffected;
   }
 
   /**
    * RowMapper to convert ResultSet rows to HiveMetastoreEventEntity objects.
    */
   private static class HiveMetastoreEventRowMapper implements RowMapper<HiveMetastoreEventEntity> {
-    
     @Override
     public HiveMetastoreEventEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
       HiveMetastoreEventEntity entity = new HiveMetastoreEventEntity();
