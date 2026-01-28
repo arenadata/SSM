@@ -192,7 +192,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>copy-resources-demo</id>
+                        <id>copy-resources-hms</id>
                         <phase>initialize</phase>
                         <goals>
                             <goal>copy-resources</goal>
