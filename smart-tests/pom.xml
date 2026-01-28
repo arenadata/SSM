@@ -108,54 +108,10 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>false</skipTests>
-                            <goal>verify</goal>
-                            <parallel>none</parallel>
-                            <testFailureIgnore>false</testFailureIgnore>
-                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
-                            <systemPropertyVariables>
-                                <allure.results.directory>${allure.results.directory}</allure.results.directory>
-                                <useSystemClassLoader>true</useSystemClassLoader>
-                            </systemPropertyVariables>
-                            <argLine>
-                                -ea -Xmx4G -XX:MaxMetaspaceSize=2G
-                                -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
-                            </argLine>
                             <suiteXmlFiles>
                                 <suiteXmlFile>src/test/resources/web-tests.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.aspectj</groupId>
-                                <artifactId>aspectjweaver</artifactId>
-                                <version>${aspectj.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.apache.maven.surefire</groupId>
-                                <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                    <plugin>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <version>${exec-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>Pull selenoid browser images</id>
-                                <phase>compile</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>/bin/bash</executable>
-                                    <arguments>
-                                        <argument>target/common-resources/selenoid/pull-browser-image.sh</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -175,54 +131,10 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>false</skipTests>
-                            <goal>verify</goal>
-                            <parallel>none</parallel>
-                            <testFailureIgnore>false</testFailureIgnore>
-                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
-                            <systemPropertyVariables>
-                                <allure.results.directory>${allure.results.directory}</allure.results.directory>
-                                <useSystemClassLoader>true</useSystemClassLoader>
-                            </systemPropertyVariables>
-                            <argLine>
-                                -ea -Xmx4G -XX:MaxMetaspaceSize=2G
-                                -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
-                            </argLine>
                             <suiteXmlFiles>
                                 <suiteXmlFile>src/test/resources/hms-tests.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.aspectj</groupId>
-                                <artifactId>aspectjweaver</artifactId>
-                                <version>${aspectj.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.apache.maven.surefire</groupId>
-                                <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                    <plugin>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <version>${exec-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>Pull selenoid browser images</id>
-                                <phase>compile</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>/bin/bash</executable>
-                                    <arguments>
-                                        <argument>target/common-resources/selenoid/pull-browser-image.sh</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -330,19 +242,52 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.version}</version>
                 <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-testng</artifactId>
+                        <version>${maven.surefire.version}</version>
+                    </dependency>
                 </dependencies>
                 <configuration>
                     <skipTests>true</skipTests>
+                    <goal>verify</goal>
                     <parallel>none</parallel>
                     <testFailureIgnore>false</testFailureIgnore>
+                    <redirectTestOutputToFile>false</redirectTestOutputToFile>
                     <systemPropertyVariables>
                         <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                        <useSystemClassLoader>true</useSystemClassLoader>
                     </systemPropertyVariables>
                     <argLine>
                         -ea -Xmx4G -XX:MaxMetaspaceSize=2G
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                     </argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>Pull selenoid browser images</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>/bin/bash</executable>
+                            <arguments>
+                                <argument>target/common-resources/selenoid/pull-browser-image.sh</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>io.qameta.allure</groupId>
