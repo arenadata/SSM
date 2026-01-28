@@ -25,7 +25,6 @@ import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.repository.HiveRepository;
 import org.smartdata.test.service.ConfigModifierService;
-import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.suite.SsmBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
@@ -49,8 +48,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   private ConfigModifierService configModifierService;
   @Autowired
   private ContainerManager containerManager;
-  @Autowired
-  private LoginStep loginStep;
   @Autowired
   private HiveRepository hiveRepository;
   @Autowired

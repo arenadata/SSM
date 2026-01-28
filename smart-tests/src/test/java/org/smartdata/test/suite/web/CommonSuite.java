@@ -23,12 +23,12 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
-import org.smartdata.test.suite.SsmBaseSuite;
+import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 @Feature("Common functions")
-public class CommonSuite extends SsmBaseSuite {
+public class CommonSuite extends SsmWebBaseSuite {
 
   @Autowired
   private LoginStep loginStep;

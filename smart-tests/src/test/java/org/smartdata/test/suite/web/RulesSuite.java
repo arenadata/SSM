@@ -29,7 +29,7 @@ import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.RulesStep;
 import org.smartdata.test.step.TableStep;
-import org.smartdata.test.suite.SsmBaseSuite;
+import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
@@ -56,7 +56,7 @@ import static org.smartdata.test.model.RuleStatus.DISABLED;
 import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 @Feature("Rules page")
-public class RulesSuite extends SsmBaseSuite {
+public class RulesSuite extends SsmWebBaseSuite {
   private static final String TEST_RULE_TEXT = "file : every 1h | path matches \"/test\" | list";
 
   @Autowired

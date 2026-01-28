@@ -30,7 +30,7 @@ import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.TableStep;
-import org.smartdata.test.suite.SsmBaseSuite;
+import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.ActionStatusComparator;
 import org.smartdata.test.util.comparator.DashIsMaxComparator;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
@@ -51,7 +51,7 @@ import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
 
 @Feature("Actions page")
-public class ActionsSuite extends SsmBaseSuite {
+public class ActionsSuite extends SsmWebBaseSuite {
   private static final String TEST_ACTION_TEXT = "sleep -ms 100";
 
   @Autowired
