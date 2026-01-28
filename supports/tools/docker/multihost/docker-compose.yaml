@@ -178,7 +178,7 @@ services:
       DB_DRIVER: postgres
       SERVICE_OPTS: >-
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
-        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo:5432/hive
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive
         -Djavax.jdo.option.ConnectionUserName=ssm
         -Djavax.jdo.option.ConnectionPassword=ssm
         -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
