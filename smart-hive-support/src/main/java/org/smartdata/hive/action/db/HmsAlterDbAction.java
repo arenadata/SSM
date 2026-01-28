@@ -41,7 +41,14 @@ public class HmsAlterDbAction extends HmsAction {
     appendFormatLog("Altering database %s", message.getDB());
 
     Database newDb = message.getDbObjAfter();
-    newDb.setLocationUri(renameNameService(newDb.getLocationUri()));
+
+    if (newDb.isSetLocationUri()) {
+      newDb.setLocationUri(renameNameService(newDb.getLocationUri()));
+    }
+
+    if (newDb.isSetManagedLocationUri()) {
+      newDb.setManagedLocationUri(renameNameService(newDb.getManagedLocationUri()));
+    }
 
     getMetastoreClient().alterDatabase(message.getDbObjBefore().getName(), newDb);
 
