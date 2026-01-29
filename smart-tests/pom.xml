@@ -44,7 +44,7 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.14-jdk8-test</java-test-common.version>
+        <java-test-common.version>1.14-jdk8</java-test-common.version>
         <postgresql.version>42.7.4</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>6.6.0</openapi.generator.version>
@@ -53,21 +53,11 @@
         <thrift.version>0.22.0</thrift.version> <!-- Used with hive-jdbc -->
         <COMPOSE_FILE_NAME>target/test-classes/env/multihost/docker-compose.yaml</COMPOSE_FILE_NAME>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.arenadata</groupId>
-                <artifactId>java-test-common-jdk8</artifactId>
-                <version>${java-test-common.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>io.arenadata</groupId>
             <artifactId>java-test-common-jdk8</artifactId>
+            <version>${java-test-common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -180,27 +170,6 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.4</version>
-                <configuration>
-                    <groupId>io.arenadata</groupId>
-                    <artifactId>java-test-common-jdk8</artifactId>
-                    <packaging>jar</packaging>
-                    <file>${basedir}/lib/java-test-common-jdk8-1.14-jdk8-test.jar</file>
-                    <generatePom>false</generatePom>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install-jar-lib</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
