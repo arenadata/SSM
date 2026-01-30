@@ -28,7 +28,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.smartdata.test.model.SsmComponent;
 import org.smartdata.test.service.SsmComponentConverter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
@@ -39,7 +38,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.convert.converter.Converter;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Setter
 @Getter
@@ -50,8 +51,8 @@ import java.util.List;
 public class SsmTestConfiguration {
 
   @Bean
-  public List<Component> ssmComponents(@Value("${docker-compose-service.compose-file-name}") String composeFileName) {
-    return SsmComponent.getComponentsByCompose(composeFileName);
+  public List<Component> ssmComponents() {
+    return Arrays.stream(SsmComponent.values()).map(c -> (Component) c).collect(Collectors.toList());
   }
 
   @Bean

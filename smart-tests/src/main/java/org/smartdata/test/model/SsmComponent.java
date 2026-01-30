@@ -21,12 +21,6 @@ import io.arenadata.test.model.Component;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.smartdata.test.util.constant.CommonConstants.HMS_CLUSTER_COMPOSE;
-import static org.smartdata.test.util.constant.CommonConstants.MULTIHOST_CLUSTER_COMPOSE;
-
 @Getter
 @AllArgsConstructor
 public enum SsmComponent implements Component {
@@ -47,44 +41,7 @@ public enum SsmComponent implements Component {
   private final String name;
   private final int port;
 
-  private static final List<Component> DEFAULT_COMPONENTS = Arrays.asList(
-      HADOOP_NAMENODE,
-      HADOOP_DATANODE,
-      SSM_SERVER,
-      SSM_METASTORE_DB,
-      KDC_SERVER,
-      SAMBA,
-      HIVE_SERVER_2,
-      HIVE_METASTORE,
-      PROMETHEUS
-  );
-
-  private static final List<Component> HMS_COMPONENTS = Arrays.asList(
-      HADOOP_NAMENODE,
-      HADOOP_DATANODE,
-      SSM_SERVER,
-      SSM_METASTORE_DB,
-      HIVE_SERVER_2,
-      HIVE_METASTORE,
-      TARGET_NAMENODE,
-      TARGET_DATANODE,
-      TARGET_HIVE_METASTORE,
-      TARGET_HIVE_SERVER2
-  );
-
   public static SsmComponent fromName(String name) {
     return SsmComponent.valueOf(name.toUpperCase().replace("-", "_"));
-  }
-
-  public static List<Component> getComponentsByCompose(String composeFileName) {
-    switch (composeFileName) {
-      case MULTIHOST_CLUSTER_COMPOSE:
-        return DEFAULT_COMPONENTS;
-      case HMS_CLUSTER_COMPOSE:
-        return HMS_COMPONENTS;
-      default: {
-        throw new IllegalArgumentException("Unknown compose name: " + composeFileName);
-      }
-    }
   }
 }

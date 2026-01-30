@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.service;
 
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,9 +39,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import static org.smartdata.test.util.constant.CommonConstants.HMS_CLUSTER_COMPOSE;
-import static org.smartdata.test.util.constant.CommonConstants.MULTIHOST_CLUSTER_COMPOSE;
-
 @Service
 public class ConfigModifierService {
 
@@ -50,9 +48,8 @@ public class ConfigModifierService {
   private static final String PROPERTY_TAG = "property";
   private static final String NAME_TAG = "name";
   private static final String VALUE_TAG = "value";
-  private static final String MULTIHOST_CONF_DIR = "target/test-classes/env/multihost/ssm-conf";
-  private static final String HMS_CONF_DIR = "target/test-classes/env/hms-cluster/ssm-conf";
   private static final String BACKUP_SUFFIX = ".backup";
+  private static final String CONFIG_DIR = "ssm-conf";
   private static final int INDENT_AMOUNT = 4;
 
   /**
@@ -146,8 +143,12 @@ public class ConfigModifierService {
     }
   }
 
-  private Path validateAndGetConfigPath(String configFileName) {
-    Path path = Paths.get(getConfigDirectory(), configFileName);
+  private Path getConfigDirectory() {
+    return Paths.get(composeFileName).getParent().resolve(CONFIG_DIR);
+  }
+
+  private Path validateAndGetConfigPath(@NonNull String configFileName) {
+    Path path = getConfigDirectory().resolve(configFileName);
     if (Files.notExists(path)) {
       throw new IllegalArgumentException("Config file not found: " + path);
     }
@@ -226,17 +227,5 @@ public class ConfigModifierService {
     DOMSource source = new DOMSource(doc);
     StreamResult result = new StreamResult(configPath.toFile());
     transformer.transform(source, result);
-  }
-
-  private String getConfigDirectory() {
-    switch (composeFileName) {
-      case MULTIHOST_CLUSTER_COMPOSE:
-        return MULTIHOST_CONF_DIR;
-      case HMS_CLUSTER_COMPOSE:
-        return HMS_CONF_DIR;
-      default: {
-        throw new IllegalArgumentException("Unknown compose name: " + composeFileName);
-      }
-    }
   }
 }
