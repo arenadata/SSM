@@ -40,7 +40,5 @@ public class HiveMetastoreEventEntity {
   private String tableName;
   private String message;
   private String messageFormat;
-
-  public enum EventType {CREATE}
-  public enum EntityType {DATABASE, TABLE}
+  private String relatedResources;
 }
