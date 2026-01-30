@@ -20,15 +20,10 @@ package org.smartdata.test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
 @SpringBootApplication(scanBasePackages = {"org.smartdata.test"},
-    exclude = {
-        JooqAutoConfiguration.class,
-        HibernateJpaAutoConfiguration.class,
-        DataSourceAutoConfiguration.class
-    })
+    exclude = {HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class})
 public class SsmQaApp {
 
   public static void main(String[] args) {
