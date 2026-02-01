@@ -41,4 +41,27 @@ public class HiveMetastoreEventEntity {
   private String message;
   private String messageFormat;
   private String relatedResources;
+
+  public enum EventType {
+    CREATE,
+    DROP,
+    ALTER,
+    UNKNOWN
+  }
+
+  public enum EntityType {
+    DATABASE,
+    TABLE,
+    PRIMARY_KEY,
+    FOREIGN_KEY,
+    UNIQUE_CONSTRAINT,
+    NOT_NULL_CONSTRAINT,
+    DEFAULT_CONSTRAINT,
+    CHECK_CONSTRAINT,
+    PARTITION,
+    FUNCTION,
+    TABLE_COLUMN_STAT,
+    PARTITION_COLUMN_STAT,
+    UNKNOWN
+  }
 }

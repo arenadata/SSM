@@ -55,11 +55,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.smartdata</groupId>
-            <artifactId>smart-hive-support</artifactId>
-            <version>2.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>io.arenadata</groupId>
             <artifactId>java-test-common-jdk8</artifactId>
             <version>${java-test-common.version}</version>
