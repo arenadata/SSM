@@ -32,7 +32,7 @@ import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.ActionStatusComparator;
-import org.smartdata.test.util.comparator.DashIsMaxComparator;
+import org.smartdata.test.util.comparator.DashAlwaysBottomComparator;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
@@ -101,9 +101,9 @@ public class ActionsSuite extends SsmWebBaseSuite {
   public void testSorting() {
     prepareDataForSortingTest();
     tableStep.checkDefaultSorting(ID)
-        .checkSorting(HOST, new DashIsMaxComparator())
+        .checkSorting(HOST, new DashAlwaysBottomComparator())
         .checkSorting(CREATE_TIME, new UiDateTimeComparator())
-        .checkSorting(FINISH_TIME, new DashIsMaxComparator(new UiDateTimeComparator()))
+        .checkSorting(FINISH_TIME, new DashAlwaysBottomComparator(new UiDateTimeComparator()))
         .checkSorting(STATUS, new ActionStatusComparator())
         .checkSorting(TYPE);
   }

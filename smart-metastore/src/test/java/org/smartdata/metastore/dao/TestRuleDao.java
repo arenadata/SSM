@@ -90,7 +90,7 @@ public class TestRuleDao
             .setState(RuleState.ACTIVE)
             .setNumChecked(12)
             .setNumCmdsGen(12)
-            .setLastCheckTime(12)
+            .setLastCheckTime(12L)
             .build();
 
     ruleDao.insert(info1);
@@ -296,7 +296,7 @@ public class TestRuleDao
         .setRuleText("file: path matches \"/src/*\" | read")
         .setSubmitTime(1)
         .setState(RuleState.NEW)
-        .setLastCheckTime(0)
+        .setLastCheckTime(0L)
         .build();
 
     ruleDao.insert(ruleInfo1);
@@ -306,7 +306,7 @@ public class TestRuleDao
         .setRuleText("file: path matches \"/dist/*\" | copy -dest \"/\"")
         .setSubmitTime(2)
         .setState(RuleState.ACTIVE)
-        .setLastCheckTime(2)
+        .setLastCheckTime(2L)
         .build();
 
     ruleDao.insert(ruleInfo2);
@@ -316,7 +316,7 @@ public class TestRuleDao
         .setRuleText("file: age > 10s | read")
         .setSubmitTime(12)
         .setState(RuleState.DISABLED)
-        .setLastCheckTime(12)
+        .setLastCheckTime(12L)
         .build();
 
     ruleDao.insert(ruleInfo3);
@@ -326,7 +326,7 @@ public class TestRuleDao
         .setRuleText("file: path matches \"/tmp/*\" | write")
         .setSubmitTime(13)
         .setState(RuleState.DELETED)
-        .setLastCheckTime(13)
+        .setLastCheckTime(13L)
         .build();
 
     ruleDao.insert(ruleInfo4);
