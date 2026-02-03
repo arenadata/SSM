@@ -93,3 +93,8 @@ Run UI tests:
 ```shell
 mvn verify -Pweb-tests -f smart-tests/pom.xml
 ```
+
+Run HMS tests suite:
+```shell
+mvn verify -Phms-tests -f smart-tests/pom.xml
+```

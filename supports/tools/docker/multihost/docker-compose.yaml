@@ -55,12 +55,9 @@ services:
       - "9864:9864"
       - "7048:7048"
       - "7051:7051"
-      # SSM Agent web server port
-      - "18081:8081"
-      # JMX port
-      - "3334:3334"
-      # agent debug port
-      - "8009:8008"
+      - "18081:8081" # SSM Agent web server port
+      - "3334:3334" # JMX port
+      - "8009:8008" # agent debug port
     environment:
       SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
     env_file:
@@ -181,7 +178,7 @@ services:
       DB_DRIVER: postgres
       SERVICE_OPTS: >-
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
-        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db/hive
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://ssm-metastore-db.demo/hive
         -Djavax.jdo.option.ConnectionUserName=ssm
         -Djavax.jdo.option.ConnectionPassword=ssm
         -Dhive.metastore.event.listeners=org.apache.hive.hcatalog.listener.DbNotificationListener
@@ -195,6 +192,11 @@ services:
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
     ports:
       - "9083:9083"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo -n \"\" > /dev/tcp/localhost/9083'"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
     networks:
       - demo
 

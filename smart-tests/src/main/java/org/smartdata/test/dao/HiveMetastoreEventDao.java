@@ -15,21 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.configuration;
+package org.smartdata.test.dao;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.smartdata.test.entity.HiveMetastoreEventEntity;
 
-import javax.sql.DataSource;
+import java.util.List;
 
-@Configuration
-public class MetastoreDataSourceConfiguration {
+/**
+ * DAO interface for accessing hive_metastore_event table.
+ */
+public interface HiveMetastoreEventDao {
 
-  @Bean
-  @ConfigurationProperties("ssm-metastore-db.datasource")
-  public DataSource dataSource() {
-    return DataSourceBuilder.create().build();
-  }
+  /**
+   * Find all hive metastore events.
+   *
+   * @return list of all events
+   */
+  List<HiveMetastoreEventEntity> findAll();
 }

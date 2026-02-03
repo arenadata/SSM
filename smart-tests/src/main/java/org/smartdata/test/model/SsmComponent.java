@@ -30,6 +30,12 @@ public enum SsmComponent implements Component {
   SSM_METASTORE_DB("ssm-metastore-db", 5432),
   KDC_SERVER("kdc-server", 749),
   SAMBA("samba", 389),
+  HIVE_SERVER_2("hive-server2", 10000),
+  HIVE_METASTORE("hive-metastore", 9083),
+  TARGET_NAMENODE("target-namenode", 0),
+  TARGET_DATANODE("target-datanode", 0),
+  TARGET_HIVE_METASTORE("target-hive-metastore", 0),
+  TARGET_HIVE_SERVER2("target-hive-server2", 0),
   PROMETHEUS("prometheus", 9090);
 
   private final String name;
