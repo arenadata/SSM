@@ -26,7 +26,7 @@ import { usePagination } from './usePagination';
 import type { PaginationDataItem, PaginationProps } from '@uikit/Pagination/Pagination.types';
 import { defaultPerPagesList } from '@constants';
 
-const MAX_VISIBLE_ITEMS = 9;
+const MAX_VISIBLE_ITEMS = 7;
 const DEFAULT_PER_PAGE_ITEMS = 14;
 
 interface renderButtonsProps {
@@ -49,10 +49,7 @@ const RenderNumberButtons = ({ items, setPageNumber, currentPageNumber }: render
             {item.label}
           </PaginationNumButton>
         ) : (
-          <PaginationDots
-            key={`dots_${item.key}`}
-            dotsHandler={() => setPageNumber(currentPageNumber - item.pageNumber)}
-          >
+          <PaginationDots key={`dots_${item.key}`} dotsHandler={() => setPageNumber(item.pageNumber)}>
             {item.label}
           </PaginationDots>
         ),
@@ -109,7 +106,7 @@ const Pagination = ({
     <div className={paginationWrapperClasses} data-qa={dataTest}>
       <div className={s.pagination__buttonWrapper} data-qa="pagination-button-container">
         <RenderNumberButtons setPageNumber={setPageNumber} items={pageItems} currentPageNumber={pageNumber} />
-        {totalPages === 0 && (
+        {totalPages !== 0 && (
           <PaginationStepButton
             arrowVariant="arrowDouble"
             variant="prev"
