@@ -76,7 +76,7 @@ public class TestDruid {
     long now = System.currentTimeMillis();
     adapter.updateRuleInfo(info1.getId(), RuleState.DELETED, now, 1, 1);
     RuleInfo info12 = adapter.getRuleInfo(info1.getId());
-    Assert.assertEquals(info12.getLastCheckTime(), now);
+    Assert.assertEquals(info12.getLastCheckTime(), (Long) now);
 
     druidPool.close();
   }

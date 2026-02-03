@@ -23,6 +23,7 @@ import lombok.Data;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * Contains info about a rule inside SSM.
@@ -39,7 +40,7 @@ public class RuleInfo {
   // Some static information about rule
   private long numChecked;
   private long numCmdsGen;
-  private long lastCheckTime;
+  private Long lastCheckTime;
   private String owner;
 
   public void updateRuleInfo(RuleState rs, long lastCheckTime,
@@ -59,11 +60,12 @@ public class RuleInfo {
     StringBuilder sb = new StringBuilder();
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
     Date submitDate = new Date(submitTime);
-    String lastCheck = "Not Checked";
-    if (lastCheckTime != 0) {
-      Date lastCheckDate = new Date(lastCheckTime);
-      lastCheck = sdf.format(lastCheckDate);
-    }
+    String lastCheck = Optional.ofNullable(lastCheckTime)
+        .filter(time -> time != 0)
+        .map(Date::new)
+        .map(sdf::format)
+        .orElse("Not Checked");
+
     sb.append("{ id = ")
         .append(id)
         .append(", submitTime = '")

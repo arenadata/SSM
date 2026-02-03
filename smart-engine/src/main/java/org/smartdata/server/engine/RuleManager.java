@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.smartdata.model.WhitelistHelper.validatePathsCovered;
@@ -342,9 +343,9 @@ public class RuleManager
         RuleExecutor ruleExecutor = infoRepo.launchExecutor(this);
         RuleTranslationResult tr = ruleExecutor.getTranslateResult();
         TimeBasedScheduleInfo si = tr.getScheduleInfo();
-        if (rule.getLastCheckTime() != 0) {
-          si.setFirstCheckTime(rule.getLastCheckTime());
-        }
+        Optional.ofNullable(rule.getLastCheckTime())
+            .filter(time -> time != 0)
+            .ifPresent(si::setFirstCheckTime);
         boolean sub = submitRuleToScheduler(ruleExecutor);
         numLaunched += sub ? 1 : 0;
       }

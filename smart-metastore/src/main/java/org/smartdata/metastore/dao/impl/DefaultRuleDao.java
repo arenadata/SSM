@@ -180,7 +180,7 @@ public class DefaultRuleDao
         .setState(RuleState.fromValue(resultSet.getByte("state")))
         .setNumChecked(resultSet.getLong("checked_count"))
         .setNumCmdsGen(resultSet.getLong("generated_cmdlets"))
-        .setLastCheckTime(resultSet.getLong("last_check_time"))
+        .setLastCheckTime(resultSet.getObject("last_check_time", Long.class))
         .setOwner(resultSet.getString("owner"))
         .build();
   }
