@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.suite;
+package org.smartdata.test.suite.web;
 
 import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
@@ -28,6 +28,7 @@ import org.smartdata.test.step.FilesInCacheStep;
 import org.smartdata.test.step.HottestFilesStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.TableStep;
+import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
@@ -50,7 +51,7 @@ import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_N
 
 
 @Feature("Cluster info page")
-public class ClusterInfoSuite extends SsmBaseSuite {
+public class ClusterInfoSuite extends SsmWebBaseSuite {
 
   @Autowired
   private LoginStep loginStep;

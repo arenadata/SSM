@@ -18,6 +18,7 @@
 package org.smartdata.test.repository;
 
 import io.arenadata.test.util.FileUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -27,20 +28,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 @Repository
-public class MetastoreRepository {
+public class HiveRepository {
 
-  private final DataSource ssmMetastoreDataSource;
+  private final DataSource dataSource;
 
-  public MetastoreRepository(DataSource ssmMetastoreDataSource) {
-    this.ssmMetastoreDataSource = ssmMetastoreDataSource;
+  public HiveRepository(@Qualifier("hiveServer2DataSource") DataSource dataSource) {
+    this.dataSource = dataSource;
   }
 
   public Connection getConnection() throws SQLException {
-    return ssmMetastoreDataSource.getConnection();
+    return dataSource.getConnection();
   }
 
   public void executeSql(String sql) throws SQLException {
-    try (Connection connection = ssmMetastoreDataSource.getConnection();
+    try (Connection connection = getConnection();
          Statement statement = connection.createStatement()) {
       statement.execute(sql);
     }

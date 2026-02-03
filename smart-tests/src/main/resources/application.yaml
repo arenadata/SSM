@@ -6,7 +6,7 @@ general:
 
 docker-compose-service:
   selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
-  compose-file-name: ${COMPOSE_FILE_NAME:target/test-classes/env/multihost/docker-compose.yaml}
+  compose-file-name: ${COMPOSE_FILE_NAME}
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 
@@ -85,3 +85,8 @@ ssm-metastore-db:
     password: ssm
     schema: public
     driver-class-name: org.postgresql.Driver
+
+hive-server2-db:
+  datasource:
+    jdbc-url: jdbc:hive2://${HIVE_SERVER_HOST:localhost}:10000/default
+    driver-class-name: org.apache.hive.jdbc.HiveDriver
