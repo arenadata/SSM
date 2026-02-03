@@ -27,7 +27,8 @@ import FrequencySelect from '@uikit/Table/FrequencySelect/FrequencySelect';
 
 const AuditEventsToolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const auditEvents = useStore(({ adh }) => adh.auditEvents.auditEvents);
+
+  const totalCount = useStore(({ adh }) => adh.auditEvents.totalCount);
   const paginationParams = useStore(({ adh }) => adh.auditEventsTable.paginationParams);
   const requestFrequency = useStore(({ adh }) => adh.auditEventsTable.requestFrequency);
 
@@ -43,8 +44,8 @@ const AuditEventsToolbar: React.FC = () => {
     <FlexGroup gap="20px" className={s.auditEventsToolbar}>
       <AuditEventsResetFilter />
       <Pagination
-        isNextBtn={auditEvents.length === paginationParams.perPage}
         pageData={paginationParams}
+        totalItems={totalCount}
         onChangeData={handlePaginationChange}
         frequencyComponent={<FrequencySelect value={requestFrequency} onChange={handleFrequencyChange} />}
       />
