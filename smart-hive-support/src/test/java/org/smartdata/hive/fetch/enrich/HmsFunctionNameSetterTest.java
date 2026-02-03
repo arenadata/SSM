@@ -35,15 +35,15 @@ import static org.junit.Assert.assertNull;
 import static org.smartdata.hive.HiveEntityFactory.buildDb;
 import static org.smartdata.hive.HiveEntityFactory.buildFunction;
 
-public class HmsEventNameSetterTest {
+public class HmsFunctionNameSetterTest {
 
-  private HmsEventNameSetter eventNameSetter;
+  private HmsEventModifier eventNameSetter;
   private MessageEncoder messageEncoder;
 
   @Before
   public void setUp() {
     this.messageEncoder = JSONMessageEncoder.getInstance();
-    this.eventNameSetter = new HmsEventNameSetter(messageEncoder);
+    this.eventNameSetter = new HmsFunctionNameSetter(messageEncoder);
   }
 
   @Test

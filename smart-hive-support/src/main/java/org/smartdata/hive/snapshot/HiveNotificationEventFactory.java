@@ -152,6 +152,8 @@ public class HiveNotificationEventFactory {
         .entityType(HiveEntity.FOREIGN_KEY.toString())
         .dbName(constraint.getFktable_db())
         .tableName(constraint.getFktable_name())
+        .relatedResources(Collections.singleton(
+            fullResourceName(constraint.getPktable_db(), constraint.getPktable_db())))
         .build();
   }
 

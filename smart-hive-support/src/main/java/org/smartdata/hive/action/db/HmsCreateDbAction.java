@@ -41,7 +41,13 @@ public class HmsCreateDbAction extends HmsAction {
     appendFormatLog("Creating database %s", message.getDB());
 
     Database db = message.getDatabaseObject();
-    db.setLocationUri(renameNameService(db.getLocationUri()));
+
+    if (db.isSetLocationUri()) {
+      db.setLocationUri(renameNameService(db.getLocationUri()));
+    }
+    if (db.isSetManagedLocationUri()) {
+      db.setManagedLocationUri(renameNameService(db.getManagedLocationUri()));
+    }
 
     getMetastoreClient().createDatabase(db);
 
