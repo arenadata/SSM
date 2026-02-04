@@ -29,6 +29,7 @@ import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
+import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.ActionStatusComparator;
@@ -37,6 +38,10 @@ import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.smartdata.test.element.ActionsDetailsPageElement.HEADER_SUCCESSFUL_ICON;
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.ACTION;
@@ -49,6 +54,7 @@ import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.T
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
+import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 @Feature("Actions page")
 public class ActionsSuite extends SsmWebBaseSuite {
@@ -74,6 +80,9 @@ public class ActionsSuite extends SsmWebBaseSuite {
 
   @Autowired
   private ActionsDetailsStep actionsDetailsStep;
+
+  @Autowired
+  private PaginationStep paginationStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -196,6 +205,14 @@ public class ActionsSuite extends SsmWebBaseSuite {
     actionsStep.checkHostAssignment();
   }
 
+  @TmsLink("90209")
+  @Story("Actions")
+  @Test(description = "Check pagination")
+  public void testPagination() {
+    List<String> actionIds = prepareDataForPaginationTest();
+    paginationStep.checkPaginationFixture(ID, actionIds);
+  }
+
   @Step("Create actions for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForActionSortTest();
@@ -216,5 +233,17 @@ public class ActionsSuite extends SsmWebBaseSuite {
     dataBaseStep.insertDataForActionDetailsPageTest();
     actionsStep.refreshPage();
     tableStep.checkTableRowsCountIs(1);
+  }
+
+  @Step("Create actions for pagination test")
+  private List<String> prepareDataForPaginationTest() {
+    List<String> actionIds = new ArrayList<>();
+    tableStep.checkTableIsEmpty();
+    for (int i = 1; i <= PAGINATION_QUANTITY; i++) {
+      actionIds.add(apiStep.createAction(TEST_ACTION_TEXT).getId().toString());
+    }
+    actionsStep.refreshPage();
+    Collections.reverse(actionIds);
+    return actionIds;
   }
 }
