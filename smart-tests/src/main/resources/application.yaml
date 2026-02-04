@@ -1,7 +1,7 @@
 general:
   # env-type: docker|remote
   env-type: ${ENV_TYPE:docker}
-  browser-manager: ${BROWSER_MANAGER:selenoid} # local|selenoid|moon
+  browser-manager: ${BROWSER_MANAGER:moon} # local|selenoid|moon
   ci: ${CI:false}
   protocol: ${PROTOCOL:http}
   bundle-run: ${BUNDLE_RUN:false}
