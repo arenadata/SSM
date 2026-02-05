@@ -98,3 +98,14 @@ Run HMS tests suite:
 ```shell
 mvn verify -Phms-tests -f smart-tests/pom.xml
 ```
+
+Web tests can be launched in 2 modes - `docker` or `remote`, it can be specified in the `general.env-type` test property.
+- `docker` mode means that SSM starts locally in docker containers and shut down after tests are finished. **Used by default.**
+- `remote` mode requires already started SSM cluster to run tests.
+
+Also, web tests can be launched in different grids or in local browser. It can be specified in the `general.browser-manager` test property.
+- `local` - local Chrome browser is used.
+- `selenoid` - Selenoid starts locally in docker containers.
+- `moon` - remote Moon cluster is used.
+
+Configuration values can be changed either directly in application.yml config or by passing env variables (`ENV_TYPE` and `BROWSER_MANAGER`) in TestNG run configuration.
