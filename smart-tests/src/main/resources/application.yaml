@@ -32,7 +32,6 @@ grids:
       browserName: ${BROWSER_NAME:chrome}
       screenshot-successful-steps: false
 
-
 logs:
   docker-logs-directory: target/allure-results
   docker-logs-archive-name: logs.zip
