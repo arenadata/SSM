@@ -22,6 +22,7 @@ import io.arenadata.test.step.BaseApiStep;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.client.generated.invoker.ApiClient;
+import org.smartdata.client.generated.model.ActionInfoDto;
 import org.smartdata.client.generated.model.SubmitActionRequestDto;
 import org.smartdata.client.generated.model.SubmitRuleRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +43,11 @@ public class ApiStep extends BaseApiStep {
     return this;
   }
 
-  public ApiStep createAction(String actionText) {
-    apiClient.actions().submitAction()
+  public ActionInfoDto createAction(String actionText) {
+    return apiClient.actions().submitAction()
         .body(new SubmitActionRequestDto().action(actionText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
-    return this;
   }
 
   public ApiClient getRawClient() {

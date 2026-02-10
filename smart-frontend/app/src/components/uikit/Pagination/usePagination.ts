@@ -59,134 +59,122 @@ interface Results {
 }
 
 export function usePagination(params: UsePaginationParams): Results {
-  const { pageNumber, totalItems, maxItems, isNextBtn, perPage } = params;
-  const totalPages = Math.ceil(totalItems / perPage);
+  const { pageNumber, totalItems, perPage, maxItems, isNextBtn } = params;
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
   const hasNext = typeof isNextBtn === 'boolean' ? isNextBtn : pageNumber < totalPages - 1;
   const hasPrev = pageNumber > 0;
 
-  const decorationPrev = pageNumber - DECORATION_STEP >= 0 ? DECORATION_STEP : 0;
-  const decorationNext = pageNumber + DECORATION_STEP <= totalPages - 1 ? -DECORATION_STEP : totalPages - 1;
-
   const linksAt = useMemo<LinksAt>(() => {
-    // 0 1 2 3 4
+    // All pages fits, no need for dots
+    // 1 2 3 4 5 6 7
     if (totalPages <= maxItems) {
       return 'none';
     }
 
-    // 0 1 2 3 4 ... 99
+    const boundary = maxItems - TRAILING_ITEMS_AMOUNT - 1;
+
+    // 1 2 3 4 5 … 100
     //       ^
-    if (pageNumber < maxItems - TRAILING_ITEMS_AMOUNT - 1) {
+    if (pageNumber <= boundary) {
       return 'start';
     }
 
-    // 0 ... 49 50 60 ... 99
+    // 1 … 96 97 98 99 100
     //          ^
-    if (
-      pageNumber >= maxItems - TRAILING_ITEMS_AMOUNT - 1 &&
-      pageNumber < totalPages - (maxItems - TRAILING_ITEMS_AMOUNT * 2)
-    ) {
-      return 'center';
+    if (pageNumber >= totalPages - 1 - boundary) {
+      return 'end';
     }
 
-    // 0 ... 95 96 97 98 99
+    // 1 … 48 49 50 51 52 … 100
     //          ^
-    return 'end';
-  }, [pageNumber, maxItems, totalPages]);
+    return 'center';
+  }, [pageNumber, totalPages, maxItems]);
+
+  // Dots lead on these pages (±5 from current)
+  const prevDecorationPage = Math.max(0, pageNumber - DECORATION_STEP);
+  const nextDecorationPage = Math.min(totalPages - 1, pageNumber + DECORATION_STEP);
 
   const pageItems = useMemo<PaginationDataItem[]>(() => {
+    const items: PaginationDataItem[] = [];
+
+    const addPage = (num: number) => {
+      items.push({
+        key: `page-${num}`,
+        type: 'page',
+        label: (num + 1).toString(),
+        pageNumber: num,
+      });
+    };
+
+    const addDots = (targetPage: number) => {
+      items.push({
+        key: `dots-${items.length}`,
+        type: 'decoration',
+        label: '...',
+        pageNumber: targetPage,
+      });
+    };
+
     switch (linksAt) {
       case 'none': {
-        const from = 0;
-        const to = totalPages - 1;
-        const index = 0;
-
-        return getLinks(from, to, index);
+        for (let i = 0; i < totalPages; i++) {
+          addPage(i);
+        }
+        break;
       }
+
       case 'start': {
-        const from = 0;
-        const to = maxItems - TRAILING_ITEMS_AMOUNT - 1;
-        const index = 0;
-        const startLinks = getLinks(from, to, index);
-
-        return [
-          ...startLinks,
-          {
-            key: startLinks.length.toString(),
-            type: 'decoration',
-            label: '...',
-            pageNumber: decorationNext,
-          },
-          {
-            key: (startLinks.length + 1).toString(),
-            type: 'page',
-            label: totalPages.toString(),
-            pageNumber: totalPages - 1,
-          },
-        ];
+        for (let i = 0; i < maxItems - 1; i++) {
+          addPage(i);
+        }
+        addDots(nextDecorationPage);
+        addPage(totalPages - 1);
+        break;
       }
+
       case 'center': {
-        const iterations = maxItems - TRAILING_ITEMS_AMOUNT * 2;
-        const spot = Math.ceil(iterations / 2);
-        const from = pageNumber - spot + 1;
-        const to = from + iterations - 1;
-        const index = 2;
-        const midLinks = getLinks(from, to, index);
+        addPage(0);
+        addDots(prevDecorationPage);
 
-        return [
-          {
-            key: '0',
-            type: 'page',
-            label: '1',
-            pageNumber: 0,
-          },
-          {
-            key: '1',
-            type: 'decoration',
-            label: '...',
-            pageNumber: decorationPrev,
-          },
-          ...midLinks,
-          {
-            key: (index + midLinks.length).toString(),
-            type: 'decoration',
-            label: '...',
-            pageNumber: decorationNext,
-          },
-          {
-            key: (index + midLinks.length + 1).toString(),
-            type: 'page',
-            label: totalPages.toString(),
-            pageNumber: totalPages - 1,
-          },
-        ];
+        const middleCount = maxItems - 4;
+        const half = Math.floor(middleCount / 2);
+        let start = pageNumber - half;
+        let end = pageNumber + half + (middleCount % 2);
+
+        if (start < 2) {
+          end += 2 - start;
+          start = 2;
+        }
+        if (end > totalPages - 3) {
+          start -= end - (totalPages - 3);
+          end = totalPages - 3;
+        }
+        start = Math.max(start, 2);
+        end = Math.min(end, totalPages - 3);
+
+        for (let i = start; i <= end; i++) {
+          addPage(i);
+        }
+
+        addDots(nextDecorationPage);
+        addPage(totalPages - 1);
+        break;
       }
+
       case 'end': {
-        const from = totalPages - (maxItems - TRAILING_ITEMS_AMOUNT);
-        const to = totalPages - 1;
-        const index = 2;
-        const endLinks = getLinks(from, to, index);
+        addPage(0);
+        addDots(prevDecorationPage);
 
-        return [
-          {
-            key: '0',
-            type: 'page',
-            label: '1',
-            pageNumber: 0,
-          },
-          {
-            key: '1',
-            type: 'decoration',
-            label: '...',
-            pageNumber: decorationPrev,
-          },
-          ...endLinks,
-        ];
-      }
-      default: {
-        return [];
+        for (let i = totalPages - (maxItems - 1); i < totalPages; i++) {
+          addPage(i);
+        }
+        break;
       }
     }
-  }, [linksAt, totalPages, maxItems, decorationNext, pageNumber, decorationPrev]);
+
+    return items;
+  }, [linksAt, pageNumber, totalPages, maxItems, prevDecorationPage, nextDecorationPage]);
 
   return {
     hasNext,
@@ -194,18 +182,4 @@ export function usePagination(params: UsePaginationParams): Results {
     pageItems,
     totalPages,
   };
-}
-
-function getLinks(from: number, to: number, index: number): PaginationDataItem[] {
-  const links: PaginationDataItem[] = [];
-  for (let pageNumber = from; pageNumber <= to; pageNumber += 1) {
-    links.push({
-      key: (pageNumber - from + index).toString(),
-      type: 'page',
-      label: (pageNumber + 1).toString(),
-      pageNumber,
-    });
-  }
-
-  return links;
 }

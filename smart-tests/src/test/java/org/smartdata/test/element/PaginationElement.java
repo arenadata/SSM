@@ -31,16 +31,21 @@ public interface PaginationElement {
   String NEXT_PAGE_BUTTON = ".//*[@data-qa='pagination-next-page']";
   String PREV_PAGE_BUTTON = ".//*[@data-qa='pagination-prev-page']";
   String LAST_PAGE_BUTTON = ".//*[@data-qa='pagination-last-page']";
+  String PAGE_BUTTONS = ".//*[contains(@class, 'paginationButton') and not(contains(@class, 'Arrow'))]";
   String EXTEND_PAGES_BUTTON = ".//*[contains(@class, 'paginationButton') and .='...']";
   String SHOW_PER_PAGE_INPUT = ".//*[contains(@class, 'pagination') and contains(@class, 'commonSelectField')]//input";
   ElementsCollection SHOW_PER_PAGE_OPTIONS = $$x(".//*[@data-qa='pagination-per-page-popover']//li");
 
-  static SelenideElement getNumberedButtonByPageNum(int pageNum, SelenideElement baseElement) {
-    return getNumberedButtons(baseElement).find(exactText(String.valueOf(pageNum)));
+  static ElementsCollection getPageButtons(SelenideElement baseElement) {
+    return findAllFromBaseElement(baseElement, PAGE_BUTTONS);
   }
 
   static ElementsCollection getNumberedButtons(SelenideElement baseElement) {
     return findAllFromBaseElement(baseElement, PAGINATION_NUMBERED_BUTTONS);
+  }
+
+  static SelenideElement getNumberedButtonByPageNum(int pageNum, SelenideElement baseElement) {
+    return getNumberedButtons(baseElement).find(exactText(String.valueOf(pageNum)));
   }
 
   static SelenideElement getPerPageInput(SelenideElement baseElement) {

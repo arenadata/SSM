@@ -47,6 +47,7 @@ import static org.smartdata.test.element.PaginationElement.getLastPageButton;
 import static org.smartdata.test.element.PaginationElement.getNextPageButton;
 import static org.smartdata.test.element.PaginationElement.getNumberedButtonByPageNum;
 import static org.smartdata.test.element.PaginationElement.getNumberedButtons;
+import static org.smartdata.test.element.PaginationElement.getPageButtons;
 import static org.smartdata.test.element.PaginationElement.getPerPageInput;
 import static org.smartdata.test.element.PaginationElement.getPreviousPageButton;
 import static org.smartdata.test.element.TableElement.TableType;
@@ -75,9 +76,9 @@ public class PaginationStep extends BaseWebStep {
     return this;
   }
 
-  @Step("Check that there are {expectedAmount} numbered pagination buttons on the page")
-  public PaginationStep checkNumberedButtonsAmount(int expectedAmount, SelenideElement baseElement) {
-    checkSize(getNumberedButtons(baseElement), expectedAmount);
+  @Step("Check that there are {expectedAmount} page buttons on the page")
+  public PaginationStep checkPageButtonsAmount(int expectedAmount, SelenideElement baseElement) {
+    checkSize(getPageButtons(baseElement), expectedAmount);
     return this;
   }
 
@@ -126,7 +127,7 @@ public class PaginationStep extends BaseWebStep {
                                         TableType tableType, TableColumn tableColumn,
                                         List<String> testColumnValues, SelenideElement baseElement) {
     checkNumberedButtonIsSelected(pageNum, baseElement)
-        .checkNumberedButtonsAmount(getNumberedButtonsQuantity(testColumnValues.size(), pageSize.getSize()),
+        .checkPageButtonsAmount(getPageButtonsQuantity(testColumnValues.size(), pageSize.getSize()),
             baseElement)
         .checkShowPerPageValue(pageSize, baseElement);
     tableStep.checkColumnValues(tableType, tableColumn,
@@ -164,8 +165,8 @@ public class PaginationStep extends BaseWebStep {
     waitAndClick(getExtendPageButton(baseElement));
     checkPagination(6, TEN, tableType, tableColumn, testColumnValues, baseElement);
 
-    waitAndClick(getNumberedButtonByPageNum(4, baseElement));
-    checkPagination(4, TEN, tableType, tableColumn, testColumnValues, baseElement);
+    waitAndClick(getNumberedButtonByPageNum(8, baseElement));
+    checkPagination(8, TEN, tableType, tableColumn, testColumnValues, baseElement);
 
     setShowPerPageOption(THIRTY, baseElement)
         .checkPagination(1, THIRTY, tableType, tableColumn, testColumnValues, baseElement);
@@ -187,7 +188,7 @@ public class PaginationStep extends BaseWebStep {
     return testColumnValues.subList(fromIndex, toIndex);
   }
 
-  private int getNumberedButtonsQuantity(int testColumnValuesSize, int pageSize) {
+  private int getPageButtonsQuantity(int testColumnValuesSize, int pageSize) {
     int pages = (testColumnValuesSize + pageSize - 1) / pageSize;
     return Math.min(pages, 8);
   }

@@ -30,12 +30,16 @@ import org.smartdata.test.step.AuditStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
+import org.smartdata.test.step.PaginationStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.DATE;
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.ID;
@@ -45,6 +49,7 @@ import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.OPERA
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.USER;
 import static org.smartdata.test.model.SortOrder.ASC;
 import static org.smartdata.test.model.SortOrder.DESC;
+import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 
 @Feature("Audit page")
 public class AuditSuite extends SsmWebBaseSuite {
@@ -66,6 +71,9 @@ public class AuditSuite extends SsmWebBaseSuite {
 
   @Autowired
   private ApiStep apiStep;
+
+  @Autowired
+  private PaginationStep paginationStep;
 
   @BeforeMethod
   public void testPrepare() {
@@ -116,6 +124,16 @@ public class AuditSuite extends SsmWebBaseSuite {
     }
   }
 
+  @TmsLink("90592")
+  @Story("Audit")
+  @Test(description = "Check pagination")
+  public void testPagination() {
+    List<String> objectIds = prepareDataForPaginationTest();
+    tableStep.clickOnSortingColumn(OBJECT_ID)
+        .checkSelectedSorting(OBJECT_ID, ASC);
+    paginationStep.checkPaginationFixture(OBJECT_ID, objectIds);
+  }
+
   @Step("Create audit events for sorting test")
   private void prepareDataForSortingTest() {
     dataBaseStep.insertDataForAuditSortTest();
@@ -132,5 +150,16 @@ public class AuditSuite extends SsmWebBaseSuite {
     dataBaseStep.insertDataForAuditFilterTest();
     tableStep.refreshPage();
     tableStep.checkTableRowsCountIs(2);
+  }
+
+  @Step("Create actions for audit pagination test")
+  private List<String> prepareDataForPaginationTest() {
+    List<String> cmdletIds = new ArrayList<>();
+    tableStep.checkTableIsEmpty();
+    for (int i = 1; i <= PAGINATION_QUANTITY; i++) {
+      cmdletIds.add(apiStep.createAction("sleep -ms 10").getCmdletId().toString());
+    }
+    auditStep.refreshPage();
+    return cmdletIds;
   }
 }
