@@ -18,6 +18,7 @@
 package org.smartdata.test.configuration;
 
 import io.arenadata.test.configuration.CommonTestConfiguration;
+import io.arenadata.test.configuration.GeneralConfiguration;
 import io.arenadata.test.model.Component;
 import io.arenadata.test.service.ContainerManager;
 import io.arenadata.test.service.HostService;
@@ -64,13 +65,13 @@ public class SsmTestConfiguration {
   @Bean("hostService")
   @ConfigurationProperties(prefix = "docker-compose-service")
   @ConditionalOnProperty(name = "env-type", havingValue = "docker")
-  public HostService dockerHostService(ContainerManager containerManager) {
-    return new DockerComposeService(containerManager);
+  public HostService dockerHostService(ContainerManager containerManager, GeneralConfiguration generalConfiguration) {
+    return new DockerComposeService(containerManager, generalConfiguration);
   }
 
   @Bean("hostService")
   @ConditionalOnProperty(name = "env-type", havingValue = "remote")
-  public HostService remoteHostService(SshCommandExecutor sshCommandExecutor) {
-    return new RemoteHostService(sshCommandExecutor);
+  public HostService remoteHostService(SshCommandExecutor sshCommandExecutor, GeneralConfiguration generalConfiguration) {
+    return new RemoteHostService(sshCommandExecutor, generalConfiguration);
   }
 }

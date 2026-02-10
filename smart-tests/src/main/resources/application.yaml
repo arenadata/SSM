@@ -1,21 +1,36 @@
 general:
   # env-type: docker|remote
   env-type: ${ENV_TYPE:docker}
-  use-selenoid: ${CI:true}
+  browser-manager: ${BROWSER_MANAGER:moon} # local|selenoid|moon
+  ci: ${CI:false}
+  protocol: ${PROTOCOL:http}
+  bundle-run: ${BUNDLE_RUN:false}
+  selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
 docker-compose-service:
-  selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
   compose-file-name: ${COMPOSE_FILE_NAME}
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 
-selenoid:
-  proxy-host: ${SELENOID_PROXY_HOST:172.17.0.1}
-  ui-remote-hub: ${SELENOID_UI_REMOTE_HUB:http://localhost:4444/wd/hub}
-  browser-name: ${DEFAULT_BROWSER_NAME:chrome}
-  browser-version: ${DEFAULT_BROWSER_VERSION:stable}
-  screenshot-successful-steps: true
+grids:
+  list:
+    - type: selenoid
+      proxyHost: ${SELENOID_PROXY_HOST:172.17.0.1}
+      remoteHost: ${SELENOID_REMOTE_HOST:http://localhost:4444}
+      browserName: ${BROWSER_NAME:chrome}
+      browserVersion: ${BROWSER_VERSION:stable}
+      screenshot-successful-steps: true
+
+    - type: moon
+      remoteHost: ${MOON_REMOTE_HOST:https://moon.dev.adsw.io}
+      browserName: ${BROWSER_NAME:chrome}
+      browserVersion: ${BROWSER_VERSION:136.0.7103.113-8}
+      screenshot-successful-steps: true
+
+    - type: local
+      browserName: ${BROWSER_NAME:chrome}
+      screenshot-successful-steps: false
 
 logs:
   docker-logs-directory: target/allure-results
