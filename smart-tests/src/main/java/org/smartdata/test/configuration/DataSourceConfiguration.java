@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.configuration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -42,8 +43,21 @@ public class DataSourceConfiguration {
   }
 
   @Bean
+  @ConfigurationProperties("ssm-hive-db.datasource")
+  public DataSource ssmHiveDataSource() {
+    return DataSourceBuilder.create().build();
+  }
+
+  @Bean
   @ConfigurationProperties("hive-server2-db.datasource")
   public DataSource hiveServer2DataSource() {
+    return DataSourceBuilder.create().build();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "hms-profile-enabled", havingValue = "true")
+  @ConfigurationProperties("target-hive-server2-db.datasource")
+  public DataSource targetHiveServer2DataSource() {
     return DataSourceBuilder.create().build();
   }
 }

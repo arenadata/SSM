@@ -15,28 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.dao;
+package org.smartdata.test.entity;
 
-import org.smartdata.test.entity.HiveMetastoreEventEntity;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * DAO interface for accessing hive_metastore_event table.
+ * Entity class representing a record in the hive_sync_progress table.
  */
-public interface HiveMetastoreEventDao {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HiveSyncProgressEntity {
 
-  /**
-   * Find all hive metastore events.
-   *
-   * @return list of all events
-   */
-  List<HiveMetastoreEventEntity> findAll();
-
-  /**
-   * Delete all hive metastore events.
-   *
-   * @return updated rows count
-   */
-  int deleteAll();
+  private Long ruleId;
+  private Long eventId;
 }

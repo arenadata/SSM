@@ -51,6 +51,8 @@
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <thrift.version>0.22.0</thrift.version> <!-- Used with hive-jdbc -->
+        <awaitility.version>4.3.0</awaitility.version>
+        <assertj.version>3.27.7</assertj.version>
         <COMPOSE_FILE_NAME>target/test-classes/env/multihost/docker-compose.yaml</COMPOSE_FILE_NAME>
     </properties>
     <dependencies>
@@ -90,6 +92,16 @@
             <artifactId>libthrift</artifactId>
             <version>${thrift.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -123,6 +135,7 @@
             </activation>
             <properties>
                 <COMPOSE_FILE_NAME>target/test-classes/env/hms-cluster/docker-compose.yaml</COMPOSE_FILE_NAME>
+                <HMS_PROFILE_ENABLED>true</HMS_PROFILE_ENABLED>
             </properties>
             <build>
                 <plugins>
