@@ -132,13 +132,10 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
 
   private List<Long> setupEventsIdsForSyncFullTests() throws Exception {
     int testTableQuantity = 2;
-    int expectedEventCount = 4;
     containerManager.start(SSM_SERVER);
     createTestDataInHiveMetaStore(testTableQuantity);
-    waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(expectedEventCount), DEFAULT_WAIT_PARAMS);
-    List<HiveMetastoreEventEntity> events = hiveMetastoreEventDao.findAll();
-    checkEventsContainExpectedEntities(events, testTableQuantity);
-    return events.stream()
+    checkEventsContainExpectedEntities(testTableQuantity);
+    return hiveMetastoreEventDao.findAll().stream()
         .map(HiveMetastoreEventEntity::getId)
         .collect(Collectors.toList());
   }
@@ -151,9 +148,7 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     containerManager.start(SSM_SERVER);
     int testTableQuantity = 1;
     createTestDataInHiveMetaStore(testTableQuantity);
-    waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(3), DEFAULT_WAIT_PARAMS);
-    List<HiveMetastoreEventEntity> events = hiveMetastoreEventDao.findAll();
-    checkEventsContainExpectedEntities(events, testTableQuantity);
+    checkEventsContainExpectedEntities(testTableQuantity);
   }
 
   @TmsLink("136285")
@@ -286,7 +281,7 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     }
   }
 
-  private void checkEventsContainExpectedEntities(List<HiveMetastoreEventEntity> events, int testTableQuantity) {
+  private void checkEventsContainExpectedEntities(int testTableQuantity) {
     List<Tuple> expectedEvents = new ArrayList<>();
     expectedEvents.add(tuple(DEFAULT_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
     expectedEvents.add(tuple(TEST_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
@@ -294,10 +289,10 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
       expectedEvents.add(
           tuple(format("%s.t%s", TEST_DATABASE, i), EntityType.TABLE.name(), EventType.CREATE.name()));
     }
-    assertThat(events)
-        .extracting(HiveMetastoreEventEntity::getEntityName,
-            HiveMetastoreEventEntity::getEntityType,
-            HiveMetastoreEventEntity::getEventType)
-        .containsExactlyInAnyOrder(expectedEvents.toArray(new Tuple[0]));
+    waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll())
+          .extracting(HiveMetastoreEventEntity::getEntityName,
+              HiveMetastoreEventEntity::getEntityType,
+              HiveMetastoreEventEntity::getEventType)
+          .containsExactlyInAnyOrder(expectedEvents.toArray(new Tuple[0])), DEFAULT_WAIT_PARAMS);
   }
 }
