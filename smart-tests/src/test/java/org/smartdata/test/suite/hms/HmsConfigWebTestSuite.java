@@ -50,7 +50,7 @@ import static org.smartdata.test.util.constant.CommonConstants.AGENT_CONF_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS replication")
-public class HmsWebTestSuite extends SsmWebBaseSuite {
+public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private ConfigModifierService configModifierService;
   @Autowired
