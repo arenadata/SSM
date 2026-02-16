@@ -39,8 +39,7 @@ public class HiveMetastoreEventDaoImpl implements HiveMetastoreEventDao {
       "SELECT id, external_id, event_time, event_type, entity_name, entity_type, " +
           "catalog_name, db_name, table_name, message, message_format, related_resources " +
           "FROM " + TABLE_NAME;
-  private static final String REMOVE_ALL =
-      "DELETE FROM " + TABLE_NAME;
+  private static final String DELETE_ALL = "DELETE FROM " + TABLE_NAME;
   private final JdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -58,6 +57,6 @@ public class HiveMetastoreEventDaoImpl implements HiveMetastoreEventDao {
 
   @Override
   public int deleteAll() {
-    return jdbcTemplate.update(REMOVE_ALL);
+    return jdbcTemplate.update(DELETE_ALL);
   }
 }
