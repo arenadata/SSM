@@ -35,10 +35,8 @@ import java.util.List;
 @Repository
 public class HiveSyncProgressDaoImpl implements HiveSyncProgressDao {
   private static final String TABLE_NAME = "hive_sync_progress";
-  private static final String SELECT_ALL =
-      "SELECT rule_id, event_id FROM " + TABLE_NAME;
-  private static final String DELETE_ALL =
-      "DELETE FROM " + TABLE_NAME;
+  private static final String SELECT_ALL = "SELECT rule_id, event_id FROM " + TABLE_NAME;
+  private static final String DELETE_ALL = "DELETE FROM " + TABLE_NAME;
   private final JdbcTemplate jdbcTemplate;
 
   @Autowired

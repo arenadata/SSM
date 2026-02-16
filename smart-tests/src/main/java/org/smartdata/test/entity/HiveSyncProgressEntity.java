@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HiveSyncProgressEntity {
-
   private Long ruleId;
   private Long eventId;
 }
