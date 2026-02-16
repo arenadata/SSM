@@ -39,18 +39,8 @@ import static java.time.temporal.ChronoUnit.HOURS;
 @Slf4j
 @Service
 public class DataBaseStep {
-  private static final String DROP_HIVE_SERVERS_TABLE_TEMPLATE = "DROP DATABASE IF EXISTS %s CASCADE";
-  private static final String DROP_TABLE_TEMPLATE = "DROP TABLE %s";
-  private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
-  private static final String RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL = "restore_hive_metastore_event_table.sql";
   @Autowired
   private SqlExecutor sqlExecutor;
-
-  private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
-  private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
-  private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
-      "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
-      "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   @Autowired
   @Qualifier("ssmMetastoreDataSource")
   private DataSource ssmMetastoreDataSource;
@@ -58,8 +48,21 @@ public class DataBaseStep {
   @Qualifier("hiveServer2DataSource")
   private DataSource hiveServer2DataSource;
   @Autowired
+  @Qualifier("ssmHiveDataSource")
+  private DataSource ssmHiveDataSource;
+  @Autowired(required = false)
   @Qualifier("targetHiveServer2DataSource")
   private DataSource targetHiveServer2DataSource;
+
+  private static final String DROP_HIVE_SERVERS_TABLE_TEMPLATE = "DROP DATABASE IF EXISTS %s CASCADE";
+  private static final String DROP_TABLE_TEMPLATE = "DROP TABLE %s";
+  private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
+  private static final String RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL = "restore_hive_metastore_event_table.sql";
+  private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
+  private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
+  private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
+      "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
+      "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
   private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
@@ -73,9 +76,6 @@ public class DataBaseStep {
   private static final String HOTTEST_FILES_FOR_PAGINATION_TEST_SQL = "insert_hottest_files_for_pagination_test.sql";
   private static final String INSERT_FILES_IN_CACHE_SQL = "insert_fake_files_in_cache.sql";
   private static final String FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL = "insert_files_in_cache_for_pagination_test.sql";
-  @Autowired
-  @Qualifier("ssmHiveDataSource")
-  private DataSource ssmHiveDataSource;
 
   public DataBaseStep cleanRuleTable() throws SQLException {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "rule"));
