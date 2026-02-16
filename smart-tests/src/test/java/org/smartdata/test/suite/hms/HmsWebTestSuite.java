@@ -51,10 +51,6 @@ import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS replication")
 public class HmsWebTestSuite extends SsmWebBaseSuite {
-  private static final String TEST_DATABASE = "db1";
-  private static final String HMS_SYNC_RULE =
-      "hms : name matches \"*.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
-  private static final Duration AWAITILITY_PULL_INTERVAL = Duration.ofMillis(1000);
   @Autowired
   private ConfigModifierService configModifierService;
   @Autowired
@@ -75,6 +71,11 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
   private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
   @Autowired
   private HiveSyncProgressDaoImpl hiveSyncProgressDao;
+
+  private static final String TEST_DATABASE = "db1";
+  private static final String HMS_SYNC_RULE =
+      "hms : name matches \"*.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
+  private static final Duration AWAITILITY_PULL_INTERVAL = Duration.ofMillis(1000);
 
   @BeforeMethod
   public void restoreEnv() throws IOException {

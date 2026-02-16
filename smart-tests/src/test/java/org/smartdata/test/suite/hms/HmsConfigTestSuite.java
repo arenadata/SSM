@@ -67,9 +67,16 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   private static final String EVENT_SYNC_FULL_PARAM = "smart.hive.event.sync.full";
   @Autowired
   private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
+  @Autowired
+  private DataBaseStep dataBaseStep;
+  @Autowired
+  private SqlExecutor sqlExecutor;
+  @Autowired
+  @Qualifier("hiveServer2DataSource")
+  private DataSource hiveServer2DataSource;
+
   private static final String EVENT_FETCH_ENABLED_PARAM = "smart.hive.event.fetch.enabled";
   private static final String EVENT_FETCH_BATCH_SIZE_PARAM = "smart.hive.event.fetch.batch.size";
-
   private static final String DEFAULT_DATABASE = "default";
   private static final String TEST_DATABASE = "db1";
   private static final String EVENT_FETCH_PERIOD_MS_PARAM = "smart.hive.event.fetch.period.ms";
@@ -83,13 +90,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   private static final String RETRY_STRATEGY_FAIL_EXCEPTION_MESSAGE =
       "org.smartdata.retry.RetryException: try once and fail.";
   private static final Duration AWAITILITY_PULL_INTERVAL = Duration.ofMillis(1000);
-  @Autowired
-  private DataBaseStep dataBaseStep;
-  @Autowired
-  private SqlExecutor sqlExecutor;
-  @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
 
   @BeforeMethod
   public void restoreEnv() throws IOException {
@@ -290,9 +290,9 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
           tuple(format("%s.t%s", TEST_DATABASE, i), EntityType.TABLE.name(), EventType.CREATE.name()));
     }
     waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll())
-          .extracting(HiveMetastoreEventEntity::getEntityName,
-              HiveMetastoreEventEntity::getEntityType,
-              HiveMetastoreEventEntity::getEventType)
-          .containsExactlyInAnyOrder(expectedEvents.toArray(new Tuple[0])), DEFAULT_WAIT_PARAMS);
+        .extracting(HiveMetastoreEventEntity::getEntityName,
+            HiveMetastoreEventEntity::getEntityType,
+            HiveMetastoreEventEntity::getEventType)
+        .containsExactlyInAnyOrder(expectedEvents.toArray(new Tuple[0])), DEFAULT_WAIT_PARAMS);
   }
 }
