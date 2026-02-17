@@ -97,11 +97,7 @@ public class RulesSuite extends SsmWebBaseSuite {
         .clickCancelButton()
         .checkEditorNotVisible();
     tableStep.checkTableIsEmpty();
-    rulesStep.clickCreateRuleButton()
-        .checkEditorVisible()
-        .checkEditorEmpty()
-        .insertRuleText(TEST_RULE_TEXT)
-        .clickCreateButton();
+    rulesStep.createRule(TEST_RULE_TEXT);
     tableStep.checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(RULE_TEXT, TEST_RULE_TEXT)
         .checkColumnValueInFirstRow(STATUS, DISABLED.getText());

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.codeborne.selenide.CollectionCondition.containExactTextsCaseSensitive;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.not;
@@ -283,6 +284,12 @@ public class TableStep extends BaseWebStep {
     String[] expectedValues = new String[expectedRowsCount];
     Arrays.fill(expectedValues, value);
     getAllColumnCells(tableColumn).shouldHave(exactTexts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    return this;
+  }
+
+  @Step("Check {tableColumn} column contains exact values: '{values}'")
+  public TableStep checkColumnCellsContainsValues(TableColumn tableColumn, String... values) {
+    getAllColumnCells(tableColumn).shouldHave(containExactTextsCaseSensitive(values), DEFAULT_WEB_ELEMENT_TIMEOUT);
     return this;
   }
 

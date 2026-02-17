@@ -18,8 +18,8 @@
 package org.smartdata.test.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.smartdata.test.dao.HiveMetastoreEventDao;
-import org.smartdata.test.entity.HiveMetastoreEventEntity;
+import org.smartdata.test.dao.HiveSyncProgressDao;
+import org.smartdata.test.entity.HiveSyncProgressEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -29,29 +29,26 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Implementation of HiveMetastoreEventDao using Spring JDBC Template.
+ * Implementation of HiveSyncProgressDao using Spring JDBC Template.
  */
 @Slf4j
 @Repository
-public class HiveMetastoreEventDaoImpl implements HiveMetastoreEventDao {
-  private static final String TABLE_NAME = "hive_metastore_event";
-  private static final String SELECT_ALL =
-      "SELECT id, external_id, event_time, event_type, entity_name, entity_type, " +
-          "catalog_name, db_name, table_name, message, message_format, related_resources " +
-          "FROM " + TABLE_NAME;
+public class HiveSyncProgressDaoImpl implements HiveSyncProgressDao {
+  private static final String TABLE_NAME = "hive_sync_progress";
+  private static final String SELECT_ALL = "SELECT rule_id, event_id FROM " + TABLE_NAME;
   private static final String DELETE_ALL = "DELETE FROM " + TABLE_NAME;
   private final JdbcTemplate jdbcTemplate;
 
   @Autowired
-  public HiveMetastoreEventDaoImpl(@Qualifier("ssmMetastoreJdbcTemplate") JdbcTemplate jdbcTemplate) {
+  public HiveSyncProgressDaoImpl(@Qualifier("ssmMetastoreJdbcTemplate") JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
   }
 
   @Override
-  public List<HiveMetastoreEventEntity> findAll() {
+  public List<HiveSyncProgressEntity> findAll() {
     return jdbcTemplate.query(
         SELECT_ALL,
-        BeanPropertyRowMapper.newInstance(HiveMetastoreEventEntity.class)
+        BeanPropertyRowMapper.newInstance(HiveSyncProgressEntity.class)
     );
   }
 

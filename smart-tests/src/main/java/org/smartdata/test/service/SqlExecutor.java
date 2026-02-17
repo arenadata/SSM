@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.test.repository;
+package org.smartdata.test.service;
 
 import io.arenadata.test.util.FileUtils;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 
@@ -26,28 +26,17 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-@Repository
-public class MetastoreRepository {
-
-  private final DataSource ssmMetastoreDataSource;
-
-  public MetastoreRepository(DataSource ssmMetastoreDataSource) {
-    this.ssmMetastoreDataSource = ssmMetastoreDataSource;
-  }
-
-  public Connection getConnection() throws SQLException {
-    return ssmMetastoreDataSource.getConnection();
-  }
-
-  public void executeSql(String sql) throws SQLException {
-    try (Connection connection = ssmMetastoreDataSource.getConnection();
+@Service
+public class SqlExecutor {
+  public void executeSql(DataSource dataSource, String sql) throws SQLException {
+    try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement()) {
       statement.execute(sql);
     }
   }
 
-  public void executeSqlFile(String path) throws SQLException {
+  public void executeSqlFile(DataSource dataSource, String path) throws SQLException {
     String sql = FileUtils.readFile(path);
-    executeSql(sql);
+    executeSql(dataSource, sql);
   }
 }

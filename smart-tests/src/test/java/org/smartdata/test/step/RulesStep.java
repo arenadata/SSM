@@ -43,6 +43,8 @@ import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.LAST_
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.RULE_TEXT;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.STATUS;
 import static org.smartdata.test.element.RulesPageElement.RulesTableColumn.SUBMISSION_TIME;
+import static org.smartdata.test.element.RulesPageElement.START_RULE_BUTTON;
+import static org.smartdata.test.element.TableElement.GREEN_STATUS_MARKER_XPATH;
 import static org.smartdata.test.model.RuleStatus.ACTIVE;
 
 @Slf4j
@@ -178,6 +180,26 @@ public class RulesStep extends BaseWebStep {
     waitAndClick(actionButton);
     waitAndClick(RULE_MODAL_DIALOG_ACCEPT_BUTTON);
     waitDisappear(RULE_MODAL_DIALOG);
+    return this;
+  }
+
+  @Step("Create rule: {rule}")
+  public RulesStep createRule(String rule) {
+    clickCreateRuleButton()
+        .checkEditorVisible()
+        .checkEditorEmpty()
+        .insertRuleText(rule)
+        .clickCreateButton();
+    return this;
+  }
+
+  @Step("Start rule of the first row")
+  public RulesStep startRuleInFirstRow() {
+    waitAndClick(START_RULE_BUTTON);
+    waitAndClick(RULE_MODAL_DIALOG_ACCEPT_BUTTON);
+    waitDisappear(RULE_MODAL_DIALOG);
+    tableStep.checkColumnValueInFirstRow(STATUS, ACTIVE.getText())
+        .checkColorStatusMarkerInFirstRow(STATUS, GREEN_STATUS_MARKER_XPATH);
     return this;
   }
 }

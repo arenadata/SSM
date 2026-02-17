@@ -17,26 +17,26 @@
  */
 package org.smartdata.test.dao;
 
-import org.smartdata.test.entity.HiveMetastoreEventEntity;
+import org.smartdata.test.entity.HiveSyncProgressEntity;
 
 import java.util.List;
 
 /**
- * DAO interface for accessing hive_metastore_event table.
+ * DAO interface for accessing hive_sync_progress table.
  */
-public interface HiveMetastoreEventDao {
+public interface HiveSyncProgressDao {
 
   /**
-   * Find all hive metastore events.
+   * Find all hive sync progress records.
    *
-   * @return list of all events
+   * @return list of all records
    */
-  List<HiveMetastoreEventEntity> findAll();
+  List<HiveSyncProgressEntity> findAll();
 
   /**
-   * Delete all hive metastore events.
+   * Remove all hive sync progress records.
    *
-   * @return updated rows count
+   * @return number of records removed
    */
   int deleteAll();
 }
