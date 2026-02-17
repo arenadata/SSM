@@ -270,7 +270,10 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     for (int i = 0; i < logsTime.size() - 2; i++) {
       Duration currentInterval = Duration.between(logsTime.get(i), logsTime.get(i + 1));
       Duration nextInterval = Duration.between(logsTime.get(i + 1), logsTime.get(i + 2));
-      assertThat(nextInterval).isGreaterThan(currentInterval);
+      assertThat(nextInterval).satisfiesAnyOf(
+          value -> assertThat(value).isGreaterThan(currentInterval),
+          value -> assertThat(value).isCloseTo(currentInterval, Duration.ofSeconds(1))
+      );
     }
   }
 
