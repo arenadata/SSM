@@ -25,7 +25,7 @@ grids:
     - type: moon
       remoteHost: ${MOON_REMOTE_HOST:https://moon.dev.adsw.io}
       browserName: ${BROWSER_NAME:chrome}
-      browserVersion: ${BROWSER_VERSION:145.0.7632.75-16}
+      browserVersion: ${BROWSER_VERSION:144.0.7559.132-16}
       screenshot-successful-steps: true
 
     - type: local
