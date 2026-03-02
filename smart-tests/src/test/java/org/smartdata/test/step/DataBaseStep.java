@@ -30,7 +30,6 @@ import javax.sql.DataSource;
 
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.Instant;
 
 import static java.lang.String.format;
@@ -77,33 +76,32 @@ public class DataBaseStep {
   private static final String INSERT_FILES_IN_CACHE_SQL = "insert_fake_files_in_cache.sql";
   private static final String FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL = "insert_files_in_cache_for_pagination_test.sql";
 
-  public DataBaseStep cleanRuleTable() throws SQLException {
+  public DataBaseStep cleanRuleTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "rule"));
     sqlExecutor.executeSql(ssmMetastoreDataSource, RESET_RULE_SEQUENCE);
     return this;
   }
 
-  public DataBaseStep cleanActionTable() throws SQLException {
+  public DataBaseStep cleanActionTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "action"));
     return this;
   }
 
-  public DataBaseStep cleanAuditTable() throws SQLException {
+  public DataBaseStep cleanAuditTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "user_activity_event"));
     return this;
   }
 
-  public DataBaseStep cleanHottestFilesTable() throws SQLException {
+  public DataBaseStep cleanHottestFilesTable() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(DELETE_HOTTEST_FILES_SQL));
     return this;
   }
 
-  public DataBaseStep cleanFilesInCacheTable() throws SQLException {
+  public DataBaseStep cleanFilesInCacheTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "cached_file"));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForRulesSortTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(RULES_FOR_SORT_TEST_SQL));
     return this;
@@ -128,37 +126,31 @@ public class DataBaseStep {
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForActionSortTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(ACTIONS_FOR_SORT_TEST_SQL));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForActionFilterTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(ACTION_FOR_FILTER_TEST_SQL));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForActionDetailsPageTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(ACTION_FOR_ACTION_DETAILS_PAGE_TEST_SQL));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForAuditSortTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(AUDIT_FOR_SORT_TEST_SQL));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForAuditFilterTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(AUDIT_FOR_FILTER_TEST_SQL));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertFakeDataForHottestFilesTest() {
     String sql = FileUtils.readFile(getSqlFilePath(INSERT_HOTTEST_FILES_SQL));
     sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
@@ -166,7 +158,6 @@ public class DataBaseStep {
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForHottestFilesPaginationTest(String filePath) {
     String sql = FileUtils.readFile(getSqlFilePath(HOTTEST_FILES_FOR_PAGINATION_TEST_SQL));
     sql = sql.replace("${filePath}", filePath);
@@ -175,7 +166,6 @@ public class DataBaseStep {
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertFakeDataForFilesInCacheTest() {
     String sql = FileUtils.readFile(getSqlFilePath(INSERT_FILES_IN_CACHE_SQL));
     sql = sql.replace("${currentTime}", String.valueOf(Instant.now().toEpochMilli()));
@@ -183,7 +173,6 @@ public class DataBaseStep {
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep insertDataForFilesInCachePaginationTest(String fileId) {
     String sql = FileUtils.readFile(getSqlFilePath(FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL));
     sql = sql.replace("${fileId}", fileId);
@@ -191,32 +180,27 @@ public class DataBaseStep {
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep createHiveServerDatabase(String tableName) {
     sqlExecutor.executeSql(hiveServer2DataSource, format(CREATE_DATABASE_TEMPLATE, tableName));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep dropHiveServersTable(String tableName) {
     sqlExecutor.executeSql(hiveServer2DataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, tableName));
     sqlExecutor.executeSql(targetHiveServer2DataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, tableName));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep truncateSsmHiveNotificationLogTable() {
     sqlExecutor.executeSql(ssmHiveDataSource, format(TRUNCATE_TABLE_TEMPLATE, "\"NOTIFICATION_LOG\""));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep dropHiveMetastoreEventTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(DROP_TABLE_TEMPLATE, "hive_metastore_event"));
     return this;
   }
 
-  @SneakyThrows
   public DataBaseStep restoreHiveMetastoreEventTable() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL));
     return this;
