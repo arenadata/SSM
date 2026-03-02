@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
@@ -169,7 +168,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
   @TmsLink("136574")
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for functions")
-  @Ignore("functions sync not work")
+//  @Ignore("functions sync not work")
   public void testHmsRuleForFunctions() {
     rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
         .startRuleInFirstRow();
