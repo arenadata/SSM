@@ -57,6 +57,8 @@ public class DataBaseStep {
   private static final String DROP_TABLE_TEMPLATE = "DROP TABLE %s";
   private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
   private static final String RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL = "restore_hive_metastore_event_table.sql";
+  private static final String PREPARE_DATA_HMS_RULES_AND_ACTIONS_SQL = "prepare_data_for_hms_rule_and_actions_test.sql";
+  private static final String PREPARE_DATA_HMS_FETCHED_EVENTS_SQL = "prepare_data_for_hms_fetched_events_test.sql";
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
@@ -203,6 +205,16 @@ public class DataBaseStep {
 
   public DataBaseStep restoreHiveMetastoreEventTable() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL));
+    return this;
+  }
+
+  public DataBaseStep prepareDataForHmsRulesAndActionsTest() {
+    sqlExecutor.executeSqlFile(hiveServer2DataSource, getSqlFilePath(PREPARE_DATA_HMS_RULES_AND_ACTIONS_SQL));
+    return this;
+  }
+
+  public DataBaseStep prepareDataForHmsFetchedEventsTest() {
+    sqlExecutor.executeSqlFile(hiveServer2DataSource, getSqlFilePath(PREPARE_DATA_HMS_FETCHED_EVENTS_SQL));
     return this;
   }
 
