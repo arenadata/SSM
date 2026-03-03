@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smartdata-project</artifactId>
-        <version>2.2.0</version>
+        <version>2.2.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>smart-integration</artifactId>
-    <version>2.2.0</version>
+    <version>2.2.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -54,71 +54,71 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop-common</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-inputstream</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-server</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-engine</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-engine</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-agent</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-agent</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-server</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-hadoop</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-client</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -149,7 +149,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
@@ -183,7 +183,7 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-metastore</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
