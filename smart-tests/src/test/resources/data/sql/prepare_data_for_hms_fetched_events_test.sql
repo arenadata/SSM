@@ -20,8 +20,6 @@ ALTER TABLE db1.t1
 
 DROP TABLE db1.t1;
 
-DROP TABLE db1.t1;
-
 CREATE TABLE db1.clients
 (
     id   INT,

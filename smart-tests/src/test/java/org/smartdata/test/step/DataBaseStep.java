@@ -31,6 +31,9 @@ import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -53,6 +56,13 @@ public class DataBaseStep {
   @Qualifier("targetHiveServer2DataSource")
   private DataSource targetHiveServer2DataSource;
 
+  private static final String SHOW_DATABASES_SQL = "SHOW DATABASES";
+  private static final String SHOW_FUNCTIONS_SQL = "SHOW FUNCTIONS";
+  private static final String SHOW_PARTITIONS_TEMPLATE = "SHOW PARTITIONS %s";
+  private static final String SHOW_TABLES_IN_DATABASE_TEMPLATE = "SHOW TABLES IN %s";
+  private static final String DESCRIBE_DATABASE_EXTENDED_TEMPLATE = "DESCRIBE DATABASE EXTENDED %s";
+  private static final String DESCRIBE_TABLE_TEMPLATE = "DESCRIBE %s";
+  private static final String DESCRIBE_TABLE_EXTENDED_TEMPLATE = "DESCRIBE EXTENDED %s.%s";
   private static final String DROP_HIVE_SERVERS_TABLE_TEMPLATE = "DROP DATABASE IF EXISTS %s CASCADE";
   private static final String DROP_TABLE_TEMPLATE = "DROP TABLE %s";
   private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
@@ -216,6 +226,40 @@ public class DataBaseStep {
   public DataBaseStep prepareDataForHmsFetchedEventsTest() {
     sqlExecutor.executeSqlFile(hiveServer2DataSource, getSqlFilePath(PREPARE_DATA_HMS_FETCHED_EVENTS_SQL));
     return this;
+  }
+
+  public List<String> getDatabases(DataSource dataSource) {
+    return sqlExecutor.queryFirstColumnAsStrings(dataSource, SHOW_DATABASES_SQL);
+  }
+
+  public List<String> getDatabaseParameters(DataSource dataSource, String databaseName) {
+    return sqlExecutor.queryByColumnAsStrings(dataSource,
+        format(DESCRIBE_DATABASE_EXTENDED_TEMPLATE, databaseName), "parameters");
+  }
+
+  public List<String> getTables(DataSource dataSource, String databaseName) {
+    return sqlExecutor.queryFirstColumnAsStrings(dataSource, format(SHOW_TABLES_IN_DATABASE_TEMPLATE, databaseName));
+  }
+
+  public List<String> getFunctions(DataSource dataSource) {
+    return sqlExecutor.queryFirstColumnAsStrings(dataSource, SHOW_FUNCTIONS_SQL);
+  }
+
+  public List<String> getPartitions(DataSource dataSource, String tableName) {
+    return sqlExecutor.queryFirstColumnAsStrings(dataSource, format(SHOW_PARTITIONS_TEMPLATE, tableName));
+  }
+
+  public List<Map<String, Object>> getTableColumnsWithParams(DataSource dataSource, String tableName) {
+    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_TEMPLATE, tableName)).stream()
+        .filter(row -> row.get("col_name") != null && !row.get("col_name").toString().trim().isEmpty())
+        .collect(Collectors.toList());
+  }
+
+  public List<Map<String, Object>> getTableConstraints(DataSource dataSource, String databaseName, String tableName) {
+    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_EXTENDED_TEMPLATE, databaseName, tableName)).stream()
+        .filter(row -> row.get("col_name") != null
+            && row.get("col_name").toString().toLowerCase().contains("constraint"))
+        .collect(Collectors.toList());
   }
 
   private String getSqlFilePath(String fileName) {

@@ -20,6 +20,7 @@ package org.smartdata.test.service;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.EncodedResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,10 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 
 import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,5 +55,26 @@ public class SqlExecutor {
     } finally {
       DataSourceUtils.releaseConnection(conn, dataSource);
     }
+  }
+
+  public List<Map<String, Object>> queryForList(DataSource dataSource, String sql) {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    return jdbcTemplate.queryForList(sql);
+  }
+
+  public List<String> queryFirstColumnAsStrings(DataSource dataSource, String sql) {
+    return queryForList(dataSource, sql).stream()
+        .map(row -> row.values().iterator().next())
+        .filter(Objects::nonNull)
+        .map(Object::toString)
+        .collect(Collectors.toList());
+  }
+
+  public List<String> queryByColumnAsStrings(DataSource dataSource, String sql, String columnName) {
+    return queryForList(dataSource, sql).stream()
+        .map(row -> row.get(columnName))
+        .filter(Objects::nonNull)
+        .map(Object::toString)
+        .collect(Collectors.toList());
   }
 }

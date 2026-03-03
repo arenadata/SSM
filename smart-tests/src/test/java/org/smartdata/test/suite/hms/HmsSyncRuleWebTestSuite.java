@@ -35,7 +35,6 @@ import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
@@ -47,8 +46,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,16 +155,20 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(1, TEST_DATABASE_1);
-    checkDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1, "");
-    checkDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1, "");
+    assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1)).singleElement()
+        .isEqualTo("");
+    assertThat(dataBaseStep.getDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1)).singleElement()
+        .isEqualTo("");
     sqlExecutor.executeSql(hiveServer2DataSource, "ALTER DATABASE db1 SET DBPROPERTIES ('Date' = '2026-01-13');");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    checkDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1, "{Date=2026-01-13}");
-    checkDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1, "{Date=2026-01-13}");
+    assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1)).singleElement()
+        .isEqualTo("{Date=2026-01-13}");
+    assertThat(dataBaseStep.getDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1)).singleElement()
+        .isEqualTo("{Date=2026-01-13}");
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP DATABASE db1;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    checkDatabaseIsNotExist(hiveServer2DataSource, TEST_DATABASE_1);
-    checkDatabaseIsNotExist(targetHiveServer2DataSource, TEST_DATABASE_1);
+    assertThat(dataBaseStep.getDatabases(hiveServer2DataSource)).isNotEmpty().doesNotContain(TEST_DATABASE_1);
+    assertThat(dataBaseStep.getDatabases(targetHiveServer2DataSource)).isNotEmpty().doesNotContain(TEST_DATABASE_1);
   }
 
   @TmsLink("136574")
@@ -185,13 +186,16 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
     sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
-    checkFunctionResult(hiveServer2DataSource, "SELECT db1.sum_cols(1,3)", 4);
-    checkFunctionResult(targetHiveServer2DataSource, "SELECT db1.sum_cols(1,3)", 4);
+    assertThat(sqlExecutor.queryFirstColumnAsStrings(hiveServer2DataSource, "SELECT db1.sum_cols(1,3)")).singleElement()
+        .isEqualTo("4");
+    assertThat(
+        sqlExecutor.queryFirstColumnAsStrings(targetHiveServer2DataSource, "SELECT db1.sum_cols(1,3)")).singleElement()
+        .isEqualTo("4");
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP FUNCTION db1.sum_cols;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
-    checkFunctionNotExists(hiveServer2DataSource, "sum_cols");
-    checkFunctionNotExists(targetHiveServer2DataSource, "sum_cols");
+    assertThat(dataBaseStep.getFunctions(hiveServer2DataSource)).doesNotContain("sum_cols");
+    assertThat(dataBaseStep.getFunctions(targetHiveServer2DataSource)).doesNotContain("sum_cols");
   }
 
   @TmsLink("136573")
@@ -208,18 +212,22 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=december");
-    assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=december");
+    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).singleElement()
+        .isEqualTo("month=december");
+    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement()
+        .isEqualTo("month=december");
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.clients PARTITION (month='december') RENAME TO PARTITION (month='january');");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
-    assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=january");
-    assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=january");
+    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).singleElement()
+        .isEqualTo("month=january");
+    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement()
+        .isEqualTo("month=january");
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.clients DROP PARTITION (month='january');");
     checkSuccessSyncActions(5, TEST_DATABASE_1);
-    assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).isEmpty();
-    assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).isEmpty();
+    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).isEmpty();
+    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).isEmpty();
   }
 
   @TmsLink("136572")
@@ -241,16 +249,20 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    checkTableColumnsWithParams(hiveServer2DataSource, "db1.t1", Collections.singletonList(colI));
-    checkTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1", Collections.singletonList(colI));
+    assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, "db1.t1"))
+        .containsExactlyInAnyOrderElementsOf(Collections.singletonList(colI));
+    assertThat(dataBaseStep.getTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1"))
+        .containsExactlyInAnyOrderElementsOf(Collections.singletonList(colI));
     sqlExecutor.executeSql(hiveServer2DataSource, "ALTER TABLE db1.t1 ADD COLUMNS (j STRING);");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    checkTableColumnsWithParams(hiveServer2DataSource, "db1.t1", Arrays.asList(colJ, colI));
-    checkTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1", Arrays.asList(colJ, colI));
+    assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, "db1.t1"))
+        .containsExactlyInAnyOrderElementsOf(Arrays.asList(colJ, colI));
+    assertThat(dataBaseStep.getTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1"))
+        .containsExactlyInAnyOrderElementsOf(Arrays.asList(colJ, colI));
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP TABLE db1.t1");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
-    checkTableIsNotExist(hiveServer2DataSource, "db1", "t1");
-    checkTableIsNotExist(targetHiveServer2DataSource, "db1", "t1");
+    assertThat(dataBaseStep.getTables(hiveServer2DataSource, "db1")).doesNotContain("t1");
+    assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, "db1")).doesNotContain("t1");
   }
 
   public List<Map<String, Object>> getTableConstraints(DataSource dataSource, String database, String table) {
@@ -264,8 +276,10 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   }
 
   private void checkConstraintsEquals(String database, String table, int expectedSize) {
-    List<Map<String, Object>> sourceConstraints = getTableConstraints(hiveServer2DataSource, database, table);
-    List<Map<String, Object>> targetConstraints = getTableConstraints(targetHiveServer2DataSource, database, table);
+    List<Map<String, Object>> sourceConstraints =
+        dataBaseStep.getTableConstraints(hiveServer2DataSource, database, table);
+    List<Map<String, Object>> targetConstraints =
+        dataBaseStep.getTableConstraints(targetHiveServer2DataSource, database, table);
     assertThat(targetConstraints).hasSize(expectedSize).containsExactlyInAnyOrderElementsOf(sourceConstraints);
   }
 
@@ -273,83 +287,5 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     tableStep.checkTableRowsCountIs(expectedSize)
         .checkAllColumnCellsContain(expectedSize, ACTION, format("-entityName %s", entityName))
         .checkAllColumnCellsTextEqual(expectedSize, STATUS, SUCCESSFUL.getText());
-  }
-
-  private void checkDatabaseParameters(DataSource dataSource, String database, String expectedParameters) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    String sql = String.format("DESCRIBE DATABASE EXTENDED %s", database);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-    String parameters = result.stream()
-        .map(row -> row.get("parameters"))
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .findFirst()
-        .orElse(null);
-    assertThat(parameters).isEqualTo(expectedParameters);
-  }
-
-  private void checkDatabaseIsNotExist(DataSource dataSource, String database) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList("SHOW DATABASES");
-    List<String> databases = result.stream()
-        .map(row -> row.values().iterator().next())
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .collect(Collectors.toList());
-    assertThat(databases).isNotEmpty().doesNotContain(database);
-  }
-
-  private void checkTableIsNotExist(DataSource dataSource, String database, String table) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("SHOW TABLES IN %s", database));
-    List<String> databases = result.stream()
-        .map(row -> row.values().iterator().next())
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .collect(Collectors.toList());
-    assertThat(databases).doesNotContain(table);
-  }
-
-  private void checkFunctionNotExists(DataSource dataSource, String functionName) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList("SHOW FUNCTIONS");
-    List<String> functions = result.stream()
-        .map(row -> row.values().iterator().next())
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .collect(Collectors.toList());
-    assertThat(functions).doesNotContain(functionName);
-  }
-
-  private void checkFunctionResult(DataSource dataSource, String sql, int expectedResult) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-    Integer actual = result.stream()
-        .map(row -> row.values().iterator().next())
-        .filter(Objects::nonNull)
-        .map(v -> Integer.parseInt(v.toString()))
-        .findFirst()
-        .orElse(null);
-    assertThat(actual).isEqualTo(expectedResult);
-  }
-
-  private List<String> getPartitions(DataSource dataSource, String table) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("SHOW PARTITIONS %s", table));
-    return result.stream()
-        .map(row -> row.values().iterator().next())
-        .filter(Objects::nonNull)
-        .map(Object::toString)
-        .collect(Collectors.toList());
-  }
-
-  private void checkTableColumnsWithParams(DataSource dataSource, String table,
-                                           List<Map<String, Object>> expectedColumns) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("DESCRIBE %s", table));
-    List<Map<String, Object>> actualColumns = result.stream()
-        .filter(row -> row.get("col_name") != null && !row.get("col_name").toString().trim().isEmpty())
-        .collect(Collectors.toList());
-    assertThat(actualColumns).containsExactlyInAnyOrderElementsOf(expectedColumns);
   }
 }
