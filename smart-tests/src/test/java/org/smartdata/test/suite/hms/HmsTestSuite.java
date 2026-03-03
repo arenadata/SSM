@@ -252,7 +252,7 @@ public class HmsTestSuite extends SsmBaseSuite {
 
   @TmsLink("136297")
   @Story("HMS Configuration")
-  @Test(description = "Check fetched events types", groups = "restoreHiveMetastoreEventTable")
+  @Test(description = "Check fetched events types")
   public void testFetchedEventsTypes() {
     containerManager.start(SSM_SERVER);
     dataBaseStep.prepareDataForHmsFetchedEventsTest();
@@ -289,7 +289,9 @@ public class HmsTestSuite extends SsmBaseSuite {
             tuple(DROP.name(), "default.students_data", DEFAULT_CONSTRAINT.name(), "default", "students_data"),
             tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
             tuple(CREATE.name(), "default.students", UNIQUE_CONSTRAINT.name(), "default", "students"),
-            tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students")
+            tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
+            tuple(DROP.name(), "default.students", TABLE.name(), "default", "students"),
+            tuple(DROP.name(), "default.students_data", TABLE.name(), "default", "students_data")
         ), DEFAULT_WAIT_PARAMS);
   }
 
@@ -299,7 +301,7 @@ public class HmsTestSuite extends SsmBaseSuite {
     createTestDataInHiveMetaStore(testTableQuantity);
     waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(3), DEFAULT_WAIT_PARAMS);
     dataBaseStep.dropHiveMetastoreEventTable();
-    sqlExecutor.executeSql(hiveServer2DataSource, "create table db1.t2(i int)");
+    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE TABLE db1.t2(i INT)");
   }
 
   private List<String> getRetryStrategyErrorLogs() {
@@ -332,9 +334,9 @@ public class HmsTestSuite extends SsmBaseSuite {
   }
 
   private void createTestDataInHiveMetaStore(int testTableQuantity) throws Exception {
-    sqlExecutor.executeSql(hiveServer2DataSource, "create database " + TEST_DATABASE);
+    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE DATABASE " + TEST_DATABASE);
     for (int i = 0; i < testTableQuantity; i++) {
-      sqlExecutor.executeSql(hiveServer2DataSource, format("create table %s.t%s(i int)", TEST_DATABASE, i));
+      sqlExecutor.executeSql(hiveServer2DataSource, format("CREATE TABLE %s.t%s(i INT)", TEST_DATABASE, i));
     }
   }
 

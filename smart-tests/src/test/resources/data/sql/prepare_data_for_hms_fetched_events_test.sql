@@ -71,3 +71,7 @@ ALTER TABLE students
     ADD CONSTRAINT students_id_chk CHECK (id > 0) DISABLE NOVALIDATE;
 
 ALTER TABLE students DROP CONSTRAINT students_id_chk;
+
+DROP TABLE students;
+
+DROP TABLE students_data;
