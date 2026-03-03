@@ -56,9 +56,6 @@ public class DataBaseStep {
   private static final String DROP_HIVE_SERVERS_TABLE_TEMPLATE = "DROP DATABASE IF EXISTS %s CASCADE";
   private static final String DROP_TABLE_TEMPLATE = "DROP TABLE %s";
   private static final String CREATE_DATABASE_TEMPLATE = "CREATE DATABASE %s";
-  private static final String RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL = "restore_hive_metastore_event_table.sql";
-  private static final String PREPARE_DATA_HMS_RULES_AND_ACTIONS_SQL = "prepare_data_for_hms_rule_and_actions_test.sql";
-  private static final String PREPARE_DATA_HMS_FETCHED_EVENTS_SQL = "prepare_data_for_hms_fetched_events_test.sql";
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
@@ -77,6 +74,9 @@ public class DataBaseStep {
   private static final String HOTTEST_FILES_FOR_PAGINATION_TEST_SQL = "insert_hottest_files_for_pagination_test.sql";
   private static final String INSERT_FILES_IN_CACHE_SQL = "insert_fake_files_in_cache.sql";
   private static final String FILES_IN_CACHE_FOR_PAGINATION_TEST_SQL = "insert_files_in_cache_for_pagination_test.sql";
+  private static final String RESTORE_HIVE_METASTORE_EVENT_TABLE_SQL = "restore_hive_metastore_event_table.sql";
+  private static final String PREPARE_DATA_HMS_RULES_AND_ACTIONS_SQL = "prepare_data_for_hms_rule_and_actions_test.sql";
+  private static final String PREPARE_DATA_HMS_FETCHED_EVENTS_SQL = "prepare_data_for_hms_fetched_events_test.sql";
 
   public DataBaseStep cleanRuleTable() {
     sqlExecutor.executeSql(ssmMetastoreDataSource, format(TRUNCATE_TABLE_TEMPLATE, "rule"));

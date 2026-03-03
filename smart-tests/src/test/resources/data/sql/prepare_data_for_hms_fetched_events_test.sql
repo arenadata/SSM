@@ -1,22 +1,22 @@
 CREATE
-database db0;
+DATABASE db0;
 
 ALTER
-database db0 SET dbproperties ('Date' = '2026-01-13');
+DATABASE db0 SET DBPROPERTIES ('Date' = '2026-01-13');
 
 DROP
-database db0;
+DATABASE db0;
 
 CREATE
-database db1;
+DATABASE db1;
 
 CREATE TABLE db1.t1
 (
-    i int
+    i INT
 );
 
 ALTER TABLE db1.t1
-    ADD columns (j string);
+    ADD COLUMNS (j STRING);
 
 DROP TABLE db1.t1;
 
@@ -29,9 +29,9 @@ CREATE TABLE db1.clients
 ) PARTITIONED BY (MONTH STRING);
 
 ALTER TABLE db1.clients
-    ADD partition (MONTH='december');
+    ADD PARTITION (MONTH='december');
 
-ALTER TABLE db1.clients PARTITION (MONTH ='december') rename TO PARTITION (MONTH ='january');
+ALTER TABLE db1.clients PARTITION (MONTH ='december') RENAME TO PARTITION (MONTH ='january');
 
 ALTER TABLE db1.clients DROP PARTITION (MONTH='january');
 

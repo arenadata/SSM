@@ -1,7 +1,7 @@
 CREATE
-database db1;
+DATABASE db1;
 CREATE
-database db2;
+DATABASE db2;
 
 CREATE TABLE db1.clients
 (
@@ -15,12 +15,12 @@ CREATE TABLE db2.workers
 ) PARTITIONED BY (MONTH STRING);
 
 ALTER TABLE db1.clients
-    ADD partition (MONTH='december');
+    ADD PARTITION (MONTH='december');
 ALTER TABLE db2.workers
-    ADD partition (MONTH='december');
+    ADD PARTITION (MONTH='december');
 
-ALTER TABLE db1.clients PARTITION (MONTH ='december') rename TO PARTITION (MONTH ='january');
-ALTER TABLE db2.workers PARTITION (MONTH ='december') rename TO PARTITION (MONTH ='january');
+ALTER TABLE db1.clients PARTITION (MONTH ='december') RENAME TO PARTITION (MONTH ='january');
+ALTER TABLE db2.workers PARTITION (MONTH ='december') RENAME TO PARTITION (MONTH ='january');
 
 ALTER TABLE db1.clients DROP PARTITION (MONTH='january');
 ALTER TABLE db2.workers DROP PARTITION (MONTH='january');

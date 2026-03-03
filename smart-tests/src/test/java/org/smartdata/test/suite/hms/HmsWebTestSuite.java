@@ -128,7 +128,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
         .startRuleInFirstRow();
     dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
     sqlExecutor.executeSql(hiveServer2DataSource,
-        "CREATE TABLE db1.students (id INT, name  STRING NOT NULL, email STRING DEFAULT 'unknown');");
+        "CREATE TABLE db1.students (id INT, name STRING NOT NULL, email STRING DEFAULT 'unknown');");
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(4, TEST_DATABASE_1);
@@ -160,7 +160,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
     checkSuccessSyncActions(1, TEST_DATABASE_1);
     checkDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1, "");
     checkDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1, "");
-    sqlExecutor.executeSql(hiveServer2DataSource, "ALTER DATABASE db1 SET dbproperties ('Date' = '2026-01-13');");
+    sqlExecutor.executeSql(hiveServer2DataSource, "ALTER DATABASE db1 SET DBPROPERTIES ('Date' = '2026-01-13');");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
     checkDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1, "{Date=2026-01-13}");
     checkDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1, "{Date=2026-01-13}");
@@ -184,12 +184,12 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
     sqlExecutor.executeSql(hiveServer2DataSource,
         "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    sqlExecutor.executeSql(targetHiveServer2DataSource, "reload functions;");
-    checkFunctionResult(hiveServer2DataSource, "select db1.sum_cols(1,3)", 4);
-    checkFunctionResult(targetHiveServer2DataSource, "select db1.sum_cols(1,3)", 4);
+    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
+    checkFunctionResult(hiveServer2DataSource, "SELECT db1.sum_cols(1,3)", 4);
+    checkFunctionResult(targetHiveServer2DataSource, "SELECT db1.sum_cols(1,3)", 4);
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP FUNCTION db1.sum_cols;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    sqlExecutor.executeSql(targetHiveServer2DataSource, "reload functions;");
+    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
     checkFunctionNotExists(hiveServer2DataSource, "sum_cols");
     checkFunctionNotExists(targetHiveServer2DataSource, "sum_cols");
   }
@@ -202,21 +202,21 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
         .startRuleInFirstRow();
     dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
     sqlExecutor.executeSql(hiveServer2DataSource,
-        "CREATE TABLE db1.clients (id   INT, name STRING )     PARTITIONED BY (month STRING);");
+        "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (month STRING);");
     sqlExecutor.executeSql(hiveServer2DataSource,
-        "alter table db1.clients add partition (month='december');");
+        "ALTER TABLE db1.clients ADD PARTITION (month='december');");
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=december");
     assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=december");
     sqlExecutor.executeSql(hiveServer2DataSource,
-        "alter table db1.clients partition (month='december') rename to partition (month='january');");
+        "ALTER TABLE db1.clients PARTITION (month='december') RENAME TO PARTITION (month='january');");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
     assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=january");
     assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement().isEqualTo("month=january");
     sqlExecutor.executeSql(hiveServer2DataSource,
-        "alter table db1.clients drop partition (month='january');");
+        "ALTER TABLE db1.clients DROP PARTITION (month='january');");
     checkSuccessSyncActions(5, TEST_DATABASE_1);
     assertThat(getPartitions(hiveServer2DataSource, "db1.clients")).isEmpty();
     assertThat(getPartitions(targetHiveServer2DataSource, "db1.clients")).isEmpty();
@@ -237,17 +237,17 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
     rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
         .startRuleInFirstRow();
     dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    sqlExecutor.executeSql(hiveServer2DataSource, "create table db1.t1 (i INT)");
+    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE TABLE db1.t1 (i INT)");
     menuStep.openActionsPage();
     tableStep.setRefreshingFrequency(1);
     checkSuccessSyncActions(2, TEST_DATABASE_1);
     checkTableColumnsWithParams(hiveServer2DataSource, "db1.t1", Collections.singletonList(colI));
     checkTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1", Collections.singletonList(colI));
-    sqlExecutor.executeSql(hiveServer2DataSource, "alter table db1.t1 add columns (j string);");
+    sqlExecutor.executeSql(hiveServer2DataSource, "ALTER TABLE db1.t1 ADD COLUMNS (j STRING);");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     checkTableColumnsWithParams(hiveServer2DataSource, "db1.t1", Arrays.asList(colJ, colI));
     checkTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1", Arrays.asList(colJ, colI));
-    sqlExecutor.executeSql(hiveServer2DataSource, "drop table db1.t1");
+    sqlExecutor.executeSql(hiveServer2DataSource, "DROP TABLE db1.t1");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
     checkTableIsNotExist(hiveServer2DataSource, "db1", "t1");
     checkTableIsNotExist(targetHiveServer2DataSource, "db1", "t1");
@@ -288,7 +288,6 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
     assertThat(parameters).isEqualTo(expectedParameters);
   }
 
-  // move general methods to database step
   private void checkDatabaseIsNotExist(DataSource dataSource, String database) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     List<Map<String, Object>> result = jdbcTemplate.queryForList("SHOW DATABASES");
@@ -302,7 +301,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
 
   private void checkTableIsNotExist(DataSource dataSource, String database, String table) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("show tables in %s", database));
+    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("SHOW TABLES IN %s", database));
     List<String> databases = result.stream()
         .map(row -> row.values().iterator().next())
         .filter(Objects::nonNull)
@@ -336,7 +335,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
 
   private List<String> getPartitions(DataSource dataSource, String table) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("show partitions %s", table));
+    List<Map<String, Object>> result = jdbcTemplate.queryForList(format("SHOW PARTITIONS %s", table));
     return result.stream()
         .map(row -> row.values().iterator().next())
         .filter(Objects::nonNull)

@@ -141,7 +141,7 @@ public class HmsTestSuite extends SsmBaseSuite {
         .containsExactlyElementsOf(eventsIds);
   }
 
-  private List<Long> setupEventsIdsForSyncFullTests() throws Exception {
+  private List<Long> setupEventsIdsForSyncFullTests() {
     int testTableQuantity = 2;
     containerManager.start(SSM_SERVER);
     createTestDataInHiveMetaStore(testTableQuantity);
@@ -295,7 +295,7 @@ public class HmsTestSuite extends SsmBaseSuite {
         ), DEFAULT_WAIT_PARAMS);
   }
 
-  private void setupDataForRetryStrategyTests() throws Exception {
+  private void setupDataForRetryStrategyTests() {
     containerManager.start(SSM_SERVER);
     int testTableQuantity = 1;
     createTestDataInHiveMetaStore(testTableQuantity);
@@ -333,7 +333,7 @@ public class HmsTestSuite extends SsmBaseSuite {
     }
   }
 
-  private void createTestDataInHiveMetaStore(int testTableQuantity) throws Exception {
+  private void createTestDataInHiveMetaStore(int testTableQuantity) {
     sqlExecutor.executeSql(hiveServer2DataSource, "CREATE DATABASE " + TEST_DATABASE);
     for (int i = 0; i < testTableQuantity; i++) {
       sqlExecutor.executeSql(hiveServer2DataSource, format("CREATE TABLE %s.t%s(i INT)", TEST_DATABASE, i));
