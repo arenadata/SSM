@@ -126,20 +126,20 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         "CREATE DATABASE db1;\n" +
             "CREATE TABLE db1.students (id INT, name STRING NOT NULL, email STRING DEFAULT 'unknown');");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
-    checkConstraintsEquals(TEST_DATABASE_1, "students", 2);
+    assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 2);
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.students ADD CONSTRAINT students_pk PRIMARY KEY (id) DISABLE NOVALIDATE;\n" +
             "CREATE TABLE db1.students_data (data_id INT, student_id INT);\n" +
             "ALTER TABLE db1.students_data ADD CONSTRAINT students_data_fk FOREIGN KEY (student_id) REFERENCES db1.students(id) DISABLE NOVALIDATE;");
     checkSuccessSyncActions(7, TEST_DATABASE_1);
-    checkConstraintsEquals(TEST_DATABASE_1, "students", 3);
-    checkConstraintsEquals(TEST_DATABASE_1, "students_data", 1);
+    assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 3);
+    assertHivesConstraintsEquals(TEST_DATABASE_1, "students_data", 1);
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.students_data DROP CONSTRAINT students_data_fk;\n" +
             "ALTER TABLE db1.students DROP CONSTRAINT students_pk;");
     checkSuccessSyncActions(9, TEST_DATABASE_1);
-    checkConstraintsEquals(TEST_DATABASE_1, "students", 2);
-    checkConstraintsEquals(TEST_DATABASE_1, "students_data", 0);
+    assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 2);
+    assertHivesConstraintsEquals(TEST_DATABASE_1, "students_data", 0);
   }
 
   @TmsLink("136571")
@@ -150,20 +150,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
         "CREATE DATABASE db1;");
     checkSuccessSyncActions(1, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1)).singleElement()
-        .isEqualTo("");
-    assertThat(dataBaseStep.getDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1)).singleElement()
-        .isEqualTo("");
+    assertHivesDatabaseParametersEquals(TEST_DATABASE_1, "");
     sqlExecutor.executeSql(hiveServer2DataSource, "ALTER DATABASE db1 SET DBPROPERTIES ('Date' = '2026-01-13');");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1)).singleElement()
-        .isEqualTo("{Date=2026-01-13}");
-    assertThat(dataBaseStep.getDatabaseParameters(targetHiveServer2DataSource, TEST_DATABASE_1)).singleElement()
-        .isEqualTo("{Date=2026-01-13}");
+    assertHivesDatabaseParametersEquals(TEST_DATABASE_1, "{Date=2026-01-13}");
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP DATABASE db1;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getDatabases(hiveServer2DataSource)).isNotEmpty().doesNotContain(TEST_DATABASE_1);
-    assertThat(dataBaseStep.getDatabases(targetHiveServer2DataSource)).isNotEmpty().doesNotContain(TEST_DATABASE_1);
+    assertHivesDatabasesDoNotContain(TEST_DATABASE_1);
   }
 
   @TmsLink("136574")
@@ -179,16 +172,11 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
     sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
-    assertThat(sqlExecutor.queryFirstColumnAsStrings(hiveServer2DataSource, "SELECT db1.sum_cols(1,3)")).singleElement()
-        .isEqualTo("4");
-    assertThat(
-        sqlExecutor.queryFirstColumnAsStrings(targetHiveServer2DataSource, "SELECT db1.sum_cols(1,3)")).singleElement()
-        .isEqualTo("4");
+    assertFunctionResultEquals("SELECT db1.sum_cols(1,3)", "4");
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP FUNCTION db1.sum_cols;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
-    assertThat(dataBaseStep.getFunctions(hiveServer2DataSource)).doesNotContain("sum_cols");
-    assertThat(dataBaseStep.getFunctions(targetHiveServer2DataSource)).doesNotContain("sum_cols");
+    assertHivesFunctionsDoNotContain("sum_cols");
   }
 
   @TmsLink("136573")
@@ -201,22 +189,15 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
             "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (month STRING);\n" +
             "ALTER TABLE db1.clients ADD PARTITION (month='december');");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).singleElement()
-        .isEqualTo("month=december");
-    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement()
-        .isEqualTo("month=december");
+    assertHivesPartitionsEquals("db1.clients", "month=december");
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.clients PARTITION (month='december') RENAME TO PARTITION (month='january');");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).singleElement()
-        .isEqualTo("month=january");
-    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).singleElement()
-        .isEqualTo("month=january");
+    assertHivesPartitionsEquals("db1.clients", "month=january");
     sqlExecutor.executeSql(hiveServer2DataSource,
         "ALTER TABLE db1.clients DROP PARTITION (month='january');");
     checkSuccessSyncActions(5, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).isEmpty();
-    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, "db1.clients")).isEmpty();
+    assertHivesPartitionsEmpty("db1.clients");
   }
 
   @TmsLink("136572")
@@ -236,20 +217,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         "CREATE DATABASE db1;\n" +
             "CREATE TABLE db1.t1 (i INT);");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, "db1.t1"))
-        .containsExactlyInAnyOrderElementsOf(Collections.singletonList(colI));
-    assertThat(dataBaseStep.getTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1"))
-        .containsExactlyInAnyOrderElementsOf(Collections.singletonList(colI));
+    assertHivesTableColumnsEqual("db1.t1", Collections.singletonList(colI));
     sqlExecutor.executeSql(hiveServer2DataSource, "ALTER TABLE db1.t1 ADD COLUMNS (j STRING);");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, "db1.t1"))
-        .containsExactlyInAnyOrderElementsOf(Arrays.asList(colJ, colI));
-    assertThat(dataBaseStep.getTableColumnsWithParams(targetHiveServer2DataSource, "db1.t1"))
-        .containsExactlyInAnyOrderElementsOf(Arrays.asList(colJ, colI));
+    assertHivesTableColumnsEqual("db1.t1", Arrays.asList(colJ, colI));
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP TABLE db1.t1");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
-    assertThat(dataBaseStep.getTables(hiveServer2DataSource, "db1")).doesNotContain("t1");
-    assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, "db1")).doesNotContain("t1");
+    assertHivesTablesDoNotContain("db1", "t1");
   }
 
   private void prepareRuleAndDataFixture(String rule, String sql) {
@@ -260,7 +234,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     tableStep.setRefreshingFrequency(1);
   }
 
-  private void checkConstraintsEquals(String database, String table, int expectedSize) {
+  private void checkSuccessSyncActions(int expectedSize, String entityName) {
+    tableStep.checkTableRowsCountIs(expectedSize)
+        .checkAllColumnCellsContain(expectedSize, ACTION, format("-entityName %s", entityName))
+        .checkAllColumnCellsTextEqual(expectedSize, STATUS, SUCCESSFUL.getText());
+  }
+
+  private void assertHivesConstraintsEquals(String database, String table, int expectedSize) {
     List<Map<String, Object>> sourceConstraints =
         dataBaseStep.getTableConstraints(hiveServer2DataSource, database, table);
     List<Map<String, Object>> targetConstraints =
@@ -268,9 +248,51 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     assertThat(targetConstraints).hasSize(expectedSize).containsExactlyInAnyOrderElementsOf(sourceConstraints);
   }
 
-  private void checkSuccessSyncActions(int expectedSize, String entityName) {
-    tableStep.checkTableRowsCountIs(expectedSize)
-        .checkAllColumnCellsContain(expectedSize, ACTION, format("-entityName %s", entityName))
-        .checkAllColumnCellsTextEqual(expectedSize, STATUS, SUCCESSFUL.getText());
+  private void assertHivesDatabaseParametersEquals(String database, String expectedParameters) {
+    assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, database)).singleElement()
+        .isEqualTo(expectedParameters);
+    assertThat(dataBaseStep.getDatabaseParameters(targetHiveServer2DataSource, database)).singleElement()
+        .isEqualTo(expectedParameters);
+  }
+
+  private void assertHivesDatabasesDoNotContain(String database) {
+    assertThat(dataBaseStep.getDatabases(hiveServer2DataSource)).isNotEmpty().doesNotContain(database);
+    assertThat(dataBaseStep.getDatabases(targetHiveServer2DataSource)).isNotEmpty().doesNotContain(database);
+  }
+
+  private void assertFunctionResultEquals(String query, String expectedResult) {
+    assertThat(sqlExecutor.queryFirstColumnAsStrings(hiveServer2DataSource, query)).singleElement()
+        .isEqualTo(expectedResult);
+    assertThat(sqlExecutor.queryFirstColumnAsStrings(targetHiveServer2DataSource, query)).singleElement()
+        .isEqualTo(expectedResult);
+  }
+
+  private void assertHivesFunctionsDoNotContain(String functionName) {
+    assertThat(dataBaseStep.getFunctions(hiveServer2DataSource)).doesNotContain(functionName);
+    assertThat(dataBaseStep.getFunctions(targetHiveServer2DataSource)).doesNotContain(functionName);
+  }
+
+  private void assertHivesPartitionsEquals(String tableName, String expectedPartition) {
+    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, tableName)).singleElement()
+        .isEqualTo(expectedPartition);
+    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, tableName)).singleElement()
+        .isEqualTo(expectedPartition);
+  }
+
+  private void assertHivesPartitionsEmpty(String tableName) {
+    assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, tableName)).isEmpty();
+    assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, tableName)).isEmpty();
+  }
+
+  private void assertHivesTableColumnsEqual(String tableName, List<Map<String, Object>> expectedColumns) {
+    assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, tableName))
+        .containsExactlyInAnyOrderElementsOf(expectedColumns);
+    assertThat(dataBaseStep.getTableColumnsWithParams(targetHiveServer2DataSource, tableName))
+        .containsExactlyInAnyOrderElementsOf(expectedColumns);
+  }
+
+  private void assertHivesTablesDoNotContain(String database, String tableName) {
+    assertThat(dataBaseStep.getTables(hiveServer2DataSource, database)).doesNotContain(tableName);
+    assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, database)).doesNotContain(tableName);
   }
 }
