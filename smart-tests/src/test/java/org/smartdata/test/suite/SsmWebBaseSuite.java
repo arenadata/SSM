@@ -22,7 +22,6 @@ import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
 import org.smartdata.test.configuration.SsmTestConfiguration;
 import org.smartdata.test.configuration.SsmWebConfiguration;
-import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,12 +37,9 @@ public abstract class SsmWebBaseSuite extends BaseWebSuite {
   protected SsmWebConfiguration webConfig;
   @Autowired
   private DataBaseStep dataBaseStep;
-  @Autowired
-  private ApiStep apiStep;
 
   @AfterMethod
   public void cleanUp() {
-    apiStep.deleteAllRules();
     dataBaseStep.cleanRuleTable();
     dataBaseStep.cleanActionTable();
     dataBaseStep.cleanAuditTable();

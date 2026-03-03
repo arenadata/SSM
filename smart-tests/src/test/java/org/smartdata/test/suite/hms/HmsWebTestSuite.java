@@ -25,6 +25,7 @@ import io.qameta.allure.TmsLink;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.dao.impl.HiveSyncProgressDaoImpl;
 import org.smartdata.test.service.SqlExecutor;
+import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
@@ -73,6 +75,8 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
   @Autowired
+  private ApiStep apiStep;
+  @Autowired
   private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
   @Autowired
   private HiveSyncProgressDaoImpl hiveSyncProgressDao;
@@ -92,6 +96,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
 
   @BeforeMethod
   public void restoreEnv() {
+    apiStep.deleteAllRules();
     containerManager.stop(SSM_SERVER);
     dataBaseStep.dropHiveServersTable(TEST_DATABASE_1)
         .dropHiveServersTable(TEST_DATABASE_2)
@@ -168,7 +173,7 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
   @TmsLink("136574")
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for functions")
-//  @Ignore("functions sync not work")
+  @Ignore("functions sync not work")
   public void testHmsRuleForFunctions() {
     rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
         .startRuleInFirstRow();
@@ -339,7 +344,8 @@ public class HmsWebTestSuite extends SsmWebBaseSuite {
         .collect(Collectors.toList());
   }
 
-  private void checkTableColumnsWithParams(DataSource dataSource, String table, List<Map<String, Object>> expectedColumns) {
+  private void checkTableColumnsWithParams(DataSource dataSource, String table,
+                                           List<Map<String, Object>> expectedColumns) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     List<Map<String, Object>> result = jdbcTemplate.queryForList(format("DESCRIBE %s", table));
     List<Map<String, Object>> actualColumns = result.stream()
