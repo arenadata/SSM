@@ -121,13 +121,10 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for constraints")
   public void testHmsRuleForConstraints() {
-    rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
-        .startRuleInFirstRow();
-    dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    sqlExecutor.executeSql(hiveServer2DataSource,
-        "CREATE TABLE db1.students (id INT, name STRING NOT NULL, email STRING DEFAULT 'unknown');");
-    menuStep.openActionsPage();
-    tableStep.setRefreshingFrequency(1);
+    prepareRuleAndDataFixture(
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        "CREATE DATABASE db1;\n" +
+            "CREATE TABLE db1.students (id INT, name STRING NOT NULL, email STRING DEFAULT 'unknown');");
     checkSuccessSyncActions(4, TEST_DATABASE_1);
     checkConstraintsEquals(TEST_DATABASE_1, "students", 2);
     sqlExecutor.executeSql(hiveServer2DataSource,
@@ -149,11 +146,9 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for databases")
   public void testHmsRuleForDatabases() {
-    rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
-        .startRuleInFirstRow();
-    dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    menuStep.openActionsPage();
-    tableStep.setRefreshingFrequency(1);
+    prepareRuleAndDataFixture(
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        "CREATE DATABASE db1;");
     checkSuccessSyncActions(1, TEST_DATABASE_1);
     assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, TEST_DATABASE_1)).singleElement()
         .isEqualTo("");
@@ -176,11 +171,9 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Test(description = "Check HMS rule for functions")
   @Ignore("functions sync not work")
   public void testHmsRuleForFunctions() {
-    rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
-        .startRuleInFirstRow();
-    dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    menuStep.openActionsPage();
-    tableStep.setRefreshingFrequency(1);
+    prepareRuleAndDataFixture(
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        "CREATE DATABASE db1;");
     checkSuccessSyncActions(1, TEST_DATABASE_1);
     sqlExecutor.executeSql(hiveServer2DataSource,
         "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';");
@@ -202,15 +195,11 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for partitions")
   public void testHmsRuleForPartitions() {
-    rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
-        .startRuleInFirstRow();
-    dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    sqlExecutor.executeSql(hiveServer2DataSource,
-        "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (month STRING);");
-    sqlExecutor.executeSql(hiveServer2DataSource,
-        "ALTER TABLE db1.clients ADD PARTITION (month='december');");
-    menuStep.openActionsPage();
-    tableStep.setRefreshingFrequency(1);
+    prepareRuleAndDataFixture(
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        "CREATE DATABASE db1;\n" +
+            "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (month STRING);\n" +
+            "ALTER TABLE db1.clients ADD PARTITION (month='december');");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, "db1.clients")).singleElement()
         .isEqualTo("month=december");
@@ -242,12 +231,10 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     colJ.put("col_name", "j");
     colJ.put("data_type", "string");
     colJ.put("comment", "");
-    rulesStep.createRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1))
-        .startRuleInFirstRow();
-    dataBaseStep.createHiveServerDatabase(TEST_DATABASE_1);
-    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE TABLE db1.t1 (i INT)");
-    menuStep.openActionsPage();
-    tableStep.setRefreshingFrequency(1);
+    prepareRuleAndDataFixture(
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        "CREATE DATABASE db1;\n" +
+            "CREATE TABLE db1.t1 (i INT);");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
     assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, "db1.t1"))
         .containsExactlyInAnyOrderElementsOf(Collections.singletonList(colI));
@@ -265,14 +252,12 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, "db1")).doesNotContain("t1");
   }
 
-  public List<Map<String, Object>> getTableConstraints(DataSource dataSource, String database, String table) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    String sql = String.format("DESCRIBE EXTENDED %s.%s", database, table);
-    List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-    return result.stream()
-        .filter(row -> row.get("col_name") != null
-            && row.get("col_name").toString().toLowerCase().contains("constraint"))
-        .collect(Collectors.toList());
+  private void prepareRuleAndDataFixture(String rule, String sql) {
+    rulesStep.createRule(rule)
+        .startRuleInFirstRow();
+    sqlExecutor.executeSql(hiveServer2DataSource, sql);
+    menuStep.openActionsPage();
+    tableStep.setRefreshingFrequency(1);
   }
 
   private void checkConstraintsEquals(String database, String table, int expectedSize) {
