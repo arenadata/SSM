@@ -56,7 +56,7 @@ import static org.smartdata.test.element.PaginationElement.PageSize.THIRTY;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 
-@Feature("HMS replication")
+@Feature("HMS")
 public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private ContainerManager containerManager;

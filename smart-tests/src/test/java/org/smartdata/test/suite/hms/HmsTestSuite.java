@@ -69,7 +69,7 @@ import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 import static org.smartdata.test.util.constant.CommonConstants.AGENT_CONF_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
-@Feature("HMS replication")
+@Feature("HMS")
 public class HmsTestSuite extends SsmBaseSuite {
   @Autowired
   private ConfigModifierService configModifierService;

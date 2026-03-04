@@ -1,7 +1,8 @@
 general:
   # env-type: docker|remote
   env-type: ${ENV_TYPE:docker}
-  browser-manager: ${BROWSER_MANAGER:moon} # local|selenoid|moon
+#  env-type: ${ENV_TYPE:remote}
+  browser-manager: ${BROWSER_MANAGER:selenoid} # local|selenoid|moon
   ci: ${CI:false}
   protocol: ${PROTOCOL:http}
   bundle-run: ${BUNDLE_RUN:false}
@@ -9,7 +10,7 @@ general:
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
 docker-compose-service:
-  compose-file-name: ${COMPOSE_FILE_NAME}
+  compose-file-name: target/test-classes/env/hms-cluster/docker-compose.yaml
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 
@@ -109,6 +110,14 @@ ssm-hive-db:
     schema: public
     driver-class-name: org.postgresql.Driver
 
+ssm-hive2-db:
+  datasource:
+    jdbc-url: jdbc:postgresql://${METASTORE_DB_HOST:localhost}:5432/hive2
+    username: ssm
+    password: ssm
+    schema: public
+    driver-class-name: org.postgresql.Driver
+
 hive-server2-db:
   datasource:
     jdbc-url: jdbc:hive2://${HIVE_SERVER_HOST:localhost}:10000/default
@@ -119,4 +128,4 @@ target-hive-server2-db:
     jdbc-url: jdbc:hive2://${TARGET_HIVE_SERVER_HOST:localhost}:10004/default
     driver-class-name: org.apache.hive.jdbc.HiveDriver
 
-hms-profile-enabled: ${HMS_PROFILE_ENABLED}
+hms-profile-enabled: true

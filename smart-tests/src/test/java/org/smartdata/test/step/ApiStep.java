@@ -22,8 +22,10 @@ import io.arenadata.test.step.BaseApiStep;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.http.HttpStatus;
 import org.smartdata.client.generated.invoker.ApiClient;
 import org.smartdata.client.generated.model.ActionInfoDto;
+import org.smartdata.client.generated.model.RuleDto;
 import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.SubmitActionRequestDto;
 import org.smartdata.client.generated.model.SubmitRuleRequestDto;
@@ -43,6 +45,19 @@ public class ApiStep extends BaseApiStep {
         .body(new SubmitRuleRequestDto().rule(ruleText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
+    return this;
+  }
+
+  @Step("Create rule and start rule via API")
+  public ApiStep createAndStartRule(String ruleText) {
+    RuleDto ruleDto = apiClient.rules().addRule()
+        .body(new SubmitRuleRequestDto().rule(ruleText))
+        .respSpec(response -> response.expectStatusCode(200))
+        .executeAs(Response::andReturn);
+    apiClient.rules().startRule()
+        .idPath(ruleDto.getId())
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .execute(Response::andReturn);
     return this;
   }
 
