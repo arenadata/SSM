@@ -162,7 +162,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @TmsLink("136574")
   @Story("HMS Configuration")
   @Test(description = "Check HMS rule for functions")
-  @Ignore("functions sync not work")
+  @Ignore("ADH-7832: SSM hms-sync not sync functions")
   public void testHmsRuleForFunctions() {
     prepareRuleAndDataFixture(
         format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
