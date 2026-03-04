@@ -19,6 +19,7 @@ package org.smartdata.test.step;
 
 
 import io.arenadata.test.step.BaseApiStep;
+import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.smartdata.client.generated.invoker.ApiClient;
@@ -36,6 +37,7 @@ public class ApiStep extends BaseApiStep {
   @Autowired
   private ApiClient apiClient;
 
+  @Step("Create rule via API")
   public ApiStep createRule(String ruleText) {
     apiClient.rules().addRule()
         .body(new SubmitRuleRequestDto().rule(ruleText))
@@ -44,6 +46,7 @@ public class ApiStep extends BaseApiStep {
     return this;
   }
 
+  @Step("Delete all rules via API")
   public ApiStep deleteAllRules() {
     RulesDto rules = apiClient.rules().getRules()
         .respSpec(response -> response.expectStatusCode(200))
@@ -57,6 +60,7 @@ public class ApiStep extends BaseApiStep {
     return this;
   }
 
+  @Step("Create action via API")
   public ActionInfoDto createAction(String actionText) {
     return apiClient.actions().submitAction()
         .body(new SubmitActionRequestDto().action(actionText))
@@ -64,6 +68,7 @@ public class ApiStep extends BaseApiStep {
         .executeAs(Response::andReturn);
   }
 
+  @Step("Get raw API client")
   public ApiClient getRawClient() {
     return apiClient;
   }

@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.service;
 
+import io.qameta.allure.Step;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.EncodedResource;
@@ -37,6 +38,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 public class SqlExecutor {
+  @Step("Execute SQL script")
   public void executeSql(DataSource dataSource, String sql) {
     Connection conn = DataSourceUtils.getConnection(dataSource);
     try {
@@ -48,6 +50,7 @@ public class SqlExecutor {
     }
   }
 
+  @Step("Execute SQL file by path '{path}'")
   public void executeSqlFile(DataSource dataSource, String path) {
     Connection conn = DataSourceUtils.getConnection(dataSource);
     try {
@@ -57,11 +60,13 @@ public class SqlExecutor {
     }
   }
 
+  @Step("Query list by SQL")
   public List<Map<String, Object>> queryForList(DataSource dataSource, String sql) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     return jdbcTemplate.queryForList(sql);
   }
 
+  @Step("Query first column as strings by SQL")
   public List<String> queryFirstColumnAsStrings(DataSource dataSource, String sql) {
     return queryForList(dataSource, sql).stream()
         .map(row -> row.values().iterator().next())
@@ -70,6 +75,7 @@ public class SqlExecutor {
         .collect(Collectors.toList());
   }
 
+  @Step("Query column '{columnName}' as strings by SQL")
   public List<String> queryByColumnAsStrings(DataSource dataSource, String sql, String columnName) {
     return queryForList(dataSource, sql).stream()
         .map(row -> row.get(columnName))
