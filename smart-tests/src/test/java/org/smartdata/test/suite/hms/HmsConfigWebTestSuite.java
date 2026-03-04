@@ -34,7 +34,7 @@ import org.smartdata.test.step.RulesStep;
 import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -77,7 +77,7 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
       "hms : name matches \"*.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
   private static final Duration AWAITILITY_PULL_INTERVAL = Duration.ofMillis(1000);
 
-  @BeforeMethod
+  @AfterMethod
   public void restoreEnv() throws IOException {
     containerManager.stop(SSM_SERVER);
     configModifierService.restoreOriginalFile(MASTER_CONF_NAME);

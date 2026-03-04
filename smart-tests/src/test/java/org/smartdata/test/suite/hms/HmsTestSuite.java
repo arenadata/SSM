@@ -33,7 +33,6 @@ import org.smartdata.test.util.LogsUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
@@ -102,7 +101,7 @@ public class HmsTestSuite extends SsmBaseSuite {
       "org.smartdata.retry.RetryException: try once and fail.";
   private static final Duration AWAITILITY_PULL_INTERVAL = Duration.ofMillis(1000);
 
-  @BeforeMethod
+  @AfterMethod
   public void restoreEnv() throws IOException {
     containerManager.stop(SSM_SERVER);
     configModifierService.restoreOriginalFile(MASTER_CONF_NAME);

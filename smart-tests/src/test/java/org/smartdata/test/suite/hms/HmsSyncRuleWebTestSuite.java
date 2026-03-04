@@ -35,7 +35,7 @@ import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
@@ -91,7 +91,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   private static final String HMS_SYNC_RULE_TEMPLATE =
       "hms : name matches \"%s.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
 
-  @BeforeMethod
+  @AfterMethod
   public void restoreEnv() {
     apiStep.deleteAllRules();
     containerManager.stop(SSM_SERVER);
