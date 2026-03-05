@@ -20,6 +20,7 @@ package org.smartdata.test.suite.hms;
 import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
@@ -231,6 +232,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     assertHivesTablesDoNotContain("db1", "t1");
   }
 
+  @Step("Prepare HMS rule and test data fixture")
   private void prepareRuleAndDataFixture(String rule, String sql) {
     rulesStep.createRule(rule)
         .startRuleInFirstRow();
@@ -239,12 +241,14 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     tableStep.setRefreshingFrequency(1);
   }
 
+  @Step("Check successful sync actions for entity '{entityName}' has size {expectedSize}")
   private void checkSuccessSyncActions(int expectedSize, String entityName) {
     tableStep.checkTableRowsCountIs(expectedSize)
         .checkAllColumnCellsContain(expectedSize, ACTION, format("-entityName %s", entityName))
         .checkAllColumnCellsTextEqual(expectedSize, STATUS, SUCCESSFUL.getText());
   }
 
+  @Step("Assert both hives constraints are equal for table '{database}.{table}' with expected size {expectedSize}")
   private void assertHivesConstraintsEquals(String database, String table, int expectedSize) {
     List<Map<String, Object>> sourceConstraints =
         dataBaseStep.getTableConstraints(hiveServer2DataSource, database, table);
@@ -253,6 +257,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     assertThat(targetConstraints).hasSize(expectedSize).containsExactlyInAnyOrderElementsOf(sourceConstraints);
   }
 
+  @Step("Assert both hives database '{database}' parameters equal '{expectedParameters}'")
   private void assertHivesDatabaseParametersEquals(String database, String expectedParameters) {
     assertThat(dataBaseStep.getDatabaseParameters(hiveServer2DataSource, database)).singleElement()
         .isEqualTo(expectedParameters);
@@ -260,11 +265,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         .isEqualTo(expectedParameters);
   }
 
+  @Step("Assert both hives do not contain database '{database}'")
   private void assertHivesDatabasesDoNotContain(String database) {
     assertThat(dataBaseStep.getDatabases(hiveServer2DataSource)).isNotEmpty().doesNotContain(database);
     assertThat(dataBaseStep.getDatabases(targetHiveServer2DataSource)).isNotEmpty().doesNotContain(database);
   }
 
+  @Step("Assert both hives function query result equals expected value")
   private void assertFunctionResultEquals(String query, String expectedResult) {
     assertThat(sqlExecutor.queryFirstColumnAsStrings(hiveServer2DataSource, query)).singleElement()
         .isEqualTo(expectedResult);
@@ -272,11 +279,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         .isEqualTo(expectedResult);
   }
 
+  @Step("Assert both hives do not contain function '{functionName}'")
   private void assertHivesFunctionsDoNotContain(String functionName) {
     assertThat(dataBaseStep.getFunctions(hiveServer2DataSource)).doesNotContain(functionName);
     assertThat(dataBaseStep.getFunctions(targetHiveServer2DataSource)).doesNotContain(functionName);
   }
 
+  @Step("Assert both hives partitions for table '{tableName}' equal '{expectedPartition}'")
   private void assertHivesPartitionsEquals(String tableName, String expectedPartition) {
     assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, tableName)).singleElement()
         .isEqualTo(expectedPartition);
@@ -284,11 +293,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         .isEqualTo(expectedPartition);
   }
 
+  @Step("Assert both hives partitions for table '{tableName}' are empty")
   private void assertHivesPartitionsEmpty(String tableName) {
     assertThat(dataBaseStep.getPartitions(hiveServer2DataSource, tableName)).isEmpty();
     assertThat(dataBaseStep.getPartitions(targetHiveServer2DataSource, tableName)).isEmpty();
   }
 
+  @Step("Assert both hives table '{tableName}' columns equal expected columns")
   private void assertHivesTableColumnsEqual(String tableName, List<Map<String, Object>> expectedColumns) {
     assertThat(dataBaseStep.getTableColumnsWithParams(hiveServer2DataSource, tableName))
         .containsExactlyInAnyOrderElementsOf(expectedColumns);
@@ -296,6 +307,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         .containsExactlyInAnyOrderElementsOf(expectedColumns);
   }
 
+  @Step("Assert both hives do not contain table '{database}.{tableName}'")
   private void assertHivesTablesDoNotContain(String database, String tableName) {
     assertThat(dataBaseStep.getTables(hiveServer2DataSource, database)).doesNotContain(tableName);
     assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, database)).doesNotContain(tableName);

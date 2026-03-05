@@ -19,6 +19,7 @@ package org.smartdata.test.suite.hms;
 
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
@@ -108,6 +109,7 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
     checkHiveSyncProgressFlushIntervalFixture(timeoutBeforeSync, timeoutAfterSync);
   }
 
+  @Step("Check HiveSyncProgress entity initialized within timeout {timeout}")
   private void checkHiveSyncProgressEntityInit(Duration timeout) {
     await().atMost(timeout)
         .pollInterval(AWAITILITY_PULL_INTERVAL)
@@ -117,6 +119,7 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
             .satisfies(eventId -> assertThat(eventId).isPositive()));
   }
 
+  @Step("Check HiveSyncProgress event id changed from {idBeforeChange} in period between {atLeast} and {atMost}")
   private void checkHiveSyncProgressEventIdChanged(Long idBeforeChange, Duration atLeast, Duration atMost) {
     await().atLeast(atLeast)
         .and()
@@ -128,6 +131,7 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
             .isEqualTo(idBeforeChange + 1));
   }
 
+  @Step("Fixture check HiveSyncProgress flush interval in period between {atLeast} and {atMost}")
   private void checkHiveSyncProgressFlushIntervalFixture(Duration atLeast, Duration atMost) {
     containerManager.start(SSM_SERVER);
     assertThat(hiveSyncProgressDao.findAll()).isEmpty();

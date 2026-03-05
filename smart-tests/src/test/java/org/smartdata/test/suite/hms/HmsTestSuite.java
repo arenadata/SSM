@@ -19,6 +19,7 @@ package org.smartdata.test.suite.hms;
 
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import io.qameta.allure.TmsLinks;
@@ -141,16 +142,6 @@ public class HmsTestSuite extends SsmBaseSuite {
         .containsExactlyElementsOf(eventsIds);
   }
 
-  private List<Long> setupEventsIdsForSyncFullTests() {
-    int testTableQuantity = 2;
-    containerManager.start(SSM_SERVER);
-    createTestDataInHiveMetaStore(testTableQuantity);
-    checkEventsContainExpectedEntities(testTableQuantity);
-    return hiveMetastoreEventDao.findAll().stream()
-        .map(HiveMetastoreEventEntity::getId)
-        .collect(Collectors.toList());
-  }
-
   @TmsLink("136286")
   @Story("HMS Configuration")
   @Test(description = "Check smart.hive.event.fetch.enabled=true")
@@ -190,14 +181,6 @@ public class HmsTestSuite extends SsmBaseSuite {
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration.ofSeconds(0), timeoutAfterFetch, 3);
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(timeoutBeforeFetch, timeoutAfterFetch, 5);
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(timeoutBeforeFetch, timeoutAfterFetch, 7);
-  }
-
-  private void checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration atLeast, Duration atMost, int expectedSize) {
-    await().atLeast(atLeast)
-        .and()
-        .atMost(atMost)
-        .pollInterval(AWAITILITY_PULL_INTERVAL)
-        .untilAsserted(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(expectedSize));
   }
 
   @TmsLink("136351")
@@ -295,6 +278,27 @@ public class HmsTestSuite extends SsmBaseSuite {
         ), DEFAULT_WAIT_PARAMS);
   }
 
+  @Step("Setup events ids for smart.hive.event.sync.full tests")
+  private List<Long> setupEventsIdsForSyncFullTests() {
+    int testTableQuantity = 2;
+    containerManager.start(SSM_SERVER);
+    createTestDataInHiveMetaStore(testTableQuantity);
+    checkEventsContainExpectedEntities(testTableQuantity);
+    return hiveMetastoreEventDao.findAll().stream()
+        .map(HiveMetastoreEventEntity::getId)
+        .collect(Collectors.toList());
+  }
+
+  @Step("Check hive metastore events has size {expectedSize} in period from {atLeast} to {atMost}")
+  private void checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration atLeast, Duration atMost, int expectedSize) {
+    await().atLeast(atLeast)
+        .and()
+        .atMost(atMost)
+        .pollInterval(AWAITILITY_PULL_INTERVAL)
+        .untilAsserted(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(expectedSize));
+  }
+
+  @Step("Setup data for retry strategy tests")
   private void setupDataForRetryStrategyTests() {
     containerManager.start(SSM_SERVER);
     int testTableQuantity = 1;
@@ -304,15 +308,18 @@ public class HmsTestSuite extends SsmBaseSuite {
     sqlExecutor.executeSql(hiveServer2DataSource, "CREATE TABLE db1.t2(i INT)");
   }
 
+  @Step("Get retry strategy error logs")
   private List<String> getRetryStrategyErrorLogs() {
     String logs = containerManager.getContainerLogs(SSM_SERVER);
     return LogsUtil.getLinesContainsText(logs, RETRY_STRATEGY_ERROR_MESSAGE);
   }
 
+  @Step("Check retry strategy error logs count is {expectedCount}")
   private void checkRetryStrategyErrorLogsCount(int expectedCount) {
     waitUntil(() -> assertThat(getRetryStrategyErrorLogs()).hasSize(expectedCount), EXTENDED_WAIT_PARAMS);
   }
 
+  @Step("Check retry strategy error time between logs is {durationBetweenLogs}")
   private void checkRetryStrategyErrorTimeBetweenLogsIs(Duration durationBetweenLogs) {
     List<LocalDateTime> logsTime = LogsUtil.getTimeFromLines(getRetryStrategyErrorLogs());
     for (int i = 0; i < logsTime.size() - 1; i++) {
@@ -321,6 +328,7 @@ public class HmsTestSuite extends SsmBaseSuite {
     }
   }
 
+  @Step("Check retry strategy error time between logs is exponential")
   private void checkRetryStrategyErrorTimeBetweenLogsExponential() {
     List<LocalDateTime> logsTime = LogsUtil.getTimeFromLines(getRetryStrategyErrorLogs());
     for (int i = 0; i < logsTime.size() - 2; i++) {
@@ -333,6 +341,7 @@ public class HmsTestSuite extends SsmBaseSuite {
     }
   }
 
+  @Step("Create test data in Hive metastore with {testTableQuantity} test tables")
   private void createTestDataInHiveMetaStore(int testTableQuantity) {
     sqlExecutor.executeSql(hiveServer2DataSource, "CREATE DATABASE " + TEST_DATABASE);
     for (int i = 0; i < testTableQuantity; i++) {
@@ -340,6 +349,7 @@ public class HmsTestSuite extends SsmBaseSuite {
     }
   }
 
+  @Step("Check events contain expected entities for {testTableQuantity} test tables")
   private void checkEventsContainExpectedEntities(int testTableQuantity) {
     List<Tuple> expectedEvents = new ArrayList<>();
     expectedEvents.add(tuple(DEFAULT_DATABASE, DATABASE.name(), CREATE.name()));
