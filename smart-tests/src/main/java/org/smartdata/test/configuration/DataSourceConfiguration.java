@@ -49,6 +49,13 @@ public class DataSourceConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(name = "hms-profile-enabled", havingValue = "true")
+  @ConfigurationProperties("ssm-hive2-db.datasource")
+  public DataSource ssmHive2DataSource() {
+    return DataSourceBuilder.create().build();
+  }
+
+  @Bean
   @ConfigurationProperties("hive-server2-db.datasource")
   public DataSource hiveServer2DataSource() {
     return DataSourceBuilder.create().build();
