@@ -162,6 +162,11 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP DATABASE db1;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     assertHivesDatabasesDoNotContain(TEST_DATABASE_1);
+    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
+        "CREATE DATABASE db1;",
+        "CREATE TABLE db1.t1 (id INT);",
+        "DROP DATABASE db1 CASCADE;"));
+    checkSuccessSyncActions(7, TEST_DATABASE_1);
   }
 
   @TmsLink("136574")
