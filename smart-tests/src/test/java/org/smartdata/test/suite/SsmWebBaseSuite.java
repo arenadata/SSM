@@ -28,23 +28,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.testng.annotations.AfterMethod;
 
-import java.sql.SQLException;
-
 @Import(StepsAspects.class)
 @SpringBootTest(classes = {SsmQaApp.class})
 public abstract class SsmWebBaseSuite extends BaseWebSuite {
-
   @Autowired
   protected SsmTestConfiguration testConfig;
-
   @Autowired
   protected SsmWebConfiguration webConfig;
-
   @Autowired
   private DataBaseStep dataBaseStep;
 
   @AfterMethod
-  public void cleanUp() throws SQLException {
+  public void cleanUp() {
     dataBaseStep.cleanRuleTable();
     dataBaseStep.cleanActionTable();
     dataBaseStep.cleanAuditTable();

@@ -19,14 +19,13 @@ package org.smartdata.test.suite.hms;
 
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import io.qameta.allure.TmsLinks;
 import org.assertj.core.groups.Tuple;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
-import org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType;
-import org.smartdata.test.entity.HiveMetastoreEventEntity.EventType;
 import org.smartdata.test.service.ConfigModifierService;
 import org.smartdata.test.service.SqlExecutor;
 import org.smartdata.test.step.DataBaseStep;
@@ -54,17 +53,29 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.CHECK_CONSTRAINT;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.DATABASE;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.DEFAULT_CONSTRAINT;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.FOREIGN_KEY;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.FUNCTION;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.NOT_NULL_CONSTRAINT;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.PARTITION;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.PRIMARY_KEY;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.TABLE;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EntityType.UNIQUE_CONSTRAINT;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.ALTER;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.CREATE;
+import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.DROP;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 import static org.smartdata.test.util.constant.CommonConstants.AGENT_CONF_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS replication")
-public class HmsConfigTestSuite extends SsmBaseSuite {
+public class HmsTestSuite extends SsmBaseSuite {
   @Autowired
   private ConfigModifierService configModifierService;
   @Autowired
   private ContainerManager containerManager;
-  private static final String EVENT_SYNC_FULL_PARAM = "smart.hive.event.sync.full";
   @Autowired
   private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
   @Autowired
@@ -75,6 +86,7 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
   @Qualifier("hiveServer2DataSource")
   private DataSource hiveServer2DataSource;
 
+  private static final String EVENT_SYNC_FULL_PARAM = "smart.hive.event.sync.full";
   private static final String EVENT_FETCH_ENABLED_PARAM = "smart.hive.event.fetch.enabled";
   private static final String EVENT_FETCH_BATCH_SIZE_PARAM = "smart.hive.event.fetch.batch.size";
   private static final String DEFAULT_DATABASE = "default";
@@ -130,16 +142,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
         .containsExactlyElementsOf(eventsIds);
   }
 
-  private List<Long> setupEventsIdsForSyncFullTests() throws Exception {
-    int testTableQuantity = 2;
-    containerManager.start(SSM_SERVER);
-    createTestDataInHiveMetaStore(testTableQuantity);
-    checkEventsContainExpectedEntities(testTableQuantity);
-    return hiveMetastoreEventDao.findAll().stream()
-        .map(HiveMetastoreEventEntity::getId)
-        .collect(Collectors.toList());
-  }
-
   @TmsLink("136286")
   @Story("HMS Configuration")
   @Test(description = "Check smart.hive.event.fetch.enabled=true")
@@ -179,14 +181,6 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration.ofSeconds(0), timeoutAfterFetch, 3);
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(timeoutBeforeFetch, timeoutAfterFetch, 5);
     checkHiveMetastoreEventsHasSizeInPeriodOfTime(timeoutBeforeFetch, timeoutAfterFetch, 7);
-  }
-
-  private void checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration atLeast, Duration atMost, int expectedSize) {
-    await().atLeast(atLeast)
-        .and()
-        .atMost(atMost)
-        .pollInterval(AWAITILITY_PULL_INTERVAL)
-        .untilAsserted(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(expectedSize));
   }
 
   @TmsLink("136351")
@@ -239,24 +233,93 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
         format(RETRY_STRATEGY_EXCEPTION_MESSAGE, 3)), EXTENDED_WAIT_PARAMS);
   }
 
-  private void setupDataForRetryStrategyTests() throws Exception {
+  @TmsLink("136297")
+  @Story("HMS Configuration")
+  @Test(description = "Check fetched events types")
+  public void testFetchedEventsTypes() {
+    containerManager.start(SSM_SERVER);
+    dataBaseStep.prepareDataForHmsFetchedEventsTest();
+    waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll())
+        .extracting(
+            HiveMetastoreEventEntity::getEventType,
+            HiveMetastoreEventEntity::getEntityName,
+            HiveMetastoreEventEntity::getEntityType,
+            HiveMetastoreEventEntity::getDbName,
+            HiveMetastoreEventEntity::getTableName)
+        .containsExactlyInAnyOrder(
+            tuple(CREATE.name(), "default", DATABASE.name(), "default", null),
+            tuple(CREATE.name(), "db0", DATABASE.name(), "db0", null),
+            tuple(ALTER.name(), "db0", DATABASE.name(), "db0", null),
+            tuple(DROP.name(), "db0", DATABASE.name(), "db0", null),
+            tuple(CREATE.name(), "db1", DATABASE.name(), "db1", null),
+            tuple(CREATE.name(), "db1.t1", TABLE.name(), "db1", "t1"),
+            tuple(ALTER.name(), "db1.t1", TABLE.name(), "db1", "t1"),
+            tuple(DROP.name(), "db1.t1", TABLE.name(), "db1", "t1"),
+            tuple(CREATE.name(), "db1.clients", TABLE.name(), "db1", "clients"),
+            tuple(CREATE.name(), "db1.clients", PARTITION.name(), "db1", "clients"),
+            tuple(CREATE.name(), "default.students", CHECK_CONSTRAINT.name(), "default", "students"),
+            tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
+            tuple(ALTER.name(), "db1.clients", PARTITION.name(), "db1", "clients"),
+            tuple(DROP.name(), "db1.clients", PARTITION.name(), "db1", "clients"),
+            tuple(CREATE.name(), "default.sum_cols", FUNCTION.name(), "default", null),
+            tuple(DROP.name(), "default.sum_cols", FUNCTION.name(), "default", null),
+            tuple(CREATE.name(), "default.students", TABLE.name(), "default", "students"),
+            tuple(CREATE.name(), "default.students", NOT_NULL_CONSTRAINT.name(), "default", "students"),
+            tuple(CREATE.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
+            tuple(CREATE.name(), "default.students", PRIMARY_KEY.name(), "default", "students"),
+            tuple(CREATE.name(), "default.students_data", TABLE.name(), "default", "students_data"),
+            tuple(CREATE.name(), "default.students", FOREIGN_KEY.name(), "default", "students"),
+            tuple(DROP.name(), "default.students_data", DEFAULT_CONSTRAINT.name(), "default", "students_data"),
+            tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
+            tuple(CREATE.name(), "default.students", UNIQUE_CONSTRAINT.name(), "default", "students"),
+            tuple(DROP.name(), "default.students", DEFAULT_CONSTRAINT.name(), "default", "students"),
+            tuple(DROP.name(), "default.students", TABLE.name(), "default", "students"),
+            tuple(DROP.name(), "default.students_data", TABLE.name(), "default", "students_data")
+        ), DEFAULT_WAIT_PARAMS);
+  }
+
+  @Step("Setup events ids for smart.hive.event.sync.full tests")
+  private List<Long> setupEventsIdsForSyncFullTests() {
+    int testTableQuantity = 2;
+    containerManager.start(SSM_SERVER);
+    createTestDataInHiveMetaStore(testTableQuantity);
+    checkEventsContainExpectedEntities(testTableQuantity);
+    return hiveMetastoreEventDao.findAll().stream()
+        .map(HiveMetastoreEventEntity::getId)
+        .collect(Collectors.toList());
+  }
+
+  @Step("Check hive metastore events has size {expectedSize} in period from {atLeast} to {atMost}")
+  private void checkHiveMetastoreEventsHasSizeInPeriodOfTime(Duration atLeast, Duration atMost, int expectedSize) {
+    await().atLeast(atLeast)
+        .and()
+        .atMost(atMost)
+        .pollInterval(AWAITILITY_PULL_INTERVAL)
+        .untilAsserted(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(expectedSize));
+  }
+
+  @Step("Setup data for retry strategy tests")
+  private void setupDataForRetryStrategyTests() {
     containerManager.start(SSM_SERVER);
     int testTableQuantity = 1;
     createTestDataInHiveMetaStore(testTableQuantity);
     waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll()).hasSize(3), DEFAULT_WAIT_PARAMS);
     dataBaseStep.dropHiveMetastoreEventTable();
-    sqlExecutor.executeSql(hiveServer2DataSource, "create table db1.t2(i int)");
+    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE TABLE db1.t2(i INT)");
   }
 
+  @Step("Get retry strategy error logs")
   private List<String> getRetryStrategyErrorLogs() {
     String logs = containerManager.getContainerLogs(SSM_SERVER);
     return LogsUtil.getLinesContainsText(logs, RETRY_STRATEGY_ERROR_MESSAGE);
   }
 
+  @Step("Check retry strategy error logs count is {expectedCount}")
   private void checkRetryStrategyErrorLogsCount(int expectedCount) {
     waitUntil(() -> assertThat(getRetryStrategyErrorLogs()).hasSize(expectedCount), EXTENDED_WAIT_PARAMS);
   }
 
+  @Step("Check retry strategy error time between logs is {durationBetweenLogs}")
   private void checkRetryStrategyErrorTimeBetweenLogsIs(Duration durationBetweenLogs) {
     List<LocalDateTime> logsTime = LogsUtil.getTimeFromLines(getRetryStrategyErrorLogs());
     for (int i = 0; i < logsTime.size() - 1; i++) {
@@ -265,6 +328,7 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     }
   }
 
+  @Step("Check retry strategy error time between logs is exponential")
   private void checkRetryStrategyErrorTimeBetweenLogsExponential() {
     List<LocalDateTime> logsTime = LogsUtil.getTimeFromLines(getRetryStrategyErrorLogs());
     for (int i = 0; i < logsTime.size() - 2; i++) {
@@ -277,20 +341,22 @@ public class HmsConfigTestSuite extends SsmBaseSuite {
     }
   }
 
-  private void createTestDataInHiveMetaStore(int testTableQuantity) throws Exception {
-    sqlExecutor.executeSql(hiveServer2DataSource, "create database " + TEST_DATABASE);
+  @Step("Create test data in Hive metastore with {testTableQuantity} test tables")
+  private void createTestDataInHiveMetaStore(int testTableQuantity) {
+    sqlExecutor.executeSql(hiveServer2DataSource, "CREATE DATABASE " + TEST_DATABASE);
     for (int i = 0; i < testTableQuantity; i++) {
-      sqlExecutor.executeSql(hiveServer2DataSource, format("create table %s.t%s(i int)", TEST_DATABASE, i));
+      sqlExecutor.executeSql(hiveServer2DataSource, format("CREATE TABLE %s.t%s(i INT)", TEST_DATABASE, i));
     }
   }
 
+  @Step("Check events contain expected entities for {testTableQuantity} test tables")
   private void checkEventsContainExpectedEntities(int testTableQuantity) {
     List<Tuple> expectedEvents = new ArrayList<>();
-    expectedEvents.add(tuple(DEFAULT_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
-    expectedEvents.add(tuple(TEST_DATABASE, EntityType.DATABASE.name(), EventType.CREATE.name()));
+    expectedEvents.add(tuple(DEFAULT_DATABASE, DATABASE.name(), CREATE.name()));
+    expectedEvents.add(tuple(TEST_DATABASE, DATABASE.name(), CREATE.name()));
     for (int i = 0; i < testTableQuantity; i++) {
       expectedEvents.add(
-          tuple(format("%s.t%s", TEST_DATABASE, i), EntityType.TABLE.name(), EventType.CREATE.name()));
+          tuple(format("%s.t%s", TEST_DATABASE, i), TABLE.name(), CREATE.name()));
     }
     waitUntil(() -> assertThat(hiveMetastoreEventDao.findAll())
         .extracting(HiveMetastoreEventEntity::getEntityName,

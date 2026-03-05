@@ -35,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static com.codeborne.selenide.CollectionCondition.containExactTextsCaseSensitive;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.text;
@@ -293,10 +294,25 @@ public class TableStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Check all rows in {tableType} table {tableColumn} column contain '{substring}' substring")
+  public TableStep checkAllColumnCellsContain(TableType tableType, int expectedRowsCount, TableColumn tableColumn,
+                                              String substring) {
+    String[] expectedValues = new String[expectedRowsCount];
+    Arrays.fill(expectedValues, substring);
+    getAllColumnCells(tableType, tableColumn).shouldHave(texts(expectedValues), DEFAULT_WEB_ELEMENT_TIMEOUT);
+    return this;
+  }
+
+  @Step("Check all rows in {tableColumn} column contain '{substring}' substring")
+  public TableStep checkAllColumnCellsContain(int expectedRowsCount, TableColumn tableColumn, String substring) {
+    checkAllColumnCellsContain(PRIMARY, expectedRowsCount, tableColumn, substring);
+    return this;
+  }
+
   @Step("Check refreshing frequency for column with index {column}")
   public TableStep checkRefreshingFrequency(TableColumn column) {
     IntStream.of(10, 5, 2, 1).forEachOrdered(refreshPeriod -> {
-      changeRefreshingFrequencyTo(refreshPeriod);
+      setRefreshingFrequency(refreshPeriod);
       waitUntil(() -> {
         SelenideElement firstTimeCell = getCellInFirstRow(column);
         String dateBeforeRefreshStr = firstTimeCell.getText();
@@ -312,8 +328,9 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Set refreshing frequency value to {value} sec")
-  private void changeRefreshingFrequencyTo(int value) {
+  public TableStep setRefreshingFrequency(int value) {
     waitAndClick(CHANGE_FREQUENCY_SELECT);
     waitAndClick(getFrequencyOption(value));
+    return this;
   }
 }
