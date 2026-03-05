@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
@@ -168,7 +167,6 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @TmsLink("136574")
   @Story("HMS Sync entities")
   @Test(description = "Check HMS rule for functions")
-  @Ignore("ADH-7832: SSM hms-sync not sync functions")
   public void testHmsRuleForFunctions() {
     prepareRuleAndDataFixture(
         format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
@@ -177,11 +175,11 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     sqlExecutor.executeSql(hiveServer2DataSource,
         "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';");
     checkSuccessSyncActions(2, TEST_DATABASE_1);
-    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
+    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTION;");
     assertFunctionResultEquals("SELECT db1.sum_cols(1,3)", "4");
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP FUNCTION db1.sum_cols;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
-    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTIONS;");
+    sqlExecutor.executeSql(targetHiveServer2DataSource, "RELOAD FUNCTION;");
     assertHivesFunctionsDoNotContain("sum_cols");
   }
 
