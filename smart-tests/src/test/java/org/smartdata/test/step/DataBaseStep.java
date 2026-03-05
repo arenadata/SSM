@@ -120,6 +120,16 @@ public class DataBaseStep {
     return this;
   }
 
+  @Step("Clean all UI tables")
+  public DataBaseStep cleanAllUiTables() {
+    cleanRuleTable()
+        .cleanActionTable()
+        .cleanAuditTable()
+        .cleanHottestFilesTable()
+        .cleanFilesInCacheTable();
+    return this;
+  }
+
   @Step("Insert data for rules sorting test")
   public DataBaseStep insertDataForRulesSortTest() {
     sqlExecutor.executeSqlFile(ssmMetastoreDataSource, getSqlFilePath(RULES_FOR_SORT_TEST_SQL));
