@@ -33,7 +33,10 @@
         <name>smart.hadoop.conf.path</name>
         <value>/opt/ssm/conf</value>
     </property>
-
+    <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://hive-metastore.demo:9083</value>
+    </property>
     <!-- REST server configs -->
     <property>
         <name>smart.rest.server.security.enabled</name>
