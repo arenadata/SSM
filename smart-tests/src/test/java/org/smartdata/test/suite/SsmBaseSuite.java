@@ -19,11 +19,21 @@ package org.smartdata.test.suite;
 
 import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
+import org.smartdata.test.step.DataBaseStep;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterMethod;
 
 @Import(StepsAspects.class)
 @SpringBootTest(classes = {SsmQaApp.class})
 public abstract class SsmBaseSuite extends AbstractTestNGSpringContextTests {
+  @Autowired
+  private DataBaseStep dataBaseStep;
+
+  @AfterMethod
+  public void cleanUp() {
+    dataBaseStep.cleanAllUiTables();
+  }
 }

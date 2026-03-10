@@ -20,8 +20,6 @@ package org.smartdata.test.suite;
 import io.arenadata.test.suite.BaseWebSuite;
 import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
-import org.smartdata.test.configuration.SsmTestConfiguration;
-import org.smartdata.test.configuration.SsmWebConfiguration;
 import org.smartdata.test.step.DataBaseStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,18 +30,10 @@ import org.testng.annotations.AfterMethod;
 @SpringBootTest(classes = {SsmQaApp.class})
 public abstract class SsmWebBaseSuite extends BaseWebSuite {
   @Autowired
-  protected SsmTestConfiguration testConfig;
-  @Autowired
-  protected SsmWebConfiguration webConfig;
-  @Autowired
   private DataBaseStep dataBaseStep;
 
   @AfterMethod
   public void cleanUp() {
-    dataBaseStep.cleanRuleTable();
-    dataBaseStep.cleanActionTable();
-    dataBaseStep.cleanAuditTable();
-    dataBaseStep.cleanHottestFilesTable();
-    dataBaseStep.cleanFilesInCacheTable();
+    dataBaseStep.cleanAllUiTables();
   }
 }
