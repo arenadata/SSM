@@ -294,17 +294,17 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
             "Dropping function db1.sum_cols",
             "Function was successfully dropped"),
         new ActionLogCase(
-            "DROP TABLE db1.clients;",
+            "DROP DATABASE db1;",
             12,
+            "Dropping database db1",
+            "Skipping database drop on destination because 'db1' still exists on source"),
+        new ActionLogCase(
+            "DROP TABLE db1.clients;",
+            13,
             "Dropping table db1.clients",
             "Table was successfully dropped"),
         new ActionLogCase(
             "DROP DATABASE db1;",
-            13,
-            "Dropping database db1",
-            "Skipping database drop on destination because 'db1' still exists on source"),
-        new ActionLogCase(
-            "DROP DATABASE db1 CASCADE;",
             14,
             "Dropping database db1",
             "Database was successfully dropped"));
