@@ -113,7 +113,7 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
         .startRuleInFirstRow();
     dataBaseStep.prepareDataForHmsRulesAndActionsTest();
     menuStep.openActionsPage();
-    paginationStep.setShowPerPageOption(THIRTY, null);
+    paginationStep.setShowPerPageOption(THIRTY);
     checkSuccessSyncActions(19, TEST_DATABASE_2);
   }
 
@@ -234,7 +234,6 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Story("HMS Sync entities")
   @Test(description = "Check HMS rule actions logs")
   public void testHmsRuleActionsLogs() {
-    apiStep.createAndStartRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1));
     List<ActionLogCase> actionLogCases = Arrays.asList(
         new ActionLogCase(
             "CREATE DATABASE db1;",
@@ -308,6 +307,9 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
             14,
             "Dropping database db1",
             "Database was successfully dropped"));
+    apiStep.createAndStartRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1));
+    menuStep.openActionsPage();
+    paginationStep.setShowPerPageOption(THIRTY);
     for (ActionLogCase actionLogCase : actionLogCases) {
       executeSqlAndCheckLatestActionLog(actionLogCase);
     }
