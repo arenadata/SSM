@@ -29,6 +29,7 @@ import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.service.ConfigModifierService;
 import org.smartdata.test.service.SqlExecutor;
 import org.smartdata.test.step.DataBaseStep;
+import org.smartdata.test.step.HmsStep;
 import org.smartdata.test.suite.SsmBaseSuite;
 import org.smartdata.test.util.LogsUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,6 @@ import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.ALTER
 import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.CREATE;
 import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.DROP;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
-import static org.smartdata.test.util.constant.CommonConstants.AGENT_CONF_NAME;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS")
@@ -81,16 +81,18 @@ public class HmsTestSuite extends SsmBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
   @Autowired
+  private HmsStep hmsStep;
+  @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
   @Qualifier("hiveServer2DataSource")
   private DataSource hiveServer2DataSource;
 
+  private static final String DEFAULT_DATABASE = "default";
+  private static final String TEST_DATABASE = "db1";
   private static final String EVENT_SYNC_FULL_PARAM = "smart.hive.event.sync.full";
   private static final String EVENT_FETCH_ENABLED_PARAM = "smart.hive.event.fetch.enabled";
   private static final String EVENT_FETCH_BATCH_SIZE_PARAM = "smart.hive.event.fetch.batch.size";
-  private static final String DEFAULT_DATABASE = "default";
-  private static final String TEST_DATABASE = "db1";
   private static final String EVENT_FETCH_PERIOD_MS_PARAM = "smart.hive.event.fetch.period.ms";
   private static final String EVENT_APPLIER_RETRY_STRATEGY_PARAM = "smart.hive.event.applier.retry.strategy";
   private static final String EVENT_APPLIER_RETRY_MAX_PARAM = "smart.hive.event.applier.retry.max";
@@ -105,12 +107,7 @@ public class HmsTestSuite extends SsmBaseSuite {
 
   @BeforeMethod
   public void restoreEnv() throws IOException {
-    containerManager.stop(SSM_SERVER);
-    configModifierService.restoreOriginalFile(MASTER_CONF_NAME);
-    configModifierService.restoreOriginalFile(AGENT_CONF_NAME);
-    dataBaseStep.dropHiveServersTable(TEST_DATABASE)
-        .truncateSsmHiveNotificationLogTable();
-    hiveMetastoreEventDao.deleteAll();
+    hmsStep.restoreEnv(false);
   }
 
   @AfterMethod(onlyForGroups = "restoreHiveMetastoreEventTable")

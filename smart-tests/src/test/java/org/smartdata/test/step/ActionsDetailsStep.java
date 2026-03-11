@@ -80,14 +80,28 @@ public class ActionsDetailsStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Open 'Action Details' logs tab")
+  public ActionsDetailsStep openActionDetailsLog() {
+    waitAndClick(ACTION_DETAILS_LOG_BUTTON);
+    ACTION_DETAILS_LOG_BUTTON.should(attributeMatching("class", ".*active.*"));
+    return this;
+  }
+
+  @Step("Check 'Action Details' log contains texts: {texts}")
+  public ActionsDetailsStep checkActionDetailsLogContainsTexts(String... texts) {
+    for (String text : texts) {
+      waitTextEquals(ACTION_DETAILS_LOG_VIEW, text);
+    }
+    return this;
+  }
+
   @Step("Check 'Action Details' log view")
   public ActionsDetailsStep checkActionDetailsLogViewValues(String result, String log) {
     waitVisibility(ACTION_DETAILS_RESULT_BUTTON);
     ACTION_DETAILS_RESULT_BUTTON.should(attributeMatching("class", ".*active.*"));
-    waitTextEquals(ACTION_DETAILS_LOG_VIEW, result);
-    waitAndClick(ACTION_DETAILS_LOG_BUTTON);
-    ACTION_DETAILS_LOG_BUTTON.should(attributeMatching("class", ".*active.*"));
-    waitTextEquals(ACTION_DETAILS_LOG_VIEW, log);
+    checkElementTextIs(ACTION_DETAILS_LOG_VIEW, result);
+    openActionDetailsLog();
+    checkElementTextIs(ACTION_DETAILS_LOG_VIEW, log);
     return this;
   }
 

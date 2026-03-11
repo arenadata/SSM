@@ -24,19 +24,19 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import org.assertj.core.groups.Tuple;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
-import org.smartdata.test.dao.impl.HiveSyncProgressDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.service.SqlExecutor;
 import org.smartdata.test.step.ApiStep;
-import org.smartdata.test.step.DataBaseStep;
+import org.smartdata.test.step.HmsStep;
 import org.smartdata.test.suite.SsmBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -57,13 +57,11 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
   @Autowired
   private ContainerManager containerManager;
   @Autowired
-  private DataBaseStep dataBaseStep;
-  @Autowired
   private ApiStep apiStep;
   @Autowired
-  private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
+  private HmsStep hmsStep;
   @Autowired
-  private HiveSyncProgressDaoImpl hiveSyncProgressDao;
+  private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
@@ -105,15 +103,9 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
       tuple(CREATE.name(), "db1.t1", TABLE.name(), "db1", "t1")
   };
 
-  @AfterMethod
-  public void restoreEnv() {
-    apiStep.deleteAllRules();
-    containerManager.stop(SSM_SERVER);
-    dataBaseStep.dropHiveServersTable(TEST_DATABASE)
-        .truncateSsmHiveNotificationLogTable();
-    hiveMetastoreEventDao.deleteAll();
-    hiveSyncProgressDao.deleteAll();
-    containerManager.start(SSM_SERVER);
+  @BeforeMethod
+  public void restoreEnv() throws IOException {
+    hmsStep.restoreEnv(true);
   }
 
   @TmsLink("136053")

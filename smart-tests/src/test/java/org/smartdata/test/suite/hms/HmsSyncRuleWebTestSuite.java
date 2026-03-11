@@ -23,11 +23,12 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
-import org.smartdata.test.dao.impl.HiveSyncProgressDaoImpl;
 import org.smartdata.test.service.SqlExecutor;
+import org.smartdata.test.step.ActionsDetailsStep;
+import org.smartdata.test.step.ActionsStep;
 import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
+import org.smartdata.test.step.HmsStep;
 import org.smartdata.test.step.LoginStep;
 import org.smartdata.test.step.MenuStep;
 import org.smartdata.test.step.PaginationStep;
@@ -36,12 +37,12 @@ import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,7 +55,6 @@ import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.A
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
 import static org.smartdata.test.element.PaginationElement.PageSize.THIRTY;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
-import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
 
 @Feature("HMS")
 public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
@@ -73,11 +73,13 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
   @Autowired
+  private HmsStep hmsStep;
+  @Autowired
+  private ActionsStep actionsStep;
+  @Autowired
+  private ActionsDetailsStep actionsDetailsStep;
+  @Autowired
   private ApiStep apiStep;
-  @Autowired
-  private HiveMetastoreEventDaoImpl hiveMetastoreEventDao;
-  @Autowired
-  private HiveSyncProgressDaoImpl hiveSyncProgressDao;
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
@@ -93,21 +95,14 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
       "hms : name matches \"%s.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
 
   @BeforeMethod
+  public void restoreEnv() throws IOException {
+    hmsStep.restoreEnv(true);
+  }
+
+  @BeforeMethod(dependsOnMethods = "restoreEnv")
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
-  }
-
-  @AfterMethod
-  public void restoreEnv() {
-    apiStep.deleteAllRules();
-    containerManager.stop(SSM_SERVER);
-    dataBaseStep.dropHiveServersTable(TEST_DATABASE_1)
-        .dropHiveServersTable(TEST_DATABASE_2)
-        .truncateSsmHiveNotificationLogTable();
-    hiveMetastoreEventDao.deleteAll();
-    hiveSyncProgressDao.deleteAll();
-    containerManager.start(SSM_SERVER);
   }
 
   @TmsLink("136492")
@@ -235,6 +230,99 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     assertHivesTablesDoNotContain("db1", "t1");
   }
 
+  @TmsLink("136243")
+  @Story("HMS Sync entities")
+  @Test(description = "Check HMS rule actions logs")
+  public void testHmsRuleActionsLogs() {
+    apiStep.createAndStartRule(format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1));
+    List<ActionLogCase> actionLogCases = Arrays.asList(
+        new ActionLogCase(
+            "CREATE DATABASE db1;",
+            1,
+            "Creating database db1",
+            "Database was successfully created"),
+        new ActionLogCase(
+            "ALTER DATABASE db1 SET DBPROPERTIES ('Date' = '2026-01-13');",
+            2,
+            "Altering database db1",
+            "Database was successfully altered"),
+        new ActionLogCase(
+            "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (MONTH STRING);",
+            3,
+            "Creating table db1.clients",
+            "Table was successfully created"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients ADD COLUMNS (i INT);",
+            4,
+            "Altering table db1.clients",
+            "Table was successfully altered"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients ADD PARTITION (MONTH='december');",
+            5,
+            "Creating partitions for table clients",
+            "partition: [december]",
+            "Partitions were successfully created"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients PARTITION (MONTH ='december') RENAME TO PARTITION (MONTH ='january');",
+            6,
+            "Altering partition [december] for table db1.clients",
+            "Partitions was successfully altered"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients DROP PARTITION (MONTH='january');",
+            7,
+            "Dropping partition for table db1.clients",
+            "Dropping partition: [january]",
+            "Partitions were successfully dropped"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients ADD CONSTRAINT clients_pk PRIMARY KEY (id) DISABLE NOVALIDATE;",
+            8,
+            "Creating primary key",
+            "Constraint was successfully created"),
+        new ActionLogCase(
+            "ALTER TABLE db1.clients DROP CONSTRAINT clients_pk;",
+            9,
+            "Dropping constraint clients_pk for table db1.clients",
+            "Constraint was successfully dropped"),
+        new ActionLogCase(
+            "CREATE FUNCTION db1.sum_cols AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPPlus';",
+            10,
+            "Creating function db1.sum_cols",
+            "Function was successfully created"),
+        new ActionLogCase(
+            "DROP FUNCTION db1.sum_cols;",
+            11,
+            "Dropping function db1.sum_cols",
+            "Function was successfully dropped"),
+        new ActionLogCase(
+            "DROP TABLE db1.clients;",
+            12,
+            "Dropping table db1.clients",
+            "Table was successfully dropped"),
+        new ActionLogCase(
+            "DROP DATABASE db1;",
+            13,
+            "Dropping database db1",
+            "Skipping database drop on destination because 'db1' still exists on source"),
+        new ActionLogCase(
+            "DROP DATABASE db1 CASCADE;",
+            14,
+            "Dropping database db1",
+            "Database was successfully dropped"));
+    for (ActionLogCase actionLogCase : actionLogCases) {
+      executeSqlAndCheckLatestActionLog(actionLogCase);
+    }
+  }
+
+  @Step("Execute SQL and verify latest action log")
+  private void executeSqlAndCheckLatestActionLog(ActionLogCase actionLogCase) {
+    sqlExecutor.executeSql(hiveServer2DataSource, actionLogCase.sql);
+    menuStep.openActionsPage();
+    checkSuccessSyncActions(actionLogCase.expectedActionsCount, TEST_DATABASE_1);
+    actionsStep.openFirstActionDetails();
+    actionsDetailsStep.openActionDetailsLog()
+        .checkActionDetailsLogContainsTexts(actionLogCase.expectedLogTexts);
+  }
+
   @Step("Prepare HMS rule and test data fixture")
   private void prepareRuleAndDataFixture(String rule, String sql) {
     rulesStep.createRule(rule)
@@ -314,5 +402,17 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   private void assertHivesTablesDoNotContain(String database, String tableName) {
     assertThat(dataBaseStep.getTables(hiveServer2DataSource, database)).doesNotContain(tableName);
     assertThat(dataBaseStep.getTables(targetHiveServer2DataSource, database)).doesNotContain(tableName);
+  }
+
+  private static final class ActionLogCase {
+    private final String sql;
+    private final int expectedActionsCount;
+    private final String[] expectedLogTexts;
+
+    private ActionLogCase(String sql, int expectedActionsCount, String... expectedLogTexts) {
+      this.sql = sql;
+      this.expectedActionsCount = expectedActionsCount;
+      this.expectedLogTexts = expectedLogTexts;
+    }
   }
 }
