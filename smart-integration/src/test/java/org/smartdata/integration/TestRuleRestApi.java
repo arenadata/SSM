@@ -56,7 +56,7 @@ public class TestRuleRestApi extends IntegrationTestBase {
     RuleDto rule = apiClient.submitRule(RULE_TEXT);
     RulesDto fetchedRules = apiClient.getRules();
 
-    assertEquals(123123, fetchedRules.getTotal().longValue());
+    assertEquals(1, fetchedRules.getTotal().longValue());
     assertEquals(1, fetchedRules.getItems().size());
 
     RuleDto fetchedRule = fetchedRules.getItems().get(0);
