@@ -97,7 +97,7 @@ public class RulesSuite extends SsmWebBaseSuite {
         .clickCancelButton()
         .checkEditorNotVisible();
     tableStep.checkTableIsEmpty();
-    rulesStep.createRule("qweasd");
+    rulesStep.createRule(TEST_RULE_TEXT);
     tableStep.checkTableRowsCountIs(1)
         .checkColumnValueInFirstRow(RULE_TEXT, TEST_RULE_TEXT)
         .checkColumnValueInFirstRow(STATUS, DISABLED.getText());
