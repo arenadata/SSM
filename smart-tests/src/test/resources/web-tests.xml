@@ -6,8 +6,11 @@
         <listener class-name="org.smartdata.test.util.RetryAnalyzerAnnotationTransformer"/>
     </listeners>
     <test name="Web tests" annotations="JDK" thread-count="1">
-        <packages>
-            <package name="org.smartdata.test.suite.web"/>
-        </packages>
+<!--        <packages>-->
+<!--            <package name="org.smartdata.test.suite.web"/>-->
+<!--        </packages>-->
+        <classes>
+            <class name="org.smartdata.test.suite.web.RulesSuite"/>
+        </classes>
     </test>
 </suite>
