@@ -225,10 +225,10 @@ public class DataBaseStep {
     return this;
   }
 
-  @Step("Drop database '{tableName}' on both Hive instances")
-  public DataBaseStep dropHiveServersTable(String tableName) {
-    sqlExecutor.executeSql(hiveServer2DataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, tableName));
-    sqlExecutor.executeSql(targetHiveServer2DataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, tableName));
+  @Step("Drop all Hive databases except default on both Hive instances")
+  public DataBaseStep dropHiveServersTablesExceptDefault() {
+    dropDatabasesExceptDefault(hiveServer2DataSource);
+    dropDatabasesExceptDefault(targetHiveServer2DataSource);
     return this;
   }
 
@@ -305,5 +305,11 @@ public class DataBaseStep {
 
   private String getSqlFilePath(String fileName) {
     return Paths.get(SQL_FOLDER_PATH, fileName).toString();
+  }
+
+  private void dropDatabasesExceptDefault(DataSource dataSource) {
+    getDatabases(dataSource).stream()
+        .filter(databaseName -> !"default".equalsIgnoreCase(databaseName))
+        .forEach(databaseName -> sqlExecutor.executeSql(dataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, databaseName)));
   }
 }

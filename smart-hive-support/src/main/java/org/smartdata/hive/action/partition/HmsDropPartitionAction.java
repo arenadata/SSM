@@ -39,7 +39,7 @@ public class HmsDropPartitionAction extends HmsAction {
   protected void execute() throws Exception {
     DropPartitionMessage message = parseEventMessage(
         EventMessage.EventType.DROP_PARTITION);
-    appendFormatLog("Dropping partition for table %s%s",
+    appendFormatLog("Dropping partition for table %s.%s",
         message.getDB(),
         message.getTable());
 

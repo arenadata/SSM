@@ -95,6 +95,12 @@ public class PaginationStep extends BaseWebStep {
     return this;
   }
 
+  @Step("Set 'Show per page' value")
+  public PaginationStep setShowPerPageOption(PaginationElement.PageSize pageSize) {
+    setShowPerPageOption(pageSize, null);
+    return this;
+  }
+
   @Step("Check first page buttons")
   public PaginationStep checkFirstPageButtonsState(SelenideElement baseElement) {
     checkAllNumberedButtonsIsEnabled(baseElement);
