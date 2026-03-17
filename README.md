@@ -2,6 +2,7 @@
 HDFS Smart Storage Management
 =========================
 
+
 **HDFS-SSM** is the major portion of the overall [Smart Data Management Initiative](https://github.com/arenadata/SSM/blob/develop/docs/overall-initiative.md).
 
 In big data field, HDFS storage has been facing increasing pressure due to various workloads and demanding performance requirements in recent years. The latest storage devices (Optane Memory, Optane SSD, NVMe SSD, etc.) can be used to improve the storage performance. Meanwhile HDFS provides all kinds of nice methodologies like HDFS Cache, Heterogeneous Storage Management (HSM) and Erasure Coding (EC), but it is a big challenge for users to make full utilization of these high-performance storage devices and HDFS storage options in a dynamic environment.
