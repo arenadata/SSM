@@ -23,6 +23,7 @@ grids:
       screenshot-successful-steps: true
 
     - type: moon
+      proxyHost: ${MOON_PROXY_HOST:10.94.12.187}
       remoteHost: ${MOON_REMOTE_HOST:https://moon.dev.adsw.io}
       browserName: ${BROWSER_NAME:chrome}
       browserVersion: ${BROWSER_VERSION:144.0.7559.132-16}
@@ -128,3 +129,16 @@ target-hive-server2-db:
     driver-class-name: org.apache.hive.jdbc.HiveDriver
 
 hms-profile-enabled: ${HMS_PROFILE_ENABLED}
+
+# Reverse tunnel configuration to make Moon able to access test env on local machine
+ssh-tunnel:
+  host: ${SSH_TUNNEL_HOST:10.94.12.187}
+  # Use run configuration or system env vars to override secrets
+  username: ${SSH_TUNNEL_USERNAME:ssh_user}
+  key-path: ${SSH_TUNNEL_KEY_PATH:/home/username/.ssh/key}
+  key-passphrase: ${SSH_TUNNEL_KEY_PASSPHRASE:password}
+  ssh-port: 22
+  forward-host: 0.0.0.0
+  forward-port-min: 9000
+  port-range: 1000
+  localhost: localhost

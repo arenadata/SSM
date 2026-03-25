@@ -109,3 +109,6 @@ Also, web tests can be launched in different grids or in local browser. It can b
 - `moon` - remote Moon cluster is used.
 
 Configuration values can be changed either directly in application.yml config or by passing env variables (`ENV_TYPE` and `BROWSER_MANAGER`) in TestNG run configuration.
+
+In case of running UI tests in Moon against test environment deployed on your local machine, reverse ssh tunnel is set up automatically (because developer's machines are not accessible from cloud directly).
+For proper work you must provide your personal secrets via env variables (SSH_TUNNEL_USERNAME, SSH_TUNNEL_KEY_PATH, SSH_TUNNEL_KEY_PASSPHRASE) and make sure the ssh user is created on remote server used for tcp forwarding.
