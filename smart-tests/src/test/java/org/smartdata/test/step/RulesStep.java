@@ -87,7 +87,7 @@ public class RulesStep extends BaseWebStep {
 
   @Step("Insert rule text")
   public RulesStep insertRuleText(String ruleText) {
-    waitAndWrite(CREATE_RULE_DIALOG_INPUT, ruleText);
+    waitAndReWriteAction(CREATE_RULE_DIALOG_INPUT, ruleText);
     return this;
   }
 
