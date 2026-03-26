@@ -21,8 +21,8 @@ import io.arenadata.test.configuration.CommonTestConfiguration;
 import io.arenadata.test.configuration.GeneralConfiguration;
 import io.arenadata.test.model.Component;
 import io.arenadata.test.service.ContainerManager;
+import io.arenadata.test.service.HostCommandExecutor;
 import io.arenadata.test.service.HostService;
-import io.arenadata.test.service.SshCommandExecutor;
 import io.arenadata.test.service.impl.DockerComposeService;
 import io.arenadata.test.service.impl.RemoteHostService;
 import lombok.Getter;
@@ -71,7 +71,7 @@ public class SsmTestConfiguration {
 
   @Bean("hostService")
   @ConditionalOnProperty(name = "env-type", havingValue = "remote")
-  public HostService remoteHostService(SshCommandExecutor sshCommandExecutor, GeneralConfiguration generalConfiguration) {
-    return new RemoteHostService(sshCommandExecutor, generalConfiguration);
+  public HostService remoteHostService(HostCommandExecutor hostCommandExecutor, GeneralConfiguration generalConfiguration) {
+    return new RemoteHostService(hostCommandExecutor, generalConfiguration);
   }
 }
