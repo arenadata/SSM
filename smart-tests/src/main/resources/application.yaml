@@ -6,10 +6,15 @@ general:
   protocol: ${PROTOCOL:http}
   bundle-run: ${BUNDLE_RUN:false}
   selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
+  topology: ${TOPOLOGY:default}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
+topologies:
+  default: target/test-classes/env/multihost/docker-compose.yaml
+  hms: target/test-classes/env/hms-cluster/docker-compose.yaml
+
+
 docker-compose-service:
-  compose-file-name: ${COMPOSE_FILE_NAME}
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 

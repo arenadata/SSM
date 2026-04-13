@@ -19,7 +19,7 @@ package org.smartdata.test.service;
 
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,8 +42,7 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class ConfigModifierService {
 
-  @Value("${docker-compose-service.compose-file-name}")
-  private String composeFileName;
+  private final String composeFileName;
 
   private static final String PROPERTY_TAG = "property";
   private static final String NAME_TAG = "name";
@@ -51,6 +50,10 @@ public class ConfigModifierService {
   private static final String BACKUP_SUFFIX = ".backup";
   private static final String CONFIG_DIR = "ssm-conf";
   private static final int INDENT_AMOUNT = 4;
+
+  public ConfigModifierService(@Qualifier("composeFileName") String composeFileName) {
+    this.composeFileName = composeFileName;
+  }
 
   /**
    * Gets the current value of a property.

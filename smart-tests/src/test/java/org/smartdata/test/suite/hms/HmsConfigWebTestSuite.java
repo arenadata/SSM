@@ -22,6 +22,7 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.annotation.RequiredComponents;
 import org.smartdata.test.dao.impl.HiveSyncProgressDaoImpl;
 import org.smartdata.test.element.ActionsPageElement.ActionsTableColumn;
 import org.smartdata.test.entity.HiveSyncProgressEntity;
@@ -54,9 +55,11 @@ import static org.awaitility.Awaitility.await;
 import static org.smartdata.test.model.ActionStatus.FAILED;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
+import static org.smartdata.test.model.SsmComponent.TARGET_NAMENODE;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS")
+@RequiredComponents(TARGET_NAMENODE)
 public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private ConfigModifierService configModifierService;

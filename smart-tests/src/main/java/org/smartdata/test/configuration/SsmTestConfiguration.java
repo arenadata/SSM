@@ -28,7 +28,9 @@ import io.arenadata.test.service.impl.RemoteHostService;
 import lombok.Getter;
 import lombok.Setter;
 import org.smartdata.test.model.SsmComponent;
+import org.smartdata.test.model.Topology;
 import org.smartdata.test.service.SsmComponentConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
@@ -40,8 +42,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.convert.converter.Converter;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.arenadata.test.util.TestContainersUtils.getComposeServices;
 
 @Setter
 @Getter
@@ -51,9 +58,30 @@ import java.util.stream.Collectors;
 @Import(CommonTestConfiguration.class)
 public class SsmTestConfiguration {
 
+  @Value("${general.topology}")
+  private Topology topology;
+
   @Bean
-  public List<Component> ssmComponents() {
-    return Arrays.stream(SsmComponent.values()).map(c -> (Component) c).collect(Collectors.toList());
+  @ConfigurationProperties("topologies")
+  public Map<Topology, String> topologies() {
+    return new HashMap<>();
+  }
+
+  @Bean
+  public String composeFileName(Map<Topology, String> topologies) {
+    return topologies.get(topology);
+  }
+
+  @Bean
+  public List<Component> ssmComponents(Map<Topology, String> topologies) {
+    Set<String> topologyServices = getComposeServices(topologies.get(topology)).keySet();
+    return Arrays.stream(SsmComponent.values())
+        .map(component -> {
+          component.setEnabled(topologyServices.contains(component.getName()));
+          return (Component) component;
+        })
+        .filter(Component::isEnabled)
+        .collect(Collectors.toList());
   }
 
   @Bean
