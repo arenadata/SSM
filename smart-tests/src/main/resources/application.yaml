@@ -133,7 +133,7 @@ target-hive-server2-db:
     jdbc-url: jdbc:hive2://${TARGET_HIVE_SERVER_HOST:localhost}:10004/default
     driver-class-name: org.apache.hive.jdbc.HiveDriver
 
-hms-profile-enabled: ${HMS_PROFILE_ENABLED}
+hms-profile-enabled: ${HMS_PROFILE_ENABLED:false}
 
 # Reverse tunnel configuration to make Moon able to access test env on local machine
 ssh-tunnel:
