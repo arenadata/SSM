@@ -24,6 +24,7 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import io.qameta.allure.TmsLinks;
 import org.assertj.core.groups.Tuple;
+import org.smartdata.test.annotation.RequiredComponents;
 import org.smartdata.test.dao.impl.HiveMetastoreEventDaoImpl;
 import org.smartdata.test.entity.HiveMetastoreEventEntity;
 import org.smartdata.test.service.ConfigModifierService;
@@ -68,9 +69,11 @@ import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.ALTER
 import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.CREATE;
 import static org.smartdata.test.entity.HiveMetastoreEventEntity.EventType.DROP;
 import static org.smartdata.test.model.SsmComponent.SSM_SERVER;
+import static org.smartdata.test.model.SsmComponent.TARGET_NAMENODE;
 import static org.smartdata.test.util.constant.CommonConstants.MASTER_CONF_NAME;
 
 @Feature("HMS")
+@RequiredComponents(TARGET_NAMENODE)
 public class HmsTestSuite extends SsmBaseSuite {
   @Autowired
   private ConfigModifierService configModifierService;

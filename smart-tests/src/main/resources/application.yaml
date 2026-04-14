@@ -6,10 +6,15 @@ general:
   protocol: ${PROTOCOL:http}
   bundle-run: ${BUNDLE_RUN:false}
   selenoid-compose-file-name: ${SELENOID_COMPOSE_FILE_NAME:target/common-resources/selenoid/docker-compose.yaml}
+  topology: ${TOPOLOGY:default}
   base-url: ${PROTOCOL:http}://${SSM_HOST:localhost}:${SSM_PORT:8081}
 
+topologies:
+  default: target/test-classes/env/multihost/docker-compose.yaml
+  hms: target/test-classes/env/hms-cluster/docker-compose.yaml
+
+
 docker-compose-service:
-  compose-file-name: ${COMPOSE_FILE_NAME}
   # container-management-strategy: generic|compose
   container-management-strategy: ${CONTAINER_MANAGEMENT_STRATEGY:generic}
 
@@ -128,7 +133,7 @@ target-hive-server2-db:
     jdbc-url: jdbc:hive2://${TARGET_HIVE_SERVER_HOST:localhost}:10004/default
     driver-class-name: org.apache.hive.jdbc.HiveDriver
 
-hms-profile-enabled: ${HMS_PROFILE_ENABLED}
+hms-profile-enabled: ${HMS_PROFILE_ENABLED:false}
 
 # Reverse tunnel configuration to make Moon able to access test env on local machine
 ssh-tunnel:

@@ -23,6 +23,7 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
+import org.smartdata.test.annotation.RequiredComponents;
 import org.smartdata.test.service.SqlExecutor;
 import org.smartdata.test.step.ActionsDetailsStep;
 import org.smartdata.test.step.ActionsStep;
@@ -55,8 +56,10 @@ import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.A
 import static org.smartdata.test.element.ActionsPageElement.ActionsTableColumn.STATUS;
 import static org.smartdata.test.element.PaginationElement.PageSize.THIRTY;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
+import static org.smartdata.test.model.SsmComponent.TARGET_NAMENODE;
 
 @Feature("HMS")
+@RequiredComponents(TARGET_NAMENODE)
 public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private ContainerManager containerManager;

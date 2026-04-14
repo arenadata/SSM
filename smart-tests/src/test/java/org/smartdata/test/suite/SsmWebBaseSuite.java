@@ -17,6 +17,7 @@
  */
 package org.smartdata.test.suite;
 
+import io.arenadata.test.listener.TestAnalyzer;
 import io.arenadata.test.suite.BaseWebSuite;
 import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
@@ -25,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Listeners;
 
+@Listeners({TestAnalyzer.class})
 @Import(StepsAspects.class)
 @SpringBootTest(classes = {SsmQaApp.class})
 public abstract class SsmWebBaseSuite extends BaseWebSuite {

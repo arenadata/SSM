@@ -18,11 +18,10 @@
 package org.smartdata.test.model;
 
 import io.arenadata.test.model.Component;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@AllArgsConstructor
 public enum SsmComponent implements Component {
   HADOOP_NAMENODE("hadoop-namenode", 8020),
   HADOOP_DATANODE("hadoop-datanode", 7051),
@@ -40,6 +39,13 @@ public enum SsmComponent implements Component {
 
   private final String name;
   private final int port;
+  @Setter
+  private boolean isEnabled = true;
+
+  SsmComponent(String name, int port) {
+    this.name = name;
+    this.port = port;
+  }
 
   public static SsmComponent fromName(String name) {
     return SsmComponent.valueOf(name.toUpperCase().replace("-", "_"));
