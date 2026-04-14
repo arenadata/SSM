@@ -33,7 +33,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @ComponentsBinding
 @Retention(RUNTIME)
 @Target({METHOD, TYPE})
-
 public @interface RequiredComponents {
   SsmComponent[] value();
 }
