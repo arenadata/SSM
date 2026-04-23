@@ -40,13 +40,13 @@ echo "format namenode"
 echo "--------------"
 if [ "`ls -A $namedir`" == "" ]; then
   echo "Formatting namenode name directory: $namedir"
-  $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR namenode -format $CLUSTER_NAME
+  $HADOOP_HOME/bin/hdfs --debug --config $HADOOP_CONF_DIR namenode -format $CLUSTER_NAME
 fi
 
 echo "--------------"
 echo "Start namenode"
 echo "--------------"
-$HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR namenode &
+$HADOOP_HOME/bin/hdfs --debug --config $HADOOP_CONF_DIR namenode &
 wait_for_it $(hostname -f):9870
 
 echo "------------------"

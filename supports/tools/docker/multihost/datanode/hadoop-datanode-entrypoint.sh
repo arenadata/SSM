@@ -19,6 +19,6 @@ chmod +r /etc/secrets/*.keytab
 
 moveHadoopConfFiles /etc/conf ${HADOOP_CONF_DIR}
 
-$HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
+$HADOOP_HOME/bin/hdfs --debug --config $HADOOP_CONF_DIR datanode
 
 tail -f /dev/null

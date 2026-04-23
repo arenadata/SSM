@@ -18,7 +18,7 @@
 package org.smartdata.utils;
 
 import com.google.common.net.HostAndPort;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.smartdata.conf.SmartConfKeys;
 

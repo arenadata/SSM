@@ -136,7 +136,7 @@
     <profile>
       <id>hadoop-3.3</id>
       <properties>
-        <hadoop.version>3.3.6</hadoop.version>
+        <hadoop.version>3.4.3</hadoop.version>
         <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
       </properties>
       <activation>

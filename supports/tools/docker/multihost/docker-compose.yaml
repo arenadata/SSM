@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   hadoop-namenode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-namenode.demo
     container_name: hadoop-namenode
     restart: unless-stopped
@@ -34,7 +34,7 @@ services:
       - hadoop-datanode
 
   hadoop-datanode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-datanode.demo
     container_name: hadoop-datanode
     restart: unless-stopped

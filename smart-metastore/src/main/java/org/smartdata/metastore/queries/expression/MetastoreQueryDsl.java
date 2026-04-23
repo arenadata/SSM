@@ -17,7 +17,7 @@
  */
 package org.smartdata.metastore.queries.expression;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.smartdata.model.TimeInterval;
 
 import java.util.Arrays;

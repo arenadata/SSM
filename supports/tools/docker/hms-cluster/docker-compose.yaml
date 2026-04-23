@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   hadoop-namenode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-namenode.demo
     container_name: hadoop-namenode
     restart: unless-stopped
@@ -32,7 +32,7 @@ services:
       - hadoop-datanode
 
   hadoop-datanode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-datanode.demo
     container_name: hadoop-datanode
     restart: unless-stopped
@@ -182,13 +182,14 @@ services:
       - demo
 
   target-namenode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: target-namenode.demo
     container_name: target-namenode
     restart: unless-stopped
     volumes:
       - target-namenode:/hadoop/dfs/name
       - ./target-conf:/etc/conf
+      - ./conf/hadoop-env.sh:/etc/hadoop/hadoop-env.sh
       - ./common.sh:/common.sh
       - ./namenode/healthcheck-hadoop-namenode.sh:/healthcheck-hadoop-namenode.sh
       - ./namenode/hadoop-namenode-entrypoint.sh:/hadoop-namenode-entrypoint.sh
@@ -209,7 +210,7 @@ services:
       - target-datanode
 
   target-datanode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: target-datanode.demo
     container_name: target-datanode
     restart: unless-stopped
