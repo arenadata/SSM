@@ -280,6 +280,13 @@ function reorder_lib() {
   if [ -f "${SMART_HOME}/${bjar}" ]; then
     SMART_CLASSPATH="${SMART_HOME}/${bjar}:${SMART_CLASSPATH}"
   fi
+  # Prepend commons-lang3 explicitly so it takes precedence over the stale
+  # Range.class bundled inside hive-exec (a fat jar). Java expands lib/*
+  # in inode/filesystem order (not alphabetical), and hive-exec may appear
+  # before commons-lang3, causing NoSuchMethodError for Range.of().
+  for jar in "${SMART_HOME}"/lib/commons-lang3-*.jar; do
+    [ -f "$jar" ] && SMART_CLASSPATH="${jar}:${SMART_CLASSPATH}"
+  done
 }
 
 function init_command() {
