@@ -42,9 +42,6 @@
     <profiles>
         <profile>
             <id>hadoop-3.3</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <modules>
                 <module>smart-hadoop-3</module>
                 <module>smart-hadoop-3.3</module>
