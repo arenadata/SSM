@@ -6,6 +6,10 @@ service ssh start
 ssh-keyscan ssm-server.demo >> /root/.ssh/known_hosts
 echo "export JAVA_HOME=${JAVA_HOME}" >> /root/.bashrc
 
+wait_for_file /etc/secrets/namenode.keytab
+wait_for_file /etc/secrets/yarn.keytab
+chmod +r /etc/secrets/*.keytab
+
 namedir=`echo $HDFS_CONF_dfs_namenode_name_dir | perl -pe 's#file://##'`
 if [ ! -d $namedir ]; then
   echo "Namenode name directory not found: $namedir"
@@ -18,6 +22,7 @@ if [ -z "$CLUSTER_NAME" ]; then
 fi
 
 moveHadoopConfFiles /etc/conf ${HADOOP_CONF_DIR}
+configure "$HADOOP_CONF_DIR"/hdfs-site.xml hdfs HDFS_CONF
 
 # HDFS
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
