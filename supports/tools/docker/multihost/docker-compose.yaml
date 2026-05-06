@@ -31,8 +31,7 @@ services:
     networks:
       - demo
     depends_on:
-      kdc-server:
-        condition: service_healthy
+      - hadoop-datanode
 
   hadoop-datanode:
     image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
@@ -71,12 +70,7 @@ services:
     networks:
       - demo
     depends_on:
-      hadoop-namenode:
-        condition: service_healthy
-      kdc-server:
-        condition: service_healthy
-      ssm-server:
-        condition: service_started
+      - ssm-server
 
   ssm-server:
     image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.3.0-SNAPSHOT}
@@ -109,16 +103,8 @@ services:
     networks:
       - demo
     depends_on:
-      ssm-metastore-db:
-        condition: service_healthy
-      kdc-server:
-        condition: service_healthy
-      samba:
-        condition: service_healthy
-      hadoop-namenode:
-        condition: service_healthy
-      hive-metastore:
-        condition: service_healthy
+      - ssm-metastore-db
+      - kdc-server
 
   ssm-metastore-db:
     image: "docker.io/library/postgres:14.0"
@@ -188,13 +174,6 @@ services:
     container_name: hive-metastore
     hostname: hive-metastore.demo
     restart: unless-stopped
-    depends_on:
-      ssm-metastore-db:
-        condition: service_healthy
-      kdc-server:
-        condition: service_healthy
-      hadoop-namenode:
-        condition: service_healthy
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
@@ -232,12 +211,8 @@ services:
     hostname: hive-server2.demo
     restart: unless-stopped
     depends_on:
-      hive-metastore:
-        condition: service_healthy
-      hadoop-namenode:
-        condition: service_healthy
-      kdc-server:
-        condition: service_healthy
+      - hive-metastore
+      - hadoop-namenode
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true
