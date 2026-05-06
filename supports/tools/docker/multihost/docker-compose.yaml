@@ -201,9 +201,7 @@ services:
       timeout: 15s
       retries: 5
     networks:
-      demo:
-        aliases:
-          - hive-metastore.demo
+      - demo
 
   hive-server2:
     image: apache/hive:4.0.1
