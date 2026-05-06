@@ -50,9 +50,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.smartdata</groupId>
+            <artifactId>smart-hive-exec</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>${hive.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>

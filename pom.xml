@@ -67,6 +67,7 @@
     <module>smart-web-server</module>
     <module>smart-hadoop-support</module>
     <module>smart-tests</module>
+    <module>smart-hive-exec</module>
     <module>smart-hive-support</module>
   </modules>
 
