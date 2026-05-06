@@ -31,6 +31,9 @@ public class HmsSyncAction extends HmsAction {
   public static final String ENTITY_NAME = "-entityName";
   public static final String RELATED_RESOURCES = "-relatedResources";
 
+  public static final String INCLUDE = "-include";
+  public static final String EXCLUDE = "-exclude";
+
   @Override
   protected void execute() throws Exception {
     // do nothing, it's a pseudo-action for HMS sync

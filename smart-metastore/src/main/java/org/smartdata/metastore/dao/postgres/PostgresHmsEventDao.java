@@ -95,7 +95,7 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
 
     return queryExecutor.executeSingle(query, this::mapRow)
         .orElseThrow(() -> new EmptyResultDataAccessException(
-            "Rule with following id not found: " + eventId, 1));
+            "HMS event with following id not found: " + eventId, 1));
   }
 
   @Override
