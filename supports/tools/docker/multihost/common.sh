@@ -30,6 +30,28 @@ function wait_for_it()
     echo "[$i/$max_try] $service:${port} is available."
 }
 
+function wait_for_file()
+{
+    local path=$1
+    local retry_seconds=5
+    local max_try=100
+    let i=1
+
+    until [ -f "$path" ]; do
+      echo "[$i/$max_try] check for ${path}..."
+      echo "[$i/$max_try] ${path} is not available yet"
+      if (( $i == $max_try )); then
+        echo "[$i/$max_try] ${path} is still not available; giving up after ${max_try} tries. :/"
+        exit 1
+      fi
+
+      echo "[$i/$max_try] try in ${retry_seconds}s once again ..."
+      let "i++"
+      sleep $retry_seconds
+    done
+    echo "[$i/$max_try] $path is available."
+}
+
 function addProperty() {
   local path=$1
   local name=$2

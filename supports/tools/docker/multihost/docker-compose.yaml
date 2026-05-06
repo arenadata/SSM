@@ -31,7 +31,8 @@ services:
     networks:
       - demo
     depends_on:
-      - hadoop-datanode
+      kdc-server:
+        condition: service_healthy
 
   hadoop-datanode:
     image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
@@ -48,7 +49,7 @@ services:
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./conf:/etc/conf
       - ./conf:/opt/ssm/conf
-      - ./ssm-conf/smart-site-agent.xml:/opt/ssm/conf/smart-site.xml
+      - ./ssm-conf/smart-site-agent.xml:/opt/ssm/smart-site.xml
       - ./datanode/hadoop-datanode-entrypoint.sh:/hadoop-datanode-entrypoint.sh
     entrypoint: ["/hadoop-datanode-entrypoint.sh"]
     ports:
@@ -70,7 +71,12 @@ services:
     networks:
       - demo
     depends_on:
-      - ssm-server
+      hadoop-namenode:
+        condition: service_healthy
+      kdc-server:
+        condition: service_healthy
+      ssm-server:
+        condition: service_started
 
   ssm-server:
     image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.3.0-SNAPSHOT}
@@ -82,7 +88,7 @@ services:
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./conf:/opt/ssm/conf
-      - ./ssm-conf/smart-site-master.xml:/opt/ssm/conf/smart-site.xml
+      - ./ssm-conf/smart-site-master.xml:/opt/ssm/smart-site.xml
       - ./common.sh:/common.sh
       - ./ssm/ssm-server-entrypoint.sh:/ssm-server-entrypoint.sh
     entrypoint: ["/ssm-server-entrypoint.sh"]
@@ -96,15 +102,23 @@ services:
     environment:
       SSM_DEBUG_OPT: ${SSM_DEBUG_OPT}
     healthcheck:
-      test: ["CMD-SHELL", "curl http://ssm-server.demo:8081 || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://ssm-server.demo:8081/actuator/health || exit 1"]
       interval: 30s
       timeout: 15s
       retries: 5
     networks:
       - demo
     depends_on:
-      - ssm-metastore-db
-      - kdc-server
+      ssm-metastore-db:
+        condition: service_healthy
+      kdc-server:
+        condition: service_healthy
+      samba:
+        condition: service_healthy
+      hadoop-namenode:
+        condition: service_healthy
+      hive-metastore:
+        condition: service_healthy
 
   ssm-metastore-db:
     image: "docker.io/library/postgres:14.0"
@@ -173,6 +187,14 @@ services:
     image: apache/hive:4.0.1
     container_name: hive-metastore
     hostname: hive-metastore.demo
+    restart: unless-stopped
+    depends_on:
+      ssm-metastore-db:
+        condition: service_healthy
+      kdc-server:
+        condition: service_healthy
+      hadoop-namenode:
+        condition: service_healthy
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
@@ -190,6 +212,8 @@ services:
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+      - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./conf/yarn-site.xml:/opt/hive/conf/yarn-site.xml
     ports:
       - "9083:9083"
     healthcheck:
@@ -198,15 +222,22 @@ services:
       timeout: 15s
       retries: 5
     networks:
-      - demo
+      demo:
+        aliases:
+          - hive-metastore.demo
 
   hive-server2:
     image: apache/hive:4.0.1
     container_name: hive-server2
     hostname: hive-server2.demo
+    restart: unless-stopped
     depends_on:
-      - hive-metastore
-      - hadoop-namenode
+      hive-metastore:
+        condition: service_healthy
+      hadoop-namenode:
+        condition: service_healthy
+      kdc-server:
+        condition: service_healthy
     environment:
       SERVICE_NAME: hiveserver2
       IS_RESUME: true
@@ -214,15 +245,17 @@ services:
         -Dhive.metastore.uris=thrift://hive-metastore.demo:9083
         -Dhive.metastore.warehouse.dir=hdfs://hadoop-namenode.demo:8020/user/hive/warehouse
     healthcheck:
-      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
+      test: [ "CMD", "sh", "-c", "/opt/hive/bin/beeline -u 'jdbc:hive2://localhost:10000/default' -e 'show databases;'" ]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
     volumes:
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
+      - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
+      - ./conf/yarn-site.xml:/opt/hive/conf/yarn-site.xml
     ports:
       - "10000:10000"
       - "10002:10002"
