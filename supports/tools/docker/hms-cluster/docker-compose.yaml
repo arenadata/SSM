@@ -189,7 +189,6 @@ services:
     volumes:
       - target-namenode:/hadoop/dfs/name
       - ./target-conf:/etc/conf
-      - ./conf/hadoop-env.sh:/etc/hadoop/hadoop-env.sh
       - ./common.sh:/common.sh
       - ./namenode/healthcheck-hadoop-namenode.sh:/healthcheck-hadoop-namenode.sh
       - ./namenode/hadoop-namenode-entrypoint.sh:/hadoop-namenode-entrypoint.sh
