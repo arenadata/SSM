@@ -46,6 +46,10 @@ public abstract class IngestionTask implements Runnable {
 
   public static void init(SmartConf conf) {
     deque.clear();
+    batches.clear();
+    numFilesFetched.set(0);
+    numDirectoriesFetched.set(0);
+    numPersisted.set(0);
     IngestionTask.isFinished = false;
     List<String> fetchDirs = conf.getCoverDirs();
     if (fetchDirs.isEmpty()) {
@@ -59,6 +63,10 @@ public abstract class IngestionTask implements Runnable {
 
   public static void init(String dir) {
     deque.clear();
+    batches.clear();
+    numFilesFetched.set(0);
+    numDirectoriesFetched.set(0);
+    numPersisted.set(0);
     IngestionTask.isFinished = false;
     deque.add(dir);
   }
@@ -68,7 +76,8 @@ public abstract class IngestionTask implements Runnable {
   }
 
   public static boolean finished() {
-    return isFinished;
+    long fetched = numDirectoriesFetched.get() + numFilesFetched.get();
+    return isFinished && batches.isEmpty() && numPersisted.get() >= fetched;
   }
 
   public static FileInfoBatch pollBatch() {

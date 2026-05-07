@@ -48,6 +48,7 @@ public class TestListFileAction extends MiniClusterHarness {
 
   private ListFileAction listFileAction;
   private TimeZone timeZoneToRestore;
+  private TimeZone fileDateFormatTimeZoneToRestore;
 
   @Parameter
   public boolean useFullRootPath;
@@ -60,7 +61,9 @@ public class TestListFileAction extends MiniClusterHarness {
   @Before
   public void buildAction() {
     timeZoneToRestore = TimeZone.getDefault();
+    fileDateFormatTimeZoneToRestore = ListFileAction.FILE_DATE_FORMAT.getTimeZone();
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    ListFileAction.FILE_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     listFileAction = new ListFileAction();
     listFileAction.setLocalFileSystem(dfs);
@@ -112,6 +115,7 @@ public class TestListFileAction extends MiniClusterHarness {
   @After
   public void restoreTimezone() {
     TimeZone.setDefault(timeZoneToRestore);
+    ListFileAction.FILE_DATE_FORMAT.setTimeZone(fileDateFormatTimeZoneToRestore);
   }
 
   @Test

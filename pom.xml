@@ -140,6 +140,7 @@
       <id>hadoop-3.3</id>
       <properties>
         <hadoop.version>3.4.3</hadoop.version>
+        <kerby.version>2.0.3</kerby.version>
         <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
       </properties>
       <activation>
