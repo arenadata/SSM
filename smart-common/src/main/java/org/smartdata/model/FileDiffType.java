@@ -17,7 +17,15 @@
  */
 package org.smartdata.model;
 
+import com.google.common.collect.Sets;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
+import java.util.Set;
+
+@RequiredArgsConstructor
+@Getter
 public enum FileDiffType {
   CREATE(0),
   DELETE(1),
@@ -27,10 +35,25 @@ public enum FileDiffType {
   BASESYNC(5),
   MKDIR(6);
 
-  private int value;
+  public static final Set<FileDiffType> FILTERABLE_DIFF_TYPES = Sets.newHashSet(
+      CREATE, DELETE, RENAME, APPEND, METADATA);
 
-  FileDiffType(int value) {
-    this.value = value;
+  private final int value;
+
+  public Set<FileDiffType> expandFilterableType() {
+    switch (this) {
+      case CREATE:
+        return Sets.newHashSet(CREATE, BASESYNC, MKDIR);
+      case BASESYNC:
+      case MKDIR:
+        return Collections.emptySet();
+      default:
+        return Collections.singleton(this);
+    }
+  }
+
+  public static boolean isFilterable(FileDiffType diffType) {
+    return FILTERABLE_DIFF_TYPES.contains(diffType);
   }
 
   public static FileDiffType fromValue(int value) {
@@ -41,14 +64,4 @@ public enum FileDiffType {
     }
     return null;
   }
-
-  public int getValue() {
-    return value;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("FileDiffType{value=%s} %s", value, super.toString());
-  }
-
 }

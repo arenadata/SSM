@@ -54,7 +54,7 @@ public class FileDiffGenerator {
   private final Supplier<Long> currentTimeMsSupplier;
 
   public Optional<FileDiff> onFileCreate(FileInfo file) throws MetaStoreException {
-    if (!inBackup(file.getPath())) {
+    if (!inBackup(file.getPath(), FileDiffType.CREATE)) {
       return Optional.empty();
     }
 
@@ -63,7 +63,7 @@ public class FileDiffGenerator {
   }
 
   public Optional<FileDiff> onFileClose(Event.CloseEvent closeEvent) throws MetaStoreException {
-    if (!inBackup(closeEvent.getPath())) {
+    if (!inBackup(closeEvent.getPath(), FileDiffType.APPEND)) {
       return Optional.empty();
     }
 
@@ -82,7 +82,7 @@ public class FileDiffGenerator {
 
   public Optional<FileDiff> onMetadataUpdate(Event.MetadataUpdateEvent metadataUpdateEvent)
       throws MetaStoreException {
-    if (!inBackup(metadataUpdateEvent.getPath())) {
+    if (!inBackup(metadataUpdateEvent.getPath(), FileDiffType.METADATA)) {
       return Optional.empty();
     }
 
@@ -122,8 +122,8 @@ public class FileDiffGenerator {
 
   public List<FileDiff> onFileRename(
       Event.RenameEvent renameEvent, FileInfo srcFileInfo) throws MetaStoreException {
-    boolean srcInBackup = inBackup(renameEvent.getSrcPath());
-    boolean destInBackup = inBackup(renameEvent.getDstPath());
+    boolean srcInBackup = inBackup(renameEvent.getSrcPath(), FileDiffType.RENAME);
+    boolean destInBackup = inBackup(renameEvent.getDstPath(), FileDiffType.RENAME);
 
     if (!srcInBackup && !destInBackup) {
       return Collections.emptyList();
@@ -166,7 +166,7 @@ public class FileDiffGenerator {
 
   public Optional<FileDiff> onFileDelete(String path)
       throws MetaStoreException {
-    if (!inBackup(path)) {
+    if (!inBackup(path, FileDiffType.DELETE)) {
       return Optional.empty();
     }
 
@@ -259,7 +259,7 @@ public class FileDiffGenerator {
         .parameters(new HashMap<>());
   }
 
-  private boolean inBackup(String src) throws MetaStoreException {
-    return metaStore.srcInBackup(src);
+  private boolean inBackup(String src, FileDiffType fileDiffType) throws MetaStoreException {
+    return metaStore.backupEnabled(src, fileDiffType);
   }
 }
