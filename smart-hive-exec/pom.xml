@@ -67,8 +67,10 @@
                                     <excludes>
                                         <exclude>org/apache/commons/lang/**</exclude>
                                         <exclude>org/apache/commons/lang3/**</exclude>
+                                        <exclude>io/airlift/compress/**</exclude>
                                         <exclude>META-INF/maven/commons-lang/commons-lang/**</exclude>
                                         <exclude>META-INF/maven/org.apache.commons/commons-lang3/**</exclude>
+                                        <exclude>META-INF/maven/io.airlift/aircompressor/**</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>
