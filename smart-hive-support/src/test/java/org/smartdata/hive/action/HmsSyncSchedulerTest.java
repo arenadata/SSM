@@ -18,6 +18,7 @@
 package org.smartdata.hive.action;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
@@ -48,16 +49,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.smartdata.hive.NotificationEventFactory.newAlterDbEvent;
+import static org.smartdata.hive.NotificationEventFactory.newAlterTableEvent;
 import static org.smartdata.hive.NotificationEventFactory.newCreateDbEvent;
 import static org.smartdata.hive.NotificationEventFactory.newCreateTableEvent;
+import static org.smartdata.hive.NotificationEventFactory.newDropDbEvent;
+import static org.smartdata.hive.NotificationEventFactory.newDropTableEvent;
 import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE;
 import static org.smartdata.hive.action.HmsAction.EVENT_MESSAGE_FORMAT;
 import static org.smartdata.hive.action.HmsSyncAction.ENTITY_NAME;
+import static org.smartdata.hive.fetch.HiveOperation.ALTER;
+import static org.smartdata.hive.fetch.HiveOperation.CREATE;
+import static org.smartdata.hive.fetch.HiveOperation.DROP;
 import static org.smartdata.model.action.ScheduleResult.RETRY;
 import static org.smartdata.model.action.ScheduleResult.SKIP;
 import static org.smartdata.model.action.ScheduleResult.SUCCESS;
@@ -159,6 +168,72 @@ public class HmsSyncSchedulerTest {
         launchAction(1L, 2L)
     );
     assertEquals(SUCCESS, scheduleResult);
+  }
+
+  @Test
+  public void testSkipExcludedEvents() {
+    initIncludedExcludedEvents();
+
+    Set<HiveOperation> includedOps = Collections.emptySet();
+    Set<HiveOperation> excludedOps = Collections.singleton(ALTER);
+
+    // CREATE db
+    validateOnSchedule(1L, actionInfo(1L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // ALTER db
+    validateOnSchedule(2L, actionInfo(2L, RULE_ID, includedOps, excludedOps), SKIP);
+    // DROP db
+    validateOnSchedule(3L, actionInfo(3L, RULE_ID, includedOps, excludedOps), SUCCESS);
+
+    // CREATE table
+    validateOnSchedule(4L, actionInfo(4L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // ALTER table
+    validateOnSchedule(5L, actionInfo(5L, RULE_ID, includedOps, excludedOps), SKIP);
+    // DROP table
+    validateOnSchedule(6L, actionInfo(6L, RULE_ID, includedOps, excludedOps), SUCCESS);
+  }
+
+  @Test
+  public void testSkipNotIncludedEvents() {
+    initIncludedExcludedEvents();
+
+    Set<HiveOperation> includedOps = Sets.newHashSet(DROP, ALTER);
+    Set<HiveOperation> excludedOps = Collections.emptySet();
+
+    // CREATE db
+    validateOnSchedule(1L, actionInfo(1L, RULE_ID, includedOps, excludedOps), SKIP);
+    // ALTER db
+    validateOnSchedule(2L, actionInfo(2L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // DROP db
+    validateOnSchedule(3L, actionInfo(3L, RULE_ID, includedOps, excludedOps), SUCCESS);
+
+    // CREATE table
+    validateOnSchedule(4L, actionInfo(4L, RULE_ID, includedOps, excludedOps), SKIP);
+    // ALTER table
+    validateOnSchedule(5L, actionInfo(5L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // DROP table
+    validateOnSchedule(6L, actionInfo(6L, RULE_ID, includedOps, excludedOps), SUCCESS);
+  }
+
+  @Test
+  public void testIncludedEventsTakePrecedenceOverExcludedEvents() {
+    initIncludedExcludedEvents();
+
+    Set<HiveOperation> includedOps = Sets.newHashSet(CREATE, ALTER);
+    Set<HiveOperation> excludedOps = Sets.newHashSet(ALTER, DROP);
+
+    // CREATE db
+    validateOnSchedule(1L, actionInfo(1L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // ALTER db
+    validateOnSchedule(2L, actionInfo(2L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // DROP db
+    validateOnSchedule(3L, actionInfo(3L, RULE_ID, includedOps, excludedOps), SKIP);
+
+    // CREATE table
+    validateOnSchedule(4L, actionInfo(4L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // ALTER table
+    validateOnSchedule(5L, actionInfo(5L, RULE_ID, includedOps, excludedOps), SUCCESS);
+    // DROP table
+    validateOnSchedule(6L, actionInfo(6L, RULE_ID, includedOps, excludedOps), SKIP);
   }
 
   @Test
@@ -409,6 +484,23 @@ public class HmsSyncSchedulerTest {
     assertEquals(SUCCESS, scheduleResult3);
   }
 
+  private void initIncludedExcludedEvents() {
+    eventDao.insert(
+        ssmEvent(newCreateDbEvent(1L, "hive.db1", "/location")),
+        ssmEvent(newAlterDbEvent(2L,
+            new EntityInfo("hive.db2", "/location/1"),
+            new EntityInfo("hive.db3", "/location/2"))),
+        ssmEvent(newDropDbEvent(3L, "hive.db4", "/location/3")),
+
+        ssmEvent(newCreateTableEvent(4L, "hive.db5.table", TableType.EXTERNAL_TABLE, "/location/1/tb")),
+        ssmEvent(newAlterTableEvent(5L,
+            TableType.EXTERNAL_TABLE,
+            new EntityInfo("hive.db6.table2", "/db/table2"),
+            new EntityInfo("hive.db6.table3", "/db/table3"))),
+        ssmEvent(newDropTableEvent(6L, "hive.db7.view", TableType.VIRTUAL_VIEW, "/out/view"))
+    );
+  }
+
   private LaunchCmdlet launchCmdlet(long eventId, long ruleId) {
     return new LaunchCmdlet(1L, Collections.singletonList(
         launchAction(eventId, ruleId)
@@ -420,13 +512,34 @@ public class HmsSyncSchedulerTest {
   }
 
   private ActionInfo actionInfo(long eventId, long ruleId) {
+    return actionInfo(eventId, ruleId, Collections.emptySet(), Collections.emptySet());
+  }
+
+  private ActionInfo actionInfo(long eventId, long ruleId,
+      Set<HiveOperation> include, Set<HiveOperation> exclude) {
     Map<String, String> args = new HashMap<>();
     args.put(CmdletDescriptor.RULE_ID, String.valueOf(ruleId));
     args.put(CmdletDescriptor.OBJECT_ID, String.valueOf(eventId));
+    args.put(HmsSyncAction.INCLUDE, operationsToString(include));
+    args.put(HmsSyncAction.EXCLUDE, operationsToString(exclude));
     return ActionInfo.builder()
         .setActionName(HmsSyncAction.NAME)
         .setArgs(args)
         .build();
+  }
+
+  private void validateOnSchedule(long eventId, ActionInfo actionInfo, ScheduleResult expected) {
+    ScheduleResult scheduleResult = scheduler.onSchedule(
+        cmdletInfo(),
+        actionInfo,
+        launchCmdlet(eventId, RULE_ID),
+        launchAction(eventId, RULE_ID)
+    );
+    assertEquals(expected, scheduleResult);
+  }
+
+  private String operationsToString(Set<HiveOperation> operations) {
+    return operations.stream().map(HiveOperation::toString).collect(Collectors.joining(","));
   }
 
   private LaunchAction launchAction(long eventId, long ruleId) {

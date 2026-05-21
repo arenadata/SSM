@@ -17,9 +17,19 @@
  */
 package org.smartdata.hive.fetch;
 
+import com.google.common.collect.Sets;
+
+import java.util.Set;
+
 public enum HiveOperation {
   CREATE,
   DROP,
   ALTER,
-  UNKNOWN
+  UNKNOWN;
+
+  public static final Set<HiveOperation> FILTERABLE_OPERATIONS = Sets.newHashSet(CREATE, DROP, ALTER);
+
+  public static boolean isFilterable(HiveOperation operation) {
+    return FILTERABLE_OPERATIONS.contains(operation);
+  }
 }
