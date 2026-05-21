@@ -12,6 +12,13 @@ ENV USER=root
 ENV PATH $HADOOP_HOME/bin/:$PATH
 ENV HDFS_PARENT_DATA_DIR=/hadoop/dfs
 ENV SSM_HOME=/opt/ssm
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH $JAVA_HOME/bin:$PATH
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openjdk-11-jre-headless \
+    && ln -sf $JAVA_HOME/bin/java /usr/local/bin/java \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy ssm client jar to $HADOOP_HOME/share/hadoop/common/lib
 COPY target/smart-data-${SSM_APP_VERSION}/clients/smart-hadoop-client-shaded-${SSM_APP_VERSION}.jar $HADOOP_HOME/share/hadoop/common/lib/
