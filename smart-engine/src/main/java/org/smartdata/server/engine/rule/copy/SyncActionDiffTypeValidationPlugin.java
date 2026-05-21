@@ -33,8 +33,11 @@ import static org.smartdata.model.FileDiffType.FILTERABLE_DIFF_TYPES;
 
 public class SyncActionDiffTypeValidationPlugin implements RulePlugin {
 
-  static {
-    RulePluginManager.addPlugin(new SyncActionDiffTypeValidationPlugin());
+  private static final SyncActionDiffTypeValidationPlugin INSTANCE =
+      new SyncActionDiffTypeValidationPlugin();
+
+  public static void register() {
+    RulePluginManager.addPlugin(INSTANCE);
   }
 
   @Override
