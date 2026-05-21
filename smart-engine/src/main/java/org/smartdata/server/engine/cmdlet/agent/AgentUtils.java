@@ -32,6 +32,7 @@ import org.smartdata.conf.SmartConfKeys;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import scala.concurrent.ExecutionContextExecutor;
 import scala.concurrent.duration.FiniteDuration;
@@ -55,6 +56,7 @@ public class AgentUtils {
       Runnable action, Runnable onTimeout) {
     final Scheduler scheduler = system.scheduler();
     final ExecutionContextExecutor dispatcher = system.dispatcher();
+    final AtomicBoolean cancelled = new AtomicBoolean(false);
     final Cancellable run =
         scheduler.schedule(initialDelay, interval, action,
             dispatcher);
@@ -64,18 +66,30 @@ public class AgentUtils {
         run.cancel();
       }
     }, dispatcher);
-    final Cancellable fail = scheduler.scheduleOnce(timeout, onTimeout, dispatcher);
+    final Cancellable fail = scheduler.scheduleOnce(timeout, new Runnable() {
+      @Override
+      public void run() {
+        if (!cancelled.get()) {
+          onTimeout.run();
+        }
+      }
+    }, dispatcher);
 
     return new Cancellable() {
 
       @Override
       public boolean cancel() {
-        return run.cancel() && cancelRun.cancel() && fail.cancel();
+        cancelled.set(true);
+        boolean runCancelled = run.cancel();
+        boolean cancelRunCancelled = cancelRun.cancel();
+        boolean failCancelled = fail.cancel();
+        return runCancelled && cancelRunCancelled && failCancelled;
       }
 
       @Override
       public boolean isCancelled() {
-        return run.isCancelled() && cancelRun.isCancelled() && fail.isCancelled();
+        return cancelled.get() && run.isCancelled() && cancelRun.isCancelled()
+            && fail.isCancelled();
       }
     };
   }

@@ -82,7 +82,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <hadoop.version>2.7.3</hadoop.version>
-    <junit.version>4.13</junit.version>
+    <junit.version>4.13.2</junit.version>
     <scala.version>2.11.12</scala.version>
     <scala.binary.version>2.11</scala.binary.version>
     <mockito.version>2.28.2</mockito.version>
@@ -100,7 +100,7 @@
     <spring.security.version>5.8.16</spring.security.version>
     <tomcat.version>9.0.118</tomcat.version>
     <antlr4.version>4.6</antlr4.version>
-    <hazelcast.version>5.7.0</hazelcast.version>
+    <hazelcast.version>5.3.8</hazelcast.version>
     <guava.version>33.5.0-jre</guava.version>
     <gson.version>2.10.1</gson.version>
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
@@ -109,9 +109,9 @@
     <jetty.version>9.4.58.v20250814</jetty.version>
     <postgres.version>42.7.11</postgres.version>
     <jackson.version>2.18.6</jackson.version>
-    <mysql.version>5.1.42</mysql.version>
+    <mysql.version>8.0.28</mysql.version>
     <sqlite.version>3.41.2.2</sqlite.version>
-    <commons-configuration.version>2.1.1</commons-configuration.version>
+    <commons-configuration.version>2.10.1</commons-configuration.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <servlet.api.version>4.0.1</servlet.api.version>
     <springdoc.openapi.version>1.7.0</springdoc.openapi.version>
@@ -139,13 +139,14 @@
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
     <liquibase.version>4.23.2</liquibase.version>
-    <hive.version>4.2.0</hive.version>
+    <hive.version>4.0.1</hive.version>
     <avro.version>1.11.5</avro.version>
     <parquet.version>1.17.0</parquet.version>
     <orc.version>2.1.4</orc.version>
     <netty.version>4.1.133.Final</netty.version>
     <aircompressor.version>2.0.3</aircompressor.version>
     <json-io.version>4.14.1</json-io.version>
+    <jsonschema2pojo.version>1.2.2</jsonschema2pojo.version>
     <avatica.version>1.22.0</avatica.version>
     <thrift.version>0.23.0</thrift.version>
     <aws.sdk.version>2.44.9</aws.sdk.version>
@@ -470,6 +471,11 @@
         <version>${json-io.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.jsonschema2pojo</groupId>
+        <artifactId>jsonschema2pojo-core</artifactId>
+        <version>${jsonschema2pojo.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.calcite.avatica</groupId>
         <artifactId>avatica-core</artifactId>
         <version>${avatica.version}</version>
@@ -491,8 +497,13 @@
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcpkix-jdk15on</artifactId>
-        <version>${bouncycastle.version}</version>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.jdk18.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcutil-jdk18on</artifactId>
+        <version>${bouncycastle.jdk18.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -577,6 +588,11 @@
             <artifactId>slf4j-reload4j</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client-api</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
 
       <dependency>
@@ -922,7 +938,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.20</version>
           <configuration>
-            <argLine>-XX:+UseG1GC -Xmx2048m -XX:MaxPermSize=256m</argLine>
+            <argLine>-XX:+IgnoreUnrecognizedVMOptions -XX:+UseG1GC -Xmx2048m -XX:MaxPermSize=256m</argLine>
           </configuration>
         </plugin>
         <plugin>
