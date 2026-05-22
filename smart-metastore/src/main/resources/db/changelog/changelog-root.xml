@@ -20,4 +20,5 @@
     <include file="/db/changelog/changelog-10.add-hive-event-tables.xml"/>
     <include file="/db/changelog/changelog-11.add-hive-sync-progress-table.xml"/>
     <include file="/db/changelog/changelog-12.add-related-resources-field.xml"/>
+    <include file="/db/changelog/changelog-13.add-backup-diff-types.xml"/>
 </databaseChangeLog>

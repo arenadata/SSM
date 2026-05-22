@@ -17,18 +17,25 @@
  */
 package org.smartdata.metastore.dao.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.smartdata.metastore.dao.AbstractDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
 import org.smartdata.model.BackUpInfo;
+import org.smartdata.model.FileDiffType;
 import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
   private static final String TABLE_NAME = "backup_file";
@@ -51,20 +58,20 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
   @Override
   public BackUpInfo getByRid(long rid) {
     return jdbcTemplate.queryForObject("SELECT * FROM backup_file WHERE rid = ?",
-        new Object[] {rid}, new BackUpInfoRowMapper());
+        new Object[]{rid}, new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getBySrc(String src) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE src = ?", new Object[] {src},
+        "SELECT * FROM backup_file WHERE src = ?", new Object[]{src},
         new BackUpInfoRowMapper());
   }
 
   @Override
   public List<BackUpInfo> getByDest(String dest) {
     return jdbcTemplate.query(
-        "SELECT * FROM backup_file WHERE dest = ?", new Object[] {dest},
+        "SELECT * FROM backup_file WHERE dest = ?", new Object[]{dest},
         new BackUpInfoRowMapper());
   }
 
@@ -103,21 +110,37 @@ public class DefaultBackUpInfoDao extends AbstractDao implements BackUpInfoDao {
     parameters.put("dest", backUpInfo.getDest());
     parameters.put("period", backUpInfo.getPeriod());
     parameters.put("src_pattern", backUpInfo.getSrcPattern());
+    parameters.put("included_diff_types", serializeDiffTypes(backUpInfo.getIncludedFileDiffTypes()));
     return parameters;
+  }
+
+  private static String serializeDiffTypes(Set<FileDiffType> diffTypes) {
+    return CollectionUtils.emptyIfNull(diffTypes)
+        .stream()
+        .map(FileDiffType::name)
+        .collect(Collectors.joining(","));
+  }
+
+  private static Set<FileDiffType> parseDiffTypes(String raw) {
+    return StringUtils.isBlank(raw)
+        ? Collections.emptySet()
+        : Arrays.stream(raw.split(","))
+          .map(FileDiffType::valueOf)
+          .collect(Collectors.toSet());
   }
 
   private static class BackUpInfoRowMapper implements RowMapper<BackUpInfo> {
 
     @Override
     public BackUpInfo mapRow(ResultSet resultSet, int i) throws SQLException {
-      BackUpInfo backUpInfo = new BackUpInfo();
-      backUpInfo.setRid(resultSet.getLong("rid"));
-      backUpInfo.setSrc(resultSet.getString("src"));
-      backUpInfo.setDest(resultSet.getString("dest"));
-      backUpInfo.setPeriod(resultSet.getLong("period"));
-      backUpInfo.setSrcPattern(resultSet.getString("src_pattern"));
-
-      return backUpInfo;
+      return BackUpInfo.builder()
+          .rid(resultSet.getLong("rid"))
+          .src(resultSet.getString("src"))
+          .dest(resultSet.getString("dest"))
+          .period(resultSet.getLong("period"))
+          .srcPattern(resultSet.getString("src_pattern"))
+          .includedFileDiffTypes(parseDiffTypes(resultSet.getString("included_diff_types")))
+          .build();
     }
   }
 }

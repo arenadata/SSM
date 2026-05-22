@@ -39,6 +39,8 @@ public class SyncAction extends SmartAction {
   public static final String DEST = "-dest";
   public static final String PRESERVE = "-preserve";
   public static final String BASE_OPERATION = "-baseOperation";
+  public static final String INCLUDE = "-include";
+  public static final String EXCLUDE = "-exclude";
 
   @Override
   protected void execute() throws Exception {
