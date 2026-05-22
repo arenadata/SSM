@@ -47,7 +47,7 @@
         <java-test-common.version>1.20-jdk8</java-test-common.version>
         <postgresql.version>42.7.4</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
-        <openapi.generator.version>6.6.0</openapi.generator.version>
+        <openapi.generator.version>7.3.0</openapi.generator.version>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <thrift.version>0.22.0</thrift.version> <!-- Used with hive-jdbc -->
