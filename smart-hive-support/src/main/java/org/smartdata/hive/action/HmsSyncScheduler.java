@@ -20,6 +20,7 @@ package org.smartdata.hive.action;
 import com.google.common.collect.ImmutableMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.smartdata.SmartContext;
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.action.constraint.HmsCreateConstraintAction;
@@ -54,8 +55,10 @@ import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
@@ -158,7 +161,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
       LaunchAction action) {
     long eventId = eventId(actionInfo);
     RuleState ruleState = ruleStateMap.computeIfAbsent(
-        ruleId(actionInfo), key -> new RuleState());
+        ruleId(actionInfo), key -> new RuleState(extractAllowedOperations(actionInfo)));
 
     boolean isNewAction = ruleState.eventsInProcessing.add(eventId);
     if (!isNewAction) {
@@ -175,6 +178,14 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     }
 
     HiveNotificationEvent event = hmsEventDao.get(eventId);
+
+    if (!isIncludedOperation(event, ruleState)) {
+      log.debug("Event with id {} is not included for rule {}, skipping",
+          eventId, ruleId(actionInfo));
+      onActionFinished(cmdletInfo, actionInfo);
+      return ScheduleResult.SKIP;
+    }
+
     if (isLocked(event, ruleState)) {
       log.debug("Entity {} is locked or has locked parent objects. Retrying later.", event.getFullName());
       ruleState.eventsInProcessing.remove(eventId);
@@ -231,6 +242,13 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     }
   }
 
+  private boolean isIncludedOperation(HiveNotificationEvent event, RuleState ruleState) {
+    return Optional.ofNullable(event.getEventType())
+        .map(operation -> EnumUtils.getEnum(HiveOperation.class, operation))
+        .filter(ruleState::isIncludedOperation)
+        .isPresent();
+  }
+
   private boolean isLocked(HiveNotificationEvent event, RuleState ruleState) {
     return isLocked(event, ruleState, event.getFullName())
         || event.getRelatedResources()
@@ -285,9 +303,12 @@ public class HmsSyncScheduler extends ActionSchedulerService {
   }
 
   private void removeLock(RuleState ruleState, ActionInfo actionInfo) {
-    String entityName = getEntityName(actionInfo);
-    ruleState.removeLock(entityName);
-    getRelatedResources(actionInfo).forEach(ruleState::removeLock);
+    getEntityName(actionInfo)
+        .ifPresent(entityName -> {
+              ruleState.removeLock(entityName);
+              getRelatedResources(actionInfo).forEach(ruleState::removeLock);
+            }
+        );
   }
 
   private long eventId(ActionInfo actionInfo) {
@@ -302,11 +323,8 @@ public class HmsSyncScheduler extends ActionSchedulerService {
         .orElseThrow(() -> new IllegalArgumentException("Missing rule id"));
   }
 
-  private String getEntityName(ActionInfo actionInfo) {
-    return actionInfo.getArgs()
-        .computeIfAbsent(HmsSyncAction.ENTITY_NAME, key -> {
-          throw new IllegalArgumentException("Missing entity name");
-        });
+  private Optional<String> getEntityName(ActionInfo actionInfo) {
+    return Optional.ofNullable(actionInfo.getArgs().get(HmsSyncAction.ENTITY_NAME));
   }
 
   private Set<String> getRelatedResources(ActionInfo actionInfo) {
@@ -334,8 +352,25 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     hmsSyncProgressDao.upsert(ruleProgressSnapshot);
   }
 
-  static Trie.Key<String> trieKey(HiveNotificationEvent notificationEvent) {
-    return trieKey(notificationEvent.getFullName());
+  private Set<HiveOperation> extractAllowedOperations(ActionInfo actionInfo) {
+    Set<HiveOperation> included = toHiveOperations(actionInfo.getArgs().get(HmsSyncAction.INCLUDE));
+    if (!included.isEmpty()) {
+      return included;
+    }
+
+    Set<HiveOperation> allowedOperations = new HashSet<>(HiveOperation.FILTERABLE_OPERATIONS);
+    allowedOperations.removeAll(toHiveOperations(actionInfo.getArgs().get(HmsSyncAction.EXCLUDE)));
+    return allowedOperations;
+  }
+
+  private Set<HiveOperation> toHiveOperations(String rawOperations) {
+    return Optional.ofNullable(rawOperations)
+        .map(operations -> Arrays.stream(operations.split(","))
+            .map(String::toUpperCase)
+            .map(operation -> EnumUtils.getEnum(HiveOperation.class, operation.trim()))
+            .filter(HiveOperation::isFilterable)
+            .collect(Collectors.toSet()))
+        .orElse(Collections.emptySet());
   }
 
   static Trie.Key<String> trieKey(String entityName) {
@@ -365,9 +400,19 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     private final NavigableSet<Long> retryEvents = new ConcurrentSkipListSet<>();
     private final Trie<String, Long> retryEntityLocks = Trie.synchronize(new DefaultTrie<>());
 
+    private final Set<HiveOperation> includedOperations;
+
+    RuleState(Set<HiveOperation> includedOperations) {
+      this.includedOperations = includedOperations;
+    }
+
     void putEntityLock(HiveNotificationEvent event) {
       forEntityAndRelatedResources(event, resource ->
-              entityLocks.putIfNoIntersectingLocks(trieKey(resource), true));
+          entityLocks.putIfNoIntersectingLocks(trieKey(resource), true));
+    }
+
+    boolean isIncludedOperation(HiveOperation operation) {
+      return includedOperations.contains(operation);
     }
 
     boolean isLocked(String resourceName) {
@@ -384,7 +429,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     void addRetryState(HiveNotificationEvent event) {
       retryEvents.add(event.getId());
       forEntityAndRelatedResources(event, resource ->
-              retryEntityLocks.putIfNoIntersectingLocks(trieKey(resource), event.getId()));
+          retryEntityLocks.putIfNoIntersectingLocks(trieKey(resource), event.getId()));
     }
 
     void clearRetryState(HiveNotificationEvent event) {
@@ -400,7 +445,7 @@ public class HmsSyncScheduler extends ActionSchedulerService {
     }
 
     void forEntityAndRelatedResources(HiveNotificationEvent event,
-                                      Consumer<String> resourceConsumer) {
+        Consumer<String> resourceConsumer) {
       resourceConsumer.accept(event.getFullName());
       event.getRelatedResources().forEach(resourceConsumer);
     }

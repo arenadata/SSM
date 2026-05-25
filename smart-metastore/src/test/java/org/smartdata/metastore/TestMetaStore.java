@@ -28,6 +28,7 @@ import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
 import org.smartdata.model.CompressionFileState;
+import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.GlobalConfig;
@@ -41,6 +42,7 @@ import org.smartdata.model.request.ActionSearchRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -581,29 +583,41 @@ public class TestMetaStore extends TestDaoBase {
   }
 
   @Test
-  public void testSrcInBackup() throws MetaStoreException {
-    BackUpInfo backUpInfo1 = new BackUpInfo(1, "src/", "dest/", 1,
-        ssmPatternToRegex("src/test_?/*.bin"));
-    metaStore.insertBackUpInfo(backUpInfo1);
+  public void testBackupEnabledWithDiffTypeNoRestriction() throws MetaStoreException {
+    BackUpInfo backUpInfo = new BackUpInfo(1, "src/", "dest/", 1,
+        ssmPatternToRegex("src/test_?/*.bin"), Collections.emptySet());
+    metaStore.insertBackUpInfo(backUpInfo);
 
-    Assert.assertFalse(metaStore.srcInBackup("src/file.bin"));
-    Assert.assertFalse(metaStore.srcInBackup("/tmp/dest/logs"));
-    Assert.assertFalse(metaStore.srcInBackup("src/another_file"));
-    Assert.assertFalse(metaStore.srcInBackup("src/test_1/another_file"));
-    Assert.assertFalse(metaStore.srcInBackup("src/test_2/another_dir/file.jpg"));
-    Assert.assertFalse(metaStore.srcInBackup("src/test_/file.bin"));
-    Assert.assertFalse(metaStore.srcInBackup("src/test_12/file.bin"));
+    Assert.assertTrue(metaStore.backupEnabled("src/test_1/file.bin", FileDiffType.CREATE));
+    Assert.assertTrue(metaStore.backupEnabled("src/test_1/file.bin", FileDiffType.DELETE));
+    Assert.assertTrue(metaStore.backupEnabled("src/test_1/file.bin", null));
 
-    Assert.assertTrue(metaStore.srcInBackup("src/test_3/file.bin"));
-    Assert.assertTrue(metaStore.srcInBackup("src/test_4/inner/another.bin"));
+    Assert.assertFalse(metaStore.backupEnabled("src/other/file.bin", FileDiffType.CREATE));
+    Assert.assertFalse(metaStore.backupEnabled("src/test_/file.bin", FileDiffType.CREATE));
+  }
+
+  @Test
+  public void testBackupEnabledWithDiffTypeRestriction() throws MetaStoreException {
+    BackUpInfo backUpInfo = new BackUpInfo(1, "src/", "dest/", 1,
+        ssmPatternToRegex("src/test_?/*.bin"),
+        EnumSet.of(FileDiffType.CREATE, FileDiffType.APPEND));
+    metaStore.insertBackUpInfo(backUpInfo);
+
+    Assert.assertTrue(metaStore.backupEnabled("src/test_1/file.bin", FileDiffType.CREATE));
+    Assert.assertTrue(metaStore.backupEnabled("src/test_1/file.bin", FileDiffType.APPEND));
+
+    Assert.assertFalse(metaStore.backupEnabled("src/test_1/file.bin", FileDiffType.DELETE));
+    Assert.assertFalse(metaStore.backupEnabled("src/test_1/file.bin", null));
+
+    Assert.assertFalse(metaStore.backupEnabled("src/other/file.bin", FileDiffType.CREATE));
   }
 
   @Test
   public void testDeleteBackUpInfo() throws MetaStoreException {
     BackUpInfo backUpInfo1 = new BackUpInfo(1, "test1", "test1", 1);
     metaStore.insertBackUpInfo(backUpInfo1);
-    Assert.assertTrue(metaStore.srcInBackup("test1/dfafdsaf"));
-    Assert.assertFalse(metaStore.srcInBackup("test2"));
+    Assert.assertTrue(metaStore.backupEnabled("test1/dfafdsaf", null));
+    Assert.assertFalse(metaStore.backupEnabled("test2", null));
     metaStore.deleteBackUpInfo(1);
 
     Assert.assertTrue(metaStore.listAllBackUpInfo().isEmpty());

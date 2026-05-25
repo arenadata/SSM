@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026.05.16_001" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="backup_file" columnName="included_diff_types"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="backup_file">
+            <column name="included_diff_types" type="VARCHAR(512)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

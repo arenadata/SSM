@@ -32,12 +32,14 @@ import org.smartdata.model.RuleInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.model.audit.UserActivityEvent;
 import org.smartdata.model.request.AuditSearchRequest;
+import org.smartdata.model.rule.RulePluginManager;
 import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.audit.AuditService;
+import org.smartdata.server.engine.rule.copy.SyncActionDiffTypeValidationPlugin;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +69,12 @@ public class TestRuleManager extends TestDaoBase {
   public void close() throws Exception {
     ruleManager.stop();
     ruleManager = null;
+  }
+
+  @Test
+  public void testSyncActionDiffTypeValidationPluginRegistered() {
+    Assert.assertTrue(RulePluginManager.getPlugins().stream()
+        .anyMatch(SyncActionDiffTypeValidationPlugin.class::isInstance));
   }
 
   @Test

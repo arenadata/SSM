@@ -17,6 +17,8 @@
  */
 package org.smartdata.server.engine.rule.copy;
 
+import com.hazelcast.internal.util.CollectionUtil;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +36,13 @@ import org.smartdata.model.rule.RuleTranslationResult;
 import org.smartdata.utils.PathUtil;
 import org.smartdata.utils.StringUtil;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.smartdata.utils.PathUtil.addPathSeparator;
@@ -71,11 +77,13 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
 
         wrapGetFilesToCopyQuery(translationResult, pathPatterns);
 
-        String destActionArg = cmdletDescriptor.getActionArgs(i).get(SyncAction.DEST);
+        Map<String, String> actionArgs = cmdletDescriptor.getActionArgs(i);
+        String destActionArg = actionArgs.get(SyncAction.DEST);
         String dest = addPathSeparator(destActionArg);
         cmdletDescriptor.addActionArg(i, SyncAction.DEST, dest);
 
-        BackUpInfo backUpInfo = buildBackupInfo(ruleId, dest, translationResult, pathPatterns);
+        Set<FileDiffType> includedDiffTypes = parseIncludedDiffTypes(actionArgs);
+        BackUpInfo backUpInfo = buildBackupInfo(ruleId, dest, translationResult, pathPatterns, includedDiffTypes);
 
         cmdletDescriptor.addActionArg(i, SyncAction.SRC, backUpInfo.getSrc());
 
@@ -112,18 +120,23 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
 
   private void storeBackupInfo(long ruleId, BackUpInfo backUpInfo) {
     try {
-      // Add base Sync tag
-      FileDiff fileDiff = new FileDiff(FileDiffType.BASESYNC);
-      fileDiff.setSrc(backUpInfo.getSrc());
-      fileDiff.getParameters()
-          .put(SyncAction.DEST, backUpInfo.getDest());
-
       metaStore.deleteBackUpInfo(ruleId);
-      metaStore.insertFileDiff(fileDiff);
+
+      if (backUpInfo.getIncludedFileDiffTypes().contains(FileDiffType.BASESYNC)) {
+        storeBaseSync(backUpInfo);
+      }
+
       metaStore.insertBackUpInfo(backUpInfo);
     } catch (MetaStoreException exc) {
       LOG.error("Error inserting backup info {}", backUpInfo, exc);
     }
+  }
+
+  private void storeBaseSync(BackUpInfo backUpInfo) throws MetaStoreException {
+    FileDiff fileDiff = new FileDiff(FileDiffType.BASESYNC);
+    fileDiff.setSrc(backUpInfo.getSrc());
+    fileDiff.getParameters().put(SyncAction.DEST, backUpInfo.getDest());
+    metaStore.insertFileDiff(fileDiff);
   }
 
   private void wrapGetFilesToCopyQuery(
@@ -147,19 +160,48 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
   }
 
   private BackUpInfo buildBackupInfo(
-      long ruleId, String dest, RuleTranslationResult tResult, List<String> pathPatterns) {
+      long ruleId, String dest, RuleTranslationResult tResult,
+      List<String> pathPatterns, Set<FileDiffType> includedDiffTypes) {
     String patternBaseDirs = StringUtil.join(
         PATTERN_BASE_DIRS_DELIMITER,
         getPathPatternBaseDirs(pathPatterns));
 
-    BackUpInfo backUpInfo = new BackUpInfo();
-    backUpInfo.setRid(ruleId);
-    backUpInfo.setSrc(patternBaseDirs);
-    backUpInfo.setSrcPattern(ssmPatternsToRegex(pathPatterns));
-    backUpInfo.setDest(dest);
-    backUpInfo.setPeriod(tResult.getScheduleInfo().getMinimalEvery());
+    return BackUpInfo.builder()
+        .rid(ruleId)
+        .src(patternBaseDirs)
+        .srcPattern(ssmPatternsToRegex(pathPatterns))
+        .dest(dest)
+        .period(tResult.getScheduleInfo().getMinimalEvery())
+        .includedFileDiffTypes(includedDiffTypes)
+        .build();
+  }
 
-    return backUpInfo;
+  private Set<FileDiffType> parseIncludedDiffTypes(Map<String, String> actionArgs) {
+    Set<FileDiffType> includedDiffTypes = parseDiffTypes(actionArgs.get(SyncAction.INCLUDE));
+    if (CollectionUtil.isNotEmpty(includedDiffTypes)) {
+      return includedDiffTypes;
+    }
+
+    Set<FileDiffType> allowedOperations = new HashSet<>(
+        Arrays.asList(FileDiffType.values())
+    );
+    Set<FileDiffType> excludedDiffTypes = parseDiffTypes(actionArgs.get(SyncAction.EXCLUDE));
+    allowedOperations.removeAll(excludedDiffTypes);
+    return allowedOperations;
+  }
+
+  private Set<FileDiffType> parseDiffTypes(String rawDiffTypes) {
+    if (rawDiffTypes == null) {
+      return Collections.emptySet();
+    }
+
+    return Arrays.stream(rawDiffTypes.split(","))
+        .map(String::toUpperCase)
+        .map(diffType -> EnumUtils.getEnum(FileDiffType.class, diffType.trim()))
+        .filter(Objects::nonNull)
+        .map(FileDiffType::expandFilterableType)
+        .flatMap(Set::stream)
+        .collect(Collectors.toSet());
   }
 
   private void validatePreserveArg(String rawPreserveArg) {
@@ -167,7 +209,7 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
       return;
     }
 
-    for (String attribute: rawPreserveArg.split(",")) {
+    for (String attribute : rawPreserveArg.split(",")) {
       CopyFileAction.validatePreserveArg(attribute);
     }
   }

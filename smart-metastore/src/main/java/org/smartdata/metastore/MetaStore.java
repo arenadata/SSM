@@ -17,6 +17,7 @@
  */
 package org.smartdata.metastore;
 
+import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ import org.smartdata.model.CompressionFileState;
 import org.smartdata.model.ErasureCodingPolicyInfo;
 import org.smartdata.model.FileDiff;
 import org.smartdata.model.FileDiffState;
+import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileInfoDiff;
 import org.smartdata.model.FileState;
@@ -86,7 +88,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Operations supported for upper functions.
@@ -103,7 +108,7 @@ public class MetaStore implements CopyMetaService,
   private Map<Integer, String> mapStoragePolicyIdName = null;
   private Map<String, Integer> mapStoragePolicyNameId = null;
   private Map<String, StorageCapacity> mapStorageCapacity = null;
-  private Map<String, Pattern> backupSourcePatterns = null;
+  private Map<String, BackupInfoDetails> backupInfo = null;
   private final RuleDao ruleDao;
   private final CmdletDao cmdletDao;
   private final ActionDao actionDao;
@@ -1108,20 +1113,13 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public boolean srcInBackup(String src) throws MetaStoreException {
-    if (backupSourcePatterns == null) {
-      backupSourcePatterns = new HashMap<>();
-      listAllBackUpInfo().stream()
-          .map(BackUpInfo::getSrcPattern)
-          .forEach(this::addBackUpSourcePattern);
+  public boolean backupEnabled(String path, FileDiffType diffType) throws MetaStoreException {
+    if (backupInfo == null){
+      backupInfo = loadBackupInfo();
     }
-    // LOG.info("Backup src = {}, setBackSrc {}", src, setBackSrc);
-    for (Pattern srcPattern : backupSourcePatterns.values()) {
-      if (srcPattern.matcher(src).matches()) {
-        return true;
-      }
-    }
-    return false;
+    return backupInfo.values()
+        .stream()
+        .anyMatch(backupInfo -> backupInfo.supports(path, diffType));
   }
 
   @Override
@@ -1154,7 +1152,7 @@ public class MetaStore implements CopyMetaService,
   public void deleteAllBackUpInfo() throws MetaStoreException {
     try {
       backUpInfoDao.deleteAll();
-      backupSourcePatterns.clear();
+      backupInfo.clear();
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -1166,8 +1164,8 @@ public class MetaStore implements CopyMetaService,
       BackUpInfo backUpInfo = getBackUpInfo(rid);
       if (backUpInfo != null) {
         if (backUpInfoDao.getBySrc(backUpInfo.getSrc()).size() == 1) {
-          if (backupSourcePatterns != null) {
-            backupSourcePatterns.remove(backUpInfo.getSrcPattern());
+          if (backupInfo != null) {
+            backupInfo.remove(backUpInfo.getSrcPattern());
           }
         }
         backUpInfoDao.delete(rid);
@@ -1182,7 +1180,7 @@ public class MetaStore implements CopyMetaService,
       BackUpInfo backUpInfo) throws MetaStoreException {
     try {
       backUpInfoDao.insert(backUpInfo);
-      addBackUpSourcePattern(backUpInfo.getSrcPattern());
+      addBackUpInfo(backUpInfo);
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }
@@ -1492,10 +1490,37 @@ public class MetaStore implements CopyMetaService,
     dbPool.close();
   }
 
-  private void addBackUpSourcePattern(String sourcePattern) {
-    if (backupSourcePatterns == null) {
-      backupSourcePatterns = new HashMap<>();
+  private Map<String, BackupInfoDetails> loadBackupInfo() throws MetaStoreException {
+    return listAllBackUpInfo()
+        .stream()
+        .collect(Collectors.toMap(
+            BackUpInfo::getSrcPattern,
+            BackupInfoDetails::fromBackupInfo,
+            (lhs, rhs) -> lhs,
+            ConcurrentHashMap::new));
+  }
+
+  private void addBackUpInfo(BackUpInfo backUpInfo) throws MetaStoreException {
+    if (backupInfo == null){
+      backupInfo = loadBackupInfo();
     }
-    backupSourcePatterns.put(sourcePattern, Pattern.compile(sourcePattern));
+    this.backupInfo.put(backUpInfo.getSrcPattern(), BackupInfoDetails.fromBackupInfo(backUpInfo));
+  }
+
+  @Data
+  static class BackupInfoDetails {
+    private final Pattern pattern;
+    private final Set<FileDiffType> includedDiffTypes;
+
+    static BackupInfoDetails fromBackupInfo(BackUpInfo backupInfo) {
+      return new BackupInfoDetails(
+          Pattern.compile(backupInfo.getSrcPattern()),
+          backupInfo.getIncludedFileDiffTypes());
+    }
+
+    boolean supports(String path, FileDiffType diffType) {
+      return pattern.matcher(path).matches()
+          && (CollectionUtils.isEmpty(includedDiffTypes) || includedDiffTypes.contains(diffType));
+    }
   }
 }
