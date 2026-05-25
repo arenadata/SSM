@@ -17,27 +17,26 @@
  */
 package org.smartdata.agent;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Props;
 import akka.testkit.JavaTestKit;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.server.engine.cmdlet.agent.ActorSystemHarness;
 import org.smartdata.server.engine.cmdlet.agent.AgentConstants;
 import org.smartdata.server.engine.cmdlet.agent.AgentUtils;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterNewAgent;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent;
 
-import java.security.Permission;
-
 public class TestSmartAgent extends ActorSystemHarness {
 
   @Test
   public void testAgent() {
-    System.setSecurityManager(new NoExitSecurityManager());
-
     ActorSystem system = getActorSystem();
     final int num = 2;
     JavaTestKit[] masters = new JavaTestKit[num];
@@ -52,55 +51,29 @@ public class TestSmartAgent extends ActorSystemHarness {
         conf.get(SmartConfKeys.SMART_AGENT_ADDRESS_KEY)
     );
 
-    AgentRunner runner = new AgentRunner(config, masterPaths);
-    runner.start();
+    ActorSystem agentSystem = ActorSystem.apply("SmartAgent", config);
+    ActorRef agent = agentSystem.actorOf(
+        Props.create(SmartAgent.AgentActor.class, masterPaths, conf)
+    );
+    try {
+      masters[0].expectMsgClass(RegisterNewAgent.class);
+      masters[0].reply(new MasterToAgent.AgentRegistered(new MasterToAgent.AgentId("test")));
 
-    masters[0].expectMsgClass(RegisterNewAgent.class);
-    masters[0].reply(new MasterToAgent.AgentRegistered(new MasterToAgent.AgentId("test")));
+      system.stop(masters[0].getRef());
 
-    system.stop(masters[0].getRef());
+      masters[1].expectMsgClass(RegisterNewAgent.class);
+      masters[1].reply(new MasterToAgent.AgentRegistered(new MasterToAgent.AgentId("test2")));
 
-    masters[1].expectMsgClass(RegisterNewAgent.class);
-  }
-
-
-  private static class AgentRunner extends Thread {
-
-    private final Config config;
-    private final String[] masters;
-
-    public AgentRunner(Config config, String[] masters) {
-      this.config = config;
-      this.masters = masters;
-    }
-
-    @Override
-    public void run() {
-      SmartAgent agent = new SmartAgent(new SmartConf(), config, masters);
-      agent.start();
+      JavaTestKit statusReporter = new JavaTestKit(agentSystem);
+      agent.tell(new TestStatusMessage(), statusReporter.getRef());
+      statusReporter.expectMsgEquals("status reported");
+    } finally {
+      agentSystem.stop(agent);
+      JavaTestKit.shutdownActorSystem(agentSystem);
     }
   }
 
-  /**
-   * Used to prevent deadlock caused by Unit main thread holding java.lang.Shutdown class lock,
-   * SmartAgent.Shutdown#run() calling System.exit() and Smart agent shutdown hook
-   * waiting for actor system to shut down.
-   */
-  static class NoExitSecurityManager extends SecurityManager {
-    @Override
-    public void checkPermission(Permission perm, Object context) {
-    }
-
-    @Override
-    public void checkPermission(Permission perm) {
-    }
-
-    @Override
-    public void checkExit(int status) {
-      super.checkExit(status);
-      if (status == -1) {
-        throw new RuntimeException("Exited with status: " + status);
-      }
-    }
+  private static class TestStatusMessage implements StatusMessage {
+    private static final long serialVersionUID = 1L;
   }
 }

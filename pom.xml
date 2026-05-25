@@ -42,6 +42,10 @@
 
   <repositories>
     <repository>
+      <id>arenadata</id>
+      <url>https://maven.pkg.github.com/arenadata/*</url>
+    </repository>
+    <repository>
       <id>maven-arenadata-snapshot</id>
       <url>https://nexus.adsw.io/repository/maven-arenadata-snapshot/</url>
     </repository>
@@ -73,50 +77,53 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <log4j.version>2.22.1</log4j.version>
+    <log4j.version>2.25.4</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <hadoop.version>2.7.3</hadoop.version>
-    <junit.version>4.13</junit.version>
+    <junit.version>4.13.2</junit.version>
     <scala.version>2.11.12</scala.version>
     <scala.binary.version>2.11</scala.binary.version>
     <mockito.version>2.28.2</mockito.version>
     <testcontainers.version>1.21.4</testcontainers.version>
     <docker-java.version>3.7.1</docker-java.version>
-    <bouncycastle.version>1.68</bouncycastle.version>
-    <protobuf.version>3.7.1</protobuf.version>
+    <bouncycastle.version>1.70</bouncycastle.version>
+    <bouncycastle.jdk18.version>1.84</bouncycastle.jdk18.version>
+    <protobuf.version>3.25.9</protobuf.version>
     <protoc.artifact>com.google.protobuf:protoc:${protobuf.version}</protoc.artifact>
     <dbunitVersion>2.5.3</dbunitVersion>
     <akka.version>2.5.32</akka.version>
     <akka.config.version>1.2.1</akka.config.version>
     <druid.version>1.2.22</druid.version>
-    <spring.version>5.3.31</spring.version>
+    <spring.version>5.3.39</spring.version>
+    <spring.security.version>5.8.16</spring.security.version>
+    <tomcat.version>9.0.118</tomcat.version>
     <antlr4.version>4.6</antlr4.version>
-    <hazelcast.version>4.2.8</hazelcast.version>
-    <guava.version>32.0.1-jre</guava.version>
+    <hazelcast.version>5.3.8</hazelcast.version>
+    <guava.version>33.5.0-jre</guava.version>
     <gson.version>2.10.1</gson.version>
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <kerby.version>1.0.1</kerby.version>
-    <jetty.version>9.4.51.v20230217</jetty.version>
-    <postgres.version>42.6.0</postgres.version>
-    <jackson.version>2.13.5</jackson.version>
-    <mysql.version>5.1.42</mysql.version>
-    <sqlite.version>3.34.0</sqlite.version>
-    <commons-configuration.version>2.1.1</commons-configuration.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <jetty.version>9.4.58.v20250814</jetty.version>
+    <postgres.version>42.7.11</postgres.version>
+    <jackson.version>2.18.6</jackson.version>
+    <mysql.version>8.0.28</mysql.version>
+    <sqlite.version>3.41.2.2</sqlite.version>
+    <commons-configuration.version>2.10.1</commons-configuration.version>
+    <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <servlet.api.version>4.0.1</servlet.api.version>
     <springdoc.openapi.version>1.7.0</springdoc.openapi.version>
     <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
     <spring.boot.version>2.7.18</spring.boot.version>
     <spring.boot.security.kerberos.version>1.0.1.RELEASE</spring.boot.security.kerberos.version>
-    <openapi.generator.version>6.6.0</openapi.generator.version>
+    <openapi.generator.version>7.3.0</openapi.generator.version>
     <commons.lang3.version>3.18.0</commons.lang3.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
     <aspectj.version>1.9.22</aspectj.version>
-    <lombok.version>1.18.32</lombok.version>
+    <lombok.version>1.18.42</lombok.version>
     <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <skip-build-web-ui>true</skip-build-web-ui>
@@ -133,13 +140,21 @@
     <shaded.dependencies.prefix>org.smartdata.shaded</shaded.dependencies.prefix>
     <liquibase.version>4.23.2</liquibase.version>
     <hive.version>4.0.1</hive.version>
+    <avro.version>1.11.5</avro.version>
+    <parquet.version>1.17.0</parquet.version>
+    <orc.version>2.1.4</orc.version>
+    <aircompressor.version>2.0.3</aircompressor.version>
+    <json-io.version>4.14.1</json-io.version>
+    <jsonschema2pojo.version>1.2.2</jsonschema2pojo.version>
+    <avatica.version>1.22.0</avatica.version>
+    <aws.sdk.version>2.44.9</aws.sdk.version>
   </properties>
 
   <profiles>
     <profile>
       <id>hadoop-3.3</id>
       <properties>
-        <hadoop.version>3.4.3</hadoop.version>
+        <hadoop.version>3.4.3.1-4.3.0-1</hadoop.version>
         <kerby.version>2.0.3</kerby.version>
         <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
       </properties>
@@ -206,7 +221,7 @@
       </dependency>
       <dependency>
         <groupId>com.hazelcast</groupId>
-        <artifactId>hazelcast-all</artifactId>
+        <artifactId>hazelcast</artifactId>
         <version>${hazelcast.version}</version>
       </dependency>
       <dependency>
@@ -282,6 +297,26 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-base</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.module</groupId>
+        <artifactId>jackson-module-jaxb-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${commons.lang3.version}</version>
@@ -307,6 +342,217 @@
         <version>${hamcrest.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aop</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-beans</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-expression</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jcl</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-tx</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-config</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-core</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-crypto</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-ldap</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-web</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-hadoop-bundle</artifactId>
+        <version>${parquet.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.orc</groupId>
+        <artifactId>orc-core</artifactId>
+        <version>${orc.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client-runtime</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.airlift</groupId>
+        <artifactId>aircompressor</artifactId>
+        <version>${aircompressor.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cedarsoftware</groupId>
+        <artifactId>json-io</artifactId>
+        <version>${json-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jsonschema2pojo</groupId>
+        <artifactId>jsonschema2pojo-core</artifactId>
+        <version>${jsonschema2pojo.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.calcite.avatica</groupId>
+        <artifactId>avatica-core</artifactId>
+        <version>${avatica.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bundle</artifactId>
+        <version>${aws.sdk.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.jdk18.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.jdk18.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcutil-jdk18on</artifactId>
+        <version>${bouncycastle.jdk18.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-client</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-http</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-io</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-rewrite</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-security</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util-ajax</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-xml</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-client</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-server</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs-client</artifactId>
         <version>${hadoop.version}</version>
@@ -324,6 +570,11 @@
             <artifactId>slf4j-reload4j</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client-api</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
 
       <dependency>
@@ -669,7 +920,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.20</version>
           <configuration>
-            <argLine>-XX:+UseG1GC -Xmx2048m -XX:MaxPermSize=256m</argLine>
+            <argLine>-XX:+IgnoreUnrecognizedVMOptions -XX:+UseG1GC -Xmx2048m -XX:MaxPermSize=256m</argLine>
           </configuration>
         </plugin>
         <plugin>
@@ -677,8 +928,15 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
           <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
+            <source>11</source>
+            <target>11</target>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
       </plugins>

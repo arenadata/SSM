@@ -40,6 +40,10 @@
             <version>${hive.version}</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.apache.calcite.avatica</groupId>
+            <artifactId>avatica-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -67,8 +71,23 @@
                                     <excludes>
                                         <exclude>org/apache/commons/lang/**</exclude>
                                         <exclude>org/apache/commons/lang3/**</exclude>
+                                        <exclude>com/google/common/**</exclude>
+                                        <exclude>com/google/protobuf/**</exclude>
+                                        <exclude>com/fasterxml/jackson/core/**</exclude>
+                                        <exclude>io/airlift/compress/**</exclude>
+                                        <exclude>org/apache/avro/**</exclude>
+                                        <exclude>org/apache/calcite/avatica/**</exclude>
+                                        <exclude>shaded/parquet/com/fasterxml/jackson/core/**</exclude>
+                                        <exclude>org/apache/http/**</exclude>
+                                        <exclude>META-INF/maven/com.google.guava/guava/**</exclude>
+                                        <exclude>META-INF/maven/com.google.protobuf/protobuf-java/**</exclude>
+                                        <exclude>META-INF/maven/com.fasterxml.jackson.core/jackson-core/**</exclude>
                                         <exclude>META-INF/maven/commons-lang/commons-lang/**</exclude>
                                         <exclude>META-INF/maven/org.apache.commons/commons-lang3/**</exclude>
+                                        <exclude>META-INF/maven/io.airlift/aircompressor/**</exclude>
+                                        <exclude>META-INF/maven/org.apache.avro/avro/**</exclude>
+                                        <exclude>META-INF/maven/org.apache.calcite.avatica/avatica-core/**</exclude>
+                                        <exclude>META-INF/maven/org.apache.httpcomponents/httpclient/**</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>

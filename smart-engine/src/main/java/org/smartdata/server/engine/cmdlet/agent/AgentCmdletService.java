@@ -52,8 +52,12 @@ public class AgentCmdletService extends AgentService {
 
   @Override
   public void stop() throws IOException {
-    executor.shutdown();
-    factory.close();
+    if (executor != null) {
+      executor.shutdown();
+    }
+    if (factory != null) {
+      factory.close();
+    }
   }
 
 

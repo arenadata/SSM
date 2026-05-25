@@ -186,7 +186,7 @@ services:
         -Dhive.metastore.event.db.listener.timetolive=86400s
         -Dhive.metastore.warehouse.dir=hdfs://hadoop-namenode.demo:8020/user/hive/warehouse
     volumes:
-      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./db/postgresql-42.7.11.jar:/opt/hive/lib/postgres.jar
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
       - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml

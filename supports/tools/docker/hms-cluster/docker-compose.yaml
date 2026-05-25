@@ -137,7 +137,7 @@ services:
         -Dhive.metastore.event.db.listener.timetolive=86400s
         -Dhive.metastore.warehouse.dir=hdfs://source/user/hive/warehouse
     volumes:
-      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./db/postgresql-42.7.11.jar:/opt/hive/lib/postgres.jar
       - ./conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
@@ -253,7 +253,7 @@ services:
         -Dhive.metastore.event.db.listener.timetolive=86400s
         -Dhive.metastore.warehouse.dir=hdfs://target/user/hive/warehouse
     volumes:
-      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./db/postgresql-42.7.11.jar:/opt/hive/lib/postgres.jar
       - ./target-conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./target-conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
       - ./target-conf/core-site.xml:/opt/hive/conf/core-site.xml

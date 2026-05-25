@@ -18,7 +18,7 @@
 package org.smartdata.server.cluster;
 
 
-import com.hazelcast.com.google.common.net.HostAndPort;
+import com.google.common.net.HostAndPort;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,4 +58,3 @@ public class NodeInfo {
         });
   }
 }
-

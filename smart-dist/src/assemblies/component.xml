@@ -31,6 +31,9 @@
             <useProjectArtifact>false</useProjectArtifact>
             <unpack>false</unpack>
             <scope>runtime</scope>
+            <excludes>
+                <exclude>org.jsonschema2pojo:jsonschema2pojo-core</exclude>
+            </excludes>
         </dependencySet>
     </dependencySets>
 </component>

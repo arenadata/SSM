@@ -93,7 +93,7 @@ SMART_VARGS="$@"
 
 JAVA_OPTS+=" -Dsmart.log.dir=${SMART_LOG_DIR}"
 
-JAVA_VERSION=$($SMART_RUNNER -version 2>&1 | awk -F '.' '/version/ {print $2}')
+JAVA_VERSION=$($SMART_RUNNER -version 2>&1 | awk -F '"' '/version/ { split($2, v, "."); if (v[1] == "1") print v[2]; else print v[1]; exit }')
 
 if [[ "$JAVA_VERSION" -ge 8 ]]; then
   JAVA_OPTS+=" -XX:MaxMetaspaceSize=256m"
