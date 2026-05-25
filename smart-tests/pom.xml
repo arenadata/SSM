@@ -91,6 +91,11 @@
             <artifactId>libthrift</artifactId>
             <version>${thrift.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client-runtime</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
     </dependencies>
 
     <profiles>
