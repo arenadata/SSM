@@ -153,19 +153,6 @@
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <!--
-            This profile should be enabled if there is access to java 11+ during the module build
-            to use the latest version of OpenAPI generator plugin with various bugfixes to generate
-            the web server code (version 7.3.0 produces java 8 compatible code,
-            so after codegen this module can be rebuilt using java 8 as usual)
-            -->
-            <id>java11</id>
-            <properties>
-                <openapi.generator.version>7.3.0</openapi.generator.version>
-            </properties>
-        </profile>
     </profiles>
 
 </project>
