@@ -38,12 +38,12 @@
         <!--        Image properties:-->
         <!--        ssm-hadoop-base image-->
         <hadoop.ssm.image.name>hub.adsw.io/ssm/ssm-hadoop-base</hadoop.ssm.image.name>
-        <hadoop.ssm.image.tag>3.3.6</hadoop.ssm.image.tag>
+        <hadoop.ssm.image.tag>3.4.3</hadoop.ssm.image.tag>
         <hadoop.ssm.image.file>
             target/docker/${hadoop.ssm.image.name}/${hadoop.ssm.image.tag}/build/docker-relative-dir/docker/multihost/Dockerfile-hadoop-base
         </hadoop.ssm.image.file>
-        <hadoop.base.image.name>hub.adsw.io/java/hadoop-openjdk8</hadoop.base.image.name>
-        <hadoop.base.image.tag>3.3.6</hadoop.base.image.tag>
+        <hadoop.base.image.name>hub.adsw.io/java/hadoop-openjdk11</hadoop.base.image.name>
+        <hadoop.base.image.tag>3.4.3</hadoop.base.image.tag>
         <!--        ssm-server image-->
         <ssm.server.image.name>hub.adsw.io/ssm/ssm-server</ssm.server.image.name>
         <ssm.server.image.tag>${project.version}</ssm.server.image.tag>

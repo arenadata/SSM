@@ -49,7 +49,9 @@ public class ActiveServerAddressFileCache implements ActiveServerAddressCache {
     try {
       Files.write(
           filePath,
-          serverAddress.toString().getBytes(StandardCharsets.UTF_8),
+          HostAndPort.fromParts(serverAddress.getHostString(), serverAddress.getPort())
+              .toString()
+              .getBytes(StandardCharsets.UTF_8),
           StandardOpenOption.CREATE);
     } catch (IOException exception) {
       // we log to debug to avoid messing up hdfs cli commands output

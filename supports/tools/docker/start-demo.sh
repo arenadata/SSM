@@ -34,7 +34,7 @@ CLUSTER_TYPE=${CLUSTER_TYPE:-multihost}
 
 case $HADOOP_PROFILE in
   3.3)
-  HADOOP_VERSION=3.3.6
+  HADOOP_VERSION=3.4.3
   ;;
   *)
     echo "Unknown Hadoop profile ${HADOOP_PROFILE}"

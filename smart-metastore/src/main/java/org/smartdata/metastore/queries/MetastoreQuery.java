@@ -17,7 +17,7 @@
  */
 package org.smartdata.metastore.queries;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.smartdata.metastore.queries.column.MetastoreQueryColumn;
 import org.smartdata.metastore.queries.expression.MetastoreQueryExpression;

@@ -1,4 +1,4 @@
-FROM openjdk:8u342-jdk
+FROM eclipse-temurin:11-jre
 
 ARG SSM_APP_VERSION
 ENV USER=root
@@ -6,13 +6,15 @@ ENV SSM_HOME=/opt/ssm
 
 # Install SSH server
 RUN apt-get update \
-    && apt-get install -y netcat \
+    && apt-get install -y netcat-openbsd \
     && apt-get install -y openssh-server \
     && apt-get install -y nano \
     && mkdir -p /root/.ssh \
     && chmod 0700 /root/.ssh \
     && ssh-keygen -t rsa -C "root@ssm-server.demo" -N "" -f /root/.ssh/id_rsa \
     && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+
+RUN ln -sf /opt/java/openjdk/bin/java /usr/local/bin/java
 
 RUN mkdir /opt/ssm
 RUN mkdir /opt/ssm/bin

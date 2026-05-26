@@ -2,7 +2,7 @@ version: "3.8"
 services:
 
   hadoop-namenode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-namenode.demo
     container_name: hadoop-namenode
     restart: unless-stopped
@@ -32,7 +32,7 @@ services:
       - hadoop-datanode
 
   hadoop-datanode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: hadoop-datanode.demo
     container_name: hadoop-datanode
     restart: unless-stopped
@@ -137,7 +137,7 @@ services:
         -Dhive.metastore.event.db.listener.timetolive=86400s
         -Dhive.metastore.warehouse.dir=hdfs://source/user/hive/warehouse
     volumes:
-      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./db/postgresql-42.7.11.jar:/opt/hive/lib/postgres.jar
       - ./conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
       - ./hive/core-site.xml:/opt/hive/conf/core-site.xml
@@ -182,7 +182,7 @@ services:
       - demo
 
   target-namenode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: target-namenode.demo
     container_name: target-namenode
     restart: unless-stopped
@@ -209,7 +209,7 @@ services:
       - target-datanode
 
   target-datanode:
-    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.3.6}
+    image: hub.adsw.io/ssm/ssm-hadoop-base:${HADOOP_VERSION:-3.4.3}
     hostname: target-datanode.demo
     container_name: target-datanode
     restart: unless-stopped
@@ -253,7 +253,7 @@ services:
         -Dhive.metastore.event.db.listener.timetolive=86400s
         -Dhive.metastore.warehouse.dir=hdfs://target/user/hive/warehouse
     volumes:
-      - ./db/postgresql-42.2.16.jre7.jar:/opt/hive/lib/postgres.jar
+      - ./db/postgresql-42.7.11.jar:/opt/hive/lib/postgres.jar
       - ./target-conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./target-conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml
       - ./target-conf/core-site.xml:/opt/hive/conf/core-site.xml

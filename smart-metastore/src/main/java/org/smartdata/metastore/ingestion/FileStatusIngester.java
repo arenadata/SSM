@@ -20,7 +20,6 @@ package org.smartdata.metastore.ingestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.metastore.MetaStore;
-import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileInfoBatch;
 
@@ -40,30 +39,43 @@ public class FileStatusIngester implements Runnable {
 
   @Override
   public void run() {
+    IngestionTask.startPersisting();
     FileInfoBatch batch = IngestionTask.pollBatch();
     try {
-      if (batch != null) {
-        FileInfo[] statuses = batch.getFileInfos();
-        if (statuses.length == batch.actualSize()) {
-          this.dbAdapter.insertFiles(batch.getFileInfos(), true);
-          IngestionTask.numPersisted.addAndGet(statuses.length);
-        } else {
-          FileInfo[] actual = new FileInfo[batch.actualSize()];
-          System.arraycopy(statuses, 0, actual, 0, batch.actualSize());
-          this.dbAdapter.insertFiles(actual, true);
-          IngestionTask.numPersisted.addAndGet(actual.length);
-        }
-
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Consumer " + id + " " + batch.actualSize()
-              + " files insert into table 'files'.");
-        }
+      if (batch == null) {
+        return;
       }
-    } catch (MetaStoreException e) {
-      // TODO: handle this issue
-      LOG.error("Consumer {} error", id);
-    }
 
+      FileInfo[] statuses = batch.getFileInfos();
+      if (statuses.length == batch.actualSize()) {
+        this.dbAdapter.insertFiles(batch.getFileInfos(), true);
+        IngestionTask.numPersisted.addAndGet(statuses.length);
+      } else {
+        FileInfo[] actual = new FileInfo[batch.actualSize()];
+        System.arraycopy(statuses, 0, actual, 0, batch.actualSize());
+        this.dbAdapter.insertFiles(actual, true);
+        IngestionTask.numPersisted.addAndGet(actual.length);
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Consumer " + id + " " + batch.actualSize()
+            + " files insert into table 'files'.");
+      }
+    } catch (Exception e) {
+      IngestionTask.fail(e);
+      if (batch == null) {
+        LOG.error("Consumer {} failed to poll a file status batch", id, e);
+      } else {
+        LOG.error("Consumer {} failed to persist {} file statuses",
+            id, batch.actualSize(), e);
+      }
+    } finally {
+      IngestionTask.finishPersisting();
+      logProgress();
+    }
+  }
+
+  private void logProgress() {
     if (id == 0) {
       long curr = System.currentTimeMillis();
       if (curr - lastUpdateTime >= 5000) {

@@ -30,11 +30,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY;
 
 public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
   protected SmartServer ssm;
+  private static final long SSM_ACTIVE_WAIT_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(2);
 
   @Before
   @Override
@@ -55,9 +57,15 @@ public class MiniSmartClusterHarness extends MiniClusterWithStoragesHarness {
   public void waitTillSSMExitSafeMode() throws Exception {
       long start = System.currentTimeMillis();
       int retry = 5;
+      SmartServiceState state = null;
       while (true) {
+        if (System.currentTimeMillis() - start > SSM_ACTIVE_WAIT_TIMEOUT_MS) {
+          throw new IllegalStateException("SSM did not become ACTIVE within "
+              + TimeUnit.MILLISECONDS.toSeconds(SSM_ACTIVE_WAIT_TIMEOUT_MS)
+              + " seconds. Last state: " + state);
+        }
         try {
-          SmartServiceState state = ssm.getSSMServiceState();
+          state = ssm.getSSMServiceState();
           if (state == SmartServiceState.ACTIVE) {
             break;
           }

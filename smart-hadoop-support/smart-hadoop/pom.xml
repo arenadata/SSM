@@ -40,6 +40,10 @@
             <version>2.3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
             <version>2.3.0-SNAPSHOT</version>
@@ -178,6 +182,12 @@
             <type>test-jar</type>
         </dependency>
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client-runtime</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>jdbc</artifactId>
             <scope>test</scope>
@@ -230,7 +240,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.5</version>
+            <version>4.5.14</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

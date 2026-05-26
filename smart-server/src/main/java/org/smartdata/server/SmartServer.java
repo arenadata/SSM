@@ -372,7 +372,7 @@ public class SmartServer implements AutoCloseable {
           Thread.sleep(1000);
         }
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Failed to create SmartServer", e);
       errorCode = 1;
     } finally {

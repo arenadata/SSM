@@ -24,11 +24,14 @@ import org.smartdata.model.FileInfoBatch;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class IngestionTask implements Runnable {
   public static AtomicLong numFilesFetched = new AtomicLong(0);
   public static AtomicLong numDirectoriesFetched = new AtomicLong(0);
   public static AtomicLong numPersisted = new AtomicLong(0);
+  private static AtomicLong numPersisting = new AtomicLong(0);
+  private static AtomicReference<RuntimeException> failure = new AtomicReference<>();
 
   protected int defaultBatchSize = 20;
   protected int maxPendingBatches = 80;
@@ -46,6 +49,12 @@ public abstract class IngestionTask implements Runnable {
 
   public static void init(SmartConf conf) {
     deque.clear();
+    batches.clear();
+    numFilesFetched.set(0);
+    numDirectoriesFetched.set(0);
+    numPersisted.set(0);
+    numPersisting.set(0);
+    failure.set(null);
     IngestionTask.isFinished = false;
     List<String> fetchDirs = conf.getCoverDirs();
     if (fetchDirs.isEmpty()) {
@@ -59,6 +68,12 @@ public abstract class IngestionTask implements Runnable {
 
   public static void init(String dir) {
     deque.clear();
+    batches.clear();
+    numFilesFetched.set(0);
+    numDirectoriesFetched.set(0);
+    numPersisted.set(0);
+    numPersisting.set(0);
+    failure.set(null);
     IngestionTask.isFinished = false;
     deque.add(dir);
   }
@@ -68,11 +83,28 @@ public abstract class IngestionTask implements Runnable {
   }
 
   public static boolean finished() {
-    return isFinished;
+    RuntimeException exception = failure.get();
+    if (exception != null) {
+      throw exception;
+    }
+    return isFinished && batches.isEmpty() && numPersisting.get() == 0;
   }
 
   public static FileInfoBatch pollBatch() {
     return batches.poll();
+  }
+
+  public static void startPersisting() {
+    numPersisting.incrementAndGet();
+  }
+
+  public static void finishPersisting() {
+    numPersisting.decrementAndGet();
+  }
+
+  public static void fail(Throwable throwable) {
+    failure.compareAndSet(null,
+        new IllegalStateException("Failed to persist fetched namespace batch", throwable));
   }
 
   public void addFileStatus(FileInfo status) throws InterruptedException {
