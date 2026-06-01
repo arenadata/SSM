@@ -73,7 +73,7 @@ services:
       - ssm-server
 
   ssm-server:
-    image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.3.0-SNAPSHOT}
+    image: hub.adsw.io/ssm/ssm-server:${SSM_VERSION:-2.2.1.1-4.3.0-0}
     hostname: ssm-server.demo
     container_name: ssm-server
     restart: unless-stopped

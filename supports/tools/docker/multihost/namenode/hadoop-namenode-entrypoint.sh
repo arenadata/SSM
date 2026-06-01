@@ -25,6 +25,7 @@ moveHadoopConfFiles /etc/conf ${HADOOP_CONF_DIR}
 configure "$HADOOP_CONF_DIR"/hdfs-site.xml hdfs HDFS_CONF
 
 # HDFS
+addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.name.dir "$HDFS_CONF_dfs_namenode_name_dir"
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
 addProperty "$HADOOP_CONF_DIR"/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0
