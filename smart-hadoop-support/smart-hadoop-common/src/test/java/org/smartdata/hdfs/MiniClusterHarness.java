@@ -71,6 +71,8 @@ public abstract class MiniClusterHarness {
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, DEFAULT_BLOCK_SIZE);
     conf.setLong(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY, 1L);
     conf.setLong(DFSConfigKeys.DFS_BALANCER_MOVEDWINWIDTH_KEY, 2000L);
+    conf.set("hdfs.minidfs.basedir",
+        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
   }
 
   public MiniDFSCluster createCluster(Configuration conf)
