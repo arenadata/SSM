@@ -921,8 +921,6 @@
           <version>2.20</version>
           <configuration>
             <argLine>XX:+IgnoreUnrecognizedVMOptions -XX:+UseContainerSupport -XX:+UseG1GC -Xmx1536m</argLine>
-            <reuseForks>false</reuseForks>
-            <forkCount>0</forkCount>
           </configuration>
         </plugin>
         <plugin>
