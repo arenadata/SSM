@@ -18,6 +18,9 @@
 package org.smartdata.hdfs.metric.fetcher;
 
 import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Optional;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -29,23 +32,18 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.model.FileInfo;
+import org.smartdata.conf.SmartConf;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
-import org.smartdata.model.FileInfo;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.*;
 import static org.smartdata.conf.SmartConfKeys.SMART_IGNORED_PATH_TEMPLATES_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_IGNORE_DIRS_KEY;
 import static org.smartdata.conf.SmartConfKeys.SMART_NAMESPACE_FETCH_INTERVAL_MS_KEY;
+
+import java.io.IOException;
 
 public class TestNamespaceFetcher {
   final Set<String> pathesInDB = new HashSet<>();
@@ -90,8 +88,6 @@ public class TestNamespaceFetcher {
       MetaStoreException {
     pathesInDB.clear();
     Configuration conf = new SmartConf();
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
     try {
@@ -113,8 +109,6 @@ public class TestNamespaceFetcher {
       MetaStoreException {
     pathesInDB.clear();
     final SmartConf conf = new SmartConf();
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
     conf.set(SMART_IGNORE_DIRS_KEY, "/tmp");
@@ -137,8 +131,6 @@ public class TestNamespaceFetcher {
       MetaStoreException {
     pathesInDB.clear();
     final SmartConf conf = new SmartConf();
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
     conf.set(SMART_IGNORED_PATH_TEMPLATES_KEY, ".*user2.*,/tmp.*");
@@ -162,8 +154,6 @@ public class TestNamespaceFetcher {
       MetaStoreException {
     pathesInDB.clear();
     final SmartConf conf = new SmartConf();
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
         .numDataNodes(2).build();
     conf.set(SmartConfKeys.SMART_COVER_DIRS_KEY, "/user");

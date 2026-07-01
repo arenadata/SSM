@@ -57,8 +57,6 @@ public class SmartMiniCluster implements SmartCluster {
     conf.setLong(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY, 1L);
     conf.setLong(DFSConfigKeys.DFS_BALANCER_MOVEDWINWIDTH_KEY, 2000L);
     conf.set("fs.hdfs.impl", SmartFileSystem.class.getName());
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
   }
 
   @Override

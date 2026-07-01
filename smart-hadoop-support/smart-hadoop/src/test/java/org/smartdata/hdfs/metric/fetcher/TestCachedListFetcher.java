@@ -83,8 +83,6 @@ public class TestCachedListFetcher extends TestDaoBase {
     conf.setLong(DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_KEY, 1L);
     conf.setLong(DFSConfigKeys.DFS_BALANCER_MOVEDWINWIDTH_KEY, 2000L);
     conf.setLong(SmartConfKeys.SMART_CACHED_FILE_FETCH_INTERVAL_MS_KEY, 600);
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
   }
 
   @After

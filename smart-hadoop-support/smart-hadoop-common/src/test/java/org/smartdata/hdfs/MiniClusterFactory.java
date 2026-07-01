@@ -26,13 +26,9 @@ import java.util.ServiceLoader;
 
 public interface MiniClusterFactory {
 
-  String MINI_DFS_BASEDIR_KEY = "hdfs.minidfs.basedir";
-  String MINI_DFS_BASEDIR_DEFAULT = System.getProperty("java.io.tmpdir") + "/hadoop-minicluster";
-
   class DefaultMiniClusterFactory implements MiniClusterFactory {
     @Override
     public MiniDFSCluster create(int dataNodes, Configuration conf) throws IOException {
-      setDefaultMiniDfsBaseDir(conf);
       return new MiniDFSCluster.Builder(conf)
           .numDataNodes(dataNodes)
           .build();
@@ -40,19 +36,12 @@ public interface MiniClusterFactory {
 
     @Override
     public MiniDFSCluster createWithStorages(int dataNodes, Configuration conf) throws IOException {
-      setDefaultMiniDfsBaseDir(conf);
       return new MiniDFSCluster.Builder(conf)
           .numDataNodes(dataNodes)
           .storagesPerDatanode(3)
           .storageTypes(new StorageType[]{StorageType.DISK, StorageType.ARCHIVE,
               StorageType.SSD})
           .build();
-    }
-
-    private void setDefaultMiniDfsBaseDir(Configuration conf) {
-      if (conf.get(MINI_DFS_BASEDIR_KEY) == null) {
-        conf.set(MINI_DFS_BASEDIR_KEY, MINI_DFS_BASEDIR_DEFAULT);
-      }
     }
   }
 

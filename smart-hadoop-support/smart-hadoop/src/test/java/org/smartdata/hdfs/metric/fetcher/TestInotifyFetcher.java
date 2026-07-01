@@ -76,8 +76,6 @@ public class TestInotifyFetcher extends TestDaoBase {
     conf.setBoolean(DFSConfigKeys.DFS_NAMENODE_ACLS_ENABLED_KEY, true);
     // so that we can get an atime change
     conf.setLong(DFSConfigKeys.DFS_NAMENODE_ACCESSTIME_PRECISION_KEY, 1);
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
 
     SmartConf smartConf = new SmartConf();
     smartConf.set(SmartConfKeys.SMART_IGNORED_PATH_TEMPLATES_KEY, ".*ignored.*");

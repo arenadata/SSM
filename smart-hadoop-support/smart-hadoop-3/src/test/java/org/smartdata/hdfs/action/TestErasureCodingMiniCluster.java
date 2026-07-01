@@ -18,11 +18,7 @@
 package org.smartdata.hdfs.action;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSClient;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DFSTestUtil;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.hdfs.*;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.SystemErasureCodingPolicies;
 import org.junit.After;
@@ -51,8 +47,6 @@ public abstract class TestErasureCodingMiniCluster {
         DFSConfigKeys.DFS_NAMENODE_MIN_BLOCK_SIZE_DEFAULT);
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY,
         DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_DEFAULT);
-    conf.set("hdfs.minidfs.basedir",
-        System.getProperty("java.io.tmpdir") + "/hadoop-minicluster");
     // use ErasureCodeConstants.XOR_2_1_SCHEMA
     ecPolicy = SystemErasureCodingPolicies.getPolicies().get(3);
     cluster = MiniClusterFactory.get().
