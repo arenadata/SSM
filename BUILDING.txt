@@ -4,7 +4,7 @@ Build instructions for SSM
 Requirements:
 
 * Unix System
-* JDK 1.8+
+* JDK 11
 * Maven 3.3 or later
 * ProtocolBuffer 2.5.0
 * Node.js / bower
@@ -41,4 +41,4 @@ Maven build goals:
   * Use -Dtar to create a TAR with the distribution (using -Pdist)
 
  For each build goal you should define the version of Hadoop by providing one of the following profiles:
-  * -Phadoop-3.3
+  * -Phadoop-3.4

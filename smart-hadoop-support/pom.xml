@@ -41,7 +41,7 @@
 
     <profiles>
         <profile>
-            <id>hadoop-3.3</id>
+            <id>hadoop-3.4</id>
             <modules>
                 <module>smart-hadoop-3</module>
                 <module>smart-hadoop-3.3</module>

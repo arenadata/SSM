@@ -98,11 +98,11 @@ SSM provides a SmartDFSClient that includes both original HDFS DFSClient APIs an
 
 How to Build
 ------------
-Currently SSM supports ADH 3.3.6_arenadata1 (which is based on hadoop-3.3.6).
+Currently SSM supports Hadoop 3.4.3
 So you can build SSM with the following commands accordingly.
 
 ```
-mvn package -DskipTests -Pdist,web-ui,hadoop-3.3
+mvn package -DskipTests -Pdist,web-ui,hadoop-3.4
 ```
 
 Then a package named as `smart-data-${version}.tar.gz` will be generated under `smart-dist/target`.

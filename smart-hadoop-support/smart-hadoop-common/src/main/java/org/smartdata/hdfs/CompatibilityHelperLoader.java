@@ -28,7 +28,7 @@ public class CompatibilityHelperLoader {
       LoggerFactory.getLogger(CompatibilityHelperLoader.class);
 
   private static final String HADOOP_3_HELPER_CLASS = "org.smartdata.hdfs.CompatibilityHelper3";
-  public static final String DEFAULT_HDFS_VERSION = "3.3.6";
+  public static final String DEFAULT_HDFS_VERSION = "3.4.3";
   public static final String UNKNOWN_VERSION = "Unknown";
 
   private static class CompatibilityHelperHolder {
