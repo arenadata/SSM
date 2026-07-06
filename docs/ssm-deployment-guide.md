@@ -3,7 +3,7 @@
 ## Requirements:
 
 * Unix/Unix-like OS
-* JDK 11 for Apache Hadoop 3.4.3 or ADH 4.3.0
+* JDK 11 for ADH 4.3.0 or Apache Hadoop 3.4.3
 * ADH 4.3.0 ([Software requirements](https://docs.arenadata.io/en/ADH/current/planning/software.html)) or Apache Hadoop 3.4.3
 * Postgresql 14+ or [ADPG](https://docs.arenadata.io/en/landing-adpg/index.html) 14+
 * Maven 3.1.1+ (merely for build use)
