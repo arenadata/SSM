@@ -21,7 +21,7 @@ Download SSM branch from Github https://github.com/arenadata/SSM/
   
   	Included in the bundle
 
-###   For Hadoop 3.4.3
+###   For Hadoop 3.4.*
 
 	mvn clean package -Pdist,web-ui,hadoop-3.4 -DskipTests
 
