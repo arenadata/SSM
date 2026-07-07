@@ -2,7 +2,7 @@
 
 There are one currently supported HDFS version:
 
-* 3.3.*
+* 3.4.3
 
 ## Singlehost configuration
 
@@ -21,7 +21,7 @@ Not supported currently
 Command to build project with docker images (from project root dir)
 
 ```shell
-mvn clean install -Pdist,web-ui,hadoop-3.3,withDocker -DskipTests
+mvn clean install -Pdist,web-ui,hadoop-3.4,withDocker -DskipTests
 ```
 
 Command to start docker containers
@@ -80,7 +80,7 @@ curl --negotiate http://ssm-server.demo:8081/api/v2/audit/events
 Run unit tests:
 
 ```shell
-mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.3
+mvn test -Dmaven.test.redirectTestOutputToFile=false -Phadoop-3.4
 ```
 
 Run integration tests:

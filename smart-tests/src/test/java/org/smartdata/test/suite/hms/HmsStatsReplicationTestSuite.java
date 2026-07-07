@@ -85,6 +85,7 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
   private static final String TAB_COL_STATS_QUERY = "SELECT * FROM \"TAB_COL_STATS\"";
   private static final String LAST_ANALYZED_FIELD = "LAST_ANALYZED";
   private static final String BIT_VECTOR_FIELD = "BIT_VECTOR";
+  private static final String TBL_ID = "TBL_ID";
   private static final String PREPARE_STATS_SQL = String.join("\n",
       "CREATE DATABASE db1;",
       "CREATE TABLE db1.t1(i int);",
@@ -119,7 +120,7 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
     Map<String, Object> sourceStatsRow = getAndAssertSourceTabColStatsRow();
     assertTargetStatsIsEmpty();
     apiStep.createAndStartRule(TEST_RULE);
-    waitTabColStatsEqualIgnoringFields(sourceStatsRow, LAST_ANALYZED_FIELD);
+    waitTabColStatsEqualIgnoringFields(sourceStatsRow, LAST_ANALYZED_FIELD, TBL_ID);
   }
 
   @TmsLink("136054")
@@ -133,7 +134,7 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
     restartSsmWithEmptyMetastoreEvents();
     waitForMetastoreEvents(EVENTS_WITH_SNAPSHOT_PHASE);
     apiStep.createAndStartRule(TEST_RULE);
-    waitTabColStatsEqualIgnoringFields(sourceStatsRow, LAST_ANALYZED_FIELD, BIT_VECTOR_FIELD);
+    waitTabColStatsEqualIgnoringFields(sourceStatsRow, LAST_ANALYZED_FIELD, BIT_VECTOR_FIELD, TBL_ID);
   }
 
   @Step("Create source Hive database/table and compute column stats")
