@@ -9,3 +9,6 @@
 | smart.rest.server.ssl.keystore.password | -             | The password used to access the key store                                           |
 | smart.rest.server.ssl.key.alias         | -             | The alias that identifies the key in the key store                                  |
 | smart.rest.server.ssl.key.password      | -             | The password used to access the key in the key store                                |
+
+`smart.rest.server.ssl.keystore.password` can also be stored in Hadoop Credential Provider using the
+same alias when `hadoop.security.credential.provider.path` is configured.

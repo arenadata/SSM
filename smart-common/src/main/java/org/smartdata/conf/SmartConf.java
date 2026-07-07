@@ -81,7 +81,7 @@ public class SmartConf extends Configuration {
   }
 
   /**
-   * Get password for druid by Configuration.getPassword().
+   * Get password by Configuration.getPassword().
    */
   public Optional<String> getPasswordFromHadoop(String name) throws IOException {
     return Optional.ofNullable(getPassword(name))
