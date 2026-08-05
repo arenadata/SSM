@@ -19,6 +19,7 @@ package org.smartdata.server.engine.rule.copy;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.smartdata.action.SyncAction;
+import org.smartdata.exception.SsmParseException;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.RuleInfo;
@@ -65,7 +66,7 @@ public class SyncActionDiffTypeValidationPlugin implements RulePlugin {
       String type = rawType.trim().toUpperCase();
       FileDiffType diffType = EnumUtils.getEnum(FileDiffType.class, type);
       if (diffType == null || !FileDiffType.isFilterable(diffType)) {
-        throw new IOException(
+        throw new SsmParseException(
             "Invalid file filtering '" + type + "' in sync action '" + argName
                 + "' argument. Valid values are: " + FILTERABLE_DIFF_TYPES);
       }

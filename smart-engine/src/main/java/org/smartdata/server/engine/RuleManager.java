@@ -24,6 +24,7 @@ import org.smartdata.action.ActionRegistry;
 import org.smartdata.conf.SmartConfKeys;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.exception.SsmParseException;
+import org.smartdata.hive.rule.HmsSyncOperationValidationPlugin;
 import org.smartdata.hive.rule.HmsSyncRulePlugin;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
@@ -136,6 +137,7 @@ public class RuleManager
         new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao()),
         new ErasureCodingPlugin(context));
     SyncActionDiffTypeValidationPlugin.register();
+    HmsSyncOperationValidationPlugin.register();
   }
 
   public RuleInfo submitRule(String rule) throws IOException {
