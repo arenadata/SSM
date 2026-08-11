@@ -25,6 +25,7 @@ import org.springframework.boot.web.server.Ssl;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.smartdata.http.SmartHttpServer.SERVER_PORT_QUALIFIER;
@@ -59,9 +60,24 @@ public class EmbeddedServerCustomizer
     Ssl sslConfig = new Ssl();
     sslConfig.setEnabled(true);
     sslConfig.setKeyStore(conf.getNonEmpty(SSL_KEYSTORE_PATH));
-    sslConfig.setKeyStorePassword(conf.getNonEmpty(SSL_KEYSTORE_PASSWORD));
+    sslConfig.setKeyStorePassword(getRequiredPassword(SSL_KEYSTORE_PASSWORD));
     sslConfig.setKeyAlias(conf.get(SSL_KEY_ALIAS));
     sslConfig.setKeyPassword(conf.get(SSL_KEY_PASSWORD));
     return Optional.of(sslConfig);
+  }
+
+  private String getRequiredPassword(String key) {
+    try {
+      return conf.getPasswordFromHadoop(key)
+          .filter(password -> !password.isBlank())
+          .orElseThrow(() -> new IllegalArgumentException(requiredOptionMessage(key)));
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Unable to read required option from Hadoop Credential Provider: " + key, e);
+    }
+  }
+
+  private String requiredOptionMessage(String key) {
+    return "Required option not provided: " + key;
   }
 }
