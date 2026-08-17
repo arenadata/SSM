@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.smartdata</groupId>
         <artifactId>smartdata-project</artifactId>
-        <version>2.2.1.1-4.3.0-0</version>
+        <version>2.3.0.1-4.4.0-0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>smart-dist</artifactId>
-    <version>2.2.1.1-4.3.0-0</version>
+    <version>2.3.0.1-4.4.0-0</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -57,32 +57,32 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-common</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-client</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-inputstream</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-action</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-engine</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-server</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
@@ -97,12 +97,12 @@
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-agent</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
         </dependency>
         <dependency>
             <groupId>org.smartdata</groupId>
             <artifactId>smart-integration</artifactId>
-            <version>2.2.1.1-4.3.0-0</version>
+            <version>2.3.0.1-4.4.0-0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
