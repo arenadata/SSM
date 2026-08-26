@@ -31,7 +31,7 @@ grids:
       proxyHost: ${MOON_PROXY_HOST:10.94.12.187}
       remoteHost: ${MOON_REMOTE_HOST:https://moon.dev.adsw.io}
       browserName: ${BROWSER_NAME:chrome}
-      browserVersion: ${BROWSER_VERSION:144.0.7559.132-16}
+      browserVersion: ${BROWSER_VERSION:150.0.7871.186}
       screenshot-successful-steps: true
 
     - type: local
