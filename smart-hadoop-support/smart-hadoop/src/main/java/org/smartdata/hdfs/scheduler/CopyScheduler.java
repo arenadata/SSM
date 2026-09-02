@@ -209,15 +209,19 @@ public class CopyScheduler extends ActionSchedulerService {
     String preserveAttributes = action.getArgs().get(SyncAction.PRESERVE);
     String destPath = path.replaceFirst(srcDir, destDir);
     // Check again to avoid corner cases
-    long diffId = fileDiffChains.get(path).getHead();
+    long diffId = Optional.ofNullable(fileDiffChains.get(path))
+        .map(ScheduleTask.FileChain::getHead)
+        .orElse(-1L);
     if (diffId == -1) {
       // FileChain is already empty
       LOG.warn("File chain not found for path {}", path);
+      fileLocks.remove(path);
       return ScheduleResult.FAIL;
     }
     FileDiff fileDiff = fileDiffCache.get(diffId);
     if (fileDiff == null) {
       LOG.warn("File diff cache entry not found for path {}", path);
+      fileLocks.remove(path);
       return ScheduleResult.FAIL;
     }
     if (fileDiff.getState() != FileDiffState.PENDING) {
@@ -725,6 +729,7 @@ public class CopyScheduler extends ActionSchedulerService {
         pushCacheToDB();
         List<FileDiff> pendingDiffs = metaStore.getPendingDiff();
         processPendingDiffs(pendingDiffs);
+        removeDiffsToTerminate();
       } catch (Exception e) {
         LOG.error("Sync fileDiffs error", e);
       }
@@ -765,6 +770,13 @@ public class CopyScheduler extends ActionSchedulerService {
       }
     }
 
+    private void removeDiffsToTerminate() {
+      while (!fileDiffsToTerminate.isEmpty()) {
+        FileDiff diff = fileDiffsToTerminate.poll();
+        fileDiffTerminatedInternal(diff);
+      }
+    }
+
     private void addFileDiffToChain(FileDiff fileDiff) {
       fileDiffChains.compute(fileDiff.getSrc(), (filePath, maybeFileChain) -> {
         try {
@@ -776,8 +788,6 @@ public class CopyScheduler extends ActionSchedulerService {
           throw new RuntimeException(e);
         }
       });
-
-      fileDiffsToTerminate.forEach(this::fileDiffTerminatedInternal);
     }
 
     private void fileDiffTerminatedInternal(FileDiff fileDiff) {
@@ -876,15 +886,16 @@ public class CopyScheduler extends ActionSchedulerService {
       }
 
       void mergeRename(FileDiff renameDiff) throws MetaStoreException {
-        if (fileLocks.contains(filePath)) {
+        boolean isAlreadyLocked = !fileLocks.add(filePath);
+        if (isAlreadyLocked) {
+          fileDiffCache.remove(renameDiff.getDiffId());
           return;
         }
 
-        LOG.debug("Rename chain merge triggered for path {}", filePath);
-        boolean hasCreateDiff = false;
-
-        fileLocks.add(filePath);
         try {
+          LOG.debug("Rename chain merge triggered for path {}", filePath);
+          boolean hasCreateDiff = false;
+
           while (!diffChain.isEmpty()) {
             long diffId = removeHead();
 
@@ -928,13 +939,14 @@ public class CopyScheduler extends ActionSchedulerService {
       }
 
       void mergeAppend() throws MetaStoreException {
-        if (fileLocks.contains(filePath)) {
+        boolean isAlreadyLocked = !fileLocks.add(filePath);
+        if (isAlreadyLocked) {
           return;
         }
-        LOG.debug("Append chain merge triggered for path {}", filePath);
-        // Lock file to avoid File Chain being processed
-        fileLocks.add(filePath);
+
         try {
+          LOG.debug("Append chain merge triggered for path {}", filePath);
+
           long offset = Integer.MAX_VALUE;
           long totalLength = 0;
           long lastAppend = -1;
