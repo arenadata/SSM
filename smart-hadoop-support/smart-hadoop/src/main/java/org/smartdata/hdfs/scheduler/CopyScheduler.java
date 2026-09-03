@@ -226,7 +226,7 @@ public class CopyScheduler extends ActionSchedulerService {
     }
     if (fileDiff.getState() != FileDiffState.PENDING) {
       // If file diff is applied or failed
-      doOnFileChain(path, ScheduleTask.FileChain::removeHead);
+      doOnFileChain(path, chain -> chain.removeFromChain(diffId));
       fileLocks.remove(path);
       LOG.warn("File diff is not PENDING for path {}", path);
       return ScheduleResult.FAIL;
@@ -420,8 +420,11 @@ public class CopyScheduler extends ActionSchedulerService {
   }
 
   private void fileDiffTerminated(FileDiff fileDiff) {
-    // Remove chain top
-    doOnFileChain(fileDiff.getSrc(), ScheduleTask.FileChain::removeHead);
+    // Remove the fileDiff from the chain. The diff is not necessarily the chain
+    // head anymore, e.g. it could be pulled out of the chain by a delete merge
+    // while its action was still running, so remove it by id
+    doOnFileChain(fileDiff.getSrc(),
+        chain -> chain.removeFromChain(fileDiff.getDiffId()));
 
     // remove from fileDiffMap which is for retry use
     fileDiffFailedTimes.remove(fileDiff.getDiffId());
@@ -773,7 +776,7 @@ public class CopyScheduler extends ActionSchedulerService {
     private void removeDiffsToTerminate() {
       while (!fileDiffsToTerminate.isEmpty()) {
         FileDiff diff = fileDiffsToTerminate.poll();
-        fileDiffTerminatedInternal(diff);
+        fileDiffTerminated(diff);
       }
     }
 
@@ -788,15 +791,6 @@ public class CopyScheduler extends ActionSchedulerService {
           throw new RuntimeException(e);
         }
       });
-    }
-
-    private void fileDiffTerminatedInternal(FileDiff fileDiff) {
-      // Remove the fileDiff from chain
-      doOnFileChain(fileDiff.getSrc(),
-          baseChain -> baseChain.removeFromChain(fileDiff.getDiffId()));
-
-      // remove from fileDiffMap which is for retry use
-      fileDiffFailedTimes.remove(fileDiff.getDiffId());
     }
 
     private void addToFileDiffArchive(FileDiff newFileDiff) {
@@ -989,6 +983,8 @@ public class CopyScheduler extends ActionSchedulerService {
 
       void mergeDelete(FileDiff fileDiff) throws MetaStoreException {
         LOG.debug("Delete chain merge triggered for path {}", filePath);
+
+        List<FileDiff> coveredDiffs = new ArrayList<>();
         for (FileDiff archiveDiff : fileDiffArchive) {
           if (archiveDiff.getDiffId() == fileDiff.getDiffId()) {
             break;
@@ -998,9 +994,22 @@ public class CopyScheduler extends ActionSchedulerService {
           }
 
           if (pathStartsWith(archiveDiff.getSrc(), fileDiff.getSrc())) {
-            fileDiffsToTerminate.add(archiveDiff);
-            updateFileDiffInCache(archiveDiff.getDiffId(), FileDiffState.APPLIED);
+            if (fileLocks.contains(archiveDiff.getSrc())) {
+              // an action for the covered diff is in flight, so defer the whole
+              // merge, otherwise we'd mark a running copy as APPLIED. The diff is
+              // removed from the cache to be re-processed on the next iteration
+              LOG.debug("Delete chain merge for path {} is deferred, "
+                  + "file diff {} is in use", filePath, archiveDiff.getDiffId());
+              fileDiffCache.remove(fileDiff.getDiffId());
+              return;
+            }
+            coveredDiffs.add(archiveDiff);
           }
+        }
+
+        for (FileDiff coveredDiff : coveredDiffs) {
+          fileDiffsToTerminate.add(coveredDiff);
+          updateFileDiffInCache(coveredDiff.getDiffId(), FileDiffState.APPLIED);
         }
         diffChain.add(fileDiff.getDiffId());
       }
@@ -1023,6 +1032,7 @@ public class CopyScheduler extends ActionSchedulerService {
 
       void removeFromChain(long diffId) {
         diffChain.removeIf(aLong -> aLong == diffId);
+        appendChain.removeIf(aLong -> aLong == diffId);
       }
 
       void mergeAllDiffs() throws MetaStoreException {
