@@ -39,7 +39,7 @@ import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.audit.AuditService;
-import org.smartdata.server.engine.rule.copy.SyncActionDiffTypeValidationPlugin;
+import org.smartdata.server.engine.rule.copy.SyncActionArgsValidationPlugin;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,9 +72,9 @@ public class TestRuleManager extends TestDaoBase {
   }
 
   @Test
-  public void testSyncActionDiffTypeValidationPluginRegistered() {
+  public void testSyncActionArgsValidationPluginRegistered() {
     Assert.assertTrue(RulePluginManager.getPlugins().stream()
-        .anyMatch(SyncActionDiffTypeValidationPlugin.class::isInstance));
+        .anyMatch(SyncActionArgsValidationPlugin.class::isInstance));
   }
 
   @Test

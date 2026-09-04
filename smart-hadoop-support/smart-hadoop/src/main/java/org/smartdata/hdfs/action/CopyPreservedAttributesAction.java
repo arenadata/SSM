@@ -70,6 +70,7 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
   protected Set<PreserveAttribute> parsePreserveAttributes() {
     Set<PreserveAttribute> attributesFromOptions = rawPreserveAttributes
         .stream()
+        .map(String::trim)
         .map(PreserveAttribute::fromOption)
         .collect(Collectors.toSet());
 
@@ -146,9 +147,14 @@ public abstract class CopyPreservedAttributesAction extends HdfsAction {
       return name;
     }
 
+    public static boolean isValidOption(String option) {
+      return Arrays.stream(PreserveAttribute.values())
+          .anyMatch(attr -> attr.toString().equalsIgnoreCase(option));
+    }
+
     protected static PreserveAttribute fromOption(String option) {
       return Arrays.stream(PreserveAttribute.values())
-          .filter(attr -> attr.toString().equals(option))
+          .filter(attr -> attr.toString().equalsIgnoreCase(option))
           .findFirst()
           .orElseThrow(() ->
               new IllegalArgumentException("Wrong preserve attribute: " + option));
