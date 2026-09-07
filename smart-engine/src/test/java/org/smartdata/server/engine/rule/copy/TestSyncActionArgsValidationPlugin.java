@@ -21,11 +21,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.action.SyncAction;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
+import org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.rule.RuleTranslationResult;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,10 +35,10 @@ import java.util.stream.Collectors;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestSyncActionDiffTypeValidationPlugin {
+public class TestSyncActionArgsValidationPlugin {
 
-  private final SyncActionDiffTypeValidationPlugin plugin =
-      new SyncActionDiffTypeValidationPlugin();
+  private final SyncActionArgsValidationPlugin plugin =
+      new SyncActionArgsValidationPlugin();
 
   @Test
   public void noSyncAction() throws IOException {
@@ -44,7 +46,7 @@ public class TestSyncActionDiffTypeValidationPlugin {
   }
 
   @Test
-  public void syncActionNoIncludeExcludeArgs() throws IOException {
+  public void syncActionNoOptionalArgs() throws IOException {
     plugin.onAddingNewRule(null, translationResultWith(SyncAction.NAME));
   }
 
@@ -122,6 +124,59 @@ public class TestSyncActionDiffTypeValidationPlugin {
         SyncAction.NAME,
         SyncAction.INCLUDE, "BAD_TYPE",
         SyncAction.EXCLUDE, "DELETE")));
+  }
+
+  @Test
+  public void syncActionWithValidPreserve() throws IOException {
+    plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "owner,group"));
+  }
+
+  @Test
+  public void syncActionWithAllValidPreserveAttributes() throws IOException {
+    String allAttributes = Arrays.stream(PreserveAttribute.values())
+        .map(PreserveAttribute::toString)
+        .collect(Collectors.joining(","));
+    plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, allAttributes));
+  }
+
+  @Test
+  public void syncActionWithBlankPreserve() throws IOException {
+    plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "  "));
+  }
+
+  @Test
+  public void syncActionWithInvalidPreserve() {
+    Assert.assertThrows(IOException.class, () -> plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "INCORRECT")));
+  }
+
+  @Test
+  public void syncActionWithInvalidPreserveAmongMultiple() {
+    Assert.assertThrows(IOException.class, () -> plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "owner,BAD_ATTRIBUTE,group")));
+  }
+
+  @Test
+  public void syncActionWithDifferentCasePreserve() throws IOException {
+    plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "OWNER,Group,Modification-Time"));
+  }
+
+  @Test
+  public void syncActionWithValidExcludeAndInvalidPreserve() {
+    Assert.assertThrows(IOException.class, () -> plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.EXCLUDE, "DELETE",
+        SyncAction.PRESERVE, "INCORRECT")));
   }
 
   private RuleTranslationResult translationResultWith(String actionName, String... args) {

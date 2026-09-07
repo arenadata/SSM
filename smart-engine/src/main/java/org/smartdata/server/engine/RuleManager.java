@@ -59,7 +59,7 @@ import org.smartdata.server.engine.rule.RuleInfoRepo;
 import org.smartdata.server.engine.rule.SmallFilePlugin;
 import org.smartdata.server.engine.rule.copy.FileCopyDrPlugin;
 import org.smartdata.server.engine.rule.copy.FileCopyScheduleStrategy;
-import org.smartdata.server.engine.rule.copy.SyncActionDiffTypeValidationPlugin;
+import org.smartdata.server.engine.rule.copy.SyncActionArgsValidationPlugin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -136,7 +136,7 @@ public class RuleManager
         new SmallFilePlugin(context, cmdletManager),
         new HmsSyncRulePlugin(context.getMetaStore().hmsSyncProgressDao()),
         new ErasureCodingPlugin(context));
-    SyncActionDiffTypeValidationPlugin.register();
+    SyncActionArgsValidationPlugin.register();
     HmsSyncOperationValidationPlugin.register();
   }
 
