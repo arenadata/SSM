@@ -50,6 +50,7 @@
         <openapi.generator.version>7.3.0</openapi.generator.version>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
         <thrift.version>0.22.0</thrift.version> <!-- Used with hive-jdbc -->
         <topology>default</topology>
         <hms.profile.enabled>false</hms.profile.enabled>
@@ -106,6 +107,7 @@
             </activation>
             <properties>
                 <topology>default</topology>
+                <spotless.phase>validate</spotless.phase>
             </properties>
             <build>
                 <plugins>
@@ -130,6 +132,7 @@
             <properties>
                 <topology>hms</topology>
                 <hms.profile.enabled>true</hms.profile.enabled>
+                <spotless.phase>validate</spotless.phase>
             </properties>
             <build>
                 <plugins>
@@ -358,6 +361,35 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>${spotless.phase}</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/**/*.java</include>
+                            <include>src/test/**/*.java</include>
+                        </includes>
+                        <eclipse>
+                            <file>${project.basedir}/code-style.xml</file>
+                        </eclipse>
+                        <importOrder>
+                            <order>com|groovy|io|jakarta|joptsimple|lombok|org|,javax|java,\#</order>
+                        </importOrder>
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                    </java>
+                </configuration>
             </plugin>
         </plugins>
 

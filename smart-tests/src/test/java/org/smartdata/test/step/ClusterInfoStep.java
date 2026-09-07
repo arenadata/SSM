@@ -32,7 +32,6 @@ import static org.smartdata.test.element.ClusterInfoPageElement.ClusterInfoTable
 import static org.smartdata.test.element.ClusterInfoPageElement.FILES_IN_CACHE_TAB;
 import static org.smartdata.test.element.TableElement.TableType.CLUSTER_INFO;
 
-
 @Slf4j
 @Service
 public class ClusterInfoStep extends BaseWebStep {

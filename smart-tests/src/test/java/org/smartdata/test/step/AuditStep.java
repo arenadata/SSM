@@ -33,7 +33,6 @@ import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.RESUL
 import static org.smartdata.test.element.AuditPageElement.AuditTableColumn.USER;
 import static org.smartdata.test.model.AuditStatus.FAILURE;
 
-
 @Slf4j
 @Service
 public class AuditStep extends BaseWebStep {

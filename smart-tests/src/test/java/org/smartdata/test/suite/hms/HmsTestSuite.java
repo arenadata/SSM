@@ -40,7 +40,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -88,8 +87,7 @@ public class HmsTestSuite extends SsmBaseSuite {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
 
   private static final String DEFAULT_DATABASE = "default";
   private static final String TEST_DATABASE = "db1";
@@ -196,7 +194,8 @@ public class HmsTestSuite extends SsmBaseSuite {
 
   @TmsLink("136285")
   @Story("HMS Configuration")
-  @Test(description = "Check smart.hive.event.applier.retry.strategy=EXPONENTIAL", groups = "restoreHiveMetastoreEventTable")
+  @Test(description = "Check smart.hive.event.applier.retry.strategy=EXPONENTIAL",
+        groups = "restoreHiveMetastoreEventTable")
   public void testHiveEventApplierRetryStrategyExponential() throws Exception {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_APPLIER_RETRY_STRATEGY_PARAM, "EXPONENTIAL");
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_APPLIER_RETRY_MAX_PARAM, "5");
@@ -209,7 +208,8 @@ public class HmsTestSuite extends SsmBaseSuite {
 
   @TmsLink("136350")
   @Story("HMS Configuration")
-  @Test(description = "Check smart.hive.event.applier.retry.strategy=FIXED_SLEEP with default configs", groups = "restoreHiveMetastoreEventTable")
+  @Test(description = "Check smart.hive.event.applier.retry.strategy=FIXED_SLEEP with default configs",
+        groups = "restoreHiveMetastoreEventTable")
   public void testHiveEventApplierRetryStrategyFixedSleepDefault() throws Exception {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_APPLIER_RETRY_STRATEGY_PARAM, "FIXED_SLEEP");
     setupDataForRetryStrategyTests();
@@ -221,7 +221,8 @@ public class HmsTestSuite extends SsmBaseSuite {
 
   @TmsLink("136382")
   @Story("HMS Configuration")
-  @Test(description = "Check smart.hive.event.applier.retry.strategy=FIXED_SLEEP with non-default smart.hive.event.applier.retry.interval.ms and smart.hive.event.applier.retry.max", groups = "restoreHiveMetastoreEventTable")
+  @Test(description = "Check smart.hive.event.applier.retry.strategy=FIXED_SLEEP with non-default smart.hive.event.applier.retry.interval.ms and smart.hive.event.applier.retry.max",
+        groups = "restoreHiveMetastoreEventTable")
   public void testHiveEventApplierRetryStrategyFixedSleepNonDefault() throws Exception {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_APPLIER_RETRY_STRATEGY_PARAM, "FIXED_SLEEP");
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_APPLIER_RETRY_INTERVAL_MS_PARAM, "4000");
@@ -284,7 +285,8 @@ public class HmsTestSuite extends SsmBaseSuite {
     containerManager.start(SSM_SERVER);
     createTestDataInHiveMetaStore(testTableQuantity);
     checkEventsContainExpectedEntities(testTableQuantity);
-    return hiveMetastoreEventDao.findAll().stream()
+    return hiveMetastoreEventDao.findAll()
+        .stream()
         .map(HiveMetastoreEventEntity::getId)
         .collect(Collectors.toList());
   }

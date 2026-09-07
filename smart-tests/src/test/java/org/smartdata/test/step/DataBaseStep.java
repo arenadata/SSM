@@ -17,7 +17,6 @@
  */
 package org.smartdata.test.step;
 
-
 import io.arenadata.test.util.FileUtils;
 import io.qameta.allure.Step;
 import lombok.SneakyThrows;
@@ -28,7 +27,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.time.Instant;
@@ -45,17 +43,13 @@ public class DataBaseStep {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("ssmMetastoreDataSource")
-  private DataSource ssmMetastoreDataSource;
+  @Qualifier("ssmMetastoreDataSource") private DataSource ssmMetastoreDataSource;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
   @Autowired
-  @Qualifier("ssmHiveDataSource")
-  private DataSource ssmHiveDataSource;
+  @Qualifier("ssmHiveDataSource") private DataSource ssmHiveDataSource;
   @Autowired(required = false)
-  @Qualifier("targetHiveServer2DataSource")
-  private DataSource targetHiveServer2DataSource;
+  @Qualifier("targetHiveServer2DataSource") private DataSource targetHiveServer2DataSource;
 
   private static final String SHOW_DATABASES_SQL = "SHOW DATABASES";
   private static final String SHOW_FUNCTIONS_SQL = "SHOW FUNCTIONS";
@@ -270,7 +264,8 @@ public class DataBaseStep {
   @Step("Get parameters of database '{databaseName}'")
   public List<String> getDatabaseParameters(DataSource dataSource, String databaseName) {
     return sqlExecutor.queryByColumnAsStrings(dataSource,
-        format(DESCRIBE_DATABASE_EXTENDED_TEMPLATE, databaseName), "parameters");
+        format(DESCRIBE_DATABASE_EXTENDED_TEMPLATE, databaseName),
+        "parameters");
   }
 
   @Step("Get tables from database '{databaseName}'")
@@ -290,14 +285,16 @@ public class DataBaseStep {
 
   @Step("Get columns with params for table '{tableName}'")
   public List<Map<String, Object>> getTableColumnsWithParams(DataSource dataSource, String tableName) {
-    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_TEMPLATE, tableName)).stream()
+    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_TEMPLATE, tableName))
+        .stream()
         .filter(row -> row.get("col_name") != null && !row.get("col_name").toString().trim().isEmpty())
         .collect(Collectors.toList());
   }
 
   @Step("Get constraints for table '{databaseName}.{tableName}'")
   public List<Map<String, Object>> getTableConstraints(DataSource dataSource, String databaseName, String tableName) {
-    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_EXTENDED_TEMPLATE, databaseName, tableName)).stream()
+    return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_EXTENDED_TEMPLATE, databaseName, tableName))
+        .stream()
         .filter(row -> row.get("col_name") != null
             && row.get("col_name").toString().toLowerCase().contains("constraint"))
         .collect(Collectors.toList());
@@ -310,6 +307,7 @@ public class DataBaseStep {
   private void dropDatabasesExceptDefault(DataSource dataSource) {
     getDatabases(dataSource).stream()
         .filter(databaseName -> !"default".equalsIgnoreCase(databaseName))
-        .forEach(databaseName -> sqlExecutor.executeSql(dataSource, format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, databaseName)));
+        .forEach(databaseName -> sqlExecutor.executeSql(dataSource,
+            format(DROP_HIVE_SERVERS_TABLE_TEMPLATE, databaseName)));
   }
 }

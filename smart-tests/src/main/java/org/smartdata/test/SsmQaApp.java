@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
 @SpringBootApplication(scanBasePackages = {"org.smartdata.test"},
-    exclude = {HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class})
+                       exclude = {HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class})
 public class SsmQaApp {
 
   public static void main(String[] args) {

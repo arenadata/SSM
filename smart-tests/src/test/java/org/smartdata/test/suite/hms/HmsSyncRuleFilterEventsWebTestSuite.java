@@ -41,7 +41,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
-
 import java.io.IOException;
 
 import static java.lang.String.format;
@@ -70,11 +69,9 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
   @Autowired
-  @Qualifier("targetHiveServer2DataSource")
-  private DataSource targetHiveServer2DataSource;
+  @Qualifier("targetHiveServer2DataSource") private DataSource targetHiveServer2DataSource;
 
   private static final String HMS_SYNC_RULE_TEMPLATE =
       "hms : name matches \"%s.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";
@@ -213,7 +210,9 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
 
   @Step("Assert rule creation fails for rule: {rule}")
   private void assertRuleCreationFails(String rule) {
-    apiStep.getRawClient().rules().addRule()
+    apiStep.getRawClient()
+        .rules()
+        .addRule()
         .body(new SubmitRuleRequestDto().rule(rule))
         .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
         .executeAs(Response::andReturn);

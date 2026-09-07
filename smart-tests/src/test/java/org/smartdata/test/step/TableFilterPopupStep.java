@@ -45,7 +45,6 @@ public class TableFilterPopupStep extends BaseWebStep {
   private static final String MINUTES_TIME_UNIT_NAME = "minutes";
   private static final String SECONDS_TIME_UNIT_NAME = "seconds";
 
-
   @Step("Enter '{value}' in the text filter input field of the popup")
   public TableFilterPopupStep setTextPopupInput(String value) {
     waitAndReWrite(TEXT_FILTER_INPUT, value);

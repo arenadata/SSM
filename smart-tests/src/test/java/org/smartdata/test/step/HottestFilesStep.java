@@ -68,7 +68,9 @@ public class HottestFilesStep extends BaseWebStep {
   @Step("Check 'Hottest files' pagination")
   public HottestFilesStep checkPagination(List<String> expectedFilePathList) {
     tableStep.clickOnSortingColumn(HOTTEST_FILES, ID);
-    paginationStep.checkPaginationFixture(HOTTEST_FILES, FILE_PATH, expectedFilePathList,
+    paginationStep.checkPaginationFixture(HOTTEST_FILES,
+        FILE_PATH,
+        expectedFilePathList,
         HOTTEST_FILES.getTableElement());
     return this;
   }
