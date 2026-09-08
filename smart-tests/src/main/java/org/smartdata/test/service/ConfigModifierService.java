@@ -32,7 +32,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +58,7 @@ public class ConfigModifierService {
    * Gets the current value of a property.
    *
    * @param configFileName The name of the config file
-   * @param propertyName The property name
+   * @param propertyName   The property name
    * @return The current value, or null if not found
    * @throws IOException if file operations fail
    */
@@ -78,8 +77,8 @@ public class ConfigModifierService {
    * Creates a backup if it doesn't exist. Updates existing property or creates new one.
    *
    * @param configFileName The name of the config file (e.g., "smart-site-master.xml")
-   * @param propertyName The property name (e.g., "smart.cmdlet.executors")
-   * @param newValue The new value to set
+   * @param propertyName   The property name (e.g., "smart.cmdlet.executors")
+   * @param newValue       The new value to set
    * @throws IOException if file operations fail
    */
   public void setProperty(String configFileName, String propertyName, String newValue) throws IOException {
@@ -91,8 +90,8 @@ public class ConfigModifierService {
    * Throws an exception if the property already exists.
    *
    * @param configFileName The name of the config file
-   * @param propertyName The property name
-   * @param value The property value
+   * @param propertyName   The property name
+   * @param value          The property value
    * @throws IOException if file operations fail
    */
   public void addProperty(String configFileName, String propertyName, String value) throws IOException {
@@ -104,7 +103,7 @@ public class ConfigModifierService {
    *
    * @param configFileName The name of the config file
    * @throws IllegalArgumentException if config file is not found
-   * @throws IOException if file operations fail
+   * @throws IOException              if file operations fail
    */
   public void restoreOriginalFile(String configFileName) throws IOException {
     Path configPath = validateAndGetConfigPath(configFileName);
@@ -120,13 +119,15 @@ public class ConfigModifierService {
    * Handles both adding new properties and updating existing ones.
    *
    * @param configFileName The name of the config file
-   * @param propertyName The property name
-   * @param value The property value
-   * @param allowUpdate If true, updates existing properties; if false, throws exception if property exists
+   * @param propertyName   The property name
+   * @param value          The property value
+   * @param allowUpdate    If true, updates existing properties; if false, throws exception if property exists
    * @throws IOException if file operations fail
    */
-  private void modifyProperty(String configFileName, String propertyName, String value, boolean allowUpdate)
-      throws IOException {
+  private void modifyProperty(String configFileName,
+                              String propertyName,
+                              String value,
+                              boolean allowUpdate) throws IOException {
     try {
       Path configPath = validateAndGetConfigPath(configFileName);
       createBackupIfNeeded(configPath);

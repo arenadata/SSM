@@ -143,7 +143,9 @@ public class AuditSuite extends SsmWebBaseSuite {
 
   @Step("Create audit events for filtration test")
   private void prepareDataForFiltrationTest() {
-    apiStep.getRawClient().actions().submitAction()
+    apiStep.getRawClient()
+        .actions()
+        .submitAction()
         .body(new SubmitActionRequestDto().action("NONEXISTENT"))
         .respSpec(response -> response.expectStatusCode(400))
         .executeAs(Response::andReturn);

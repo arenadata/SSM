@@ -17,7 +17,6 @@
  */
 package org.smartdata.test.step;
 
-
 import io.arenadata.test.service.ContainerManager;
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;

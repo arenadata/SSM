@@ -35,4 +35,3 @@ public class WebElementUtil {
     return baseElement == null ? $$x(xpath) : baseElement.$$x(xpath);
   }
 }
-

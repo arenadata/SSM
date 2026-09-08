@@ -51,7 +51,6 @@ import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_UI_PATT
 import static org.smartdata.test.util.constant.CommonConstants.RUNNING_TIME_PATTERN;
 import static org.smartdata.test.util.constant.CommonConstants.TABLE_EMPTY_VALUE;
 
-
 @Slf4j
 @Service
 public class ActionsDetailsStep extends BaseWebStep {

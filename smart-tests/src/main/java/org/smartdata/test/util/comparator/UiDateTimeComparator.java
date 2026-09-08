@@ -22,7 +22,6 @@ import java.util.Comparator;
 
 import static org.smartdata.test.util.constant.CommonConstants.DATE_TIME_FORMATTER_UI;
 
-
 public class UiDateTimeComparator implements Comparator<String> {
 
   @Override

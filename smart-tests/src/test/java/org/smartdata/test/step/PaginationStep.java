@@ -129,14 +129,18 @@ public class PaginationStep extends BaseWebStep {
   }
 
   @Step("Check pagination on '{pageNum}' page")
-  public PaginationStep checkPagination(int pageNum, PaginationElement.PageSize pageSize,
-                                        TableType tableType, TableColumn tableColumn,
-                                        List<String> testColumnValues, SelenideElement baseElement) {
+  public PaginationStep checkPagination(int pageNum,
+                                        PaginationElement.PageSize pageSize,
+                                        TableType tableType,
+                                        TableColumn tableColumn,
+                                        List<String> testColumnValues,
+                                        SelenideElement baseElement) {
     checkNumberedButtonIsSelected(pageNum, baseElement)
         .checkPageButtonsAmount(getPageButtonsQuantity(testColumnValues.size(), pageSize.getSize()),
             baseElement)
         .checkShowPerPageValue(pageSize, baseElement);
-    tableStep.checkColumnValues(tableType, tableColumn,
+    tableStep.checkColumnValues(tableType,
+        tableColumn,
         getExpectedValues(testColumnValues, pageNum, pageSize.getSize()));
     return this;
   }
@@ -147,11 +151,14 @@ public class PaginationStep extends BaseWebStep {
   }
 
   @Step("Check pagination table of the page")
-  public void checkPaginationFixture(TableType tableType, TableColumn tableColumn, List<String> testColumnValues,
+  public void checkPaginationFixture(TableType tableType,
+                                     TableColumn tableColumn,
+                                     List<String> testColumnValues,
                                      SelenideElement baseElement) {
     // testColumnValues must be ordered as UI shown
     assertThat(format("testColumnValues size must be %s", PAGINATION_QUANTITY),
-        testColumnValues.size(), is(PAGINATION_QUANTITY));
+        testColumnValues.size(),
+        is(PAGINATION_QUANTITY));
 
     waitVisibility(getNumberedButtonByPageNum(11, baseElement));
     checkPagination(1, TEN, tableType, tableColumn, testColumnValues, baseElement)

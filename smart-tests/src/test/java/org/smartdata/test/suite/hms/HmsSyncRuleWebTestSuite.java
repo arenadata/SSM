@@ -42,7 +42,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -86,11 +85,9 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
   @Autowired
-  @Qualifier("targetHiveServer2DataSource")
-  private DataSource targetHiveServer2DataSource;
+  @Qualifier("targetHiveServer2DataSource") private DataSource targetHiveServer2DataSource;
 
   private static final String TEST_DATABASE_1 = "db1";
   private static final String TEST_DATABASE_2 = "db2";
@@ -125,21 +122,24 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Test(description = "Check HMS rule for constraints")
   public void testHmsRuleForConstraints() {
     prepareRuleAndDataFixture(
-        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1), String.join("\n",
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        String.join("\n",
             "CREATE DATABASE db1;",
             "CREATE TABLE db1.students (id INT, name STRING NOT NULL, email STRING DEFAULT 'unknown');"));
     checkSuccessSyncActions(4, TEST_DATABASE_1);
     assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 2);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "ALTER TABLE db1.students ADD CONSTRAINT students_pk PRIMARY KEY (id) DISABLE NOVALIDATE;",
-        "CREATE TABLE db1.students_data (data_id INT, student_id INT);",
-        "ALTER TABLE db1.students_data ADD CONSTRAINT students_data_fk FOREIGN KEY (student_id) REFERENCES db1.students(id) DISABLE NOVALIDATE;"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "ALTER TABLE db1.students ADD CONSTRAINT students_pk PRIMARY KEY (id) DISABLE NOVALIDATE;",
+            "CREATE TABLE db1.students_data (data_id INT, student_id INT);",
+            "ALTER TABLE db1.students_data ADD CONSTRAINT students_data_fk FOREIGN KEY (student_id) REFERENCES db1.students(id) DISABLE NOVALIDATE;"));
     checkSuccessSyncActions(7, TEST_DATABASE_1);
     assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 3);
     assertHivesConstraintsEquals(TEST_DATABASE_1, "students_data", 1);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "ALTER TABLE db1.students_data DROP CONSTRAINT students_data_fk;",
-        "ALTER TABLE db1.students DROP CONSTRAINT students_pk;"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "ALTER TABLE db1.students_data DROP CONSTRAINT students_data_fk;",
+            "ALTER TABLE db1.students DROP CONSTRAINT students_pk;"));
     checkSuccessSyncActions(9, TEST_DATABASE_1);
     assertHivesConstraintsEquals(TEST_DATABASE_1, "students", 2);
     assertHivesConstraintsEquals(TEST_DATABASE_1, "students_data", 0);
@@ -160,10 +160,11 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     sqlExecutor.executeSql(hiveServer2DataSource, "DROP DATABASE db1;");
     checkSuccessSyncActions(3, TEST_DATABASE_1);
     assertHivesDatabasesDoNotContain(TEST_DATABASE_1);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "CREATE DATABASE db1;",
-        "CREATE TABLE db1.t1 (id INT);",
-        "DROP DATABASE db1 CASCADE;"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "CREATE DATABASE db1;",
+            "CREATE TABLE db1.t1 (id INT);",
+            "DROP DATABASE db1 CASCADE;"));
     checkSuccessSyncActions(7, TEST_DATABASE_1);
   }
 
@@ -191,7 +192,8 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
   @Test(description = "Check HMS rule for partitions")
   public void testHmsRuleForPartitions() {
     prepareRuleAndDataFixture(
-        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1), String.join("\n",
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        String.join("\n",
             "CREATE DATABASE db1;",
             "CREATE TABLE db1.clients (id INT, name STRING) PARTITIONED BY (month STRING);",
             "ALTER TABLE db1.clients ADD PARTITION (month='december');"));
@@ -220,7 +222,8 @@ public class HmsSyncRuleWebTestSuite extends SsmWebBaseSuite {
     colJ.put("data_type", "string");
     colJ.put("comment", "");
     prepareRuleAndDataFixture(
-        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1), String.join("\n",
+        format(HMS_SYNC_RULE_TEMPLATE, TEST_DATABASE_1),
+        String.join("\n",
             "CREATE DATABASE db1;",
             "CREATE TABLE db1.t1 (i INT);"));
     checkSuccessSyncActions(2, TEST_DATABASE_1);

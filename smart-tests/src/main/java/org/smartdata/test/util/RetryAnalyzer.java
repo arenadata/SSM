@@ -21,16 +21,16 @@ import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 
 public class RetryAnalyzer implements IRetryAnalyzer {
-    private static final int MAX_RETRIES = 2;
+  private static final int MAX_RETRIES = 2;
 
-    private final ThreadLocal<Integer> retryCount = ThreadLocal.withInitial(() -> 0);
+  private final ThreadLocal<Integer> retryCount = ThreadLocal.withInitial(() -> 0);
 
-    @Override
-    public boolean retry(ITestResult result) {
-        if (retryCount.get() < MAX_RETRIES) {
-          retryCount.set(retryCount.get() + 1);
-          return true;
-        }
-        return false;
+  @Override
+  public boolean retry(ITestResult result) {
+    if (retryCount.get() < MAX_RETRIES) {
+      retryCount.set(retryCount.get() + 1);
+      return true;
     }
+    return false;
+  }
 }

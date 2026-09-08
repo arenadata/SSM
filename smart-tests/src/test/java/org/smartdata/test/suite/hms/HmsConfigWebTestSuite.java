@@ -43,7 +43,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
-
 import java.io.IOException;
 import java.time.Duration;
 
@@ -86,11 +85,9 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
   @Autowired
-  @Qualifier("targetHiveServer2DataSource")
-  private DataSource targetHiveServer2DataSource;
+  @Qualifier("targetHiveServer2DataSource") private DataSource targetHiveServer2DataSource;
 
   private static final String TEST_DATABASE_1 = "db1";
   private static final String TEST_DATABASE_2 = "db2";
@@ -132,10 +129,11 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_INCLUDE_PATTERNS_PARAM, "db1,db1\\.t.*");
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_IGNORE_PATTERNS_PARAM, ".*tb23.*");
     containerManager.start(SSM_SERVER);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "CREATE DATABASE db1;",
-        "CREATE TABLE db1.tb1(i INT);",
-        "CREATE TABLE db1.tb23(i INT);"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "CREATE DATABASE db1;",
+            "CREATE TABLE db1.tb1(i INT);",
+            "CREATE TABLE db1.tb23(i INT);"));
     assertNoDatabasesSyncedBeforeRule(TEST_DATABASE_1);
     startRuleAndWaitTablesOnTargetHive(TEST_DATABASE_1, "tb1");
     loginStep.loginAs(OWNER);
@@ -149,12 +147,13 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
   public void testHiveEventIncludePatterns() throws Exception {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_INCLUDE_PATTERNS_PARAM, "db1,db1\\.t.*");
     containerManager.start(SSM_SERVER);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "CREATE DATABASE db1;",
-        "CREATE TABLE db1.tb1(i INT);",
-        "CREATE TABLE db1.t1(i INT);",
-        "CREATE DATABASE db2;",
-        "CREATE TABLE db2.tb1(i INT);"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "CREATE DATABASE db1;",
+            "CREATE TABLE db1.tb1(i INT);",
+            "CREATE TABLE db1.t1(i INT);",
+            "CREATE DATABASE db2;",
+            "CREATE TABLE db2.tb1(i INT);"));
     assertNoDatabasesSyncedBeforeRule(TEST_DATABASE_1, TEST_DATABASE_2);
     startRuleAndWaitTablesOnTargetHive(TEST_DATABASE_1, "t1", "tb1");
     loginStep.loginAs(OWNER);
@@ -168,20 +167,23 @@ public class HmsConfigWebTestSuite extends SsmWebBaseSuite {
   public void testHiveEventIgnorePatterns() throws Exception {
     configModifierService.addProperty(MASTER_CONF_NAME, EVENT_IGNORE_PATTERNS_PARAM, "db1.tb.*,db2.*");
     containerManager.start(SSM_SERVER);
-    sqlExecutor.executeSql(hiveServer2DataSource, String.join("\n",
-        "CREATE DATABASE db1;",
-        "CREATE TABLE db1.tb1(i INT);",
-        "CREATE TABLE db1.t1(i INT);",
-        "CREATE DATABASE db2;",
-        "CREATE TABLE db2.tb1(i INT);",
-        "CREATE TABLE db2.t1(i INT);"));
+    sqlExecutor.executeSql(hiveServer2DataSource,
+        String.join("\n",
+            "CREATE DATABASE db1;",
+            "CREATE TABLE db1.tb1(i INT);",
+            "CREATE TABLE db1.t1(i INT);",
+            "CREATE DATABASE db2;",
+            "CREATE TABLE db2.tb1(i INT);",
+            "CREATE TABLE db2.t1(i INT);"));
     assertNoDatabasesSyncedBeforeRule(TEST_DATABASE_1, TEST_DATABASE_2);
     startRuleAndWaitTablesOnTargetHive(TEST_DATABASE_1, "t1");
     loginStep.loginAs(OWNER);
     menuStep.openActionsPage();
     tableStep.checkTableRowsCountIs(3)
         .checkColumnCellsContainsValues(ActionsTableColumn.STATUS,
-            FAILED.getText(), SUCCESSFUL.getText(), SUCCESSFUL.getText());
+            FAILED.getText(),
+            SUCCESSFUL.getText(),
+            SUCCESSFUL.getText());
   }
 
   @Step("Check HiveSyncProgress entity initialized within timeout {timeout}")

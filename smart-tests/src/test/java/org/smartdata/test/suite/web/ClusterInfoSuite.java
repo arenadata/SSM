@@ -49,7 +49,6 @@ import static org.smartdata.test.util.constant.CommonConstants.DATANODE_HOST_NAM
 import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTITY;
 import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_NAME;
 
-
 @Feature("Cluster info page")
 public class ClusterInfoSuite extends SsmWebBaseSuite {
 

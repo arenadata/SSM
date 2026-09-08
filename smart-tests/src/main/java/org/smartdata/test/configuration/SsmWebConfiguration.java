@@ -17,14 +17,14 @@
  */
 package org.smartdata.test.configuration;
 
-
 import io.arenadata.test.model.UserModel;
 import io.arenadata.test.model.UserRole;
 import io.arenadata.test.service.UserProvider;
 import io.arenadata.test.service.impl.UserProviderImpl;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 

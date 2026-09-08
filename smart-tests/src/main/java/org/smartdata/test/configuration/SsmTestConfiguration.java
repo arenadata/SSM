@@ -99,7 +99,8 @@ public class SsmTestConfiguration {
 
   @Bean("hostService")
   @ConditionalOnProperty(name = "env-type", havingValue = "remote")
-  public HostService remoteHostService(HostCommandExecutor hostCommandExecutor, GeneralConfiguration generalConfiguration) {
+  public HostService remoteHostService(HostCommandExecutor hostCommandExecutor,
+                                       GeneralConfiguration generalConfiguration) {
     return new RemoteHostService(hostCommandExecutor, generalConfiguration);
   }
 }

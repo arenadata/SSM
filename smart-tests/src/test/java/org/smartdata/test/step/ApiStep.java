@@ -17,7 +17,6 @@
  */
 package org.smartdata.test.step;
 
-
 import io.arenadata.test.step.BaseApiStep;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
@@ -41,7 +40,8 @@ public class ApiStep extends BaseApiStep {
 
   @Step("Create rule via API")
   public ApiStep createRule(String ruleText) {
-    apiClient.rules().addRule()
+    apiClient.rules()
+        .addRule()
         .body(new SubmitRuleRequestDto().rule(ruleText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
@@ -50,11 +50,13 @@ public class ApiStep extends BaseApiStep {
 
   @Step("Create rule and start rule via API")
   public ApiStep createAndStartRule(String ruleText) {
-    RuleDto ruleDto = apiClient.rules().addRule()
+    RuleDto ruleDto = apiClient.rules()
+        .addRule()
         .body(new SubmitRuleRequestDto().rule(ruleText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
-    apiClient.rules().startRule()
+    apiClient.rules()
+        .startRule()
         .idPath(ruleDto.getId())
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::andReturn);
@@ -63,21 +65,25 @@ public class ApiStep extends BaseApiStep {
 
   @Step("Delete all rules via API")
   public ApiStep deleteAllRules() {
-    RulesDto rules = apiClient.rules().getRules()
+    RulesDto rules = apiClient.rules()
+        .getRules()
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
     if (rules.getItems() != null) {
-      rules.getItems().forEach(rule -> apiClient.rules().deleteRule()
-          .idPath(rule.getId())
-          .respSpec(response -> response.expectStatusCode(200))
-          .execute(Response::andReturn));
+      rules.getItems()
+          .forEach(rule -> apiClient.rules()
+              .deleteRule()
+              .idPath(rule.getId())
+              .respSpec(response -> response.expectStatusCode(200))
+              .execute(Response::andReturn));
     }
     return this;
   }
 
   @Step("Create action via API")
   public ActionInfoDto createAction(String actionText) {
-    return apiClient.actions().submitAction()
+    return apiClient.actions()
+        .submitAction()
         .body(new SubmitActionRequestDto().action(actionText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);

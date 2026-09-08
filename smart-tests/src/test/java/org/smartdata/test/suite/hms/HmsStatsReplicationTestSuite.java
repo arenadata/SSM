@@ -36,7 +36,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -68,14 +67,11 @@ public class HmsStatsReplicationTestSuite extends SsmBaseSuite {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("ssmHiveDataSource")
-  private DataSource ssmHiveDataSource;
+  @Qualifier("ssmHiveDataSource") private DataSource ssmHiveDataSource;
   @Autowired
-  @Qualifier("ssmHive2DataSource")
-  private DataSource ssmHive2DataSource;
+  @Qualifier("ssmHive2DataSource") private DataSource ssmHive2DataSource;
   @Autowired
-  @Qualifier("hiveServer2DataSource")
-  private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
 
   private static final String TEST_RULE =
       "hms : name matches \"db1.*\" | hms-sync -dest thrift://target-hive-metastore:9083/ -cascade -nameservice_rename \"source target\"";

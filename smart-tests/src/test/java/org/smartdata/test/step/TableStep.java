@@ -157,7 +157,8 @@ public class TableStep extends BaseWebStep {
   @Step("Check that values in {tableType} table {column} column are sorted in {sortOrder} order")
   public TableStep checkColumnValuesIsSorted(TableType tableType, TableColumn column, SortOrder sortOrder) {
     waitUntil(() -> {
-      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable().stream()
+      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable()
+          .stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
           .map(String::toLowerCase)
@@ -176,10 +177,13 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check that values in {column} column are sorted in {sortOrder} order using custom comparator")
-  public TableStep checkColumnValuesIsSorted(TableType tableType, TableColumn column, SortOrder sortOrder,
+  public TableStep checkColumnValuesIsSorted(TableType tableType,
+                                             TableColumn column,
+                                             SortOrder sortOrder,
                                              Comparator customComparator) {
     waitUntil(() -> {
-      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable().stream()
+      List<String> cellTexts = getAllColumnCells(tableType, column).asFixedIterable()
+          .stream()
           .map(SelenideElement::getText)
           .filter(s -> !s.isEmpty())
           .collect(Collectors.toList());
@@ -295,7 +299,9 @@ public class TableStep extends BaseWebStep {
   }
 
   @Step("Check all rows in {tableType} table {tableColumn} column contain '{substring}' substring")
-  public TableStep checkAllColumnCellsContain(TableType tableType, int expectedRowsCount, TableColumn tableColumn,
+  public TableStep checkAllColumnCellsContain(TableType tableType,
+                                              int expectedRowsCount,
+                                              TableColumn tableColumn,
                                               String substring) {
     String[] expectedValues = new String[expectedRowsCount];
     Arrays.fill(expectedValues, substring);
