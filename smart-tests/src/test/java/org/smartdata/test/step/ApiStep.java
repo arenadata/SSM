@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
 import org.smartdata.client.generated.invoker.ApiClient;
 import org.smartdata.client.generated.model.ActionInfoDto;
+import org.smartdata.client.generated.model.ActionStateDto;
+import org.smartdata.client.generated.model.ActionsDto;
 import org.smartdata.client.generated.model.RuleDto;
 import org.smartdata.client.generated.model.RulesDto;
 import org.smartdata.client.generated.model.SubmitActionRequestDto;
@@ -31,36 +33,44 @@ import org.smartdata.client.generated.model.SubmitRuleRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static io.arenadata.test.util.Utils.waitUntil;
+import static io.arenadata.test.util.constant.TimeoutConstants.DEFAULT_WAIT_PARAMS;
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Slf4j
 @Service
 public class ApiStep extends BaseApiStep {
+  private static final int MAX_ACTIONS_LIMIT = 100;
 
   @Autowired
   private ApiClient apiClient;
 
-  @Step("Create rule via API")
-  public ApiStep createRule(String ruleText) {
-    apiClient.rules()
+  @Step("Create rule via API: {ruleText}")
+  public RuleDto createRule(String ruleText) {
+    return apiClient.rules()
         .addRule()
         .body(new SubmitRuleRequestDto().rule(ruleText))
-        .respSpec(response -> response.expectStatusCode(200))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .executeAs(Response::andReturn);
-    return this;
   }
 
   @Step("Create rule and start rule via API")
   public ApiStep createAndStartRule(String ruleText) {
-    RuleDto ruleDto = apiClient.rules()
-        .addRule()
-        .body(new SubmitRuleRequestDto().rule(ruleText))
-        .respSpec(response -> response.expectStatusCode(200))
-        .executeAs(Response::andReturn);
+    RuleDto ruleDto = createRule(ruleText);
     apiClient.rules()
         .startRule()
         .idPath(ruleDto.getId())
         .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
         .execute(Response::andReturn);
     return this;
+  }
+
+  @Step("Check rule creation is rejected with 400 BAD_REQUEST for rule: {ruleText}")
+  public void checkRuleCreationIsRejected(String ruleText) {
+    apiClient.rules().addRule()
+        .body(new SubmitRuleRequestDto().rule(ruleText))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.BAD_REQUEST_400))
+        .executeAs(Response::andReturn);
   }
 
   @Step("Delete all rules via API")
@@ -87,6 +97,46 @@ public class ApiStep extends BaseApiStep {
         .body(new SubmitActionRequestDto().action(actionText))
         .respSpec(response -> response.expectStatusCode(200))
         .executeAs(Response::andReturn);
+  }
+
+  @Step("Get actions list via API")
+  public ActionsDto getActions() {
+    return apiClient.actions()
+        .getActions()
+        .reqSpec(requestSpecBuilder -> requestSpecBuilder
+            .addQueryParam("limit", MAX_ACTIONS_LIMIT))
+        .respSpec(response -> response.expectStatusCode(HttpStatus.OK_200))
+        .executeAs(Response::andReturn);
+  }
+
+  @Step("Check actions list via API: expected records count is {expectedCount}")
+  public ApiStep checkActionsCount(int expectedCount) {
+    ActionsDto actions = getActions();
+    assertThat(actions.getItems())
+        .as("Actions items count")
+        .hasSize(expectedCount);
+    assertThat(actions.getTotal())
+        .as("Actions total count")
+        .isEqualTo(expectedCount);
+    return this;
+  }
+
+  @Step("Check actions list via API: expected records count is {expectedCount} and all have {state} status")
+  public ApiStep checkActionsCountAndState(int expectedCount, ActionStateDto state) {
+    waitUntil(() -> {
+      ActionsDto actions = getActions();
+      assertThat(actions.getItems())
+          .as("Actions items count")
+          .hasSize(expectedCount);
+      assertThat(actions.getTotal())
+          .as("Actions total count")
+          .isEqualTo(expectedCount);
+      assertThat(actions.getItems())
+          .as("All actions should have expected status")
+          .extracting(ActionInfoDto::getState)
+          .containsOnly(state);
+    }, DEFAULT_WAIT_PARAMS);
+    return this;
   }
 
   @Step("Get raw API client")

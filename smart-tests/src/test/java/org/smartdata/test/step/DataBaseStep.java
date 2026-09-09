@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.time.Instant;
@@ -43,13 +44,17 @@ public class DataBaseStep {
   @Autowired
   private SqlExecutor sqlExecutor;
   @Autowired
-  @Qualifier("ssmMetastoreDataSource") private DataSource ssmMetastoreDataSource;
+  @Qualifier("ssmMetastoreDataSource")
+  private DataSource ssmMetastoreDataSource;
   @Autowired
-  @Qualifier("hiveServer2DataSource") private DataSource hiveServer2DataSource;
+  @Qualifier("hiveServer2DataSource")
+  private DataSource hiveServer2DataSource;
   @Autowired
-  @Qualifier("ssmHiveDataSource") private DataSource ssmHiveDataSource;
+  @Qualifier("ssmHiveDataSource")
+  private DataSource ssmHiveDataSource;
   @Autowired(required = false)
-  @Qualifier("targetHiveServer2DataSource") private DataSource targetHiveServer2DataSource;
+  @Qualifier("targetHiveServer2DataSource")
+  private DataSource targetHiveServer2DataSource;
 
   private static final String SHOW_DATABASES_SQL = "SHOW DATABASES";
   private static final String SHOW_FUNCTIONS_SQL = "SHOW FUNCTIONS";
@@ -64,8 +69,8 @@ public class DataBaseStep {
   private static final String TRUNCATE_TABLE_TEMPLATE = "TRUNCATE TABLE %s;";
   private static final String RESET_RULE_SEQUENCE = "ALTER SEQUENCE rule_id_seq RESTART WITH 1;";
   private static final String RULES_FILTER_TEMPLATE = "INSERT INTO rule" +
-      "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
-      "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
+                                                      "(\"name\", state, rule_text, submit_time, last_check_time, checked_count, generated_cmdlets, \"owner\") " +
+                                                      "VALUES(NULL, ?, ?, ?, ?, 1, 1, 'john');";
   private static final String SQL_FOLDER_PATH = "src/test/resources/data/sql/";
   private static final String RULES_FOR_SORT_TEST_SQL = "insert_rules_for_sort_test.sql";
   private static final String ACTIONS_FOR_SORT_TEST_SQL = "insert_actions_for_sort_test.sql";
@@ -296,7 +301,7 @@ public class DataBaseStep {
     return sqlExecutor.queryForList(dataSource, format(DESCRIBE_TABLE_EXTENDED_TEMPLATE, databaseName, tableName))
         .stream()
         .filter(row -> row.get("col_name") != null
-            && row.get("col_name").toString().toLowerCase().contains("constraint"))
+                       && row.get("col_name").toString().toLowerCase().contains("constraint"))
         .collect(Collectors.toList());
   }
 

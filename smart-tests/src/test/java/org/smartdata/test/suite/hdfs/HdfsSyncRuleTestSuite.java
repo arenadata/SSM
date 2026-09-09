@@ -65,13 +65,17 @@ public class HdfsSyncRuleTestSuite extends SsmBaseSuite {
   public void testSyncRuleWithoutFilters() {
     apiStep.createAndStartRule(SYNC_RULE);
     hdfsStep.createFileAndAwaitOn(HADOOP_NAMENODE, path(FILE_1), FILE_1_CONTENT, TARGET_NAMENODE);
+    apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
     hdfsStep.appendToFile(HADOOP_NAMENODE, path(FILE_1), APPENDED_PART);
     hdfsStep.waitUntilFileHasContent(TARGET_NAMENODE, path(FILE_1), FILE_1_APPENDED_CONTENT);
+    apiStep.checkActionsCountAndState(2, ActionStateDto.SUCCESSFUL);
     hdfsStep.rename(HADOOP_NAMENODE, path(FILE_1), path(FILE_1_RENAMED));
     hdfsStep.waitUntilFileHasContent(TARGET_NAMENODE, path(FILE_1_RENAMED), FILE_1_APPENDED_CONTENT);
     hdfsStep.waitUntilFileNotExists(TARGET_NAMENODE, path(FILE_1));
+    apiStep.checkActionsCountAndState(3, ActionStateDto.SUCCESSFUL);
     hdfsStep.setPermissions(HADOOP_NAMENODE, path(FILE_1_RENAMED), CHANGED_PERMISSIONS);
     hdfsStep.waitUntilFileHasPermissions(TARGET_NAMENODE, path(FILE_1_RENAMED), CHANGED_PERMISSIONS);
+    apiStep.checkActionsCountAndState(4, ActionStateDto.SUCCESSFUL);
     hdfsStep.delete(HADOOP_NAMENODE, path(FILE_1_RENAMED));
     hdfsStep.waitUntilFileNotExists(TARGET_NAMENODE, path(FILE_1_RENAMED));
     apiStep.checkActionsCountAndState(5, ActionStateDto.SUCCESSFUL);

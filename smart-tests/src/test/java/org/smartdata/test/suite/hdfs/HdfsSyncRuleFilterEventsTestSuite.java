@@ -240,7 +240,9 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
         {"UNKNOWN", null},
         {null, "UNKNOWN"},
         {"MKDIR", null},
-        {null, "MKDIR"}
+        {null, "MKDIR"},
+        {"CREATE,UNKNOWN", null},
+        {null, "CREATE,UNKNOWN"}
     };
   }
 

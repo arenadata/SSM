@@ -1,7 +1,7 @@
 general:
   # env-type: docker|remote
-  env-type: ${ENV_TYPE:docker}
-  browser-manager: ${BROWSER_MANAGER:moon} # local|selenoid|moon
+  env-type: ${ENV_TYPE:remote}
+  browser-manager: ${BROWSER_MANAGER:selenoid} # local|selenoid|moon
   ci: ${CI:false}
   protocol: ${PROTOCOL:http}
   bundle-run: ${BUNDLE_RUN:false}
@@ -122,6 +122,11 @@ ssm-hive2-db:
     password: ssm
     schema: public
     driver-class-name: org.postgresql.Driver
+
+hdfs:
+  # URIs used by HdfsStep to access HDFS clusters via hadoop-client
+  source-fs-uri: ${HDFS_SOURCE_FS_URI:hdfs://localhost:8020}
+  target-fs-uri: ${HDFS_TARGET_FS_URI:hdfs://localhost:8021}
 
 hive-server2-db:
   datasource:
