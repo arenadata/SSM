@@ -144,10 +144,18 @@ public class TestSyncActionArgsValidationPlugin {
   }
 
   @Test
-  public void syncActionWithBlankPreserve() throws IOException {
-    plugin.onAddingNewRule(null, translationResultWith(
-        SyncAction.NAME,
-        SyncAction.PRESERVE, "  "));
+  public void syncActionWithEmptyPreserve() {
+    assertBlankArgRejected(SyncAction.PRESERVE);
+  }
+
+  @Test
+  public void syncActionWithEmptyInclude() {
+    assertBlankArgRejected(SyncAction.INCLUDE);
+  }
+
+  @Test
+  public void syncActionWithEmptyExclude() {
+    assertBlankArgRejected(SyncAction.EXCLUDE);
   }
 
   @Test
@@ -191,5 +199,14 @@ public class TestSyncActionArgsValidationPlugin {
     RuleTranslationResult tr = mock(RuleTranslationResult.class);
     when(tr.getCmdDescriptor()).thenReturn(cmdletDescriptor);
     return tr;
+  }
+
+  private void assertBlankArgRejected(String argName) {
+    IOException exception = Assert.assertThrows(IOException.class,
+        () -> plugin.onAddingNewRule(null, translationResultWith(
+            SyncAction.NAME, argName, "")));
+    Assert.assertEquals(
+        "Empty value of sync action '" + argName + "' argument.",
+        exception.getMessage());
   }
 }
