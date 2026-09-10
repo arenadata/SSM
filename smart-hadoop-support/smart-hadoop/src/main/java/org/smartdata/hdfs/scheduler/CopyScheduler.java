@@ -44,9 +44,9 @@ import org.smartdata.model.FileDiffType;
 import org.smartdata.model.FileInfo;
 import org.smartdata.model.FileState;
 import org.smartdata.model.LaunchAction;
+import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.LaunchCmdlet;
-import org.smartdata.model.action.ActionSchedulerService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -206,7 +206,6 @@ public class CopyScheduler extends ActionSchedulerService {
     String srcDir = action.getArgs().get(SyncAction.SRC);
     String path = action.getArgs().get(HdfsAction.FILE_PATH);
     String destDir = action.getArgs().get(SyncAction.DEST);
-    String preserveAttributes = action.getArgs().get(SyncAction.PRESERVE);
     String destPath = path.replaceFirst(srcDir, destDir);
     // Check again to avoid corner cases
     long diffId = fileDiffChains.get(path).getHead();
@@ -253,10 +252,7 @@ public class CopyScheduler extends ActionSchedulerService {
       case APPEND:
         action.setActionType("copy");
         action.getArgs().put(CopyFileAction.DEST_PATH, destPath);
-        if (preserveAttributes != null) {
-          action.getArgs().put(CopyFileAction.PRESERVE, preserveAttributes);
-        }
-          if (rateLimiter != null) {
+        if (rateLimiter != null) {
           String strLen = getLength(fileDiff);
           if (strLen != null) {
             int appendLen = (int) (Long.parseLong(strLen) >> 20);
@@ -272,9 +268,6 @@ public class CopyScheduler extends ActionSchedulerService {
       case MKDIR:
         action.setActionType("dircopy");
         action.getArgs().put(CopyDirectoryAction.DEST_PATH, destPath);
-        if (preserveAttributes != null) {
-          action.getArgs().put(CopyDirectoryAction.PRESERVE, preserveAttributes);
-        }
         break;
       case DELETE:
         action.setActionType("delete");

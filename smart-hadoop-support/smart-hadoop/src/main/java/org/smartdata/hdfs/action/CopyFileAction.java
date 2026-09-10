@@ -32,10 +32,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.GROUP;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.PERMISSIONS;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.REPLICATION_NUMBER;
+import static org.smartdata.hdfs.action.PreserveAttribute.GROUP;
+import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
+import static org.smartdata.hdfs.action.PreserveAttribute.PERMISSIONS;
+import static org.smartdata.hdfs.action.PreserveAttribute.REPLICATION_NUMBER;
 
 /**
  * An action to copy a single file from src to destination.
@@ -51,11 +51,11 @@ import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAt
         + CopyFileAction.OFFSET_INDEX + " $offset "
         + CopyFileAction.LENGTH + " $length "
         + CopyFileAction.BUF_SIZE + " $size "
-        + CopyFileAction.PRESERVE + " $attributes "
+        + CopyPreservedAttributesSupport.PRESERVE_ARG + " $attributes "
         + CopyFileAction.TRUNCATE_WAIT_MS + " $truncateWaitMs "
         + CopyFileAction.FORCE
 )
-public class CopyFileAction extends CopyPreservedAttributesAction {
+public class CopyFileAction extends HdfsAction {
   public static final String BUF_SIZE = "-bufSize";
   public static final String DEST_PATH = "-dest";
   public static final String OFFSET_INDEX = "-offset";
@@ -81,7 +81,6 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
   private FileStatus srcFileStatus;
 
   public CopyFileAction() {
-    super(DEFAULT_PRESERVE_ATTRIBUTES);
     this.offset = 0;
     this.length = 0;
     this.bufferSize = 64 * 1024;
@@ -122,7 +121,9 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
 
     validateArgs(srcFileSystem);
 
-    preserveAttributes = parsePreserveAttributes();
+    CopyPreservedAttributesSupport copyAttributesSupport =
+        new CopyPreservedAttributesSupport(DEFAULT_PRESERVE_ATTRIBUTES, getLogPrintStream());
+    preserveAttributes = copyAttributesSupport.getPreserveAttributes(getArguments());
     srcFileStatus = srcFileSystem.getFileStatus(srcPath);
 
     if (!copyContent) {
@@ -133,7 +134,8 @@ public class CopyFileAction extends CopyPreservedAttributesAction {
       copySingleFile(srcFileSystem, destFileSystem);
     }
 
-    copyFileAttributes(srcFileStatus, destPath, destFileSystem, preserveAttributes);
+    copyAttributesSupport.execute(
+        srcFileStatus, destPath, destFileSystem, preserveAttributes);
 
     appendLog("Copy Successfully!!");
   }

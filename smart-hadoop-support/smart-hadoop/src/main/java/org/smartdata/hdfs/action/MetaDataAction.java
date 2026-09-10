@@ -23,6 +23,7 @@ import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.model.FileInfoDiff;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * action to set MetaData of file
@@ -33,7 +34,8 @@ import java.util.Map;
     usage = HdfsAction.FILE_PATH + " $src " + MetaDataAction.OWNER_NAME + " $owner " +
         MetaDataAction.GROUP_NAME + " $group " + MetaDataAction.BLOCK_REPLICATION + " $replication " +
         MetaDataAction.PERMISSION + " $permission " + MetaDataAction.MTIME + " $mtime " +
-        MetaDataAction.ATIME + " $atime"
+        MetaDataAction.ATIME + " $atime " +
+        CopyPreservedAttributesSupport.PRESERVE_ARG + " $attributes"
 )
 public class MetaDataAction extends HdfsActionWithRemoteClusterSupport {
   public static final String OWNER_NAME = "-owner";
@@ -44,9 +46,10 @@ public class MetaDataAction extends HdfsActionWithRemoteClusterSupport {
   public static final String MTIME = "-mtime";
   public static final String ATIME = "-atime";
 
-  private FileInfoDiff fileInfoDiff;
+  public static final Set<PreserveAttribute> DEFAULT_PRESERVE_ATTRIBUTES
+      = Set.of(PreserveAttribute.values());
 
-  private UpdateFileMetadataSupport delegate;
+  private FileInfoDiff fileInfoDiff;
 
   @Override
   public void init(Map<String, String> args) {
@@ -66,8 +69,6 @@ public class MetaDataAction extends HdfsActionWithRemoteClusterSupport {
     if (args.containsKey(PERMISSION)) {
       fileInfoDiff.setPermission(Short.parseShort(args.get(PERMISSION)));
     }
-
-    delegate = new UpdateFileMetadataSupport(getLogPrintStream());
   }
 
   @Override
@@ -77,6 +78,9 @@ public class MetaDataAction extends HdfsActionWithRemoteClusterSupport {
 
   @Override
   protected void execute(FileSystem fileSystem) throws Exception {
-    delegate.changeFileMetadata(fileSystem, fileInfoDiff);
+    CopyPreservedAttributesSupport copyAttributesSupport =
+        new CopyPreservedAttributesSupport(DEFAULT_PRESERVE_ATTRIBUTES, getLogPrintStream());
+    copyAttributesSupport.execute(fileInfoDiff, fileSystem,
+        copyAttributesSupport.getPreserveAttributes(getArguments()));
   }
 }

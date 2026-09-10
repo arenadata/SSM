@@ -110,7 +110,7 @@ public class TestS3CopyFileAction extends MiniClusterHarness {
   }
 
   private void copyFile(Path src, Path dest, long length, long offset,
-      CopyPreservedAttributesAction.PreserveAttribute... preserveAttributes) {
+      PreserveAttribute... preserveAttributes) {
     CopyFileAction copyFileAction = new CopyFileAction();
     copyFileAction.setLocalFileSystem(dfs);
     copyFileAction.setContext(smartContext);
@@ -127,7 +127,7 @@ public class TestS3CopyFileAction extends MiniClusterHarness {
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
-      args.put(CopyFileAction.PRESERVE, attributesOption);
+      args.put(CopyPreservedAttributesSupport.PRESERVE_ARG, attributesOption);
     }
 
     copyFileAction.init(args);
