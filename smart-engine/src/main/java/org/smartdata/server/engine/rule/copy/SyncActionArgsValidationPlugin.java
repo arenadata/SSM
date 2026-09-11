@@ -65,6 +65,7 @@ public class SyncActionArgsValidationPlugin implements RulePlugin {
     if (argValue == null) {
       return;
     }
+    validateArgNotBlank(argName, argValue);
 
     for (String rawType : argValue.split(",")) {
       String type = rawType.trim().toUpperCase();
@@ -78,9 +79,10 @@ public class SyncActionArgsValidationPlugin implements RulePlugin {
   }
 
   private void validatePreserveArg(String argValue) throws IOException {
-    if (StringUtils.isBlank(argValue)) {
+    if (argValue == null) {
       return;
     }
+    validateArgNotBlank(SyncAction.PRESERVE, argValue);
 
     for (String rawAttribute : argValue.split(",")) {
       String attribute = rawAttribute.trim();
@@ -90,6 +92,13 @@ public class SyncActionArgsValidationPlugin implements RulePlugin {
                 + SyncAction.PRESERVE + "' argument. Valid values are: "
                 + Arrays.toString(PreserveAttribute.values()));
       }
+    }
+  }
+
+  private void validateArgNotBlank(String argName, String argValue) throws IOException {
+    if (StringUtils.isBlank(argValue)) {
+      throw new SsmParseException(
+          "Empty value of sync action '" + argName + "' argument.");
     }
   }
 }

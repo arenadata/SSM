@@ -18,6 +18,7 @@
 package org.smartdata.hive.rule;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.smartdata.exception.SsmParseException;
 import org.smartdata.hive.action.HmsSyncAction;
 import org.smartdata.hive.fetch.HiveOperation;
@@ -59,6 +60,8 @@ public class HmsSyncOperationValidationPlugin implements RulePlugin {
     if (argValue == null) {
       return;
     }
+    validateArgNotBlank(argName, argValue);
+
     for (String rawOp : argValue.split(",")) {
       String operationName = rawOp.trim().toUpperCase();
       HiveOperation operation = EnumUtils.getEnum(HiveOperation.class, operationName);
@@ -67,6 +70,13 @@ public class HmsSyncOperationValidationPlugin implements RulePlugin {
             "Invalid or non-filterable HiveOperation '" + rawOp.trim() + "' in hms-sync action '"
                 + argName + "' argument. Valid values are: " + HiveOperation.FILTERABLE_OPERATIONS);
       }
+    }
+  }
+
+  private void validateArgNotBlank(String argName, String argValue) throws IOException {
+    if (StringUtils.isBlank(argValue)) {
+      throw new SsmParseException(
+          "Empty value of hms-sync action '" + argName + "' argument.");
     }
   }
 }

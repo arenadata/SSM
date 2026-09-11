@@ -118,6 +118,16 @@ public class HmsSyncOperationValidationPluginTest {
         HmsSyncAction.EXCLUDE, "DROP")));
   }
 
+  @Test
+  public void hmsSyncActionWithEmptyInclude() {
+    assertBlankArgRejected(HmsSyncAction.INCLUDE);
+  }
+
+  @Test
+  public void hmsSyncActionWithEmptyExclude() {
+    assertBlankArgRejected(HmsSyncAction.EXCLUDE);
+  }
+
   private RuleTranslationResult translationResultWith(String actionName, String... args) {
     Map<String, String> argsMap = new HashMap<>();
     for (int i = 0; i + 1 < args.length; i += 2) {
@@ -130,5 +140,14 @@ public class HmsSyncOperationValidationPluginTest {
     RuleTranslationResult tr = mock(RuleTranslationResult.class);
     when(tr.getCmdDescriptor()).thenReturn(cmdletDescriptor);
     return tr;
+  }
+
+  private void assertBlankArgRejected(String argName) {
+    IOException exception = Assert.assertThrows(IOException.class,
+        () -> plugin.onAddingNewRule(null, translationResultWith(
+            HmsSyncAction.NAME, argName, "")));
+    Assert.assertEquals(
+        "Empty value of hms-sync action '" + argName + "' argument.",
+        exception.getMessage());
   }
 }
