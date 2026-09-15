@@ -40,7 +40,6 @@ import java.nio.file.StandardCopyOption;
 
 @Service
 public class ConfigModifierService {
-
   private final String composeFileName;
 
   private static final String PROPERTY_TAG = "property";

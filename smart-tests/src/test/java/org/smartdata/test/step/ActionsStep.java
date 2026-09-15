@@ -59,13 +59,12 @@ import static org.smartdata.test.util.constant.CommonConstants.TABLE_EMPTY_VALUE
 @Slf4j
 @Service
 public class ActionsStep extends BaseWebStep {
-  private static final String TEST_ACTION_TEXT = "sleep -ms 100";
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private TableFilterPopupStep tableFilterPopupStep;
+
+  private static final String TEST_ACTION_TEXT = "sleep -ms 100";
 
   @Step("Check 'Run' button on submit action dialog")
   public ActionsStep checkSubmitDialogRunButton(String actionText) {

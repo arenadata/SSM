@@ -50,7 +50,6 @@ import static org.smartdata.test.element.MenuElement.USERNAME;
 @Service
 @RequiredArgsConstructor
 public class MenuStep extends BaseWebStep {
-
   @Autowired
   private UserProvider<UserRole> ssmUserProvider;
 

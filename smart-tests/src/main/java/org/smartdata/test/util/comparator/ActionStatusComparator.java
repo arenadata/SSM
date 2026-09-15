@@ -29,7 +29,6 @@ import static org.smartdata.test.model.ActionStatus.SCHEDULED;
 import static org.smartdata.test.model.ActionStatus.SUCCESSFUL;
 
 public class ActionStatusComparator implements Comparator<String> {
-
   private static final Map<ActionStatus, Integer> PRIORITY_MAP = new HashMap<>();
 
   static {

@@ -34,13 +34,10 @@ import static org.smartdata.test.model.SortOrder.ASC;
 @Slf4j
 @Service
 public class HottestFilesStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private TableFilterPopupStep tableFilterPopupStep;
-
   @Autowired
   private PaginationStep paginationStep;
 

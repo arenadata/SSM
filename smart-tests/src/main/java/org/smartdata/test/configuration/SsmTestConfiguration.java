@@ -57,7 +57,6 @@ import static io.arenadata.test.util.TestContainersUtils.getComposeServices;
 @PropertySource("classpath:application.yaml")
 @Import(CommonTestConfiguration.class)
 public class SsmTestConfiguration {
-
   @Value("${general.topology}")
   private Topology topology;
 

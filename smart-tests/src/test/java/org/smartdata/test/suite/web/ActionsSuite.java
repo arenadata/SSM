@@ -58,31 +58,24 @@ import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTI
 
 @Feature("Actions page")
 public class ActionsSuite extends SsmWebBaseSuite {
-  private static final String TEST_ACTION_TEXT = "sleep -ms 100";
-
   @Autowired
   private LoginStep loginStep;
-
   @Autowired
   private MenuStep menuStep;
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private ActionsStep actionsStep;
-
   @Autowired
   private DataBaseStep dataBaseStep;
-
   @Autowired
   private ApiStep apiStep;
-
   @Autowired
   private ActionsDetailsStep actionsDetailsStep;
-
   @Autowired
   private PaginationStep paginationStep;
+
+  private static final String TEST_ACTION_TEXT = "sleep -ms 100";
 
   @BeforeMethod
   public void testPrepare() {

@@ -116,8 +116,7 @@ public class DataBaseStep {
 
   @Step("Clean all UI tables")
   public DataBaseStep cleanAllUiTables() {
-    cleanRuleTable()
-        .cleanActionTable()
+    cleanActionTable()
         .cleanAuditTable()
         .cleanHottestFilesTable()
         .cleanFilesInCacheTable();

@@ -57,7 +57,6 @@ import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTI
 @Slf4j
 @Service
 public class PaginationStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
 

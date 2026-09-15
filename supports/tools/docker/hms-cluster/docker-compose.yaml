@@ -196,6 +196,8 @@ services:
     environment:
       HDFS_PARENT_DATA_DIR: /hadoop/dfs
       HDFS_CONF_dfs_namenode_name_dir: file:///hadoop/dfs/name
+    ports:
+      - "8021:8020"
     env_file:
       - hadoop.env
     healthcheck:

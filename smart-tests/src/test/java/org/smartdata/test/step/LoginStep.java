@@ -33,10 +33,8 @@ import static org.smartdata.test.element.LoginPageElement.USERNAME_FIELD;
 @Slf4j
 @Service
 public class LoginStep extends BaseWebStep {
-
   @Autowired
   private UserProvider<UserRole> ssmUserProvider;
-
   @Autowired
   private MenuStep menuStep;
 

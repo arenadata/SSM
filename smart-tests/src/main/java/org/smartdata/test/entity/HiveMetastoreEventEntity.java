@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HiveMetastoreEventEntity {
-
   private Long id;
   private Long externalId;
   private Long eventTime;
