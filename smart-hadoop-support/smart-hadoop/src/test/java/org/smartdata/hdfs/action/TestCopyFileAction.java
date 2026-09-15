@@ -39,9 +39,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.MODIFICATION_TIME;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.REPLICATION_NUMBER;
+import static org.smartdata.hdfs.action.PreserveAttribute.MODIFICATION_TIME;
+import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
+import static org.smartdata.hdfs.action.PreserveAttribute.REPLICATION_NUMBER;
 
 /**
  * Test for CopyFileAction.
@@ -56,7 +56,7 @@ public class TestCopyFileAction extends MultiClusterHarness {
 
   private void copyFile(Path src, Path dest, long length, long offset,
       Consumer<CopyFileAction> actionConfigurer,
-      CopyPreservedAttributesAction.PreserveAttribute... preserveAttributes
+      PreserveAttribute... preserveAttributes
   ) {
     CopyFileAction copyFileAction = new CopyFileAction();
     copyFileAction.setLocalFileSystem(dfs);
@@ -73,7 +73,7 @@ public class TestCopyFileAction extends MultiClusterHarness {
           .stream()
           .map(Object::toString)
           .collect(Collectors.joining(","));
-      args.put(CopyFileAction.PRESERVE, attributesOption);
+      args.put(CopyPreservedAttributesSupport.PRESERVE_ARG, attributesOption);
     }
     actionConfigurer.accept(copyFileAction);
 
@@ -135,8 +135,7 @@ public class TestCopyFileAction extends MultiClusterHarness {
     Path srcPath = createFileWithAttributes("/test/src/fileToCopy");
     Path destPath = anotherClusterPath("/dest", srcPath.getName());
 
-    copyFileWithAttributes(srcPath, destPath,
-        CopyPreservedAttributesAction.PreserveAttribute.values());
+    copyFileWithAttributes(srcPath, destPath, PreserveAttribute.values());
 
     FileStatus destFileStatus = anotherDfs.getFileStatus(destPath);
     Assert.assertEquals(new FsPermission("777"), destFileStatus.getPermission());
@@ -233,9 +232,9 @@ public class TestCopyFileAction extends MultiClusterHarness {
   }
 
   private void copyFileWithAttributes(Path srcFilePath, Path destPath,
-      CopyPreservedAttributesAction.PreserveAttribute... preserveAttributes)
-      throws Exception {
-    copyFile(srcFilePath, destPath, 0, 0, action -> {}, preserveAttributes);
+      PreserveAttribute... preserveAttributes) throws Exception {
+    copyFile(srcFilePath, destPath, 0, 0, action -> {
+    }, preserveAttributes);
     assertFileContent(destPath, FILE_TO_COPY_CONTENT);
   }
 

@@ -27,9 +27,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.GROUP;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute.PERMISSIONS;
+import static org.smartdata.hdfs.action.PreserveAttribute.GROUP;
+import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
+import static org.smartdata.hdfs.action.PreserveAttribute.PERMISSIONS;
 
 /**
  * An action to copy a directory without content
@@ -39,9 +39,10 @@ import static org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAt
 @ActionSignature(
     actionId = "dircopy",
     displayName = "dircopy",
-    usage = HdfsAction.FILE_PATH + " $file"
+    usage = HdfsAction.FILE_PATH + " $file "
+        + CopyPreservedAttributesSupport.PRESERVE_ARG + " $attributes"
 )
-public class CopyDirectoryAction extends CopyPreservedAttributesAction {
+public class CopyDirectoryAction extends HdfsAction {
   public static final String DEST_PATH = "-dest";
 
   private Path srcPath;
@@ -49,10 +50,6 @@ public class CopyDirectoryAction extends CopyPreservedAttributesAction {
 
   public static final Set<PreserveAttribute> SUPPORTED_PRESERVE_ATTRIBUTES
       = Sets.newHashSet(OWNER, GROUP, PERMISSIONS);
-
-  public CopyDirectoryAction() {
-    super(SUPPORTED_PRESERVE_ATTRIBUTES, SUPPORTED_PRESERVE_ATTRIBUTES);
-  }
 
   @Override
   public void init(Map<String, String> args) {
@@ -64,16 +61,20 @@ public class CopyDirectoryAction extends CopyPreservedAttributesAction {
   @Override
   protected void execute() throws Exception {
     validateArgs();
-    Set<PreserveAttribute> preserveAttributes = parsePreserveAttributes();
 
     FileSystem destFileSystem = getFileSystemFor(destPath);
     createTargetDirectory(destFileSystem);
 
-    copyFileAttributes(
+    CopyPreservedAttributesSupport copyAttributesSupport = new CopyPreservedAttributesSupport(
+        SUPPORTED_PRESERVE_ATTRIBUTES,
+        SUPPORTED_PRESERVE_ATTRIBUTES,
+        getLogPrintStream()
+    );
+    copyAttributesSupport.execute(
         getFileSystemFor(srcPath).getFileStatus(srcPath),
         destPath,
         destFileSystem,
-        preserveAttributes);
+        getArguments());
 
     appendLog("Copy directory success!");
   }

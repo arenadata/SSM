@@ -21,7 +21,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.smartdata.action.SyncAction;
 import org.smartdata.exception.SsmParseException;
-import org.smartdata.hdfs.action.CopyPreservedAttributesAction.PreserveAttribute;
+import org.smartdata.hdfs.action.PreserveAttribute;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.RuleInfo;

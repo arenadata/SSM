@@ -75,17 +75,68 @@ public class TestMetaDataAction extends MiniClusterHarness {
     Assert.assertEquals(10L, fileStatus.getModificationTime());
   }
 
-  private FileStatus updateMetadata(Map<String, String> args) throws IOException {
-    Path srcPath = new Path("/test/file");
-    DFSTestUtil.writeFile(dfs, srcPath, "data");
+  @Test
+  public void testKeepAttributesNotPassedAsArgs() throws IOException {
+    Path srcPath = createTestFile();
+    FileStatus originalFileStatus = dfs.getFileStatus(srcPath);
 
+    Map<String, String> args = new HashMap<>();
+    args.put(MetaDataAction.MTIME, "10");
+
+    FileStatus fileStatus = updateMetadata(srcPath, args);
+    Assert.assertEquals(10L, fileStatus.getModificationTime());
+    Assert.assertEquals(originalFileStatus.getOwner(), fileStatus.getOwner());
+    Assert.assertEquals(originalFileStatus.getGroup(), fileStatus.getGroup());
+    Assert.assertEquals(originalFileStatus.getPermission(), fileStatus.getPermission());
+    Assert.assertEquals(originalFileStatus.getReplication(), fileStatus.getReplication());
+  }
+
+  @Test
+  public void testChangeOnlyPreservedAttributes() throws IOException {
+    Path srcPath = createTestFile();
+    FileStatus originalFileStatus = dfs.getFileStatus(srcPath);
+
+    Map<String, String> args = new HashMap<>();
+    args.put(MetaDataAction.OWNER_NAME, "user");
+    args.put(MetaDataAction.GROUP_NAME, "group");
+    args.put(MetaDataAction.MTIME, "10");
+    args.put(CopyPreservedAttributesSupport.PRESERVE_ARG, "owner");
+
+    FileStatus fileStatus = updateMetadata(srcPath, args);
+    Assert.assertEquals("user", fileStatus.getOwner());
+    Assert.assertEquals(originalFileStatus.getGroup(), fileStatus.getGroup());
+    Assert.assertEquals(
+        originalFileStatus.getModificationTime(), fileStatus.getModificationTime());
+  }
+
+  @Test
+  public void testIgnoreBlankPreserveAttributes() throws IOException {
+    Map<String, String> args = new HashMap<>();
+    args.put(MetaDataAction.GROUP_NAME, "group");
+    args.put(CopyPreservedAttributesSupport.PRESERVE_ARG, "  ");
+
+    FileStatus fileStatus = updateMetadata(args);
+    Assert.assertEquals("group", fileStatus.getGroup());
+  }
+
+  private FileStatus updateMetadata(Map<String, String> args) throws IOException {
+    return updateMetadata(createTestFile(), args);
+  }
+
+  private FileStatus updateMetadata(Path srcPath, Map<String, String> args) throws IOException {
     args.put(MetaDataAction.FILE_PATH, pathToActionArg(srcPath));
     runAction(args);
 
     return dfs.getFileStatus(srcPath);
   }
 
-  private void runAction(Map<String, String> args) throws UnsupportedEncodingException {
+  private Path createTestFile() throws IOException {
+    Path srcPath = new Path("/test/file");
+    DFSTestUtil.writeFile(dfs, srcPath, "data");
+    return srcPath;
+  }
+
+  private void runAction(Map<String, String> args) {
     MetaDataAction metaFileAction = new MetaDataAction();
     metaFileAction.setLocalFileSystem(dfs);
     metaFileAction.setContext(smartContext);
