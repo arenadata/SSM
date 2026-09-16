@@ -36,10 +36,8 @@ import static org.smartdata.test.model.AuditStatus.FAILURE;
 @Slf4j
 @Service
 public class AuditStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private TableFilterPopupStep tableFilterPopupStep;
 

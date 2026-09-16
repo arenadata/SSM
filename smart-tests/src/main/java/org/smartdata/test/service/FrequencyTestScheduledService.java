@@ -27,7 +27,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 public class FrequencyTestScheduledService {
-
   private ScheduledExecutorService scheduler;
   private ScheduledFuture<?> future;
 

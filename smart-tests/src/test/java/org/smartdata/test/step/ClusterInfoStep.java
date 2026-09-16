@@ -35,10 +35,8 @@ import static org.smartdata.test.element.TableElement.TableType.CLUSTER_INFO;
 @Slf4j
 @Service
 public class ClusterInfoStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private TableFilterPopupStep tableFilterPopupStep;
 

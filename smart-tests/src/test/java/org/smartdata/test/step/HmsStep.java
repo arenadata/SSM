@@ -48,15 +48,12 @@ public class HmsStep {
   @Autowired
   private DataBaseStep dataBaseStep;
   @Autowired
-  private ApiStep apiStep;
-  @Autowired
   private TableStep tableStep;
   @Autowired
   private ConfigModifierService configModifierService;
 
   @Step("Restore environment before HMS test")
   public HmsStep restoreEnv(boolean startSmmAfterRestore) throws IOException {
-    apiStep.deleteAllRules();
     containerManager.stop(SSM_SERVER);
     configModifierService.restoreOriginalFile(MASTER_CONF_NAME);
     configModifierService.restoreOriginalFile(AGENT_CONF_NAME);

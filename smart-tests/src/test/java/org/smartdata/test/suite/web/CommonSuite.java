@@ -29,10 +29,8 @@ import org.testng.annotations.Test;
 
 @Feature("Common functions")
 public class CommonSuite extends SsmWebBaseSuite {
-
   @Autowired
   private LoginStep loginStep;
-
   @Autowired
   private MenuStep menuStep;
 

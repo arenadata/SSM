@@ -53,25 +53,18 @@ import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTI
 
 @Feature("Audit page")
 public class AuditSuite extends SsmWebBaseSuite {
-
   @Autowired
   private LoginStep loginStep;
-
   @Autowired
   private MenuStep menuStep;
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private DataBaseStep dataBaseStep;
-
   @Autowired
   private AuditStep auditStep;
-
   @Autowired
   private ApiStep apiStep;
-
   @Autowired
   private PaginationStep paginationStep;
 

@@ -19,6 +19,7 @@ package org.smartdata.test.suite;
 
 import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
+import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,9 +32,12 @@ import org.testng.annotations.AfterMethod;
 public abstract class SsmBaseSuite extends AbstractTestNGSpringContextTests {
   @Autowired
   private DataBaseStep dataBaseStep;
+  @Autowired
+  private ApiStep apiStep;
 
   @AfterMethod
   public void cleanUp() {
+    apiStep.deleteAllRules();
     dataBaseStep.cleanAllUiTables();
   }
 }

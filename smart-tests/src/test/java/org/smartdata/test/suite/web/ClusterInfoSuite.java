@@ -51,22 +51,16 @@ import static org.smartdata.test.util.constant.CommonConstants.SSM_SERVER_HOST_N
 
 @Feature("Cluster info page")
 public class ClusterInfoSuite extends SsmWebBaseSuite {
-
   @Autowired
   private LoginStep loginStep;
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private DataBaseStep dataBaseStep;
-
   @Autowired
   private ClusterInfoStep clusterInfoStep;
-
   @Autowired
   private HottestFilesStep hottestFilesStep;
-
   @Autowired
   private FilesInCacheStep filesInCacheStep;
 

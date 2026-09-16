@@ -32,6 +32,7 @@ import org.smartdata.test.step.TableStep;
 import org.smartdata.test.suite.SsmWebBaseSuite;
 import org.smartdata.test.util.comparator.UiDateTimeComparator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -57,33 +58,32 @@ import static org.smartdata.test.util.constant.CommonConstants.PAGINATION_QUANTI
 
 @Feature("Rules page")
 public class RulesSuite extends SsmWebBaseSuite {
-  private static final String TEST_RULE_TEXT = "file : every 1h | path matches \"/test\" | list";
-
   @Autowired
   private LoginStep loginStep;
-
   @Autowired
   private MenuStep menuStep;
-
   @Autowired
   private RulesStep rulesStep;
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private PaginationStep paginationStep;
-
   @Autowired
   private ApiStep apiStep;
-
   @Autowired
   private DataBaseStep dataBaseStep;
+
+  private static final String TEST_RULE_TEXT = "file : every 1h | path matches \"/test\" | list";
 
   @BeforeMethod
   public void testPrepare() {
     loginStep.loginAs(UserRole.OWNER);
     menuStep.openRulesPage();
+  }
+
+  @AfterMethod(onlyForGroups = "cleanRuleTable")
+  public void cleanRuleTable() {
+    dataBaseStep.cleanRuleTable();
   }
 
   @TmsLink("90589")
@@ -113,7 +113,7 @@ public class RulesSuite extends SsmWebBaseSuite {
 
   @TmsLink("90539")
   @Story("Rules")
-  @Test(description = "Check sorting")
+  @Test(description = "Check sorting", groups = "cleanRuleTable")
   public void testSorting() {
     prepareDataForSortingTest();
     tableStep.checkDefaultSorting(ID)
@@ -126,8 +126,9 @@ public class RulesSuite extends SsmWebBaseSuite {
 
   @TmsLink("90212")
   @Story("Rules")
-  @Test(description = "Check filtration")
+  @Test(description = "Check filtration", groups = "cleanRuleTable")
   public void testFiltration() {
+    dataBaseStep.cleanRuleTable();
     prepareDataForFilterTest();
     rulesStep.checkRuleTextFiltration()
         .checkSubmissionTimeFiltration()

@@ -54,7 +54,6 @@ import static org.smartdata.test.util.constant.CommonConstants.TABLE_EMPTY_VALUE
 @Slf4j
 @Service
 public class ActionsDetailsStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
 

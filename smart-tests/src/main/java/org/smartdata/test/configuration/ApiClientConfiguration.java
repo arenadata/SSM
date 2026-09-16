@@ -37,7 +37,6 @@ import static org.smartdata.client.generated.invoker.JacksonObjectMapper.jackson
 @Configuration
 @Setter
 public class ApiClientConfiguration {
-
   @Autowired
   private UserProvider<UserRole> ssmUserProvider;
 

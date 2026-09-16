@@ -50,10 +50,8 @@ import static org.smartdata.test.model.RuleStatus.ACTIVE;
 @Slf4j
 @Service
 public class RulesStep extends BaseWebStep {
-
   @Autowired
   private TableStep tableStep;
-
   @Autowired
   private TableFilterPopupStep tableFilterPopupStep;
 

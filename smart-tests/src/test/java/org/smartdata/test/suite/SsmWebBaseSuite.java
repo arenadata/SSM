@@ -21,6 +21,7 @@ import io.arenadata.test.listener.TestAnalyzer;
 import io.arenadata.test.suite.BaseWebSuite;
 import io.qameta.allure.aspects.StepsAspects;
 import org.smartdata.test.SsmQaApp;
+import org.smartdata.test.step.ApiStep;
 import org.smartdata.test.step.DataBaseStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,9 +35,12 @@ import org.testng.annotations.Listeners;
 public abstract class SsmWebBaseSuite extends BaseWebSuite {
   @Autowired
   private DataBaseStep dataBaseStep;
+  @Autowired
+  private ApiStep apiStep;
 
   @AfterMethod
   public void cleanUp() {
+    apiStep.deleteAllRules();
     dataBaseStep.cleanAllUiTables();
   }
 }
