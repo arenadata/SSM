@@ -18,6 +18,7 @@
 package org.smartdata.test.suite.hdfs;
 
 import io.qameta.allure.Feature;
+import io.qameta.allure.Link;
 import io.qameta.allure.Story;
 import org.smartdata.test.annotation.RequiredComponents;
 import org.smartdata.test.step.ApiStep;
@@ -58,6 +59,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.createDirectory(HADOOP_NAMENODE, SOURCE_DIR);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check default sync without -preserve transfers owner, group and permissions only")
   public void testSyncPreserveDefaultAttributes() {
@@ -76,6 +78,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileModificationTimeAfter(TARGET_NAMENODE, path(FILE_1), staleModificationTime);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check -preserve owner transfers only owner to target cluster")
   public void testSyncPreserveOwner() {
@@ -87,6 +90,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileHasOwnerAndGroup(TARGET_NAMENODE, path(FILE_1), NEW_OWNER, defaultGroup);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check -preserve group transfers only group to target cluster")
   public void testSyncPreserveGroup() {
@@ -98,6 +102,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileHasOwnerAndGroup(TARGET_NAMENODE, path(FILE_1), defaultOwner, NEW_GROUP);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check -preserve permissions transfers only permissions to target cluster")
   public void testSyncPreservePermissions() {
@@ -112,6 +117,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.checkOwner(TARGET_NAMENODE, path(FILE_1), defaultOwner, defaultGroup);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check -preserve replication transfers only replication factor to target cluster")
   public void testSyncPreserveReplication() {
@@ -125,6 +131,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.checkPermissions(TARGET_NAMENODE, path(FILE_1), DEFAULT_PERMISSIONS);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check -preserve modification-time transfers only modification time to target cluster")
   public void testSyncPreserveModificationTime() {
@@ -138,6 +145,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.checkPermissions(TARGET_NAMENODE, path(FILE_1), DEFAULT_PERMISSIONS);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check multi-param + case insensitive -preserve OWNER,Group transfers owner and group only")
   public void testSyncPreserveOwnerGroup() {
@@ -150,6 +158,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.checkPermissions(TARGET_NAMENODE, path(FILE_1), DEFAULT_PERMISSIONS);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check duplicate param -preserve owner,owner transfers only owner")
   public void testSyncPreserveDuplicateOwner() {
@@ -161,6 +170,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileHasOwnerAndGroup(TARGET_NAMENODE, path(FILE_1), NEW_OWNER, defaultGroup);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check all preserve attributes together: owner,group,permissions,replication,modification-time")
   public void testSyncPreserveAllAttributes() {
@@ -178,6 +188,7 @@ public class HdfsSyncRulePreserveTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileHasModificationTime(TARGET_NAMENODE, path(FILE_1), staleModificationTime);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule preserve")
   @Test(description = "Check invalid -preserve params (negative)",
         dataProvider = "invalidPreserveValues")

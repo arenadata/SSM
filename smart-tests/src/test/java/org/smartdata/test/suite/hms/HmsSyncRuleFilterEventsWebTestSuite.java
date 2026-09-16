@@ -19,6 +19,7 @@ package org.smartdata.test.suite.hms;
 
 import io.arenadata.test.model.UserRole;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Link;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
 import io.restassured.response.Response;
@@ -91,6 +92,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
     loginStep.loginAs(UserRole.OWNER);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check 'safe-copy' scenario: all events except DROP")
   public void testHmsSyncExcludeDrop() {
@@ -101,6 +103,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
     assertThat(dataBaseStep.getDatabases(targetHiveServer2DataSource)).contains(TEST_DATABASE_1);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check all types separately: CREATE")
   public void testHmsSyncIncludeCreateOnly() {
@@ -110,6 +113,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully created");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check all types separately: ALTER")
   public void testHmsSyncIncludeAlterOnly() {
@@ -119,6 +123,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "NoSuchObjectException(message:database hive.db1)");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check all types separately: DROP")
   public void testHmsSyncIncludeDropOnly() {
@@ -128,6 +133,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "NoSuchObjectException(message:database hive.db1)");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check multi-param -include CREATE,DROP")
   public void testHmsSyncIncludeCreateAndDrop() {
@@ -137,6 +143,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully dropped");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check duplicate param -include CREATE,CREATE")
   public void testHmsSyncIncludeDuplicateCreate() {
@@ -146,6 +153,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully created");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check params case insensitive -exclude DrOp,alter")
   public void testHmsSyncIncludeCaseInsensitive() {
@@ -155,6 +163,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully created");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check include priority -include CREATE,ALTER -exclude ALTER")
   public void testHmsSyncIncludeHasHigherPriorityThanExclude() {
@@ -164,6 +173,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully altered");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check include all types together")
   public void testHmsSyncIncludeAllTypes() {
@@ -173,6 +183,7 @@ public class HmsSyncRuleFilterEventsWebTestSuite extends SsmWebBaseSuite {
         "Database was successfully dropped");
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HMS Sync rule filtering events")
   @Test(description = "Check invalid/empty include/exclude params (negative)")
   public void testHmsSyncInvalidParams() {

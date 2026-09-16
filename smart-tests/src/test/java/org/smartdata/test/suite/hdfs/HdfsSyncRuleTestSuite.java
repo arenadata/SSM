@@ -18,6 +18,7 @@
 package org.smartdata.test.suite.hdfs;
 
 import io.qameta.allure.Feature;
+import io.qameta.allure.Link;
 import io.qameta.allure.Story;
 import org.smartdata.client.generated.model.ActionStateDto;
 import org.smartdata.test.annotation.RequiredComponents;
@@ -57,6 +58,7 @@ public class HdfsSyncRuleTestSuite extends SsmBaseSuite {
     hdfsStep.createDirectory(HADOOP_NAMENODE, SOURCE_DIR);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule")
   @Test(description = "Check default sync rule without any options syncs all event types")
   public void testSyncRuleWithoutFilters() {
@@ -78,6 +80,7 @@ public class HdfsSyncRuleTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(5, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule")
   @Test(description = "Check initial (base) sync copies files existing before rule start")
   public void testSyncPreExistingFiles() {
@@ -88,6 +91,7 @@ public class HdfsSyncRuleTestSuite extends SsmBaseSuite {
     hdfsStep.waitUntilFileHasContent(TARGET_NAMENODE, path(FILE_2), FILE_2_CONTENT);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule")
   @Test(description = "Check 2 parallel rules sync events from different sources")
   public void testSyncTwoParallelRulesToDifferentDestinations() {

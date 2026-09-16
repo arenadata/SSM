@@ -18,6 +18,7 @@
 package org.smartdata.test.suite.hdfs;
 
 import io.qameta.allure.Feature;
+import io.qameta.allure.Link;
 import io.qameta.allure.Story;
 import org.smartdata.client.generated.model.ActionStateDto;
 import org.smartdata.test.annotation.RequiredComponents;
@@ -62,6 +63,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     hdfsStep.createDirectory(HADOOP_NAMENODE, SOURCE_DIR);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check 'safe-copy' scenario: all events except DELETE")
   public void testSyncExcludeDelete() {
@@ -81,6 +83,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(4, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check all types separately: CREATE")
   public void testSyncIncludeCreateOnly() {
@@ -96,6 +99,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check all types separately: DELETE")
   public void testSyncIncludeDeleteOnly() {
@@ -112,6 +116,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check all types separately: RENAME")
   public void testSyncIncludeRenameOnly() {
@@ -129,6 +134,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check all types separately: APPEND")
   public void testSyncIncludeAppendOnly() {
@@ -149,6 +155,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     hdfsStep.checkFileNotExists(TARGET_NAMENODE, path(FILE_1_RENAMED));
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check all types separately: METADATA")
   public void testSyncIncludeMetadataOnly() {
@@ -166,6 +173,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check multi-param -include CREATE,DELETE")
   public void testSyncIncludeCreateAndDelete() {
@@ -184,6 +192,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(3, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check duplicate param -include CREATE,CREATE")
   public void testSyncIncludeDuplicateCreate() {
@@ -193,6 +202,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(1, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check include priority + case insensitive: -include Create,rename -exclude reNAme")
   public void testSyncIncludeHasHigherPriorityThanExclude() {
@@ -204,6 +214,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(2, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check include all types together")
   public void testSyncIncludeAllTypes() {
@@ -221,6 +232,7 @@ public class HdfsSyncRuleFilterEventsTestSuite extends SsmBaseSuite {
     apiStep.checkActionsCountAndState(5, ActionStateDto.SUCCESSFUL);
   }
 
+  @Link(name = "ADH-8224", type = "task")
   @Story("HDFS Sync rule filtering events")
   @Test(description = "Check invalid/empty include/exclude params (negative)",
         dataProvider = "invalidIncludeExclude")
