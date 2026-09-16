@@ -128,6 +128,7 @@ public class RulesSuite extends SsmWebBaseSuite {
   @Story("Rules")
   @Test(description = "Check filtration", groups = "cleanRuleTable")
   public void testFiltration() {
+    dataBaseStep.cleanRuleTable();
     prepareDataForFilterTest();
     rulesStep.checkRuleTextFiltration()
         .checkSubmissionTimeFiltration()
