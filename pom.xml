@@ -108,10 +108,15 @@
     <kerby.version>1.0.1</kerby.version>
     <jetty.version>9.4.58.v20250814</jetty.version>
     <postgres.version>42.7.11</postgres.version>
-    <jackson.version>2.18.6</jackson.version>
+    <jackson.version>2.18.10</jackson.version>
+    <netty.version>4.1.137.Final</netty.version>
+    <jline.version>3.30.16</jline.version>
     <mysql.version>8.0.28</mysql.version>
     <sqlite.version>3.41.2.2</sqlite.version>
-    <commons-configuration.version>2.10.1</commons-configuration.version>
+    <commons-configuration.version>2.15.1</commons-configuration.version>
+    <commons-io.version>2.22.0</commons-io.version>
+    <commons-text.version>1.15.0</commons-text.version>
+    <commons-logging.version>1.3.6</commons-logging.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <servlet.api.version>4.0.1</servlet.api.version>
     <springdoc.openapi.version>1.7.0</springdoc.openapi.version>
@@ -119,7 +124,7 @@
     <spring.boot.version>2.7.18</spring.boot.version>
     <spring.boot.security.kerberos.version>1.0.1.RELEASE</spring.boot.security.kerberos.version>
     <openapi.generator.version>7.3.0</openapi.generator.version>
-    <commons.lang3.version>3.18.0</commons.lang3.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
     <aspectj.version>1.9.22</aspectj.version>
@@ -154,7 +159,7 @@
     <profile>
       <id>hadoop-3.4</id>
       <properties>
-        <hadoop.version>3.4.3.1-4.3.0-1</hadoop.version>
+        <hadoop.version>3.4.3.2-4.4.0-1</hadoop.version>
         <kerby.version>2.0.3</kerby.version>
         <smart.hadoop.artifact>smart-hadoop-3.3</smart.hadoop.artifact>
       </properties>
@@ -174,6 +179,46 @@
   <dependencyManagement>
     <!-- These dependencies may cause conflicts, so move into dependencyManagement -->
     <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-configuration2</artifactId>
+        <version>${commons-configuration.version}</version>
+      </dependency>
+      <!-- Match Commons Configuration's dependencies across Hadoop and Hive paths. -->
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>${commons-text.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>${commons-logging.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
@@ -277,49 +322,9 @@
         <version>${postgres.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jsr310</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-base</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-json-provider</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-jaxb-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>${commons.lang3.version}</version>
+        <version>${commons-lang3.version}</version>
       </dependency>
       <dependency>
         <groupId>com.alibaba</groupId>
