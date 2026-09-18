@@ -26,16 +26,31 @@
   <parent>
     <groupId>org.smartdata</groupId>
     <artifactId>smartdata-project</artifactId>
-    <version>2.3.0.1-4.4.0-0</version>
+    <version>2.3.0.1-4.4.0-1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>smart-agent</artifactId>
-  <version>2.3.0.1-4.4.0-0</version>
+  <version>2.3.0.1-4.4.0-1</version>
   <packaging>jar</packaging>
 
   <dependencyManagement>
     <dependencies>
+      <!-- Keep these BOMs before Spring Boot so it cannot downgrade their modules. -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
@@ -50,13 +65,13 @@
     <dependency>
       <groupId>org.smartdata</groupId>
       <artifactId>smart-engine</artifactId>
-      <version>2.3.0.1-4.4.0-0</version>
+      <version>2.3.0.1-4.4.0-1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.smartdata</groupId>
       <artifactId>smart-agent-web-server</artifactId>
-      <version>2.3.0.1-4.4.0-0</version>
+      <version>2.3.0.1-4.4.0-1</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
@@ -71,7 +86,7 @@
     <dependency>
       <groupId>org.smartdata</groupId>
       <artifactId>smart-engine</artifactId>
-      <version>2.3.0.1-4.4.0-0</version>
+      <version>2.3.0.1-4.4.0-1</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
