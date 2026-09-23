@@ -19,6 +19,8 @@ package org.smartdata.hive;
 
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.messaging.AlterDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.AlterTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.CreateDatabaseMessage;
@@ -26,6 +28,7 @@ import org.apache.hadoop.hive.metastore.messaging.CreateTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.DropDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.DropTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
+import org.apache.hadoop.hive.metastore.messaging.MessageBuilder;
 import org.apache.hadoop.hive.metastore.messaging.MessageSerializer;
 import org.apache.hadoop.hive.metastore.messaging.json.JSONAlterDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.json.JSONAlterTableMessage;
@@ -35,11 +38,17 @@ import org.apache.hadoop.hive.metastore.messaging.json.JSONDropDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.json.JSONDropTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.json.JSONMessageEncoder;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.ADD_PARTITION;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.ALTER_DATABASE;
+import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.ALTER_PARTITION;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.ALTER_TABLE;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.CREATE_DATABASE;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.CREATE_TABLE;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.DROP_DATABASE;
+import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.DROP_PARTITION;
 import static org.apache.hadoop.hive.metastore.messaging.EventMessage.EventType.DROP_TABLE;
 import static org.smartdata.hive.HiveEntityFactory.buildDb;
 import static org.smartdata.hive.HiveEntityFactory.buildTable;
@@ -161,6 +170,44 @@ public class NotificationEventFactory {
     );
     event.setMessage(MESSAGE_ENCODER.serialize(message));
     return event;
+  }
+
+  public static NotificationEvent newAddPartitionEvent(
+      long id, Table table, Partition... partitions) {
+    NotificationEvent event = baseEvent(id, entityName(table));
+    event.setEventType(ADD_PARTITION.name());
+
+    EventMessage message = MessageBuilder.getInstance().buildAddPartitionMessage(
+        table, Arrays.asList(partitions).iterator(), Collections.emptyIterator());
+    event.setMessage(MESSAGE_ENCODER.serialize(message));
+    return event;
+  }
+
+  public static NotificationEvent newAlterPartitionEvent(
+      long id, Table table, Partition partitionBefore, Partition partitionAfter) {
+    NotificationEvent event = baseEvent(id, entityName(table));
+    event.setEventType(ALTER_PARTITION.name());
+
+    EventMessage message = MessageBuilder.getInstance().buildAlterPartitionMessage(
+        table, partitionBefore, partitionAfter, false, 0L);
+    event.setMessage(MESSAGE_ENCODER.serialize(message));
+    return event;
+  }
+
+  public static NotificationEvent newDropPartitionEvent(
+      long id, Table table, Partition... partitions) {
+    NotificationEvent event = baseEvent(id, entityName(table));
+    event.setEventType(DROP_PARTITION.name());
+
+    EventMessage message = MessageBuilder.getInstance().buildDropPartitionMessage(
+        table, Arrays.asList(partitions).iterator());
+    event.setMessage(MESSAGE_ENCODER.serialize(message));
+    return event;
+  }
+
+  private static EntityName entityName(Table table) {
+    return new EntityName(String.join(".",
+        table.getCatName(), table.getDbName(), table.getTableName()));
   }
 
   private static NotificationEvent baseEvent(long id, EntityName entityName) {
