@@ -1,0 +1,18 @@
+get:
+  tags:
+    - Hive
+  summary: Get database of the source Hive Metastore by name
+  operationId: getHiveDatabase
+  parameters:
+    - $ref: '../parameters/hive/db-name.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/hive/HiveDatabase.yaml'
+    '404':
+      description: Hive database with specified name not found
+    '401':
+      description: Unauthorized

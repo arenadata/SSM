@@ -1,0 +1,35 @@
+get:
+  tags:
+    - Hive
+  summary: List tables of the source Hive Metastore
+  description: Views and tables without physical location are not included
+  operationId: getHiveTables
+  parameters:
+    - $ref: '../parameters/common/page-request.yaml'
+    - $ref: '../parameters/hive/hive-tables-sort.yaml'
+    - $ref: '../parameters/hive/db-names.yaml'
+    - $ref: '../parameters/hive/name-like.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            title: HiveTables
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of Hive tables
+                    items:
+                      $ref: '../schemas/hive/HiveTable.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized

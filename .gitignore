@@ -33,3 +33,5 @@ azure-auth-keys.xml
 # External tool builders
 */.externalToolBuilders
 */maven-eclipse.xml
+
+.dev/

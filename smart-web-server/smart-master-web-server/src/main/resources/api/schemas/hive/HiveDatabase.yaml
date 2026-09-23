@@ -1,0 +1,16 @@
+title: HiveDatabase
+type: object
+properties:
+  name:
+    type: string
+    description: Name of the database
+  catalogName:
+    type: string
+    nullable: true
+    description: Name of the Hive catalog the database belongs to
+  location:
+    type: string
+    nullable: true
+    description: Default location of the database external tables in the file system
+required:
+  - name

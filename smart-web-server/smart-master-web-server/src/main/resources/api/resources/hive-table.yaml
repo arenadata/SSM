@@ -1,0 +1,19 @@
+get:
+  tags:
+    - Hive
+  summary: Get table of the source Hive Metastore by name
+  operationId: getHiveTable
+  parameters:
+    - $ref: '../parameters/hive/db-name.yaml'
+    - $ref: '../parameters/hive/table-name.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/hive/HiveTable.yaml'
+    '404':
+      description: Hive table with specified name not found
+    '401':
+      description: Unauthorized
