@@ -41,6 +41,80 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi.generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-merged-api-spec</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/api/ssm-api.yaml</inputSpec>
+                            <generatorName>openapi-yaml</generatorName>
+                            <configOptions>
+                                <outputFile>${merged.api.spec.name}</outputFile>
+                            </configOptions>
+                            <output>${merged.api.spec.dir}</output>
+                            <supportingFilesToGenerate>${merged.api.spec.name}</supportingFilesToGenerate>
+                            <addCompileSourceRoot>false</addCompileSourceRoot>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-ssm-web-server</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${merged.api.spec.dir}/${merged.api.spec.name}</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <configOptions>
+                                <useResponseEntity>false</useResponseEntity>
+                                <openApiNullable>false</openApiNullable>
+                                <useTags>true</useTags>
+                                <unhandledException>true</unhandledException>
+                                <delegatePattern>true</delegatePattern>
+                                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                                <configPackage>${openapi.codegen.package.base}.config</configPackage>
+                            </configOptions>
+                            <output>${openapi.codegen.output.dir}</output>
+                            <ignoreFileOverride>${project.basedir}/.openapi-generator-ignore</ignoreFileOverride>
+                            <modelPackage>${openapi.codegen.package.base}.model</modelPackage>
+                            <apiPackage>${openapi.codegen.package.base}.api</apiPackage>
+                            <modelNameSuffix>Dto</modelNameSuffix>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <enablePostProcessFile>true</enablePostProcessFile>
+                            <skipOperationExample>true</skipOperationExample>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-merged-api-spec-resource</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${merged.api.spec.resources.dir}</directory>
+                                    <includes>
+                                        <include>static/${merged.api.spec.name}</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -95,64 +169,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>web-server-codegen</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.openapitools</groupId>
-                        <artifactId>openapi-generator-maven-plugin</artifactId>
-                        <version>${openapi.generator.version}</version>
-                        <executions>
-                            <execution>
-                                <id>generate-merged-api-spec</id>
-                                <goals>
-                                    <goal>generate</goal>
-                                </goals>
-                                <configuration>
-                                    <inputSpec>${project.basedir}/src/main/resources/api/ssm-api.yaml</inputSpec>
-                                    <generatorName>openapi-yaml</generatorName>
-                                    <configOptions>
-                                        <outputFile>${merged.api.spec.name}</outputFile>
-                                    </configOptions>
-                                    <output>${merged.api.spec.directory}</output>
-                                    <supportingFilesToGenerate>${merged.api.spec.name}</supportingFilesToGenerate>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>generate-ssm-web-server</id>
-                                <goals>
-                                    <goal>generate</goal>
-                                </goals>
-                                <configuration>
-                                    <inputSpec>${merged.api.spec.directory}/${merged.api.spec.name}</inputSpec>
-                                    <generatorName>spring</generatorName>
-                                    <configOptions>
-                                        <useResponseEntity>false</useResponseEntity>
-                                        <openApiNullable>false</openApiNullable>
-                                        <useTags>true</useTags>
-                                        <unhandledException>true</unhandledException>
-                                        <delegatePattern>true</delegatePattern>
-                                        <hideGenerationTimestamp>true</hideGenerationTimestamp>
-                                        <configPackage>${openapi.codegen.package.base}.config</configPackage>
-                                    </configOptions>
-                                    <output>${openapi.codegen.output.dir}</output>
-                                    <modelPackage>${openapi.codegen.package.base}.model</modelPackage>
-                                    <apiPackage>${openapi.codegen.package.base}.api</apiPackage>
-                                    <modelNameSuffix>Dto</modelNameSuffix>
-                                    <generateApiTests>false</generateApiTests>
-                                    <generateModelTests>false</generateModelTests>
-                                    <enablePostProcessFile>true</enablePostProcessFile>
-                                    <skipOperationExample>true</skipOperationExample>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
