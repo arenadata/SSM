@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.codeborne.selenide.Selenide.$x;
+import static com.codeborne.selenide.WebDriverConditions.url;
 import static io.arenadata.test.util.constant.TimeoutConstants.SHORT_WAIT_PARAMS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -52,6 +52,9 @@ import static org.smartdata.test.element.MenuElement.USERNAME;
 public class MenuStep extends BaseWebStep {
   @Autowired
   private UserProvider<UserRole> ssmUserProvider;
+
+  public static final String DOCUMENTATION_URL =
+      "https://docs.arenadata.io/en/ADH/current/concept/ssm/ssm-architecture.html";
 
   @Step("Verify current user name in menu")
   public void checkUserInfo(UserModel<UserRole> userModel) {
@@ -96,7 +99,7 @@ public class MenuStep extends BaseWebStep {
 
   @Step("Check Documentation is opened in new tab")
   public void checkDocumentationIsOpened() {
-    checkElementTextIs($x("//h1"), "SSM architecture");
+    Selenide.webdriver().shouldHave(url(DOCUMENTATION_URL));
   }
 
   @Step("Open Rules page")
