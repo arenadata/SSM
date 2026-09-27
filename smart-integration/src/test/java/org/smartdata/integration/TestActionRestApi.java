@@ -49,8 +49,8 @@ public class TestActionRestApi extends IntegrationTestBase {
   private RulesApiWrapper rulesApi;
 
   private static final String ACTION_TEXT = "sleep -ms 10";
-  private static final Duration ONE_HUNDRED_MILLIS = Duration.ofMillis(100);
-  private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
+  private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
+  private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
   @Before
   public void createApi() {
@@ -69,7 +69,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     assertEquals(ActionSourceDto.USER, actionInfo.getSource());
 
     ActionDto actionDto = apiClient.waitTillActionFinished(actionInfo.getId(),
-        ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+        POLL_INTERVAL, TIMEOUT);
 
     assertEquals(actionInfo.getId(), actionDto.getId());
     assertEquals(actionText, actionDto.getTextRepresentation());
@@ -91,7 +91,7 @@ public class TestActionRestApi extends IntegrationTestBase {
 
     // we have to wait a bit, because of async cmdlets transfer
     // from in-memory cache to metastore
-    apiClient.waitActionsTotalSize(1, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(1, POLL_INTERVAL, TIMEOUT);
 
     actions = apiClient.getActions();
     assertEquals(1L, actions.getItems().size());
@@ -112,7 +112,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -133,7 +133,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -169,7 +169,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -203,11 +203,11 @@ public class TestActionRestApi extends IntegrationTestBase {
   @Test
   public void testGetActionsSortByStartTime() {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
-    apiClient.waitTillActionFinished(firstAction.getId(), ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitTillActionFinished(firstAction.getId(), POLL_INTERVAL, TIMEOUT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
-    apiClient.waitTillActionFinished(secondAction.getId(), ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitTillActionFinished(secondAction.getId(), POLL_INTERVAL, TIMEOUT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -242,10 +242,17 @@ public class TestActionRestApi extends IntegrationTestBase {
   @Test
   public void testGetActionsSortByCompletionTime() {
     ActionInfoDto firstAction = apiClient.submitAction(ACTION_TEXT);
-    apiClient.waitTillActionFinished(firstAction.getId(), ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitTillActionFinished(firstAction.getId(), POLL_INTERVAL, TIMEOUT);
     ActionInfoDto secondAction = apiClient.submitAction(ACTION_TEXT);
+    apiClient.waitTillActionFinished(secondAction.getId(), POLL_INTERVAL, TIMEOUT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
+    retryUntil(
+        () -> apiClient.getActions().getItems().stream()
+            .allMatch(action -> action.getCompletionTime() != null),
+        synced -> synced,
+        POLL_INTERVAL,
+        TIMEOUT);
 
     // ASC
     ActionsDto actions = apiClient.rawClient()
@@ -281,7 +288,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
     apiClient.submitAction("read -file /tmp/test.txt");
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -305,7 +312,7 @@ public class TestActionRestApi extends IntegrationTestBase {
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -328,11 +335,11 @@ public class TestActionRestApi extends IntegrationTestBase {
   public void testGetActionsFilterByStartTime() {
     long start = System.currentTimeMillis();
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
-    apiClient.waitTillActionFinished(action.getId(), ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitTillActionFinished(action.getId(), POLL_INTERVAL, TIMEOUT);
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -355,11 +362,11 @@ public class TestActionRestApi extends IntegrationTestBase {
   public void testGetActionsFilterByCompletionTime() {
     long start = System.currentTimeMillis();
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
-    apiClient.waitTillActionFinished(action.getId(), ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitTillActionFinished(action.getId(), POLL_INTERVAL, TIMEOUT);
     long end = System.currentTimeMillis();
     apiClient.submitAction(ACTION_TEXT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -380,10 +387,10 @@ public class TestActionRestApi extends IntegrationTestBase {
 
   @Test
   public void testGetActionsFilterByStates() {
-    ActionDto action = apiClient.waitTillActionFinished(ACTION_TEXT, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
-    apiClient.waitTillActionFinished("read -file nonexistent.file", ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    ActionDto action = apiClient.waitTillActionFinished(ACTION_TEXT, POLL_INTERVAL, TIMEOUT);
+    apiClient.waitTillActionFinished("read -file nonexistent.file", POLL_INTERVAL, TIMEOUT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
@@ -405,10 +412,10 @@ public class TestActionRestApi extends IntegrationTestBase {
     ActionInfoDto action = apiClient.submitAction(ACTION_TEXT);
     rulesApi.waitTillRuleTriggered(
         "file: at now | path matches \"/*\" | sleep -ms 10",
-        ONE_HUNDRED_MILLIS,
-        FIVE_SECONDS);
+        POLL_INTERVAL,
+        TIMEOUT);
 
-    apiClient.waitActionsTotalSize(2, ONE_HUNDRED_MILLIS, FIVE_SECONDS);
+    apiClient.waitActionsTotalSize(2, POLL_INTERVAL, TIMEOUT);
 
     ActionsDto actions = apiClient.rawClient()
         .getActions()
