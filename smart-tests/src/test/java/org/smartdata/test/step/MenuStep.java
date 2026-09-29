@@ -53,7 +53,7 @@ public class MenuStep extends BaseWebStep {
   @Autowired
   private UserProvider<UserRole> ssmUserProvider;
 
-  public static final String DOCUMENTATION_URL =
+  private static final String DOCUMENTATION_URL =
       "https://docs.arenadata.io/en/ADH/current/concept/ssm/ssm-architecture.html";
 
   @Step("Verify current user name in menu")
