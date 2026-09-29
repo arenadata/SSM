@@ -1,0 +1,33 @@
+get:
+  tags:
+    - Hive
+  summary: List databases of the source Hive Metastore
+  operationId: getHiveDatabases
+  parameters:
+    - $ref: '../parameters/common/page-request.yaml'
+    - $ref: '../parameters/hive/hive-databases-sort.yaml'
+    - $ref: '../parameters/hive/name-like.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            title: HiveDatabases
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of Hive databases
+                    items:
+                      $ref: '../schemas/hive/HiveDatabase.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized

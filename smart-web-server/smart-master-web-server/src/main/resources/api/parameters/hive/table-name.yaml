@@ -1,0 +1,6 @@
+name: tableName
+in: path
+required: true
+description: Name of the Hive table
+schema:
+  type: string

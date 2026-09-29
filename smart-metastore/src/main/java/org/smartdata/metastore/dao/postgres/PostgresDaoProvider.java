@@ -18,12 +18,16 @@
 package org.smartdata.metastore.dao.postgres;
 
 import org.smartdata.hive.HmsEventDao;
+import org.smartdata.hive.catalog.HiveCatalogDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.FileStateDao;
+import org.smartdata.metastore.dao.HiveDatabaseDao;
+import org.smartdata.metastore.dao.HivePartitionDao;
+import org.smartdata.metastore.dao.HiveTableDao;
 import org.smartdata.metastore.dao.SmallFileDao;
 import org.smartdata.metastore.dao.StorageDao;
 import org.smartdata.metastore.dao.impl.DefaultDaoProvider;
@@ -77,5 +81,26 @@ public class PostgresDaoProvider extends DefaultDaoProvider {
   @Override
   public HmsEventDao hmsIgnoredEventDao() {
     return PostgresHmsEventDao.ignoredEventsDao(dataSource, transactionManager);
+  }
+
+  @Override
+  public HiveDatabaseDao hiveDatabaseDao() {
+    return new PostgresHiveDatabaseDao(dataSource, transactionManager);
+  }
+
+  @Override
+  public HiveTableDao hiveTableDao() {
+    return new PostgresHiveTableDao(dataSource, transactionManager);
+  }
+
+  @Override
+  public HivePartitionDao hivePartitionDao() {
+    return new PostgresHivePartitionDao(dataSource);
+  }
+
+  @Override
+  public HiveCatalogDao hiveCatalogDao() {
+    return new PostgresHiveCatalogDao(
+        hiveDatabaseDao(), hiveTableDao(), hivePartitionDao(), transactionManager);
   }
 }

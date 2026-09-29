@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.hive.HmsEventDao;
+import org.smartdata.hive.catalog.HiveCatalogDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metaservice.BackupMetaService;
 import org.smartdata.metaservice.CmdletMetaService;
@@ -43,6 +44,9 @@ import org.smartdata.metastore.dao.FileInfoDao;
 import org.smartdata.metastore.dao.FileStateDao;
 import org.smartdata.metastore.dao.GeneralDao;
 import org.smartdata.metastore.dao.GlobalConfigDao;
+import org.smartdata.metastore.dao.HiveDatabaseDao;
+import org.smartdata.metastore.dao.HivePartitionDao;
+import org.smartdata.metastore.dao.HiveTableDao;
 import org.smartdata.metastore.dao.MetaStoreHelper;
 import org.smartdata.metastore.dao.RuleDao;
 import org.smartdata.metastore.dao.SmallFileDao;
@@ -120,6 +124,10 @@ public class MetaStore implements CopyMetaService,
   private final HmsEventDao hmsEventDao;
   private final HmsEventDao hmsIgnoredEventDao;
   private final HmsSyncProgressDao hmsSyncProgressDao;
+  private final HiveDatabaseDao hiveDatabaseDao;
+  private final HiveTableDao hiveTableDao;
+  private final HivePartitionDao hivePartitionDao;
+  private final HiveCatalogDao hiveCatalogDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
@@ -170,6 +178,10 @@ public class MetaStore implements CopyMetaService,
     hmsEventDao =  daoProvider.hmsEventDao();
     hmsIgnoredEventDao = daoProvider.hmsIgnoredEventDao();
     hmsSyncProgressDao = daoProvider.hmsSyncProgressDao();
+    hiveDatabaseDao = daoProvider.hiveDatabaseDao();
+    hiveTableDao = daoProvider.hiveTableDao();
+    hivePartitionDao = daoProvider.hivePartitionDao();
+    hiveCatalogDao = daoProvider.hiveCatalogDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -218,6 +230,22 @@ public class MetaStore implements CopyMetaService,
 
   public HmsSyncProgressDao hmsSyncProgressDao() {
     return hmsSyncProgressDao;
+  }
+
+  public HiveDatabaseDao hiveDatabaseDao() {
+    return hiveDatabaseDao;
+  }
+
+  public HiveTableDao hiveTableDao() {
+    return hiveTableDao;
+  }
+
+  public HivePartitionDao hivePartitionDao() {
+    return hivePartitionDao;
+  }
+
+  public HiveCatalogDao hiveCatalogDao() {
+    return hiveCatalogDao;
   }
 
   public PlatformTransactionManager transactionManager() {

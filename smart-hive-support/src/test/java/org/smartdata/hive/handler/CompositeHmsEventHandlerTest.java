@@ -43,6 +43,8 @@ import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.EVENTS_STAR
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.INTERMEDIATE_EVENTS_STARTED;
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.SNAPSHOT_STARTED;
 import static org.smartdata.hive.fetch.composite.NewHiveSourceStateRecord.newStateRecord;
+import static org.smartdata.hive.handler.HmsEventHandlerChain.bufferingHandlerChain;
+import static org.smartdata.hive.handler.HmsEventHandlerChain.handlerChain;
 
 public class CompositeHmsEventHandlerTest {
   private MockTransactionManager transactionManager;
@@ -95,6 +97,36 @@ public class CompositeHmsEventHandlerTest {
         expectedIntermediateRecords,
         expectedDelegateRecords
     );
+    assertEquals(1, transactionManager.isCommited.size());
+  }
+
+  @Test
+  public void testChainedHandlersReceiveRecordsInAllPhases() throws Exception {
+    MockResourceDiffCollector additionalHandler = new MockResourceDiffCollector();
+    eventHandler = new CompositeHmsEventHandler(transactionManager,
+        bufferingHandlerChain(intermediateEventResolver, additionalHandler),
+        handlerChain(additionalHandler, mockDiffCollectorDelegate));
+
+    List<HmsEventStreamRecord> records = Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1),
+        new DummyRecord(2),
+        newStateRecord(INTERMEDIATE_EVENTS_STARTED),
+        new DummyRecord(3),
+        newStateRecord(EVENTS_STARTED),
+        new DummyRecord(4)
+    );
+
+    testHandleRecordChain(
+        records,
+        Collections.singletonList(new DummyRecord(3)),
+        Arrays.asList(new DummyRecord(1), new DummyRecord(2), new DummyRecord(4))
+    );
+
+    assertEquals(
+        Arrays.asList(new DummyRecord(1), new DummyRecord(2), new DummyRecord(3), new DummyRecord(4)),
+        additionalHandler.getHandledRecords());
+    assertEquals(1, intermediateEventResolver.getFlushCount());
     assertEquals(1, transactionManager.isCommited.size());
   }
 
@@ -214,9 +246,12 @@ public class CompositeHmsEventHandlerTest {
 
   private static class MockIntermediateEventResolver extends MockResourceDiffCollector
       implements HmsBufferingEventHandler {
+    @Getter
+    private int flushCount = 0;
+
     @Override
     public void flush() {
-
+      flushCount++;
     }
   }
 

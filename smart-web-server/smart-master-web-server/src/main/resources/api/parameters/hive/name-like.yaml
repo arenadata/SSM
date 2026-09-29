@@ -1,0 +1,6 @@
+name: nameLike
+in: query
+required: false
+description: Case-insensitive filter of the entity name
+schema:
+  type: string
