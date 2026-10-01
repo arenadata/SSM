@@ -281,7 +281,7 @@ services:
         -Dhive.metastore.uris=thrift://target-hive-metastore.demo:9083
         -Dhive.metastore.warehouse.dir=hdfs://target/user/hive/warehouse
     healthcheck:
-      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
+      test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:100009999/'" ]
       interval: 30s
       timeout: 10s
       retries: 3
