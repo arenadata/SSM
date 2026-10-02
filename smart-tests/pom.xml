@@ -44,7 +44,7 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.21-jdk8</java-test-common.version>
+        <java-test-common.version>1.21-jdk11-feature-ADH-9631-SNAPSHOT</java-test-common.version>
         <postgresql.version>42.7.4</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>7.3.0</openapi.generator.version>
@@ -58,8 +58,35 @@
     <dependencies>
         <dependency>
             <groupId>io.arenadata</groupId>
-            <artifactId>java-test-common-jdk8</artifactId>
+            <artifactId>java-test-common-jdk11</artifactId>
             <version>${java-test-common.version}</version>
+            <exclusions>
+                <exclusion> <!-- Replaced with log4j2 binding, see log4j-slf4j-impl below -->
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -84,6 +111,10 @@
                 <exclusion> <!-- Exclude bc conflict with Selenide proxy -->
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>bcprov-jdk18on</artifactId>
+                </exclusion>
+                <exclusion> <!-- Conflicts with log4j-slf4j-impl binding -->
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-reload4j</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -232,7 +263,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>io.arenadata</groupId>
-                                    <artifactId>java-test-common-jdk8</artifactId>
+                                    <artifactId>java-test-common-jdk11</artifactId>
                                     <version>${java-test-common.version}</version>
                                     <type>jar</type>
                                     <overWrite>false</overWrite>
