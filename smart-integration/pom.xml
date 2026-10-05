@@ -314,7 +314,6 @@
                     </properties>
                     <systemPropertyVariables>
                         <allure.results.directory>${allure.results.directory}</allure.results.directory>
-                        <allure.label.parentSuite>Integration tests</allure.label.parentSuite>
                     </systemPropertyVariables>
                     <argLine>
                         -XX:+IgnoreUnrecognizedVMOptions -XX:+UseG1GC -Xmx2048m
