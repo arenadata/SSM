@@ -3,4 +3,7 @@
     <aspects>
         <include within="io.qameta.allure..*" />
     </aspects>
+    <weaver>
+        <exclude within="org.smartdata.server..*" />
+    </weaver>
 </aspectj>
