@@ -36,7 +36,7 @@
     <properties>
         <openapi.codegen.package.base>org.smartdata.client.generated</openapi.codegen.package.base>
         <skipTests>true</skipTests>
-        <allure.version>2.27.0</allure.version>
+        <allure.version>2.29.1</allure.version>
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
         <maven.surefire.version>3.5.2</maven.surefire.version>
     </properties>
@@ -314,6 +314,7 @@
                     </properties>
                     <systemPropertyVariables>
                         <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                        <allure.label.parentSuite>Integration tests</allure.label.parentSuite>
                     </systemPropertyVariables>
                     <argLine>
                         -XX:+IgnoreUnrecognizedVMOptions -XX:+UseG1GC -Xmx2048m
