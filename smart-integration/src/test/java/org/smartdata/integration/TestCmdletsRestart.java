@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.smartdata.metastore.utils.MetaStoreUtils.getDBAdapter;
 
-@Feature("Integration tests. Cmdlets restart")
+@Feature("Integration tests")
 public class TestCmdletsRestart {
   private SmartCluster cluster;
   private SmartConf conf;

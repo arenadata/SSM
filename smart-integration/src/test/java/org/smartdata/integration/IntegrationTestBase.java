@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 import static org.smartdata.conf.SmartConfKeys.SMART_CLIENT_CONCURRENT_REPORT_ENABLED;
 import static org.smartdata.conf.SmartConfKeys.SMART_SERVER_RPC_ADDRESS_KEY;
 
-@Feature("Integration tests. Base")
+@Feature("Integration tests")
 public class IntegrationTestBase {
 
   protected SmartCluster cluster;
