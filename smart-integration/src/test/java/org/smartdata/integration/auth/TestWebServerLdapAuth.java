@@ -134,7 +134,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.setEnum(SMART_REST_SERVER_LDAP_USER_SEARCH_SCOPE, LdapSearchScope.SUBTREE);
     conf.set(SMART_REST_SERVER_LDAP_PASSWORD_ENCODER, defaultEncoder.getId());
 
-    conf.set(TEST_PARAM_NAME_OPTION, "passwordCompareWithPasswordEncoding");
+    conf.set(TEST_PARAM_NAME_OPTION, "passwordCompareWithPasswordEncoding(" + defaultEncoder.getId() + ")");
     return conf;
   }
 
@@ -144,7 +144,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.set(SMART_REST_SERVER_LDAP_USER_SEARCH_BASE, "ou=people");
     conf.set(SMART_REST_SERVER_LDAP_CUSTOM_SEARCH, "(&(additionalAttr=test)(objectClass=person))");
 
-    conf.set(TEST_PARAM_NAME_OPTION, "searchByCustomSearch");
+    conf.set(TEST_PARAM_NAME_OPTION, "searchByCustomSearch(" + authType + ")");
     return conf;
   }
 
@@ -154,7 +154,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.set(SMART_REST_SERVER_LDAP_USER_SEARCH_BASE, "ou=people");
     conf.set(SMART_REST_SERVER_LDAP_CUSTOM_SEARCH, "(objectClass=person)");
 
-    conf.set(TEST_PARAM_NAME_OPTION, "searchByCustomSearch");
+    conf.set(TEST_PARAM_NAME_OPTION, "searchByCustomSearchSeveralUsers(" + authType + ")");
     return conf;
   }
 
@@ -167,7 +167,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.set(SMART_REST_SERVER_LDAP_GROUP_NAME_ATTR, "CN");
     conf.set(SMART_REST_SERVER_LDAP_USER_GROUPS, groupName);
 
-    conf.set(TEST_PARAM_NAME_OPTION, "searchByGroupMemberAttr");
+    conf.set(TEST_PARAM_NAME_OPTION, "searchByGroupMemberAttr(" + authType + ", " + groupName + ")");
     return conf;
   }
 
@@ -179,7 +179,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     conf.set(SMART_REST_SERVER_LDAP_GROUP_NAME_ATTR, "CN");
     conf.set(SMART_REST_SERVER_LDAP_USER_GROUPS, groupName);
 
-    conf.set(TEST_PARAM_NAME_OPTION, "searchByUserMemberAttr");
+    conf.set(TEST_PARAM_NAME_OPTION, "searchByUserMemberAttr(" + authType + ", " + groupName + ")");
     return conf;
   }
 
@@ -187,7 +187,7 @@ public class TestWebServerLdapAuth extends TestWebServerAuth {
     SmartConf conf = searchByUserMemberAttr(authType, "developers");
     conf.set(SMART_REST_SERVER_LDAP_SEARCH_ADDITIONAL_FILTER, "(additionalAttr=test)");
 
-    conf.set(TEST_PARAM_NAME_OPTION, "searchWithAdditionalSearch");
+    conf.set(TEST_PARAM_NAME_OPTION, "searchWithAdditionalSearch(" + authType + ")");
     return conf;
   }
 
