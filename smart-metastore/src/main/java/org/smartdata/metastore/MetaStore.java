@@ -48,6 +48,7 @@ import org.smartdata.metastore.dao.HiveDatabaseDao;
 import org.smartdata.metastore.dao.HivePartitionDao;
 import org.smartdata.metastore.dao.HiveTableDao;
 import org.smartdata.metastore.dao.MetaStoreHelper;
+import org.smartdata.metastore.dao.ReplicationPolicyDao;
 import org.smartdata.metastore.dao.RuleDao;
 import org.smartdata.metastore.dao.SmallFileDao;
 import org.smartdata.metastore.dao.StorageDao;
@@ -128,6 +129,7 @@ public class MetaStore implements CopyMetaService,
   private final HivePartitionDao hivePartitionDao;
   private final HiveCatalogDao hiveCatalogDao;
   private final ClusterDao clusterDao;
+  private final ReplicationPolicyDao replicationPolicyDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
@@ -181,6 +183,7 @@ public class MetaStore implements CopyMetaService,
     hivePartitionDao = daoProvider.hivePartitionDao();
     hiveCatalogDao = daoProvider.hiveCatalogDao();
     clusterDao = daoProvider.clusterDao();
+    replicationPolicyDao = daoProvider.replicationPolicyDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -249,6 +252,10 @@ public class MetaStore implements CopyMetaService,
 
   public ClusterDao clusterDao() {
     return clusterDao;
+  }
+
+  public ReplicationPolicyDao replicationPolicyDao() {
+    return replicationPolicyDao;
   }
 
   public PlatformTransactionManager transactionManager() {

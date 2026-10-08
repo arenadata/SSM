@@ -33,7 +33,6 @@ public class ClusterInfo {
   private final ClusterStatus status;
   private final String hdfsUri;
   private final String hiveThriftUri;
-  /** Nameservice of the target HDFS, which replaces the source one in the replicated metadata. */
   private final String hdfsNameservice;
   private final Instant createTime;
   private final Instant updateTime;

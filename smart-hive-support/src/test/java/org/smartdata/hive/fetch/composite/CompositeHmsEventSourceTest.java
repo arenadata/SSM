@@ -23,7 +23,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.CurrentNotificationEventId;
-import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncoder;
 import org.junit.Test;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.hive.HiveSmartConf;

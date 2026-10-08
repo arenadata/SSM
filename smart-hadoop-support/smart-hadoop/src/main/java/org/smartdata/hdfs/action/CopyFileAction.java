@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.hdfs.StreamCopyHandler;
+import org.smartdata.model.PreserveAttribute;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,10 +33,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.smartdata.hdfs.action.PreserveAttribute.GROUP;
-import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.PreserveAttribute.PERMISSIONS;
-import static org.smartdata.hdfs.action.PreserveAttribute.REPLICATION_NUMBER;
+import static org.smartdata.model.PreserveAttribute.GROUP;
+import static org.smartdata.model.PreserveAttribute.OWNER;
+import static org.smartdata.model.PreserveAttribute.PERMISSIONS;
+import static org.smartdata.model.PreserveAttribute.REPLICATION_NUMBER;
 
 /**
  * An action to copy a single file from src to destination.

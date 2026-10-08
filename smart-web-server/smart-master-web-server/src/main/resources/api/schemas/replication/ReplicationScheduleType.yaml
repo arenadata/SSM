@@ -1,0 +1,11 @@
+title: ReplicationScheduleType
+type: string
+description: |
+  Type of the replication schedule:
+  * `EVENT_DRIVEN` - changes are replicated as soon as they appear
+  * `EVERY` - periodic replication, optionally limited by the start and end time
+  * `AT` - single replication at the specified time or immediately, if the time is not set
+enum:
+  - EVENT_DRIVEN
+  - EVERY
+  - AT

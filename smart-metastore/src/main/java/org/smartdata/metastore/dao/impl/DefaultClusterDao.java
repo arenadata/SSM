@@ -62,10 +62,11 @@ public class DefaultClusterDao
 
   @Override
   public Optional<ClusterInfo> getById(long id) {
-    MetastoreQuery query = selectAll()
-        .from(TABLE_NAME)
-        .where(equal(ID_FIELD, id));
-    return executeSingle(query);
+    return executeSingle(
+        selectAll()
+            .from(TABLE_NAME)
+            .where(equal(ID_FIELD, id))
+    );
   }
 
   @Override
@@ -78,23 +79,9 @@ public class DefaultClusterDao
 
   @Override
   public boolean update(ClusterInfo cluster) {
-    // AbstractDao#update skips null values, but the optional fields can be unset
-    int updatedRows = jdbcTemplate.update("UPDATE " + TABLE_NAME + " SET "
-            + NAME_FIELD + " = ?, "
-            + STATUS_FIELD + " = ?, "
-            + HDFS_URI_FIELD + " = ?, "
-            + HIVE_THRIFT_URI_FIELD + " = ?, "
-            + HDFS_NAMESERVICE_FIELD + " = ?, "
-            + UPDATE_TIME_FIELD + " = ?"
-            + " WHERE " + ID_FIELD + " = ?",
-        cluster.getName(),
-        cluster.getStatus().name(),
-        cluster.getHdfsUri(),
-        cluster.getHiveThriftUri(),
-        cluster.getHdfsNameservice(),
-        cluster.getUpdateTime().toEpochMilli(),
-        cluster.getId());
-    return updatedRows > 0;
+    Map<String, Object> properties = toMap(cluster);
+    properties.remove(CREATE_TIME_FIELD);
+    return updateIncludingNulls(properties, ID_FIELD + " = ?", cluster.getId()) > 0;
   }
 
   @Override

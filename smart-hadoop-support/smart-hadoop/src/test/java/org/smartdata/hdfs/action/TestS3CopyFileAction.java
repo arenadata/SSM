@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.smartdata.hdfs.MiniClusterHarness;
 import org.smartdata.hdfs.SmartMinIOContainer;
+import org.smartdata.model.PreserveAttribute;
 
 import java.net.URI;
 import java.util.HashMap;

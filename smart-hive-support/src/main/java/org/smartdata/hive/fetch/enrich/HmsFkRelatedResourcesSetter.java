@@ -24,14 +24,14 @@ import org.apache.hadoop.hive.metastore.messaging.AddForeignKeyMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.model.HiveOperation;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.smartdata.hive.fetch.HiveNotificationEvent.fullResourceName;
-import static org.smartdata.hive.fetch.HiveOperation.CREATE;
+import static org.smartdata.model.HiveOperation.CREATE;
 
 @Slf4j
 public class HmsFkRelatedResourcesSetter extends HmsEventModifier {

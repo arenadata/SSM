@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.model.HiveOperation;
 
 import java.util.Arrays;
 import java.util.Comparator;

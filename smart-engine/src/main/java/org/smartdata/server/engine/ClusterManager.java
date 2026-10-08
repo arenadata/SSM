@@ -31,6 +31,12 @@ import org.smartdata.metastore.queries.sort.ClusterSortField;
 import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.ClusterStatus;
 import org.smartdata.model.request.ClusterSearchRequest;
+import org.smartdata.security.SmartPrincipalManager;
+import org.smartdata.server.engine.audit.AuditService;
+import org.smartdata.server.engine.audit.Auditable;
+import org.smartdata.server.engine.audit.aspect.Audit;
+import org.smartdata.server.engine.audit.aspect.AuditId;
+import org.smartdata.server.engine.audit.aspect.ReturnsAuditId;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
@@ -38,28 +44,49 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.smartdata.metastore.utils.MetaStoreUtils.logAndBuildMetastoreException;
+import static org.smartdata.model.audit.UserActivityObject.CLUSTER;
+import static org.smartdata.model.audit.UserActivityOperation.CREATE;
+import static org.smartdata.model.audit.UserActivityOperation.DELETE;
 
 /**
  * Manages the target clusters of the replication policies.
  */
 @Slf4j
-public class ClusterManager {
+public class ClusterManager implements Auditable {
   private final ClusterDao clusterDao;
+  private final AuditService auditService;
+  private final SmartPrincipalManager principalManager;
   private final Searchable<ClusterSearchRequest, ClusterInfo, ClusterSortField> searchService;
   private final Clock clock;
+  private final List<ClusterListener> listeners;
 
-  public ClusterManager(MetaStore metaStore) {
-    this(metaStore.clusterDao(), Clock.systemUTC());
+  public ClusterManager(
+      MetaStore metaStore,
+      AuditService auditService,
+      SmartPrincipalManager principalManager) {
+    this(metaStore.clusterDao(), auditService, principalManager, Clock.systemUTC());
   }
 
-  public ClusterManager(ClusterDao clusterDao, Clock clock) {
+  public ClusterManager(
+      ClusterDao clusterDao,
+      AuditService auditService,
+      SmartPrincipalManager principalManager,
+      Clock clock) {
     this.clusterDao = clusterDao;
+    this.auditService = auditService;
+    this.principalManager = principalManager;
     this.searchService = new SearchableService<>(clusterDao, "clusters");
     this.clock = clock;
+    this.listeners = new CopyOnWriteArrayList<>();
+  }
+
+  public void addListener(ClusterListener listener) {
+    listeners.add(listener);
   }
 
   public SearchResult<ClusterInfo> search(
@@ -69,10 +96,8 @@ public class ClusterManager {
   }
 
   public ClusterInfo getCluster(long id) throws IOException {
-    Optional<ClusterInfo> cluster = executeDbOperation(
-        () -> clusterDao.getById(id), "Error fetching cluster " + id);
-    return cluster.orElseThrow(
-        () -> NotFoundException.forIdentifiableEntity("Cluster", id));
+    return executeDbOperation(() -> clusterDao.getById(id), "Error fetching cluster " + id)
+        .orElseThrow(() -> NotFoundException.forIdentifiableEntity("Cluster", id));
   }
 
   /**
@@ -82,6 +107,12 @@ public class ClusterManager {
    *                The rest of the fields are ignored.
    */
   public ClusterInfo createCluster(ClusterInfo cluster) throws IOException {
+    return getCluster(insertCluster(cluster));
+  }
+
+  @ReturnsAuditId
+  @Audit(objectType = CLUSTER, operation = CREATE)
+  private long insertCluster(ClusterInfo cluster) throws IOException {
     Instant now = clock.instant();
     ClusterInfo newCluster = withValidatedSettings(
         ClusterInfo.builder()
@@ -91,12 +122,9 @@ public class ClusterManager {
             .build(),
         cluster);
 
-    long id = executeDbOperation(
+    return executeDbOperation(
         () -> clusterDao.insert(newCluster),
         "Error creating cluster " + newCluster.getName());
-    return newCluster.toBuilder()
-        .id(id)
-        .build();
   }
 
   /**
@@ -115,6 +143,9 @@ public class ClusterManager {
         .toBuilder()
         .updateTime(clock.instant())
         .build();
+    for (ClusterListener listener : listeners) {
+      listener.beforeClusterUpdate(oldCluster, updatedCluster);
+    }
     update(updatedCluster);
     return updatedCluster;
   }
@@ -122,16 +153,31 @@ public class ClusterManager {
   /**
    * Decommissions the cluster, after which it can't be used or modified anymore.
    */
-  public void completeCluster(long id) throws IOException {
+  @Audit(objectType = CLUSTER, operation = DELETE)
+  public void completeCluster(@AuditId long id) throws IOException {
     ClusterInfo cluster = getCluster(id);
     if (cluster.getStatus() == ClusterStatus.COMPLETED) {
       throw StateTransitionException.forCluster(cluster.getStatus(), ClusterStatus.COMPLETED);
+    }
+
+    for (ClusterListener listener : listeners) {
+      listener.beforeClusterComplete(cluster);
     }
 
     update(cluster.toBuilder()
         .status(ClusterStatus.COMPLETED)
         .updateTime(clock.instant())
         .build());
+  }
+
+  @Override
+  public AuditService getAuditService() {
+    return auditService;
+  }
+
+  @Override
+  public SmartPrincipalManager getPrincipalService() {
+    return principalManager;
   }
 
   private void update(ClusterInfo cluster) throws IOException {
@@ -170,23 +216,24 @@ public class ClusterManager {
       throw new IllegalArgumentException("Cluster HDFS URI can't be empty");
     }
 
+    URI uri;
     try {
-      URI uri = new URI(hdfsUri);
-      if (uri.getScheme() != null && uri.getAuthority() != null) {
-        return;
-      }
+      uri = new URI(hdfsUri);
     } catch (URISyntaxException exception) {
-      // handled below
+      throw new IllegalArgumentException("Invalid cluster HDFS URI: " + hdfsUri, exception);
     }
-    throw new IllegalArgumentException(
-        "Cluster HDFS URI should contain scheme and authority, e.g. hdfs://nameservice: "
-            + hdfsUri);
+    // without the authority the URI is resolved against the local default file system
+    if (uri.getScheme() == null || uri.getAuthority() == null) {
+      throw new IllegalArgumentException(
+          "Cluster HDFS URI should contain scheme and authority, e.g. hdfs://nameservice: "
+              + hdfsUri);
+    }
   }
 
-  private <T> T executeDbOperation(Supplier<T> operation, String errorMessage)
+  private <T> T executeDbOperation(Callable<T> operation, String errorMessage)
       throws IOException {
     try {
-      return operation.get();
+      return operation.call();
     } catch (DuplicateKeyException exception) {
       throw new IllegalArgumentException("Cluster with the same name already exists", exception);
     } catch (Exception exception) {

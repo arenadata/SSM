@@ -1,0 +1,51 @@
+get:
+  tags:
+    - ReplicationPolicies
+  summary: Get replication policy by id
+  operationId: getReplicationPolicy
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/replication/ReplicationPolicy.yaml'
+    '404':
+      description: Replication policy with specified id not found
+    '401':
+      description: Unauthorized
+put:
+  tags:
+    - ReplicationPolicies
+  summary: Update replication policy
+  description: Policy status is kept. Completed policy can't be updated
+  operationId: updateReplicationPolicy
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/ReplicationPolicyRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/replication/ReplicationPolicy.yaml'
+    '400':
+      description: |
+        Data is filled incorrectly, policy with the same name already exists
+        or policy is completed
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '404':
+      description: Replication policy with specified id not found
+    '401':
+      description: Unauthorized

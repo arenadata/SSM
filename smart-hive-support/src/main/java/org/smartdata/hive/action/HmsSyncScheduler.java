@@ -42,13 +42,13 @@ import org.smartdata.hive.action.table.HmsCreateTableAction;
 import org.smartdata.hive.action.table.HmsDropTableAction;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.hive.util.DefaultTrie;
 import org.smartdata.hive.util.Trie;
 import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.CmdletInfo;
+import org.smartdata.model.HiveOperation;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ActionSchedulerService;
 import org.smartdata.model.action.ScheduleResult;
@@ -89,9 +89,9 @@ import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
-import static org.smartdata.hive.fetch.HiveOperation.ALTER;
-import static org.smartdata.hive.fetch.HiveOperation.CREATE;
-import static org.smartdata.hive.fetch.HiveOperation.DROP;
+import static org.smartdata.model.HiveOperation.ALTER;
+import static org.smartdata.model.HiveOperation.CREATE;
+import static org.smartdata.model.HiveOperation.DROP;
 
 @Slf4j
 public class HmsSyncScheduler extends ActionSchedulerService {

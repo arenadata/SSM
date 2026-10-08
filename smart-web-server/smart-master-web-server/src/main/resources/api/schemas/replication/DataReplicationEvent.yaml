@@ -1,0 +1,9 @@
+title: DataReplicationEvent
+type: string
+description: HDFS event, which is replayed on the target cluster
+enum:
+  - CREATE
+  - APPEND
+  - DELETE
+  - RENAME
+  - METADATA

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.smartdata.action.annotation.ActionSignature;
 import org.smartdata.model.FileInfoDiff;
+import org.smartdata.model.PreserveAttribute;
 
 import java.util.Map;
 import java.util.Set;

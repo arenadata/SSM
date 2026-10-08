@@ -35,9 +35,9 @@ import org.apache.hadoop.hive.metastore.messaging.MessageDeserializer;
 import org.apache.hadoop.hive.metastore.messaging.MessageFactory;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.handler.HmsEventHandler;
+import org.smartdata.model.HiveOperation;
 import org.smartdata.retry.RetryException;
 import org.smartdata.retry.RetrySupport;
 

@@ -20,6 +20,8 @@ import type { DateRange, SerializedDate } from '@models/dateRange';
 export enum AdhAuditObjectType {
   Rule = 'RULE',
   Cmdlet = 'CMDLET',
+  Cluster = 'CLUSTER',
+  ReplicationPolicy = 'REPLICATION_POLICY',
 }
 
 export enum AdhAuditOperation {

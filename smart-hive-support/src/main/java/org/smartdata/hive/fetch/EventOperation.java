@@ -19,6 +19,7 @@
 package org.smartdata.hive.fetch;
 
 import lombok.Data;
+import org.smartdata.model.HiveOperation;
 
 @Data
 public class EventOperation {

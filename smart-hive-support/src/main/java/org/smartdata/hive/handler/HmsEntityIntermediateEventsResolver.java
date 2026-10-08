@@ -20,7 +20,7 @@ package org.smartdata.hive.handler;
 import lombok.Getter;
 import org.apache.commons.lang3.EnumUtils;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.model.HiveOperation;
 
 import java.util.HashMap;
 import java.util.HashSet;

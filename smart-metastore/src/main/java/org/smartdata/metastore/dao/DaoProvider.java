@@ -46,6 +46,8 @@ public interface DaoProvider {
 
   ClusterDao clusterDao();
 
+  ReplicationPolicyDao replicationPolicyDao();
+
   SystemInfoDao systemInfoDao();
 
   FileStateDao fileStateDao();
