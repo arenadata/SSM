@@ -22,14 +22,15 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.smartdata.action.ActionException;
 import org.smartdata.action.annotation.ActionSignature;
+import org.smartdata.model.PreserveAttribute;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static org.smartdata.hdfs.action.PreserveAttribute.GROUP;
-import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.PreserveAttribute.PERMISSIONS;
+import static org.smartdata.model.PreserveAttribute.GROUP;
+import static org.smartdata.model.PreserveAttribute.OWNER;
+import static org.smartdata.model.PreserveAttribute.PERMISSIONS;
 
 /**
  * An action to copy a directory without content

@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.model.HiveOperation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

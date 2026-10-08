@@ -28,6 +28,7 @@ import org.smartdata.metastore.dao.FileStateDao;
 import org.smartdata.metastore.dao.HiveDatabaseDao;
 import org.smartdata.metastore.dao.HivePartitionDao;
 import org.smartdata.metastore.dao.HiveTableDao;
+import org.smartdata.metastore.dao.ReplicationPolicyDao;
 import org.smartdata.metastore.dao.SmallFileDao;
 import org.smartdata.metastore.dao.StorageDao;
 import org.smartdata.metastore.dao.impl.DefaultDaoProvider;
@@ -102,5 +103,10 @@ public class PostgresDaoProvider extends DefaultDaoProvider {
   public HiveCatalogDao hiveCatalogDao() {
     return new PostgresHiveCatalogDao(
         hiveDatabaseDao(), hiveTableDao(), hivePartitionDao(), transactionManager);
+  }
+
+  @Override
+  public ReplicationPolicyDao replicationPolicyDao() {
+    return new PostgresReplicationPolicyDao(dataSource, transactionManager);
   }
 }

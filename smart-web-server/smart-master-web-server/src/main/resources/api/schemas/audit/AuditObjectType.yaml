@@ -4,3 +4,5 @@ description: Type of the audit object
 enum:
   - RULE
   - CMDLET
+  - CLUSTER
+  - REPLICATION_POLICY

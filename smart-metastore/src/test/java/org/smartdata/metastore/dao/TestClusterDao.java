@@ -35,10 +35,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.smartdata.metastore.dao.ReplicationTestData.CREATE_TIME;
+import static org.smartdata.metastore.dao.ReplicationTestData.cluster;
 
 public class TestClusterDao extends TestDaoBase {
-  private static final Instant CREATE_TIME = Instant.ofEpochMilli(1000L);
-
   private ClusterDao clusterDao;
 
   @Before
@@ -152,16 +152,5 @@ public class TestClusterDao extends TestDaoBase {
     searchSupport.testSearch(ClusterSearchRequest.builder()
         .nameLike("unknown")
         .build());
-  }
-
-  private static ClusterInfo.Builder cluster(String name) {
-    return ClusterInfo.builder()
-        .name(name)
-        .status(ClusterStatus.ACTIVE)
-        .hdfsUri("hdfs://" + name)
-        .hiveThriftUri("thrift://" + name + ":9083")
-        .hdfsNameservice(name)
-        .createTime(CREATE_TIME)
-        .updateTime(CREATE_TIME);
   }
 }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026.10.09_001" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="replication_policy"/>
+            </not>
+        </preConditions>
+        <createTable tableName="replication_policy">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"
+                             uniqueConstraintName="replication_policy_name_key"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="status" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_cluster_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="replication_policy_target_cluster_id_fkey"
+                             references="cluster(id)"/>
+            </column>
+            <column name="tags" type="TEXT[]"/>
+            <column name="databases" type="TEXT[]">
+                <constraints nullable="false"/>
+            </column>
+            <!-- in the "db.table" format -->
+            <column name="tables" type="TEXT[]"/>
+            <column name="table_name_regex" type="TEXT"/>
+
+            <column name="data_replication_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <!-- comma-separated lists of enum values -->
+            <column name="data_preserved_attributes" type="VARCHAR(255)"/>
+            <column name="data_events" type="VARCHAR(255)"/>
+
+            <column name="metadata_replication_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata_events" type="VARCHAR(255)"/>
+            <column name="metadata_cascade" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="schedule_type" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="schedule_interval" type="BIGINT"/>
+            <column name="schedule_start_time" type="BIGINT"/>
+            <column name="schedule_end_time" type="BIGINT"/>
+
+            <column name="create_time" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

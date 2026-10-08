@@ -1,0 +1,62 @@
+get:
+  tags:
+    - ReplicationPolicies
+  summary: List replication policies
+  operationId: getReplicationPolicies
+  parameters:
+    - $ref: '../parameters/common/page-request.yaml'
+    - $ref: '../parameters/replication/replication-policies-sort.yaml'
+    - $ref: '../parameters/common/name-like.yaml'
+    - $ref: '../parameters/replication/replication-policy-statuses.yaml'
+    - $ref: '../parameters/replication/target-cluster-ids.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            title: ReplicationPolicies
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of replication policies
+                    items:
+                      $ref: '../schemas/replication/ReplicationPolicy.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized
+post:
+  tags:
+    - ReplicationPolicies
+  summary: Create replication policy
+  description: Policy is created in the `CREATED` status
+  operationId: createReplicationPolicy
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/ReplicationPolicyRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/replication/ReplicationPolicy.yaml'
+    '400':
+      description: Data is filled incorrectly or policy with the same name already exists
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized

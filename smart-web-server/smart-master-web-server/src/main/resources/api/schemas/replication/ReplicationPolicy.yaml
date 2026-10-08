@@ -1,0 +1,53 @@
+title: ReplicationPolicy
+type: object
+properties:
+  id:
+    type: integer
+    format: int64
+    description: Policy id
+  name:
+    type: string
+    description: Unique name of the policy
+  description:
+    type: string
+    nullable: true
+    description: Description of the policy
+  status:
+    $ref: './ReplicationPolicyStatus.yaml'
+  tags:
+    type: array
+    nullable: true
+    description: Tags of the policy
+    items:
+      type: string
+  source:
+    $ref: './ReplicationSource.yaml'
+  targetClusterId:
+    type: integer
+    format: int64
+    description: Id of the cluster, to which the data and metadata are replicated
+  dataReplication:
+    $ref: './DataReplicationSettings.yaml'
+  metadataReplication:
+    $ref: './MetadataReplicationSettings.yaml'
+  schedule:
+    $ref: './ReplicationSchedule.yaml'
+  createTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp (UTC) of the policy creation
+  updateTime:
+    type: integer
+    format: int64
+    description: UNIX timestamp (UTC) of the last policy update
+required:
+  - id
+  - name
+  - status
+  - source
+  - targetClusterId
+  - dataReplication
+  - metadataReplication
+  - schedule
+  - createTime
+  - updateTime

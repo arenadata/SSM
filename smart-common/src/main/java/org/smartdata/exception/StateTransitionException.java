@@ -19,6 +19,7 @@ package org.smartdata.exception;
 
 import org.smartdata.model.ClusterStatus;
 import org.smartdata.model.RuleState;
+import org.smartdata.model.replication.ReplicationPolicyStatus;
 
 import java.io.IOException;
 
@@ -36,5 +37,11 @@ public class StateTransitionException extends IOException {
   public static StateTransitionException forCluster(ClusterStatus oldStatus, ClusterStatus newStatus) {
     return new StateTransitionException(
         "Cluster status transition is not supported: " + oldStatus.name() + " -> " + newStatus.name());
+  }
+
+  public static StateTransitionException forReplicationPolicy(
+      ReplicationPolicyStatus oldStatus, ReplicationPolicyStatus newStatus) {
+    return new StateTransitionException("Replication policy status transition is not supported: "
+        + oldStatus.name() + " -> " + newStatus.name());
   }
 }

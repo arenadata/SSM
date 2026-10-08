@@ -37,8 +37,8 @@ import org.junit.Test;
 import org.smartdata.hive.HiveSmartConf;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
 import org.smartdata.hive.fetch.filter.HmsEventNameIgnoreFilter;
+import org.smartdata.model.HiveOperation;
 
 import java.util.Collection;
 import java.util.Collections;

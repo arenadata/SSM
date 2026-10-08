@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hdfs.action;
+package org.smartdata.model;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.smartdata.model.FileInfoDiff;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -95,7 +94,7 @@ public enum PreserveAttribute {
         .anyMatch(attr -> attr.toString().equalsIgnoreCase(option));
   }
 
-  protected static PreserveAttribute fromOption(String option) {
+  public static PreserveAttribute fromOption(String option) {
     return Arrays.stream(PreserveAttribute.values())
         .filter(attr -> attr.toString().equalsIgnoreCase(option))
         .findFirst()

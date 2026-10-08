@@ -1,0 +1,16 @@
+title: ReplicationPolicySort
+type: string
+description: Sort field names prefixed with '-' for descending order
+enum:
+  - id
+  - name
+  - status
+  - targetClusterId
+  - createTime
+  - updateTime
+  - -id
+  - -name
+  - -status
+  - -targetClusterId
+  - -createTime
+  - -updateTime

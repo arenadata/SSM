@@ -25,7 +25,11 @@ import org.smartdata.metastore.TestDaoBase;
 import org.smartdata.metastore.dao.ClusterDao;
 import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.ClusterStatus;
+import org.smartdata.security.AnonymousDefaultPrincipalProvider;
+import org.smartdata.security.ThreadScopeSmartPrincipalManager;
+import org.smartdata.server.engine.audit.AuditService;
 
+import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -170,6 +174,31 @@ public class TestClusterManager extends TestDaoBase {
   }
 
   @Test
+  public void testListenerRejectsChanges() throws Exception {
+    ClusterInfo cluster = clusterManager.createCluster(cluster("backup").build());
+    clusterManager.addListener(new ClusterListener() {
+      @Override
+      public void beforeClusterUpdate(ClusterInfo oldCluster, ClusterInfo newCluster) {
+        assertEquals(cluster, oldCluster);
+        assertEquals("backup_v2", newCluster.getName());
+        throw new IllegalArgumentException("Update is rejected");
+      }
+
+      @Override
+      public void beforeClusterComplete(ClusterInfo completedCluster) throws IOException {
+        assertEquals(cluster, completedCluster);
+        throw new StateTransitionException("Completion is rejected");
+      }
+    });
+
+    assertThrows(IllegalArgumentException.class,
+        () -> clusterManager.updateCluster(cluster.getId(), cluster("backup_v2").build()));
+    assertThrows(StateTransitionException.class,
+        () -> clusterManager.completeCluster(cluster.getId()));
+    assertEquals(cluster, clusterManager.getCluster(cluster.getId()));
+  }
+
+  @Test
   public void testCompleteUnknownCluster() {
     assertThrows(NotFoundException.class, () -> clusterManager.completeCluster(1L));
   }
@@ -179,7 +208,10 @@ public class TestClusterManager extends TestDaoBase {
   }
 
   private ClusterManager managerAt(Instant now) {
-    return new ClusterManager(clusterDao, Clock.fixed(now, ZoneOffset.UTC));
+    return new ClusterManager(clusterDao,
+        new AuditService(daoProvider.userActivityDao()),
+        new ThreadScopeSmartPrincipalManager(new AnonymousDefaultPrincipalProvider()),
+        Clock.fixed(now, ZoneOffset.UTC));
   }
 
   private static ClusterInfo.Builder cluster(String name) {

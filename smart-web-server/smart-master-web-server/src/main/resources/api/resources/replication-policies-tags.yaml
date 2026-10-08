@@ -1,0 +1,17 @@
+get:
+  tags:
+    - ReplicationPolicies
+  summary: List tags of all the replication policies
+  operationId: getReplicationPolicyTags
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            description: Distinct tags in the alphabetical order
+            items:
+              type: string
+    '401':
+      description: Unauthorized

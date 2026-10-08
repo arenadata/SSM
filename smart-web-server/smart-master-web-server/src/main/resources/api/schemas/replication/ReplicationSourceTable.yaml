@@ -1,0 +1,12 @@
+title: ReplicationSourceTable
+type: object
+properties:
+  dbName:
+    type: string
+    description: Name of the source Hive database
+  name:
+    type: string
+    description: Name of the source Hive table
+required:
+  - dbName
+  - name

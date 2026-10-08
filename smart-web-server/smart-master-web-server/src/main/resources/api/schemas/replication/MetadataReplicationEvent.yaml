@@ -1,0 +1,7 @@
+title: MetadataReplicationEvent
+type: string
+description: Hive Metastore event, which is replayed on the target cluster
+enum:
+  - CREATE
+  - ALTER
+  - DROP

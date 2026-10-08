@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.smartdata.hive.EntityInfo;
 import org.smartdata.hive.fetch.filter.HmsEventNameIgnoreFilter;
+import org.smartdata.model.HiveOperation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,8 +67,8 @@ import static org.smartdata.hive.fetch.HiveEntity.DATABASE;
 import static org.smartdata.hive.fetch.HiveEntity.FUNCTION;
 import static org.smartdata.hive.fetch.HiveEntity.PARTITION;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
-import static org.smartdata.hive.fetch.HiveOperation.CREATE;
-import static org.smartdata.hive.fetch.HiveOperation.DROP;
+import static org.smartdata.model.HiveOperation.CREATE;
+import static org.smartdata.model.HiveOperation.DROP;
 
 public class HmsInFlightEventSourceTest {
 

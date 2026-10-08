@@ -1,0 +1,13 @@
+title: ReplicationPolicyStatus
+type: string
+description: |
+  Status of the replication policy:
+  * `CREATED` - the policy is created, but not launched yet
+  * `ACTIVE` - the policy is launched
+  * `PAUSED` - the policy is suspended, but can be resumed
+  * `COMPLETED` - the policy is finished and can't be launched or modified anymore
+enum:
+  - CREATED
+  - ACTIVE
+  - PAUSED
+  - COMPLETED

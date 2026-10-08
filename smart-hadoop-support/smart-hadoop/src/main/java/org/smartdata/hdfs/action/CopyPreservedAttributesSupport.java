@@ -22,6 +22,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.smartdata.model.FileInfoDiff;
+import org.smartdata.model.PreserveAttribute;
 
 import java.io.IOException;
 import java.io.PrintStream;
