@@ -22,7 +22,7 @@ import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
 import org.smartdata.metastore.dao.CacheFileDao;
 import org.smartdata.metastore.dao.ClusterConfigDao;
-import org.smartdata.metastore.dao.ClusterInfoDao;
+import org.smartdata.metastore.dao.ClusterDao;
 import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.DaoProvider;
@@ -110,8 +110,8 @@ public abstract class DefaultDaoProvider implements DaoProvider {
   }
 
   @Override
-  public ClusterInfoDao clusterInfoDao() {
-    return new DefaultClusterInfoDao(dataSource);
+  public ClusterDao clusterDao() {
+    return new DefaultClusterDao(dataSource, transactionManager);
   }
 
   @Override

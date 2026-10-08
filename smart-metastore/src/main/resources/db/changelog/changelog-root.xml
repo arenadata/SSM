@@ -22,4 +22,5 @@
     <include file="/db/changelog/changelog-12.add-related-resources-field.xml"/>
     <include file="/db/changelog/changelog-13.add-backup-diff-types.xml"/>
     <include file="/db/changelog/changelog-14.add-hive-catalog-tables.xml"/>
+    <include file="/db/changelog/changelog-15.add-cluster-table.xml"/>
 </databaseChangeLog>

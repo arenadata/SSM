@@ -17,6 +17,7 @@
  */
 package org.smartdata.exception;
 
+import org.smartdata.model.ClusterStatus;
 import org.smartdata.model.RuleState;
 
 import java.io.IOException;
@@ -30,5 +31,10 @@ public class StateTransitionException extends IOException {
   public static StateTransitionException forRule(RuleState oldState, RuleState newState) {
     return new StateTransitionException(
         "Rule state transition is not supported: " + oldState.name() + " -> " + newState.name());
+  }
+
+  public static StateTransitionException forCluster(ClusterStatus oldStatus, ClusterStatus newStatus) {
+    return new StateTransitionException(
+        "Cluster status transition is not supported: " + oldStatus.name() + " -> " + newStatus.name());
   }
 }

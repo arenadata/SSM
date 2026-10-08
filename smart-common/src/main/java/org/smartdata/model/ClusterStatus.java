@@ -17,7 +17,9 @@
  */
 package org.smartdata.model;
 
-public enum ClusterState {
-  ENABLED,
-  DISABLED
+public enum ClusterStatus {
+  /** Cluster is available for selection as the replication target. */
+  ACTIVE,
+  /** Cluster is decommissioned and can't be used or modified anymore. */
+  COMPLETED
 }

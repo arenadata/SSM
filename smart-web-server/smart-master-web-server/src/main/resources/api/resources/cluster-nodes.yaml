@@ -5,7 +5,7 @@ get:
   operationId: getClusterNodes
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
-    - $ref: '../parameters/cluster/cluster-sort.yaml'
+    - $ref: '../parameters/cluster/cluster-nodes-sort.yaml'
     - $ref: '../parameters/cluster/registration-time.yaml'
   responses:
     '200':

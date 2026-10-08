@@ -1,0 +1,50 @@
+get:
+  tags:
+    - Clusters
+  summary: Get target cluster of the replication by id
+  operationId: getCluster
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/cluster/Cluster.yaml'
+    '404':
+      description: Cluster with specified id not found
+    '401':
+      description: Unauthorized
+put:
+  tags:
+    - Clusters
+  summary: Update target cluster of the replication
+  operationId: updateCluster
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/ClusterRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/cluster/Cluster.yaml'
+    '400':
+      description: |
+        Data is filled incorrectly, cluster with the same name already exists
+        or cluster is completed
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '404':
+      description: Cluster with specified id not found
+    '401':
+      description: Unauthorized
