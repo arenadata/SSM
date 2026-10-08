@@ -32,7 +32,7 @@ import org.smartdata.metastore.dao.ActionDao;
 import org.smartdata.metastore.dao.BackUpInfoDao;
 import org.smartdata.metastore.dao.CacheFileDao;
 import org.smartdata.metastore.dao.ClusterConfigDao;
-import org.smartdata.metastore.dao.ClusterInfoDao;
+import org.smartdata.metastore.dao.ClusterDao;
 import org.smartdata.metastore.dao.CmdletDao;
 import org.smartdata.metastore.dao.CompressionFileDao;
 import org.smartdata.metastore.dao.DaoProvider;
@@ -63,7 +63,6 @@ import org.smartdata.model.ActionInfo;
 import org.smartdata.model.BackUpInfo;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.ClusterConfig;
-import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
 import org.smartdata.model.CompactFileState;
@@ -128,12 +127,12 @@ public class MetaStore implements CopyMetaService,
   private final HiveTableDao hiveTableDao;
   private final HivePartitionDao hivePartitionDao;
   private final HiveCatalogDao hiveCatalogDao;
+  private final ClusterDao clusterDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
   private final GlobalConfigDao globalConfigDao;
   private final BackUpInfoDao backUpInfoDao;
-  private final ClusterInfoDao clusterInfoDao;
   private final SystemInfoDao systemInfoDao;
   private final FileStateDao fileStateDao;
   private final CompressionFileDao compressionFileDao;
@@ -164,7 +163,6 @@ public class MetaStore implements CopyMetaService,
     clusterConfigDao = daoProvider.clusterConfigDao();
     globalConfigDao = daoProvider.globalConfigDao();
     backUpInfoDao = daoProvider.backUpInfoDao();
-    clusterInfoDao = daoProvider.clusterInfoDao();
     systemInfoDao = daoProvider.systemInfoDao();
     fileStateDao = daoProvider.fileStateDao();
     compressionFileDao = daoProvider.compressionFileDao();
@@ -182,6 +180,7 @@ public class MetaStore implements CopyMetaService,
     hiveTableDao = daoProvider.hiveTableDao();
     hivePartitionDao = daoProvider.hivePartitionDao();
     hiveCatalogDao = daoProvider.hiveCatalogDao();
+    clusterDao = daoProvider.clusterDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -246,6 +245,10 @@ public class MetaStore implements CopyMetaService,
 
   public HiveCatalogDao hiveCatalogDao() {
     return hiveCatalogDao;
+  }
+
+  public ClusterDao clusterDao() {
+    return clusterDao;
   }
 
   public PlatformTransactionManager transactionManager() {
@@ -1214,14 +1217,6 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public List<ClusterInfo> listAllClusterInfo() throws MetaStoreException {
-    try {
-      return clusterInfoDao.getAll();
-    } catch (Exception e) {
-      throw new MetaStoreException(e);
-    }
-  }
-
   public List<SystemInfo> listAllSystemInfo() throws MetaStoreException {
     try {
       return systemInfoDao.getAll();
@@ -1247,14 +1242,6 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public void deleteAllClusterInfo() throws MetaStoreException {
-    try {
-      clusterInfoDao.deleteAll();
-    } catch (Exception e) {
-      throw new MetaStoreException(e);
-    }
-  }
-
   public void updateSystemInfo(
       SystemInfo systemInfo) throws MetaStoreException {
     try {
@@ -1275,30 +1262,10 @@ public class MetaStore implements CopyMetaService,
     }
   }
 
-  public void deleteClusterInfo(long cid) throws MetaStoreException {
-    try {
-      clusterInfoDao.delete(cid);
-    } catch (Exception e) {
-      throw new MetaStoreException(e);
-    }
-  }
-
   public void deleteSystemInfo(
       String property) throws MetaStoreException {
     try {
       systemInfoDao.delete(property);
-    } catch (Exception e) {
-      throw new MetaStoreException(e);
-    }
-  }
-
-  public void insertClusterInfo(
-      ClusterInfo clusterInfo) throws MetaStoreException {
-    try {
-      if (clusterInfoDao.getCountByName(clusterInfo.getName()) != 0) {
-        throw new Exception("name has already exist");
-      }
-      clusterInfoDao.insert(clusterInfo);
     } catch (Exception e) {
       throw new MetaStoreException(e);
     }

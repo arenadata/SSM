@@ -8,7 +8,7 @@ get:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/hive/hive-tables-sort.yaml'
     - $ref: '../parameters/hive/db-names.yaml'
-    - $ref: '../parameters/hive/name-like.yaml'
+    - $ref: '../parameters/common/name-like.yaml'
   responses:
     '200':
       description: OK

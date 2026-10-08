@@ -1,0 +1,22 @@
+title: ClusterRequest
+type: object
+properties:
+  name:
+    type: string
+    description: Unique name of the cluster
+  hdfsUri:
+    type: string
+    description: URI of the cluster HDFS, where the data is replicated
+  hiveThriftUri:
+    type: string
+    nullable: true
+    description: URI of the cluster Hive Metastore, where the metadata is replicated
+  hdfsNameservice:
+    type: string
+    nullable: true
+    description: |
+      Nameservice of the cluster HDFS, which replaces the source HDFS nameservice
+      in the replicated metadata. Required if `hiveThriftUri` is set
+required:
+  - name
+  - hdfsUri

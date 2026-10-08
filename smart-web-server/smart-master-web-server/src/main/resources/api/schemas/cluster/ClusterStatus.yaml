@@ -1,0 +1,9 @@
+title: ClusterStatus
+type: string
+description: |
+  Status of the cluster:
+  * `ACTIVE` - the cluster is available for selection as the replication target
+  * `COMPLETED` - the cluster is decommissioned and can't be used or modified anymore
+enum:
+  - ACTIVE
+  - COMPLETED

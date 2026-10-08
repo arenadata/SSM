@@ -27,6 +27,7 @@ import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.cluster.ClusterNodesManager;
+import org.smartdata.server.engine.ClusterManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.HiveCatalogManager;
 import org.smartdata.server.engine.RuleManager;
@@ -61,6 +62,8 @@ public class SmartEngine extends AbstractService {
   private SmartPrincipalManager smartPrincipalManager;
   @Getter
   private HiveCatalogManager hiveCatalogManager;
+  @Getter
+  private ClusterManager clusterManager;
 
   private final List<AbstractService> services;
 
@@ -85,6 +88,7 @@ public class SmartEngine extends AbstractService {
         serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
     services.add(ruleManager);
     hiveCatalogManager = new HiveCatalogManager(serverContext.getMetaStore());
+    clusterManager = new ClusterManager(serverContext.getMetaStore());
     maybeEnableHiveEventsFetcher();
 
     for (AbstractService s : services) {

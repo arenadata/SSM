@@ -1,0 +1,21 @@
+post:
+  tags:
+    - Clusters
+  summary: Decommission target cluster of the replication
+  description: Completed cluster can't be used as the replication target or modified anymore
+  operationId: completeCluster
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: Cluster has been completed
+    '400':
+      description: Unsupported status transition
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '404':
+      description: Cluster with specified id not found
+    '401':
+      description: Unauthorized

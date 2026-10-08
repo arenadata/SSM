@@ -24,7 +24,7 @@ import org.smartdata.model.request.ClusterNodeSearchRequest;
 import org.smartdata.server.cluster.ClusterNodesManager;
 import org.smartdata.server.generated.api.ClusterApiDelegate;
 import org.smartdata.server.generated.model.ClusterNodesDto;
-import org.smartdata.server.generated.model.ClusterSortDto;
+import org.smartdata.server.generated.model.ClusterNodeSortDto;
 import org.smartdata.server.generated.model.PageRequestDto;
 import org.smartdata.server.generated.model.RegistrationTimeIntervalDto;
 import org.smartdata.server.mappers.ClusterNodeMapper;
@@ -45,7 +45,7 @@ public class ClusterControllerDelegate implements ClusterApiDelegate {
   @Override
   public ClusterNodesDto getClusterNodes(
       PageRequestDto pageRequestDto,
-      List<ClusterSortDto> sort,
+      List<ClusterNodeSortDto> sort,
       RegistrationTimeIntervalDto registrationTime) {
 
     PageRequest<ClusterNodeSortField> pageRequest =

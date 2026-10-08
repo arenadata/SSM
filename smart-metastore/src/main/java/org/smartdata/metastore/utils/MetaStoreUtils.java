@@ -71,7 +71,6 @@ public class MetaStoreUtils {
       "global_config",
       "cluster_config",
       "sys_info",
-      "cluster_info",
       "backup_file",
       "file_state",
       "compression_file",
