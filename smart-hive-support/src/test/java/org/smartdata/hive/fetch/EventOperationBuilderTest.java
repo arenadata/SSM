@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.smartdata.model.HiveOperation;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,9 +85,9 @@ import static org.smartdata.hive.fetch.HiveEntity.PRIMARY_KEY;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE;
 import static org.smartdata.hive.fetch.HiveEntity.TABLE_COLUMN_STAT;
 import static org.smartdata.hive.fetch.HiveEntity.UNIQUE_CONSTRAINT;
-import static org.smartdata.hive.fetch.HiveOperation.ALTER;
-import static org.smartdata.hive.fetch.HiveOperation.CREATE;
-import static org.smartdata.hive.fetch.HiveOperation.DROP;
+import static org.smartdata.model.HiveOperation.ALTER;
+import static org.smartdata.model.HiveOperation.CREATE;
+import static org.smartdata.model.HiveOperation.DROP;
 
 @RunWith(Parameterized.class)
 public class EventOperationBuilderTest {

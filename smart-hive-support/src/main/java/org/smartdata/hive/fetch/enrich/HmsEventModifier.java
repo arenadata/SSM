@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
-import org.smartdata.hive.fetch.HiveOperation;
+import org.smartdata.model.HiveOperation;
 
 import java.util.Optional;
 import java.util.Set;

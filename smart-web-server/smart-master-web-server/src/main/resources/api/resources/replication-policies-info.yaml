@@ -1,0 +1,14 @@
+get:
+  tags:
+    - ReplicationPolicies
+  summary: Get statistics of the replication policies
+  operationId: getReplicationPoliciesInfo
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/replication/ReplicationPoliciesInfo.yaml'
+    '401':
+      description: Unauthorized

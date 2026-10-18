@@ -24,18 +24,18 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.ValueMapping;
 import org.smartdata.metastore.queries.sort.ClusterNodeSortField;
 import org.smartdata.metastore.queries.sort.Sorting;
-import org.smartdata.server.generated.model.ClusterSortDto;
+import org.smartdata.server.generated.model.ClusterNodeSortDto;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.smartdata.server.generated.model.ClusterSortDto.STATUS;
-import static org.smartdata.server.generated.model.ClusterSortDto._STATUS;
+import static org.smartdata.server.generated.model.ClusterNodeSortDto.STATUS;
+import static org.smartdata.server.generated.model.ClusterNodeSortDto._STATUS;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ClusterNodePageRequestMapper
-    extends BasePageRequestMapper<ClusterSortDto, ClusterNodeSortField> {
+    extends BasePageRequestMapper<ClusterNodeSortDto, ClusterNodeSortField> {
 
   @ValueMapping(source = "REGISTRATIONTIME", target = "REGISTRATION_TIME")
   @ValueMapping(source = "EXECUTORSCOUNT", target = "EXECUTORS")
@@ -44,10 +44,10 @@ public interface ClusterNodePageRequestMapper
   @ValueMapping(source = "_EXECUTORSCOUNT", target = "EXECUTORS")
   @ValueMapping(source = "STATUS", target = MappingConstants.THROW_EXCEPTION)
   @ValueMapping(source = "_STATUS", target = MappingConstants.THROW_EXCEPTION)
-  ClusterNodeSortField toSortField(ClusterSortDto sortColumn);
+  ClusterNodeSortField toSortField(ClusterNodeSortDto sortColumn);
 
 
-  default List<Sorting<ClusterNodeSortField>> toSortings(List<ClusterSortDto> sortColumns) {
+  default List<Sorting<ClusterNodeSortField>> toSortings(List<ClusterNodeSortDto> sortColumns) {
     if (CollectionUtils.isEmpty(sortColumns)) {
       return Collections.emptyList();
     }

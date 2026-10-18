@@ -21,8 +21,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
 import org.smartdata.hive.action.HmsSyncAction;
-import org.smartdata.hive.fetch.HiveOperation;
 import org.smartdata.model.CmdletDescriptor;
+import org.smartdata.model.HiveOperation;
 import org.smartdata.model.rule.RuleTranslationResult;
 
 import java.io.IOException;

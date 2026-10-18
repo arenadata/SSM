@@ -19,5 +19,7 @@ package org.smartdata.model.audit;
 
 public enum UserActivityObject {
   RULE,
-  CMDLET
+  CMDLET,
+  CLUSTER,
+  REPLICATION_POLICY
 }

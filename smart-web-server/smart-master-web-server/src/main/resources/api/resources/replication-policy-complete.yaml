@@ -1,0 +1,21 @@
+post:
+  tags:
+    - ReplicationPolicies
+  summary: Complete replication policy
+  description: Finishes the policy, after which it can't be launched or modified anymore
+  operationId: completeReplicationPolicy
+  parameters:
+    - $ref: '../parameters/common/id.yaml'
+  responses:
+    '200':
+      description: OK
+    '400':
+      description: Unsupported status transition
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '404':
+      description: Replication policy with specified id not found
+    '401':
+      description: Unauthorized

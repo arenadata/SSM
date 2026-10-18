@@ -17,7 +17,19 @@
  */
 package org.smartdata.model;
 
-public enum ClusterState {
-  ENABLED,
-  DISABLED
+import com.google.common.collect.Sets;
+
+import java.util.Set;
+
+public enum HiveOperation {
+  CREATE,
+  DROP,
+  ALTER,
+  UNKNOWN;
+
+  public static final Set<HiveOperation> FILTERABLE_OPERATIONS = Sets.newHashSet(CREATE, DROP, ALTER);
+
+  public static boolean isFilterable(HiveOperation operation) {
+    return FILTERABLE_OPERATIONS.contains(operation);
+  }
 }

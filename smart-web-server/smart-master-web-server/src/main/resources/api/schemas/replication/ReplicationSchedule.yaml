@@ -1,0 +1,25 @@
+title: ReplicationSchedule
+type: object
+properties:
+  type:
+    $ref: './ReplicationScheduleType.yaml'
+  intervalSeconds:
+    type: integer
+    format: int64
+    nullable: true
+    minimum: 1
+    description: Interval in seconds between the periodic runs. Required for the `EVERY` schedule
+  startTime:
+    type: integer
+    format: int64
+    nullable: true
+    description: |
+      UNIX timestamp (UTC) of the single run or of the start of the periodic runs.
+      If not set, the replication starts immediately
+  endTime:
+    type: integer
+    format: int64
+    nullable: true
+    description: UNIX timestamp (UTC) of the end of the periodic runs
+required:
+  - type

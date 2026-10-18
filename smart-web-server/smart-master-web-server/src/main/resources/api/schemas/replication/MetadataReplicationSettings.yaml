@@ -1,0 +1,20 @@
+title: MetadataReplicationSettings
+type: object
+properties:
+  enabled:
+    type: boolean
+    description: Whether the metadata of the source entities is replicated
+  events:
+    type: array
+    nullable: true
+    description: |
+      Hive Metastore events, which are replayed on the target cluster.
+      If not specified or empty, all events are replayed
+    items:
+      $ref: './MetadataReplicationEvent.yaml'
+  cascade:
+    type: boolean
+    default: false
+    description: Whether to drop the child entities along with the parent one
+required:
+  - enabled

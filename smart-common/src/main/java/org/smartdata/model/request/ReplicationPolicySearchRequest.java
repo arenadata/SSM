@@ -15,30 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.metastore.dao;
+package org.smartdata.model.request;
 
-import org.smartdata.model.ClusterInfo;
+import lombok.Builder;
+import lombok.Data;
+import org.smartdata.model.replication.ReplicationPolicyStatus;
 
 import java.util.List;
 
-public interface ClusterInfoDao {
-  List<ClusterInfo> getAll();
+@Data
+@Builder
+public class ReplicationPolicySearchRequest {
+  private final String nameLike;
+  private final List<ReplicationPolicyStatus> statuses;
+  private final List<Long> targetClusterIds;
 
-  ClusterInfo getById(long cid);
-
-  List<ClusterInfo> getByIds(List<Long> cids);
-
-  void delete(long cid);
-
-  long insert(ClusterInfo clusterInfo);
-
-  void insert(ClusterInfo[] clusterInfos);
-
-  int updateState(long cid, String state);
-
-  int updateType(long cid, String type);
-
-  void deleteAll();
-
-  int getCountByName(String name);
+  public static ReplicationPolicySearchRequest noFilters() {
+    return builder().build();
+  }
 }

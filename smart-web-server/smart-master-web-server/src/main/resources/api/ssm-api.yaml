@@ -9,6 +9,8 @@ tags:
   - name: Actions
   - name: Files
   - name: Cluster
+  - name: Clusters
+  - name: ReplicationPolicies
   - name: Audit
   - name: Hive
   - name: System
@@ -53,6 +55,30 @@ paths:
   # Cluster
   /api/v2/cluster/nodes:
     $ref: './resources/cluster-nodes.yaml'
+
+  # Clusters
+  /api/v2/clusters:
+    $ref: './resources/clusters.yaml'
+  /api/v2/clusters/{id}:
+    $ref: './resources/cluster.yaml'
+  /api/v2/clusters/{id}/complete:
+    $ref: './resources/cluster-complete.yaml'
+
+  # Replication policies
+  /api/v2/replication-policies:
+    $ref: './resources/replication-policies.yaml'
+  /api/v2/replication-policies/info:
+    $ref: './resources/replication-policies-info.yaml'
+  /api/v2/replication-policies/tags:
+    $ref: './resources/replication-policies-tags.yaml'
+  /api/v2/replication-policies/{id}:
+    $ref: './resources/replication-policy.yaml'
+  /api/v2/replication-policies/{id}/start:
+    $ref: './resources/replication-policy-start.yaml'
+  /api/v2/replication-policies/{id}/pause:
+    $ref: './resources/replication-policy-pause.yaml'
+  /api/v2/replication-policies/{id}/complete:
+    $ref: './resources/replication-policy-complete.yaml'
 
   # Audit
   /api/v2/audit/events:

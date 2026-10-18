@@ -27,12 +27,14 @@ import org.smartdata.security.AnonymousDefaultPrincipalProvider;
 import org.smartdata.security.SmartPrincipalManager;
 import org.smartdata.security.ThreadScopeSmartPrincipalManager;
 import org.smartdata.server.cluster.ClusterNodesManager;
+import org.smartdata.server.engine.ClusterManager;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.HiveCatalogManager;
 import org.smartdata.server.engine.RuleManager;
 import org.smartdata.server.engine.ServerContext;
 import org.smartdata.server.engine.StatesManager;
 import org.smartdata.server.engine.audit.AuditService;
+import org.smartdata.server.engine.replication.ReplicationPolicyManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,6 +63,10 @@ public class SmartEngine extends AbstractService {
   private SmartPrincipalManager smartPrincipalManager;
   @Getter
   private HiveCatalogManager hiveCatalogManager;
+  @Getter
+  private ClusterManager clusterManager;
+  @Getter
+  private ReplicationPolicyManager replicationPolicyManager;
 
   private final List<AbstractService> services;
 
@@ -85,6 +91,11 @@ public class SmartEngine extends AbstractService {
         serverContext, statesManager, cmdletManager, auditService, smartPrincipalManager);
     services.add(ruleManager);
     hiveCatalogManager = new HiveCatalogManager(serverContext.getMetaStore());
+    clusterManager = new ClusterManager(
+        serverContext.getMetaStore(), auditService, smartPrincipalManager);
+    replicationPolicyManager = new ReplicationPolicyManager(serverContext.getMetaStore(),
+        clusterManager, hiveCatalogManager, auditService, smartPrincipalManager);
+    clusterManager.addListener(replicationPolicyManager);
     maybeEnableHiveEventsFetcher();
 
     for (AbstractService s : services) {

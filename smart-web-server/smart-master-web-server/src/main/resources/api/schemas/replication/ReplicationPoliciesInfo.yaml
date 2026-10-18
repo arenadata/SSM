@@ -1,0 +1,14 @@
+title: ReplicationPoliciesInfo
+type: object
+properties:
+  totalPolicies:
+    type: integer
+    format: int64
+    description: Total number of policies
+  activePolicies:
+    type: integer
+    format: int64
+    description: Number of active policies
+required:
+  - totalPolicies
+  - activePolicies

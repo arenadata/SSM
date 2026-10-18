@@ -6,7 +6,7 @@ get:
   parameters:
     - $ref: '../parameters/common/page-request.yaml'
     - $ref: '../parameters/hive/hive-databases-sort.yaml'
-    - $ref: '../parameters/hive/name-like.yaml'
+    - $ref: '../parameters/common/name-like.yaml'
   responses:
     '200':
       description: OK
