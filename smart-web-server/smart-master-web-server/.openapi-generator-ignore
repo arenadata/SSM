@@ -25,6 +25,7 @@
 **/HomeController.java
 **/RFC3339DateFormat.java
 **/ApiUtil.java
+**/SpringDocConfiguration.java
 
 pom.xml
 README.md

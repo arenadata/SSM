@@ -38,8 +38,9 @@
 
   <properties>
     <merged.api.spec.name>ssm-api.yaml</merged.api.spec.name>
-    <merged.api.spec.directory>${project.basedir}/src/main/resources/static</merged.api.spec.directory>
-    <openapi.codegen.output.dir>${project.basedir}</openapi.codegen.output.dir>
+    <merged.api.spec.resources.dir>${project.build.directory}/generated-resources/openapi</merged.api.spec.resources.dir>
+    <merged.api.spec.dir>${merged.api.spec.resources.dir}/static</merged.api.spec.dir>
+    <openapi.codegen.output.dir>${project.build.directory}/generated-sources/openapi</openapi.codegen.output.dir>
     <openapi.codegen.package.base>org.smartdata.server.generated</openapi.codegen.package.base>
     <ui.assets.directory>../../smart-frontend/build/</ui.assets.directory>
   </properties>
