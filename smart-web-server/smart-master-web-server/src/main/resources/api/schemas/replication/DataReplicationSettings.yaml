@@ -9,7 +9,8 @@ properties:
     nullable: true
     description: |
       File attributes, which are copied along with the file data.
-      If not specified, OWNER, GROUP and PERMISSIONS are preserved
+      If not specified, OWNER, GROUP and PERMISSIONS are preserved.
+      Empty list means that no attributes are preserved
     items:
       $ref: './PreserveAttribute.yaml'
   events:

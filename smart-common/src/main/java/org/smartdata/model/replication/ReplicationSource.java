@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Source Hive entities of the replication policy. If neither tables,
- * nor table name regex are specified, the whole databases are replicated.
+ * nor table name pattern are specified, the whole databases are replicated.
  */
 @Data
 @Builder(toBuilder = true)
@@ -32,6 +32,9 @@ public class ReplicationSource {
   private final List<String> databases;
   /** Exact tables of the selected databases. */
   private final List<SourceTable> tables;
-  /** Regex of the table names, applied to all the selected databases. */
+  /**
+   * Glob pattern of the table names ({@code *} and {@code ?} wildcards),
+   * applied to all the selected databases.
+   */
   private final String tableNameRegex;
 }

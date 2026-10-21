@@ -142,9 +142,9 @@ public class ReplicationPolicyManager implements ClusterListener, Auditable {
             .updateTime(now)
             .build(), policy);
 
-    // TODO generate the policy rules in the same transaction with the policy creation:
-    //  - ADH-9536: hms-sync rule per source database, if the metadata replication is enabled;
-    //  - ADH-9537: sync rule per non-overlapping source root directory, collected from the
+    // TODO ADH-9760 generate the policy rules in the same transaction with the policy creation:
+    //  - hms-sync rule per source database, if the metadata replication is enabled;
+    //  - sync rule per non-overlapping source root directory, collected from the
     //    Hive catalog locations of the selected entities, if the data replication is enabled.
     return executeDbOperation(
         () -> policyDao.insert(newPolicy), "Error creating policy " + newPolicy.getName());
@@ -167,7 +167,7 @@ public class ReplicationPolicyManager implements ClusterListener, Auditable {
         .updateTime(clock.instant())
         .build();
 
-    // TODO ADH-9536, ADH-9537 update the policy rules keeping their state:
+    // TODO ADH-9760 update the policy rules keeping their state:
     //  - if only the replication settings are changed (events, preserved attributes,
     //    cascade, schedule), then disable the rules, update their text and restore the state,
     //    so that the hms-sync rules keep their progress;
@@ -182,13 +182,13 @@ public class ReplicationPolicyManager implements ClusterListener, Auditable {
    */
   @Audit(objectType = REPLICATION_POLICY, operation = START)
   public void startPolicy(@AuditId long id) throws IOException {
-    // TODO ADH-9536, ADH-9537: activate the policy rules
+    // TODO ADH-9760: activate the policy rules
     changeStatus(id, EnumSet.of(CREATED, PAUSED), ACTIVE);
   }
 
   @Audit(objectType = REPLICATION_POLICY, operation = STOP)
   public void pausePolicy(@AuditId long id) throws IOException {
-    // TODO ADH-9536, ADH-9537: disable the policy rules dropping their pending cmdlets
+    // TODO ADH-9760: disable the policy rules dropping their pending cmdlets
     changeStatus(id, EnumSet.of(ACTIVE), PAUSED);
   }
 
@@ -197,7 +197,7 @@ public class ReplicationPolicyManager implements ClusterListener, Auditable {
    */
   @Audit(objectType = REPLICATION_POLICY, operation = DELETE)
   public void completePolicy(@AuditId long id) throws IOException {
-    // TODO ADH-9536, ADH-9537: delete the policy rules dropping their pending cmdlets
+    // TODO ADH-9760: delete the policy rules dropping their pending cmdlets
     changeStatus(id, EnumSet.of(CREATED, ACTIVE, PAUSED), COMPLETED);
   }
 
