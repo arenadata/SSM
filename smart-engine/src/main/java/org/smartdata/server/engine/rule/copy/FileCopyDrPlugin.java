@@ -19,11 +19,10 @@ package org.smartdata.server.engine.rule.copy;
 
 import com.hazelcast.internal.util.CollectionUtil;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.action.SyncAction;
-import org.smartdata.hdfs.action.CopyFileAction;
+import org.smartdata.hdfs.action.CopyPreservedAttributesSupport;
 import org.smartdata.metastore.MetaStore;
 import org.smartdata.metastore.MetaStoreException;
 import org.smartdata.model.BackUpInfo;
@@ -205,13 +204,7 @@ public class FileCopyDrPlugin implements RuleExecutorPlugin {
   }
 
   private void validatePreserveArg(String rawPreserveArg) {
-    if (StringUtils.isBlank(rawPreserveArg)) {
-      return;
-    }
-
-    for (String attribute : rawPreserveArg.split(",")) {
-      CopyFileAction.validatePreserveArg(attribute);
-    }
+    CopyPreservedAttributesSupport.parsePreserveAttributes(rawPreserveArg);
   }
 
   private List<String> getPathPatterns(RuleTranslationResult translationResult) {

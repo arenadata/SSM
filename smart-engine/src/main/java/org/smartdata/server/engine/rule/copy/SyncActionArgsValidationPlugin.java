@@ -21,6 +21,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.smartdata.action.SyncAction;
 import org.smartdata.exception.SsmParseException;
+import org.smartdata.hdfs.action.CopyPreservedAttributesSupport;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.PreserveAttribute;
@@ -84,14 +85,14 @@ public class SyncActionArgsValidationPlugin implements RulePlugin {
     }
     validateArgNotBlank(SyncAction.PRESERVE, argValue);
 
-    for (String rawAttribute : argValue.split(",")) {
-      String attribute = rawAttribute.trim();
-      if (!PreserveAttribute.isValidOption(attribute)) {
-        throw new SsmParseException(
-            "Invalid preserve attribute '" + attribute + "' in sync action '"
-                + SyncAction.PRESERVE + "' argument. Valid values are: "
-                + Arrays.toString(PreserveAttribute.values()));
-      }
+    try {
+      CopyPreservedAttributesSupport.parsePreserveAttributes(argValue);
+    } catch (IllegalArgumentException exception) {
+      throw new SsmParseException(
+          "Invalid value '" + argValue + "' of sync action '" + SyncAction.PRESERVE
+              + "' argument: " + exception.getMessage() + ". Valid values are: '"
+              + CopyPreservedAttributesSupport.PRESERVE_NONE + "' or comma-separated attributes "
+              + Arrays.toString(PreserveAttribute.values()));
     }
   }
 

@@ -18,6 +18,7 @@
 package org.smartdata.hdfs.action;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -26,11 +27,10 @@ import org.smartdata.model.PreserveAttribute;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.smartdata.utils.PathUtil.getRawPath;
 
@@ -40,6 +40,8 @@ import static org.smartdata.utils.PathUtil.getRawPath;
  */
 public class CopyPreservedAttributesSupport {
   public static final String PRESERVE_ARG = "-preserve";
+  /** Value of the preserve argument, which disables preserving of all the attributes. */
+  public static final String PRESERVE_NONE = "none";
 
   private final Set<PreserveAttribute> supportedAttributes;
   private final Set<PreserveAttribute> defaultAttributes;
@@ -98,17 +100,43 @@ public class CopyPreservedAttributesSupport {
     logOutput.println("Successfully transferred file attributes: " + preserveAttributes);
   }
 
+  /**
+   * Returns the attributes to preserve: the default ones, if the preserve argument
+   * isn't specified, or none for the {@link #PRESERVE_NONE}.
+   */
   public Set<PreserveAttribute> getPreserveAttributes(Map<String, String> args) {
-    Set<PreserveAttribute> preserveAttributes = Optional.ofNullable(args.get(PRESERVE_ARG))
-        .map(rawArg -> rawArg.split(","))
-        .stream()
-        .flatMap(Arrays::stream)
-        .map(String::trim)
-        .filter(rawAttribute -> !rawAttribute.isEmpty())
-        .map(PreserveAttribute::fromOption)
-        .collect(Collectors.toSet());
-    return preserveAttributes.isEmpty()
-        ? defaultAttributes
-        : preserveAttributes;
+    return parsePreserveAttributes(args.get(PRESERVE_ARG))
+        .orElse(defaultAttributes);
+  }
+
+  /**
+   * Parses the comma-separated attributes of the preserve argument.
+   *
+   * @return parsed attributes, empty set for the {@link #PRESERVE_NONE} or empty optional,
+   *     if no attributes are specified and the default attributes should be preserved
+   * @throws IllegalArgumentException if the attribute is unknown or {@link #PRESERVE_NONE}
+   *     is combined with other attributes
+   */
+  public static Optional<Set<PreserveAttribute>> parsePreserveAttributes(String rawOptions) {
+    if (StringUtils.isBlank(rawOptions)) {
+      return Optional.empty();
+    }
+
+    Set<PreserveAttribute> attributes = EnumSet.noneOf(PreserveAttribute.class);
+    if (rawOptions.trim().equalsIgnoreCase(PRESERVE_NONE)) {
+      return Optional.of(attributes);
+    }
+
+    for (String rawOption : rawOptions.split(",")) {
+      String option = rawOption.trim();
+      if (option.equalsIgnoreCase(PRESERVE_NONE)) {
+        throw new IllegalArgumentException(
+            "Preserve option '" + PRESERVE_NONE + "' can't be combined with the attributes");
+      }
+      if (!option.isEmpty()) {
+        attributes.add(PreserveAttribute.fromOption(option));
+      }
+    }
+    return attributes.isEmpty() ? Optional.empty() : Optional.of(attributes);
   }
 }
