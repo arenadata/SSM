@@ -89,11 +89,6 @@ public enum PreserveAttribute {
     return name;
   }
 
-  public static boolean isValidOption(String option) {
-    return Arrays.stream(PreserveAttribute.values())
-        .anyMatch(attr -> attr.toString().equalsIgnoreCase(option));
-  }
-
   public static PreserveAttribute fromOption(String option) {
     return Arrays.stream(PreserveAttribute.values())
         .filter(attr -> attr.toString().equalsIgnoreCase(option))

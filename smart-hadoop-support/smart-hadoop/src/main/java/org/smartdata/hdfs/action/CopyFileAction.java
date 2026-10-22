@@ -226,10 +226,6 @@ public class CopyFileAction extends HdfsAction {
     return destFileStatus;
   }
 
-  public static void validatePreserveArg(String option) {
-    PreserveAttribute.fromOption(option);
-  }
-
   private short getReplication(Short defaultReplication) {
     return preserveAttributes.contains(REPLICATION_NUMBER)
         ? srcFileStatus.getReplication()

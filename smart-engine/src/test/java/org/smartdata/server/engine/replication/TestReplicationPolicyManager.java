@@ -169,7 +169,7 @@ public class TestReplicationPolicyManager extends TestDaoBase {
         .name("sales")
         .source(ReplicationSource.builder()
             .databases(Collections.singletonList("db1"))
-            .tableNameRegex(" sales_.* ")
+            .tableNameRegex(" sales_* ")
             .build())
         .targetClusterId(clusterId)
         .dataReplication(DataReplicationSettings.builder().enabled(true).build())
@@ -186,7 +186,7 @@ public class TestReplicationPolicyManager extends TestDaoBase {
         .status(CREATED)
         .source(ReplicationSource.builder()
             .databases(Collections.singletonList("db1"))
-            .tableNameRegex("sales_.*")
+            .tableNameRegex("sales_*")
             .build())
         .targetClusterId(clusterId)
         .dataReplication(DataReplicationSettings.builder().enabled(true).build())
@@ -217,10 +217,10 @@ public class TestReplicationPolicyManager extends TestDaoBase {
     assertInvalid(policy -> policy.source(source()
         .tables(Collections.singletonList(SourceTable.of("db1", "unknown")))
         .build()));
-    assertInvalid(policy -> policy.source(source().tableNameRegex("sales_[").build()));
+    assertInvalid(policy -> policy.source(source().tableNameRegex("sales_\"*").build()));
     assertInvalid(policy -> policy.source(source()
         .tables(Collections.singletonList(SourceTable.of("db1", "sales")))
-        .tableNameRegex("sales_.*")
+        .tableNameRegex("sales_*")
         .build()));
 
     // target cluster

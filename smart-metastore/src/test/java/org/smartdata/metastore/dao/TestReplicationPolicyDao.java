@@ -228,7 +228,7 @@ public class TestReplicationPolicyDao extends TestDaoBase {
         .source(ReplicationSource.builder()
             .databases(Arrays.asList("db1", "db2"))
             .tables(Arrays.asList(SourceTable.of("db1", name), SourceTable.of("db2", name)))
-            .tableNameRegex(name + "_.*")
+            .tableNameRegex(name + "_*")
             .build())
         .dataReplication(DataReplicationSettings.builder()
             .enabled(false)
