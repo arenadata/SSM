@@ -18,6 +18,7 @@
 package org.smartdata.hdfs;
 
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class SmartMinIOContainer extends MinIOContainer {
   private List<String> buckets;
 
   public SmartMinIOContainer(String dockerImageName) {
-    super(dockerImageName);
+    super(DockerImageName.parse(dockerImageName).asCompatibleSubstituteFor("minio/minio"));
     this.buckets = new ArrayList<>();
   }
 
