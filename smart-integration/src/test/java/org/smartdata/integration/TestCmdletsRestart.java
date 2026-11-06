@@ -17,7 +17,6 @@
  */
 package org.smartdata.integration;
 
-import io.qameta.allure.Feature;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,6 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.smartdata.metastore.utils.MetaStoreUtils.getDBAdapter;
 
-@Feature("Integration tests")
 public class TestCmdletsRestart {
   private SmartCluster cluster;
   private SmartConf conf;
