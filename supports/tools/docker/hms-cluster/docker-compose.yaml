@@ -94,7 +94,7 @@ services:
       test: [ "CMD-SHELL", "curl http://ssm-server.demo:8081 || exit 1" ]
       interval: 30s
       timeout: 15s
-      retries: 5
+      retries: 10
     networks:
       - demo
     depends_on:
@@ -170,7 +170,7 @@ services:
       test: [ "CMD", "sh", "-c", "beeline -u 'jdbc:hive2://localhost:10000/'" ]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 7
     volumes:
       - ./conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./conf/hdfs-site.xml:/opt/hive/conf/hdfs-site.xml

@@ -99,7 +99,7 @@ services:
       test: ["CMD-SHELL", "curl -fsS http://ssm-server.demo:8081/actuator/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
+      retries: 10
     networks:
       - demo
     depends_on:
@@ -221,7 +221,7 @@ services:
       test: [ "CMD", "sh", "-c", "/opt/hive/bin/beeline -u 'jdbc:hive2://localhost:10000/default' -e 'show databases;'" ]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 7
     volumes:
       - secrets:/etc/secrets
       - ./kerberos/krb5.conf:/etc/krb5.conf
