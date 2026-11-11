@@ -36,7 +36,6 @@ public abstract class AbstractActionFactory implements ActionFactory {
     addAction(EchoAction.class);
     addAction(SleepAction.class);
     addAction(SyncAction.class);
-    addAction(ExecAction.class);
   }
 
   protected static void addAction(Class<? extends SmartAction> actionClass) {
