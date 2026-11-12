@@ -33,7 +33,6 @@ import akka.remote.AssociationEvent;
 import akka.remote.DisassociatedEvent;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import io.micrometer.core.instrument.Tags;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -50,6 +49,7 @@ import org.smartdata.protocol.message.StatusReporter;
 import org.smartdata.server.engine.cmdlet.StatusReportTask;
 import org.smartdata.server.engine.cmdlet.agent.AgentCmdletService;
 import org.smartdata.server.engine.cmdlet.agent.AgentConstants;
+import org.smartdata.server.engine.cmdlet.agent.AgentSslConfig;
 import org.smartdata.server.engine.cmdlet.agent.AgentUtils;
 import org.smartdata.server.engine.cmdlet.agent.SmartAgentContext;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterNewAgent;
@@ -93,16 +93,19 @@ public class SmartAgent implements StatusReporter {
   private ActorRef agentActor;
 
   public SmartAgent(SmartConf smartConfig) throws IOException {
+    boolean sslEnabled = AgentSslConfig.isEnabled(smartConfig);
     this.masters = Optional.ofNullable(AgentUtils.getMasterAddress(smartConfig))
-        .map(AgentUtils::getMasterActorPaths)
+        .map(masterAddresses -> AgentUtils.getMasterActorPaths(masterAddresses, sslEnabled))
         .orElseThrow(() -> new IOException("No master address found!"));
     LOG.info("Agent masters: {}", Arrays.toString(masters));
 
+    HadoopUtil.setSmartConfByHadoop(smartConfig);
     String agentAddress = AgentUtils.getAgentAddress(smartConfig);
     LOG.info("Agent address: {}", agentAddress);
-    this.akkaConfig = AgentUtils.overrideRemoteAddress(
-        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), agentAddress);
-    HadoopUtil.setSmartConfByHadoop(smartConfig);
+    // built after loading the Hadoop conf, since SSL passwords
+    // can be stored in the Hadoop credential provider
+    this.akkaConfig = AgentUtils.buildAkkaConfig(
+        smartConfig, agentAddress, AgentSslConfig.Role.AGENT);
 
     this.smartConfig = smartConfig;
     this.httpServer = new SmartAgentHttpServer(smartConfig,
