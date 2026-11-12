@@ -24,7 +24,10 @@ import akka.actor.Address;
 import akka.actor.Cancellable;
 import akka.actor.ExtendedActorSystem;
 import akka.actor.Scheduler;
+import akka.actor.setup.ActorSystemSetup;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
@@ -94,28 +97,43 @@ public class AgentUtils {
     };
   }
 
-  public static String[] getMasterActorPaths(String[] masters) {
+  public static String[] getMasterActorPaths(String[] masters, boolean sslEnabled) {
     String[] paths = new String[masters.length];
     for (int i = 0; i < masters.length; i++) {
-      paths[i] = getMasterActorPath(masters[i]);
+      paths[i] = getMasterActorPath(masters[i], sslEnabled);
     }
     return paths;
   }
 
-  private static String getMasterActorPath(String masterAddress) {
+  private static String getMasterActorPath(String masterAddress, boolean sslEnabled) {
     HostPort hostPort = new HostPort(masterAddress);
-    return String.format("akka.tcp://%s@%s:%s/user/%s",
+    return String.format("%s://%s@%s:%s/user/%s",
+        sslEnabled ? AgentConstants.AKKA_SSL_PROTOCOL : AgentConstants.AKKA_TCP_PROTOCOL,
         AgentConstants.MASTER_ACTOR_SYSTEM_NAME,
         hostPort.getHost(), hostPort.getPort(),
         AgentConstants.MASTER_ACTOR_NAME);
   }
 
+  /**
+   * Build the actor system setup of the Server-Agent communication bound to the given address.
+   */
+  public static ActorSystemSetup buildActorSystemSetup(
+      SmartConf conf, String address, AgentSslConfig.Role role) throws IOException {
+    Config config = overrideRemoteAddress(
+        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), address);
+    return AgentSslConfig.apply(config, conf, role);
+  }
+
   public static Config overrideRemoteAddress(Config config, String address) {
     AgentUtils.HostPort hostPort = new AgentUtils.HostPort(address);
-    return config.withValue(AgentConstants.AKKA_REMOTE_HOST_KEY,
-        ConfigValueFactory.fromAnyRef(hostPort.getHost()))
-        .withValue(AgentConstants.AKKA_REMOTE_PORT_KEY,
-            ConfigValueFactory.fromAnyRef(hostPort.getPort()));
+    ConfigValue host = ConfigValueFactory.fromAnyRef(hostPort.getHost());
+    ConfigValue port = ConfigValueFactory.fromAnyRef(hostPort.getPort());
+    // the config is already resolved, so the SSL transport doesn't inherit
+    // these values from the TCP transport and has to be overridden separately
+    return config.withValue(AgentConstants.AKKA_REMOTE_HOST_KEY, host)
+        .withValue(AgentConstants.AKKA_REMOTE_PORT_KEY, port)
+        .withValue(AgentConstants.AKKA_REMOTE_SSL_HOST_KEY, host)
+        .withValue(AgentConstants.AKKA_REMOTE_SSL_PORT_KEY, port);
   }
 
   /**
