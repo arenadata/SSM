@@ -44,7 +44,7 @@
         <maven.surefire.version>3.5.2</maven.surefire.version>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <java-test-common.version>1.22-jdk11</java-test-common.version>
+        <java-test-common.version>1.23-jdk11</java-test-common.version>
         <postgresql.version>42.7.4</postgresql.version>
         <hikari.version>4.0.3</hikari.version>
         <openapi.generator.version>7.3.0</openapi.generator.version>
@@ -52,6 +52,7 @@
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
         <thrift.version>0.22.0</thrift.version> <!-- Used with hive-jdbc -->
+        <brotli4j.version>1.23.0</brotli4j.version>
         <topology>default</topology>
         <hms.profile.enabled>false</hms.profile.enabled>
     </properties>
@@ -129,6 +130,26 @@
             <version>${hadoop.version}</version>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.aayushatharva.brotli4j</groupId>
+                <artifactId>brotli4j</artifactId>
+                <version>${brotli4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aayushatharva.brotli4j</groupId>
+                <artifactId>service</artifactId>
+                <version>${brotli4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aayushatharva.brotli4j</groupId>
+                <artifactId>native-linux-x86_64</artifactId>
+                <version>${brotli4j.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <profiles>
         <profile>

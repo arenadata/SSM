@@ -52,7 +52,7 @@ public class TestS3CopyFileAction extends MiniClusterHarness {
 
   @Rule
   public SmartMinIOContainer minIOContainer =
-      new SmartMinIOContainer("minio/minio:RELEASE.2024-08-17T01-24-54Z")
+      new SmartMinIOContainer("greengagedb/minio:RELEASE.2024-07-15T19-02-30Z")
           .withBuckets(TEST_BUCKET)
           .withUserName(MINIO_USER)
           .withPassword(MINIO_PASSWORD);
