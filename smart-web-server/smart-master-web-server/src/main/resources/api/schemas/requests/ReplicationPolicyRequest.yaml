@@ -1,0 +1,37 @@
+title: ReplicationPolicyRequest
+type: object
+properties:
+  name:
+    type: string
+    description: Unique name of the policy
+  description:
+    type: string
+    nullable: true
+    description: Description of the policy
+  tags:
+    type: array
+    nullable: true
+    description: Tags of the policy
+    items:
+      type: string
+  source:
+    $ref: '../replication/ReplicationSource.yaml'
+  targetClusterId:
+    type: integer
+    format: int64
+    description: |
+      Id of the active cluster, to which the data and metadata are replicated.
+      Cluster without Hive Thrift URI can't be the target of the metadata replication
+  dataReplication:
+    $ref: '../replication/DataReplicationSettings.yaml'
+  metadataReplication:
+    $ref: '../replication/MetadataReplicationSettings.yaml'
+  schedule:
+    $ref: '../replication/ReplicationSchedule.yaml'
+required:
+  - name
+  - source
+  - targetClusterId
+  - dataReplication
+  - metadataReplication
+  - schedule

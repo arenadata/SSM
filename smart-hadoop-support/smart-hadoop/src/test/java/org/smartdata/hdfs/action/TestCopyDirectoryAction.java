@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.hdfs.MultiClusterHarness;
+import org.smartdata.model.PreserveAttribute;
 import org.smartdata.protocol.message.ActionStatus;
 
 /**

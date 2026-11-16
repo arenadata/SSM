@@ -71,22 +71,33 @@ public class AbstractDao {
     simpleJdbcInsert.executeBatch(maps);
   }
 
+  /**
+   * Updates the filtered rows with the properties, skipping the ones with null values.
+   */
   protected int update(Map<String, Object> entityProperties,
                        String filter, Object... filterArguments) {
-    return updateInternal(entityProperties, " WHERE " + filter, filterArguments);
+    return updateInternal(entityProperties, true, " WHERE " + filter, filterArguments);
   }
 
   protected int update(Map<String, Object> entityProperties) {
-    return updateInternal(entityProperties, " ");
+    return updateInternal(entityProperties, true, " ");
   }
 
-  protected int updateInternal(Map<String, Object> entityProperties,
+  /**
+   * Updates the filtered rows with all the properties, setting the null values as well.
+   */
+  protected int updateIncludingNulls(Map<String, Object> entityProperties,
+                                     String filter, Object... filterArguments) {
+    return updateInternal(entityProperties, false, " WHERE " + filter, filterArguments);
+  }
+
+  protected int updateInternal(Map<String, Object> entityProperties, boolean skipNullValues,
                                String filter, Object... filterArguments) {
     StringJoiner updateSql = new StringJoiner(", ", "UPDATE " + tableName + " SET ", filter);
     List<Object> setArguments = new ArrayList<>();
 
     for (Map.Entry<String, Object> property: entityProperties.entrySet()) {
-      if (property.getValue() == null) {
+      if (skipNullValues && property.getValue() == null) {
         continue;
       }
       setArguments.add(property.getValue());

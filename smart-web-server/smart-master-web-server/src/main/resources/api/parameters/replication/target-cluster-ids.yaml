@@ -1,0 +1,9 @@
+name: targetClusterIds
+in: query
+required: false
+description: List of target cluster ids
+schema:
+  type: array
+  items:
+    type: integer
+    format: int64

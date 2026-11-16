@@ -1,0 +1,8 @@
+name: statuses
+in: query
+required: false
+description: List of cluster statuses
+schema:
+  type: array
+  items:
+    $ref: "../../schemas/cluster/ClusterStatus.yaml"

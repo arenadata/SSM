@@ -15,21 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.hive.fetch;
+package org.smartdata.model.replication;
 
-import com.google.common.collect.Sets;
+import lombok.Builder;
+import lombok.Data;
 
-import java.util.Set;
+@Data
+@Builder
+public class SourceTable {
+  private final String dbName;
+  private final String name;
 
-public enum HiveOperation {
-  CREATE,
-  DROP,
-  ALTER,
-  UNKNOWN;
-
-  public static final Set<HiveOperation> FILTERABLE_OPERATIONS = Sets.newHashSet(CREATE, DROP, ALTER);
-
-  public static boolean isFilterable(HiveOperation operation) {
-    return FILTERABLE_OPERATIONS.contains(operation);
+  public static SourceTable of(String dbName, String name) {
+    return new SourceTable(dbName, name);
   }
 }

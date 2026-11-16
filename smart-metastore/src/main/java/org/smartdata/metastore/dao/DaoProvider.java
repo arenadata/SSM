@@ -44,7 +44,9 @@ public interface DaoProvider {
 
   BackUpInfoDao backUpInfoDao();
 
-  ClusterInfoDao clusterInfoDao();
+  ClusterDao clusterDao();
+
+  ReplicationPolicyDao replicationPolicyDao();
 
   SystemInfoDao systemInfoDao();
 

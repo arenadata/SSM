@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.smartdata.hadoop.filesystem.SmartFileSystem;
 import org.smartdata.hdfs.MultiClusterHarness;
 import org.smartdata.hdfs.client.SmartDFSClient;
+import org.smartdata.model.PreserveAttribute;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -39,9 +40,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.smartdata.hdfs.action.PreserveAttribute.MODIFICATION_TIME;
-import static org.smartdata.hdfs.action.PreserveAttribute.OWNER;
-import static org.smartdata.hdfs.action.PreserveAttribute.REPLICATION_NUMBER;
+import static org.smartdata.model.PreserveAttribute.MODIFICATION_TIME;
+import static org.smartdata.model.PreserveAttribute.OWNER;
+import static org.smartdata.model.PreserveAttribute.REPLICATION_NUMBER;
 
 /**
  * Test for CopyFileAction.

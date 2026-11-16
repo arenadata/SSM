@@ -24,7 +24,6 @@ import org.smartdata.model.ActionInfo;
 import org.smartdata.model.BackUpInfo;
 import org.smartdata.model.CachedFileStatus;
 import org.smartdata.model.ClusterConfig;
-import org.smartdata.model.ClusterInfo;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
 import org.smartdata.model.CompressionFileState;
@@ -626,35 +625,6 @@ public class TestMetaStore extends TestDaoBase {
     metaStore.deleteAllBackUpInfo();
 
     Assert.assertTrue(metaStore.listAllBackUpInfo().isEmpty());
-  }
-
-  @Test
-  public void testInsertAndListAllClusterInfo() throws MetaStoreException {
-    ClusterInfo clusterInfo1 = new ClusterInfo(1, "test1", "test1", "test1", "test1", "test1");
-    ClusterInfo clusterInfo2 = new ClusterInfo(2, "test2", "test2", "test2", "test2", "test2");
-
-    metaStore.insertClusterInfo(clusterInfo1);
-    metaStore.insertClusterInfo(clusterInfo2);
-
-    List<ClusterInfo> clusterInfos = metaStore.listAllClusterInfo();
-
-    Assert.assertEquals(clusterInfo1, clusterInfos.get(0));
-    Assert.assertEquals(clusterInfo2, clusterInfos.get(1));
-  }
-
-  @Test
-  public void testDelectBackUpInfo() throws MetaStoreException {
-    ClusterInfo clusterInfo = new ClusterInfo(1, "test1", "test1", "test1", "test1", "test1");
-    metaStore.insertClusterInfo(clusterInfo);
-
-    metaStore.deleteClusterInfo(1);
-
-    Assert.assertTrue(metaStore.listAllClusterInfo().isEmpty());
-
-    metaStore.insertClusterInfo(clusterInfo);
-    metaStore.deleteAllClusterInfo();
-
-    Assert.assertTrue(metaStore.listAllClusterInfo().isEmpty());
   }
 
   @Test

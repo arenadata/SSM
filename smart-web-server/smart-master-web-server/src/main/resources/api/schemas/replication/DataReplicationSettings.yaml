@@ -1,0 +1,22 @@
+title: DataReplicationSettings
+type: object
+properties:
+  enabled:
+    type: boolean
+    description: Whether the data of the source entities is replicated
+  preservedAttributes:
+    type: array
+    nullable: true
+    description: |
+      File attributes, which are copied along with the file data.
+      If not specified, OWNER, GROUP and PERMISSIONS are preserved
+    items:
+      $ref: './PreserveAttribute.yaml'
+  events:
+    type: array
+    nullable: true
+    description: HDFS events, which are replayed on the target cluster. If not specified or empty, all events are replayed
+    items:
+      $ref: './DataReplicationEvent.yaml'
+required:
+  - enabled

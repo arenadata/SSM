@@ -1,0 +1,60 @@
+get:
+  tags:
+    - Clusters
+  summary: List target clusters of the replication
+  operationId: getClusters
+  parameters:
+    - $ref: '../parameters/common/page-request.yaml'
+    - $ref: '../parameters/cluster/clusters-sort.yaml'
+    - $ref: '../parameters/common/name-like.yaml'
+    - $ref: '../parameters/cluster/cluster-statuses.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            title: Clusters
+            allOf:
+              - $ref: '../schemas/common/PageResponse.yaml'
+              - type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of clusters
+                    items:
+                      $ref: '../schemas/cluster/Cluster.yaml'
+    '400':
+      description: Data is filled incorrectly
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized
+post:
+  tags:
+    - Clusters
+  summary: Create target cluster of the replication
+  operationId: createCluster
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/ClusterRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/cluster/Cluster.yaml'
+    '400':
+      description: Data is filled incorrectly or cluster with the same name already exists
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common/ErrorResponse.yaml'
+    '401':
+      description: Unauthorized

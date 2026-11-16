@@ -1,0 +1,9 @@
+title: PreserveAttribute
+type: string
+description: File attribute, which is copied along with the file data
+enum:
+  - OWNER
+  - GROUP
+  - PERMISSIONS
+  - REPLICATION_NUMBER
+  - MODIFICATION_TIME

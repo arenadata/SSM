@@ -21,9 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.action.SyncAction;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
-import org.smartdata.hdfs.action.PreserveAttribute;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
+import org.smartdata.model.PreserveAttribute;
 import org.smartdata.model.rule.RuleTranslationResult;
 
 import java.io.IOException;

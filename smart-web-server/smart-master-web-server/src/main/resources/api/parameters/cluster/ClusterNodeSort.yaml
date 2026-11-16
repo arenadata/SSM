@@ -1,0 +1,12 @@
+title: ClusterNodeSort
+type: string
+description: Sort field names prefixed with '-' for descending order
+enum:
+  - id
+  - registrationTime
+  - executorsCount
+  - status
+  - -id
+  - -registrationTime
+  - -executorsCount
+  - -status

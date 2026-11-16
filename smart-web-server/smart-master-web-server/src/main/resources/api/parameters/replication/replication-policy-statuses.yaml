@@ -1,0 +1,8 @@
+name: statuses
+in: query
+required: false
+description: List of replication policy statuses
+schema:
+  type: array
+  items:
+    $ref: "../../schemas/replication/ReplicationPolicyStatus.yaml"
