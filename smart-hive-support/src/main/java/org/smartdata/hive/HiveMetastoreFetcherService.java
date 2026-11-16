@@ -27,6 +27,8 @@ import org.apache.hadoop.hive.metastore.messaging.json.gzip.GzipJSONMessageEncod
 import org.smartdata.AbstractService;
 import org.smartdata.SmartContext;
 import org.smartdata.hdfs.impersonation.DisabledUserImpersonationStrategy;
+import org.smartdata.hive.catalog.CatalogHmsEventHandler;
+import org.smartdata.hive.catalog.HiveCatalogDao;
 import org.smartdata.hive.client.CachingMetaStoreClientProvider;
 import org.smartdata.hive.client.MetaStoreClientProvider;
 import org.smartdata.hive.fetch.HmsEventSource;
@@ -61,14 +63,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
+import static org.smartdata.hive.handler.HmsEventHandlerChain.bufferingHandlerChain;
+import static org.smartdata.hive.handler.HmsEventHandlerChain.handlerChain;
+
 @Slf4j
 public class HiveMetastoreFetcherService extends AbstractService {
   private final HiveSmartConf hiveSmartConf;
   private final HmsEventDao hiveEventDao;
   private final HmsEventDao unprocessedHiveEventDao;
+  private final HiveCatalogDao hiveCatalogDao;
   private final PlatformTransactionManager transactionManager;
 
   private HmsEventSource resourceSource;
+  private CatalogHmsEventHandler catalogEventHandler;
   private HmsEventStreamHandler eventStreamHandler;
   private ScheduledExecutorService scheduledExecutorService;
 
@@ -76,12 +83,14 @@ public class HiveMetastoreFetcherService extends AbstractService {
       SmartContext context,
       HmsEventDao hiveEventDao,
       HmsEventDao unprocessedHiveEventDao,
+      HiveCatalogDao hiveCatalogDao,
       PlatformTransactionManager transactionManager
   ) {
     super(context);
     this.hiveSmartConf = new HiveSmartConf(context.getConf());
     this.hiveEventDao = hiveEventDao;
     this.unprocessedHiveEventDao = unprocessedHiveEventDao;
+    this.hiveCatalogDao = hiveCatalogDao;
     this.transactionManager = transactionManager;
   }
 
@@ -94,6 +103,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
           GzipJSONMessageEncoder.getInstance()
       );
       resourceSource = buildEventSource(buildClientSupplier(), eventFactory);
+      catalogEventHandler = new CatalogHmsEventHandler(hiveCatalogDao, buildHandlerRetrySupport());
       eventStreamHandler = buildStreamHandler(eventFactory);
     } catch (Exception metaException) {
       throw new IOException("Error initializing Hive Metastore client", metaException);
@@ -109,6 +119,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
       log.info("Running full resync of resource diffs");
       // if the full resync is required, then restart fetcher from scratch
       hiveEventDao.deleteAll();
+      hiveCatalogDao.deleteAll();
       eventStream = resourceSource.eventStream();
     } else if (latestEventId.isPresent()) {
       log.info("Start fetching resource diffs from id {}", latestEventId.get());
@@ -144,12 +155,18 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
   private HmsEventHandler buildCompositeEventHandler(
       RetrySupport retrySupport, HiveNotificationEventFactory eventFactory) {
-    DbHmsEventHandler delegate = new DbHmsEventHandler(hiveEventDao, retrySupport);
+    DbHmsEventHandler dbEventHandler = new DbHmsEventHandler(hiveEventDao, retrySupport);
+    HmsIntermediateEventsResolver intermediateEventsResolver =
+        new HmsIntermediateEventsResolver(hiveEventDao, eventFactory);
 
+    // catalog handler receives raw events in all fetching phases, since
+    // its updates are idempotent and don't require intermediate events resolving
     return new CompositeHmsEventHandler(
         transactionManager,
-        new HmsIntermediateEventsResolver(hiveEventDao, eventFactory),
-        delegate
+        bufferingHandlerChain(intermediateEventsResolver, catalogEventHandler),
+        // catalog handler is executed before storing the event, so that the event,
+        // which failed to be applied to the catalog, is fetched again after the restart
+        handlerChain(catalogEventHandler, dbEventHandler)
     );
   }
 

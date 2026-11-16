@@ -1,0 +1,6 @@
+name: dbName
+in: path
+required: true
+description: Name of the Hive database
+schema:
+  type: string

@@ -103,6 +103,17 @@ public class HiveEntityFactory {
     return partition;
   }
 
+  public static Partition buildPartitionWithLocation(
+      String tableName, String location, String... values) {
+    Partition partition = buildPartition(tableName, values);
+
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setLocation(location);
+    partition.setSd(sd);
+
+    return partition;
+  }
+
   public static SQLPrimaryKey buildPrimaryKey(String tableName, String columnName) {
     SQLPrimaryKey constraint = new SQLPrimaryKey();
     EntityName entityName = new EntityName(tableName);

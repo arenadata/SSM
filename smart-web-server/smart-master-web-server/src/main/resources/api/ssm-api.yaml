@@ -10,6 +10,7 @@ tags:
   - name: Files
   - name: Cluster
   - name: Audit
+  - name: Hive
   - name: System
 
 servers:
@@ -56,6 +57,16 @@ paths:
   # Audit
   /api/v2/audit/events:
     $ref: './resources/audit-events.yaml'
+
+  # Hive
+  /api/v2/hive/databases:
+    $ref: './resources/hive-databases.yaml'
+  /api/v2/hive/databases/{dbName}:
+    $ref: './resources/hive-database.yaml'
+  /api/v2/hive/databases/{dbName}/tables/{tableName}:
+    $ref: './resources/hive-table.yaml'
+  /api/v2/hive/tables:
+    $ref: './resources/hive-tables.yaml'
 
   # System
   /api/v2/system/current-user:

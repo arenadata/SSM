@@ -1,0 +1,8 @@
+name: dbNames
+in: query
+required: false
+description: List of Hive database names
+schema:
+  type: array
+  items:
+    type: string

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026.09.23_001" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hive_database"/>
+            </not>
+        </preConditions>
+        <createTable tableName="hive_database">
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="catalog_name" type="VARCHAR(255)"/>
+            <column name="location" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026.09.23_002" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hive_table"/>
+            </not>
+        </preConditions>
+        <createTable tableName="hive_table">
+            <column name="db_name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="hive_table_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="hive_table_pkey"/>
+            </column>
+            <column name="catalog_name" type="VARCHAR(255)"/>
+            <column name="location" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026.09.23_003" author="tmanasyan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hive_partition"/>
+            </not>
+        </preConditions>
+        <createTable tableName="hive_partition">
+            <column name="db_name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="hive_partition_pkey"/>
+            </column>
+            <column name="table_name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="hive_partition_pkey"/>
+            </column>
+            <!-- the same size as in HMS -->
+            <column name="name" type="VARCHAR(767)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="hive_partition_pkey"/>
+            </column>
+            <column name="location" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
