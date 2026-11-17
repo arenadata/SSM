@@ -1,7 +1,7 @@
 title: ReplicationSource
 type: object
 description: |
-  Source Hive entities of the replication policy. If neither tables, nor table name regex
+  Source Hive entities of the replication policy. If neither tables, nor table name pattern
   are specified, the whole databases are replicated
 properties:
   databases:
@@ -13,12 +13,14 @@ properties:
   tables:
     type: array
     nullable: true
-    description: Exact tables of the selected databases. Can't be set along with the table name regex
+    description: Exact tables of the selected databases. Can't be set along with the table name pattern
     items:
       $ref: './ReplicationSourceTable.yaml'
   tableNameRegex:
     type: string
     nullable: true
-    description: Regex of the table names, applied to all the selected databases
+    description: |
+      Glob pattern of the table names (`*` matches any sequence of characters,
+      `?` matches any single character), applied to all the selected databases
 required:
   - databases

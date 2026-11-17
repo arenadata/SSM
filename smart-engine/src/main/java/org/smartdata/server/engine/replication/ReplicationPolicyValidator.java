@@ -40,8 +40,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Validates and normalizes the replication policy settings. Omitted optional settings
@@ -136,13 +134,12 @@ class ReplicationPolicyValidator {
     if (tableNameRegex != null) {
       if (tables != null && !tables.isEmpty()) {
         throw new IllegalArgumentException(
-            "Either exact source tables or the table name regex should be specified");
+            "Either exact source tables or the table name pattern should be specified");
       }
-      try {
-        Pattern.compile(tableNameRegex);
-      } catch (PatternSyntaxException exception) {
+      // the glob pattern is used in the string literals of the rules, which can't be escaped
+      if (tableNameRegex.contains("\"")) {
         throw new IllegalArgumentException(
-            "Invalid table name regex: " + exception.getMessage(), exception);
+            "Table name pattern can't contain quotes: " + tableNameRegex);
       }
     }
 

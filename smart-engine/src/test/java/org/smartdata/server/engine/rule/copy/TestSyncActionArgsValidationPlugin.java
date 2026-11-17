@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.action.SyncAction;
 import org.smartdata.cmdlet.parser.ParsedCmdlet;
+import org.smartdata.hdfs.action.CopyPreservedAttributesSupport;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.FileDiffType;
 import org.smartdata.model.PreserveAttribute;
@@ -141,6 +142,20 @@ public class TestSyncActionArgsValidationPlugin {
     plugin.onAddingNewRule(null, translationResultWith(
         SyncAction.NAME,
         SyncAction.PRESERVE, allAttributes));
+  }
+
+  @Test
+  public void syncActionWithNonePreserve() throws IOException {
+    plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, CopyPreservedAttributesSupport.PRESERVE_NONE));
+  }
+
+  @Test
+  public void syncActionWithNoneAmongPreserveAttributes() {
+    Assert.assertThrows(IOException.class, () -> plugin.onAddingNewRule(null, translationResultWith(
+        SyncAction.NAME,
+        SyncAction.PRESERVE, "owner,none")));
   }
 
   @Test
