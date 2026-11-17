@@ -23,5 +23,17 @@ public class AgentConstants {
   public static final String MASTER_ACTOR_NAME = "master";
   public static final String AKKA_REMOTE_HOST_KEY = "akka.remote.netty.tcp.hostname";
   public static final String AKKA_REMOTE_PORT_KEY = "akka.remote.netty.tcp.port";
+  public static final String AKKA_REMOTE_SSL_HOST_KEY = "akka.remote.netty.ssl.hostname";
+  public static final String AKKA_REMOTE_SSL_PORT_KEY = "akka.remote.netty.ssl.port";
+  public static final String AKKA_ENABLED_TRANSPORTS_KEY = "akka.remote.enabled-transports";
+  public static final String AKKA_SSL_TRANSPORT = "akka.remote.netty.ssl";
+  public static final String AKKA_SSL_ENGINE_PROVIDER_KEY =
+      "akka.remote.netty.ssl.ssl-engine-provider";
+  public static final String AKKA_SSL_SECURITY_PREFIX = "akka.remote.netty.ssl.security.";
+  /** Custom SSM option read by {@link SmartSslEngineProvider}. */
+  public static final String AKKA_SSL_PEER_SUBJECT_PATTERN_KEY =
+      "akka.remote.netty.ssl.smart-peer-subject-pattern";
+  public static final String AKKA_TCP_PROTOCOL = "akka.tcp";
+  public static final String AKKA_SSL_PROTOCOL = "akka.ssl.tcp";
   public static final String AKKA_CONF_FILE = "agent.conf";
 }

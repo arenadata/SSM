@@ -238,6 +238,37 @@ public class SmartConfKeys {
   public static final String SMART_AGENT_MASTER_ADDRESS_KEY = "smart.agent.master.address";
   public static final String SMART_AGENT_ADDRESS_KEY = "smart.agent.address";
 
+  // SSL/TLS with mutual authentication for the Server-Agent communication
+  public static final String SMART_AGENT_SSL_ENABLED_KEY = "smart.agent.ssl.enabled";
+  public static final boolean SMART_AGENT_SSL_ENABLED_DEFAULT = false;
+  /** Whether to check the peer certificate subject against the subject patterns below. */
+  public static final String SMART_AGENT_SSL_SUBJECT_CHECK_ENABLED_KEY =
+      "smart.agent.ssl.subject.check.enabled";
+  public static final boolean SMART_AGENT_SSL_SUBJECT_CHECK_ENABLED_DEFAULT = false;
+  public static final String SMART_AGENT_SSL_TRUSTSTORE_KEY = "smart.agent.ssl.truststore";
+  public static final String SMART_AGENT_SSL_TRUSTSTORE_PASSWORD_KEY =
+      "smart.agent.ssl.truststore.password";
+
+  public static final String SMART_AGENT_SSL_SERVER_KEYSTORE_KEY =
+      "smart.agent.ssl.server.keystore";
+  public static final String SMART_AGENT_SSL_SERVER_KEYSTORE_PASSWORD_KEY =
+      "smart.agent.ssl.server.keystore.password";
+  public static final String SMART_AGENT_SSL_SERVER_KEY_PASSWORD_KEY =
+      "smart.agent.ssl.server.key.password";
+  /** Regex the SSM Server certificate subject DN must match. Checked by agents. */
+  public static final String SMART_AGENT_SSL_SERVER_SUBJECT_PATTERN_KEY =
+      "smart.agent.ssl.server.subject.pattern";
+
+  public static final String SMART_AGENT_SSL_AGENT_KEYSTORE_KEY =
+      "smart.agent.ssl.agent.keystore";
+  public static final String SMART_AGENT_SSL_AGENT_KEYSTORE_PASSWORD_KEY =
+      "smart.agent.ssl.agent.keystore.password";
+  public static final String SMART_AGENT_SSL_AGENT_KEY_PASSWORD_KEY =
+      "smart.agent.ssl.agent.key.password";
+  /** Regex the SSM Agent certificate subject DN must match. Checked by the Server. */
+  public static final String SMART_AGENT_SSL_AGENT_SUBJECT_PATTERN_KEY =
+      "smart.agent.ssl.agent.subject.pattern";
+
   // Small File Compact
   public static final String SMART_COMPACT_BATCH_SIZE_KEY =
       "smart.compact.batch.size";

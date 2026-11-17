@@ -27,7 +27,6 @@ import akka.remote.AssociationEvent;
 import akka.remote.DisassociatedEvent;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
@@ -77,8 +76,7 @@ public class AgentMaster {
 
     String address = addresses[0];
     LOG.info("Agent master: {}", address);
-    Config config = AgentUtils.overrideRemoteAddress(
-        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), address);
+    Config config = AgentUtils.buildAkkaConfig(conf, address, AgentSslConfig.Role.SERVER);
     CmdletDispatcherHelper.init();
     this.agentManager = new AgentManager();
     Props props = Props.create(MasterActor.class, agentManager, statusHandler);
