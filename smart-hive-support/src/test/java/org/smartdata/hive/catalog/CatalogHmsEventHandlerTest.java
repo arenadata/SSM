@@ -176,6 +176,27 @@ public class CatalogHmsEventHandlerTest {
   }
 
   @Test
+  public void testHandleGeneratedDropTableEvent() throws Exception {
+    handle(
+        newCreateTableEvent(1, "hive.db1.tbl1", TableType.MANAGED_TABLE, "hdfs://ns1/db1.db/tbl1"),
+        newCreateTableEvent(2, "hive.db1.tbl2", TableType.MANAGED_TABLE, "hdfs://ns1/db1.db/tbl2")
+    );
+    catalogDao.upsertPartitions(Collections.singletonList(HivePartitionInfo.builder()
+        .dbName("db1")
+        .tableName("tbl1")
+        .name("year=2024")
+        .location("hdfs://ns1/db1.db/tbl1/year=2024")
+        .build()));
+
+    Table droppedTable = buildTable("hive.db1.tbl1", TableType.MANAGED_TABLE, "hdfs://ns1/db1.db/tbl1");
+    // e.g. generated for the table renamed out of the events scope
+    catalogHandler.handle(snapshotEventFactory.createDropTableEvent(droppedTable, 3));
+
+    assertEquals(Collections.singleton("db1.tbl2"), catalogDao.tables.keySet());
+    assertTrue(catalogDao.partitions.isEmpty());
+  }
+
+  @Test
   public void testHandleAlterDatabase() throws Exception {
     handle(
         newCreateDbEvent(1, "hive.db1", "hdfs://ns1/old/db1.db"),
@@ -459,6 +480,8 @@ public class CatalogHmsEventHandlerTest {
     @Override
     public void deleteTable(String dbName, String tableName) {
       tables.remove(fullResourceName(dbName, tableName));
+      partitions.values().removeIf(partition -> partition.getDbName().equals(dbName)
+          && partition.getTableName().equals(tableName));
     }
 
     @Override

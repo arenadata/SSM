@@ -19,6 +19,7 @@ package org.smartdata.metastore.dao.postgres;
 
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.catalog.HiveCatalogDao;
+import org.smartdata.hive.catalog.HiveCatalogStateDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metastore.DBPool;
 import org.smartdata.metastore.dao.ActionDao;
@@ -102,5 +103,10 @@ public class PostgresDaoProvider extends DefaultDaoProvider {
   public HiveCatalogDao hiveCatalogDao() {
     return new PostgresHiveCatalogDao(
         hiveDatabaseDao(), hiveTableDao(), hivePartitionDao(), transactionManager);
+  }
+
+  @Override
+  public HiveCatalogStateDao hiveCatalogStateDao() {
+    return new PostgresHiveCatalogStateDao(systemInfoDao());
   }
 }

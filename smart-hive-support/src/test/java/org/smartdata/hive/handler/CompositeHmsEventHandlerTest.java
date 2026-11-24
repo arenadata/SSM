@@ -103,9 +103,11 @@ public class CompositeHmsEventHandlerTest {
   @Test
   public void testChainedHandlersReceiveRecordsInAllPhases() throws Exception {
     MockResourceDiffCollector additionalHandler = new MockResourceDiffCollector();
-    eventHandler = new CompositeHmsEventHandler(transactionManager,
-        bufferingHandlerChain(intermediateEventResolver, additionalHandler),
-        handlerChain(additionalHandler, mockDiffCollectorDelegate));
+    eventHandler = CompositeHmsEventHandler.builder()
+        .transactionManager(transactionManager)
+        .intermediateEventsResolver(bufferingHandlerChain(intermediateEventResolver, additionalHandler))
+        .delegate(handlerChain(additionalHandler, mockDiffCollectorDelegate))
+        .build();
 
     List<HmsEventStreamRecord> records = Arrays.asList(
         newStateRecord(SNAPSHOT_STARTED),
@@ -207,6 +209,124 @@ public class CompositeHmsEventHandlerTest {
     checkTxRollback(records);
   }
 
+  @Test
+  public void testCleanPreviousStateInSnapshotTx() throws Exception {
+    List<String> actions = new ArrayList<>();
+    eventHandler = CompositeHmsEventHandler.builder()
+        .transactionManager(transactionManager)
+        .intermediateEventsResolver(intermediateEventResolver)
+        .delegate(record -> actions.add("handle " + record))
+        .snapshotStateCleaner(() -> actions.add(
+            "clean, active tx count: " + transactionManager.activeTransactionsCount()))
+        .build();
+
+    List<HmsEventStreamRecord> records = Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1),
+        newStateRecord(EVENTS_STARTED),
+        new DummyRecord(2)
+    );
+    for (HmsEventStreamRecord record : records) {
+      eventHandler.handle(record);
+    }
+
+    List<String> expectedActions = Arrays.asList(
+        "clean, active tx count: 1",
+        "handle " + new DummyRecord(1),
+        "handle " + new DummyRecord(2)
+    );
+    assertEquals(expectedActions, actions);
+    assertEquals(1, transactionManager.isCommited.size());
+    assertTrue(transactionManager.isRollbacked.isEmpty());
+  }
+
+  @Test
+  public void testNotCleanPreviousStateWithoutSnapshot() throws Exception {
+    List<String> actions = new ArrayList<>();
+    eventHandler = CompositeHmsEventHandler.builder()
+        .transactionManager(transactionManager)
+        .intermediateEventsResolver(intermediateEventResolver)
+        .delegate(mockDiffCollectorDelegate)
+        .snapshotStateCleaner(() -> actions.add("clean"))
+        .build();
+
+    testHandleRecordChain(
+        Arrays.asList(newStateRecord(EVENTS_STARTED), new DummyRecord(1)),
+        Collections.emptyList(),
+        Collections.singletonList(new DummyRecord(1))
+    );
+    assertTrue(actions.isEmpty());
+  }
+
+  @Test
+  public void testRollbackTxIfSnapshotStateCleanerFails() {
+    eventHandler = CompositeHmsEventHandler.builder()
+        .transactionManager(transactionManager)
+        .intermediateEventsResolver(intermediateEventResolver)
+        .delegate(mockDiffCollectorDelegate)
+        .snapshotStateCleaner(() -> {
+          throw new IllegalArgumentException("Cleaner failure");
+        })
+        .build();
+
+    checkTxRollback(Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1)
+    ));
+    assertTrue(mockDiffCollectorDelegate.getHandledRecords().isEmpty());
+  }
+
+  @Test
+  public void testRollbackTxOnEndOfStreamDuringSnapshot() throws Exception {
+    checkTxRollbackOnEndOfStream(Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1),
+        HmsEventStreamRecord.endOfStreamRecord()
+    ));
+  }
+
+  @Test
+  public void testRollbackTxOnEndOfStreamDuringIntermediateEvents() throws Exception {
+    checkTxRollbackOnEndOfStream(Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1),
+        newStateRecord(INTERMEDIATE_EVENTS_STARTED),
+        new DummyRecord(2),
+        HmsEventStreamRecord.endOfStreamRecord()
+    ));
+  }
+
+  @Test
+  public void testKeepCommittedSnapshotOnEndOfStreamDuringEvents() throws Exception {
+    List<HmsEventStreamRecord> records = Arrays.asList(
+        newStateRecord(SNAPSHOT_STARTED),
+        new DummyRecord(1),
+        newStateRecord(EVENTS_STARTED),
+        new DummyRecord(2),
+        HmsEventStreamRecord.endOfStreamRecord()
+    );
+    for (HmsEventStreamRecord record : records) {
+      eventHandler.handle(record);
+    }
+
+    assertEquals(Arrays.asList(new DummyRecord(1), new DummyRecord(2)),
+        mockDiffCollectorDelegate.getHandledRecords());
+    assertEquals(1, transactionManager.isCommited.size());
+    assertTrue(transactionManager.isRollbacked.isEmpty());
+  }
+
+  private void checkTxRollbackOnEndOfStream(List<HmsEventStreamRecord> records) throws Exception {
+    for (HmsEventStreamRecord record : records) {
+      eventHandler.handle(record);
+    }
+
+    assertTrue(transactionManager.isCommited.isEmpty());
+    assertEquals(1, transactionManager.isRollbacked.size());
+    // the end of the stream isn't passed to the handlers
+    assertTrue(mockDiffCollectorDelegate.getHandledRecords().stream()
+        .noneMatch(HmsEventStreamRecord::isLastRecord));
+  }
+
   private void checkTxRollback(List<HmsEventStreamRecord> records) {
     assertThrows(IllegalArgumentException.class, () -> {
       for (HmsEventStreamRecord record : records) {
@@ -258,9 +378,11 @@ public class CompositeHmsEventHandlerTest {
   private static class MockTransactionManager implements PlatformTransactionManager {
     private final Map<TransactionStatus, Boolean> isCommited = new HashMap<>();
     private final Map<TransactionStatus, Boolean> isRollbacked = new HashMap<>();
+    private int transactionsCount = 0;
 
     @Override
     public TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
+      transactionsCount++;
       return new SimpleTransactionStatus();
     }
 
@@ -272,6 +394,10 @@ public class CompositeHmsEventHandlerTest {
     @Override
     public void rollback(TransactionStatus status) throws TransactionException {
       isRollbacked.put(status, true);
+    }
+
+    private long activeTransactionsCount() {
+      return transactionsCount - isCommited.size() - isRollbacked.size();
     }
   }
 

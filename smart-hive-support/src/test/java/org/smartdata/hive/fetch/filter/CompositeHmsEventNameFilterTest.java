@@ -27,12 +27,12 @@ import org.smartdata.hive.fetch.HiveNotificationEvent;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.smartdata.hive.HiveSmartConf.HMS_EVENT_IGNORE_PATTERNS;
 import static org.smartdata.hive.HiveSmartConf.HMS_EVENT_INCLUDE_PATTERNS;
-import static org.smartdata.hive.fetch.filter.HmsEventFilter.NO_OP_FILTER;
 
 @RunWith(Parameterized.class)
 public class CompositeHmsEventNameFilterTest {
@@ -73,38 +73,46 @@ public class CompositeHmsEventNameFilterTest {
     HmsEventFilter filter = CompositeHmsEventFilter.fromConf(
         new HiveSmartConf(configuration));
 
-    assertTrue(filter instanceof CompositeHmsEventFilter);
-    CompositeHmsEventFilter compositeFilter = (CompositeHmsEventFilter) filter;
-    assertEquals(2, compositeFilter.getDelegates().size());
+    assertDelegateTypes(filter, HmsEventCatalogFilter.class,
+        HmsEventNameIncludeFilter.class, HmsEventNameIgnoreFilter.class);
   }
 
   @Test
-  public void testUnwrapIgnoreFilter() {
+  public void testBuildIgnoreFilterFromConf() {
     Configuration configuration = new Configuration();
     configuration.set(HMS_EVENT_IGNORE_PATTERNS, ".*ignore.*,db1.*");
     HmsEventFilter filter = CompositeHmsEventFilter.fromConf(
         new HiveSmartConf(configuration));
 
-    assertTrue(filter instanceof HmsEventNameIgnoreFilter);
+    assertDelegateTypes(filter, HmsEventCatalogFilter.class, HmsEventNameIgnoreFilter.class);
   }
 
   @Test
-  public void testUnwrapIncludeFilter() {
+  public void testBuildIncludeFilterFromConf() {
     Configuration configuration = new Configuration();
     configuration.set(HMS_EVENT_INCLUDE_PATTERNS, ".*include.*,db1.*");
     HmsEventFilter filter = CompositeHmsEventFilter.fromConf(
         new HiveSmartConf(configuration));
 
-    assertTrue(filter instanceof HmsEventNameIncludeFilter);
+    assertDelegateTypes(filter, HmsEventCatalogFilter.class, HmsEventNameIncludeFilter.class);
   }
 
   @Test
-  public void testNoOpFilterFromConfig() {
+  public void testUnwrapCatalogFilter() {
     Configuration configuration = new Configuration();
     HmsEventFilter filter = CompositeHmsEventFilter.fromConf(
         new HiveSmartConf(configuration));
 
-    assertEquals(NO_OP_FILTER, filter);
+    assertTrue(filter instanceof HmsEventCatalogFilter);
+  }
+
+  private void assertDelegateTypes(HmsEventFilter filter, Class<?>... expectedTypes) {
+    assertTrue(filter instanceof CompositeHmsEventFilter);
+    List<Class<?>> actualTypes = ((CompositeHmsEventFilter) filter).getDelegates()
+        .stream()
+        .map(Object::getClass)
+        .collect(Collectors.toList());
+    assertEquals(Arrays.asList(expectedTypes), actualTypes);
   }
 
   protected HmsEventFilter buildFilter() {

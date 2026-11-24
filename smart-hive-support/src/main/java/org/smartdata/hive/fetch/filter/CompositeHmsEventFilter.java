@@ -40,14 +40,11 @@ public class CompositeHmsEventFilter implements HmsEventFilter {
   public static HmsEventFilter fromConf(HiveSmartConf config) {
     List<HmsEventFilter> delegates = new ArrayList<>();
 
+    delegates.add(HmsEventCatalogFilter.fromConf(config));
     HmsEventNameIncludeFilter.fromConf(config)
         .ifPresent(delegates::add);
     HmsEventNameIgnoreFilter.fromConf(config)
         .ifPresent(delegates::add);
-
-    if (delegates.isEmpty()) {
-      return HmsEventFilter.noOp();
-    }
 
     if (delegates.size() == 1) {
       return delegates.get(0);

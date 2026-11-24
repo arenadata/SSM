@@ -218,7 +218,7 @@ public class HmsSnapshotEventSource extends BaseHmsEventSource {
 
   private void handleError(Throwable exception) {
     log.error("Error polling records batch from Hive Metastore", exception);
-    close();
+    fail(exception);
   }
 
   private <V> V withMetastoreClient(ThrowingFunction<IMetaStoreClient, V, Exception> function) {

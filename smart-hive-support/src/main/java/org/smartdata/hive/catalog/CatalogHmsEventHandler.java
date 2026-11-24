@@ -32,11 +32,11 @@ import org.apache.hadoop.hive.metastore.messaging.AlterPartitionMessage;
 import org.apache.hadoop.hive.metastore.messaging.AlterTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.DropPartitionMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageDeserializer;
-import org.apache.hadoop.hive.metastore.messaging.MessageFactory;
 import org.smartdata.hive.fetch.HiveEntity;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.smartdata.hive.fetch.HiveOperation;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
+import org.smartdata.hive.fetch.HmsMessageDeserializers;
 import org.smartdata.hive.handler.HmsEventHandler;
 import org.smartdata.retry.RetryException;
 import org.smartdata.retry.RetrySupport;
@@ -44,7 +44,6 @@ import org.smartdata.retry.RetrySupport;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -70,12 +69,12 @@ import java.util.stream.StreamSupport;
 public class CatalogHmsEventHandler implements HmsEventHandler {
   private final HiveCatalogDao catalogDao;
   private final RetrySupport retrySupport;
-  private final Map<String, MessageDeserializer> deserializers;
+  private final HmsMessageDeserializers deserializers;
 
   public CatalogHmsEventHandler(HiveCatalogDao catalogDao, RetrySupport retrySupport) {
     this.catalogDao = catalogDao;
     this.retrySupport = retrySupport;
-    this.deserializers = new ConcurrentHashMap<>();
+    this.deserializers = new HmsMessageDeserializers();
   }
 
   @Override
@@ -355,17 +354,7 @@ public class CatalogHmsEventHandler implements HmsEventHandler {
   }
 
   private MessageDeserializer deserializer(HiveNotificationEvent event) {
-    return Optional.ofNullable(event.getMessageFormat())
-        .map(format -> deserializers.computeIfAbsent(format, this::createDeserializer))
-        .orElseThrow(() -> new IllegalArgumentException("HMS event message format is not specified"));
-  }
-
-  private MessageDeserializer createDeserializer(String messageFormat) {
-    try {
-      return MessageFactory.getInstance(messageFormat).getDeserializer();
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Unsupported HMS event message format: " + messageFormat, e);
-    }
+    return deserializers.forEvent(event);
   }
 
   private static String describe(HiveNotificationEvent event) {

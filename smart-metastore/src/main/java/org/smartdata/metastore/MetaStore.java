@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.smartdata.exception.NotFoundException;
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.catalog.HiveCatalogDao;
+import org.smartdata.hive.catalog.HiveCatalogStateDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 import org.smartdata.metaservice.BackupMetaService;
 import org.smartdata.metaservice.CmdletMetaService;
@@ -128,6 +129,7 @@ public class MetaStore implements CopyMetaService,
   private final HiveTableDao hiveTableDao;
   private final HivePartitionDao hivePartitionDao;
   private final HiveCatalogDao hiveCatalogDao;
+  private final HiveCatalogStateDao hiveCatalogStateDao;
   private final FileAccessPartitionDao fileAccessPartitionDao;
   private final MetaStoreHelper metaStoreHelper;
   private final ClusterConfigDao clusterConfigDao;
@@ -182,6 +184,7 @@ public class MetaStore implements CopyMetaService,
     hiveTableDao = daoProvider.hiveTableDao();
     hivePartitionDao = daoProvider.hivePartitionDao();
     hiveCatalogDao = daoProvider.hiveCatalogDao();
+    hiveCatalogStateDao = daoProvider.hiveCatalogStateDao();
   }
 
   public DbMetadataProvider dbMetadataProvider() {
@@ -246,6 +249,10 @@ public class MetaStore implements CopyMetaService,
 
   public HiveCatalogDao hiveCatalogDao() {
     return hiveCatalogDao;
+  }
+
+  public HiveCatalogStateDao hiveCatalogStateDao() {
+    return hiveCatalogStateDao;
   }
 
   public PlatformTransactionManager transactionManager() {

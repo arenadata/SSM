@@ -29,10 +29,11 @@ import org.smartdata.SmartContext;
 import org.smartdata.hdfs.impersonation.DisabledUserImpersonationStrategy;
 import org.smartdata.hive.catalog.CatalogHmsEventHandler;
 import org.smartdata.hive.catalog.HiveCatalogDao;
+import org.smartdata.hive.catalog.HiveCatalogEventsReplayer;
+import org.smartdata.hive.catalog.HiveCatalogStateDao;
 import org.smartdata.hive.client.CachingMetaStoreClientProvider;
 import org.smartdata.hive.client.MetaStoreClientProvider;
 import org.smartdata.hive.fetch.HmsEventSource;
-import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
 import org.smartdata.hive.fetch.composite.CompositeHmsEventSource;
 import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
@@ -40,6 +41,7 @@ import org.smartdata.hive.fetch.enrich.HmsFkRelatedResourcesSetter;
 import org.smartdata.hive.fetch.enrich.HmsFunctionNameSetter;
 import org.smartdata.hive.fetch.filter.CompositeHmsEventFilter;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
+import org.smartdata.hive.fetch.ignored.HmsIgnoredTableRenameHandler;
 import org.smartdata.hive.handler.AsyncHmsEventStreamHandler;
 import org.smartdata.hive.handler.CompositeHmsEventHandler;
 import org.smartdata.hive.handler.DbHmsEventHandler;
@@ -72,6 +74,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
   private final HmsEventDao hiveEventDao;
   private final HmsEventDao unprocessedHiveEventDao;
   private final HiveCatalogDao hiveCatalogDao;
+  private final HiveCatalogStateDao catalogStateDao;
   private final PlatformTransactionManager transactionManager;
 
   private HmsEventSource resourceSource;
@@ -84,6 +87,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
       HmsEventDao hiveEventDao,
       HmsEventDao unprocessedHiveEventDao,
       HiveCatalogDao hiveCatalogDao,
+      HiveCatalogStateDao catalogStateDao,
       PlatformTransactionManager transactionManager
   ) {
     super(context);
@@ -91,6 +95,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
     this.hiveEventDao = hiveEventDao;
     this.unprocessedHiveEventDao = unprocessedHiveEventDao;
     this.hiveCatalogDao = hiveCatalogDao;
+    this.catalogStateDao = catalogStateDao;
     this.transactionManager = transactionManager;
   }
 
@@ -114,26 +119,57 @@ public class HiveMetastoreFetcherService extends AbstractService {
   public void start() {
     Optional<Long> latestEventId = hiveEventDao.getLatestExternalEventId();
 
-    HmsEventStream eventStream;
     if (hiveSmartConf.isFullMetastoreSync()) {
       log.info("Running full resync of resource diffs");
-      // if the full resync is required, then restart fetcher from scratch
-      hiveEventDao.deleteAll();
-      hiveCatalogDao.deleteAll();
-      eventStream = resourceSource.eventStream();
-    } else if (latestEventId.isPresent()) {
-      log.info("Start fetching resource diffs from id {}", latestEventId.get());
-      // start from the last valid handled diff id
-      eventStream = resourceSource.eventStreamFrom(latestEventId.get());
-    } else {
+      // if the full resync is required, then restart fetcher from scratch.
+      // Previously collected state is removed in the snapshot transaction
+      eventStreamHandler.collectAsync(resourceSource.eventStream());
+    } else if (!latestEventId.isPresent()) {
       log.info("No last handled resource diff id is found. " +
           "Fetching resource diffs from scratch");
       // if there is no already handled diff id
       // and no restart is required, then start from scratch
-      eventStream = resourceSource.eventStream();
+      eventStreamHandler.collectAsync(resourceSource.eventStream());
+    } else if (!catalogStateDao.isInitialized()) {
+      // HMS events are already fetched, but the catalog isn't filled,
+      // e.g. after the upgrade to the version with the Hive catalog. The catalog
+      // is filled before handling further events, so that they are applied to it
+      scheduledExecutorService.execute(() -> {
+        replayCatalogEvents();
+        startFetchingFrom(latestEventId.get());
+      });
+    } else {
+      startFetchingFrom(latestEventId.get());
     }
+  }
 
-    eventStreamHandler.collectAsync(eventStream);
+  private void startFetchingFrom(long eventId) {
+    log.info("Start fetching resource diffs from id {}", eventId);
+    // start from the last valid handled diff id
+    eventStreamHandler.collectAsync(resourceSource.eventStreamFrom(eventId));
+  }
+
+  private void replayCatalogEvents() {
+    log.info("Hive catalog isn't initialized, filling it with the stored HMS events");
+    HiveCatalogEventsReplayer catalogEventsReplayer = HiveCatalogEventsReplayer.builder()
+        .eventDao(hiveEventDao)
+        .catalogHandler(catalogEventHandler)
+        .catalogDao(hiveCatalogDao)
+        .catalogStateDao(catalogStateDao)
+        .transactionManager(transactionManager)
+        .batchSize(hiveSmartConf.getFetchBatchSize())
+        .build();
+
+    try {
+      buildHandlerRetrySupport().withRetries(() -> {
+        catalogEventsReplayer.replay();
+        log.info("Hive catalog is filled with the stored HMS events");
+      });
+    } catch (Exception e) {
+      // HMS events are still fetched and applied to the catalog, which may be incomplete,
+      // while the catalog is filled from scratch again on the next start
+      log.error("Error filling Hive catalog, it may be incomplete until the restart", e);
+    }
   }
 
   @Override
@@ -161,13 +197,22 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
     // catalog handler receives raw events in all fetching phases, since
     // its updates are idempotent and don't require intermediate events resolving
-    return new CompositeHmsEventHandler(
-        transactionManager,
-        bufferingHandlerChain(intermediateEventsResolver, catalogEventHandler),
+    return CompositeHmsEventHandler.builder()
+        .transactionManager(transactionManager)
+        .intermediateEventsResolver(
+            bufferingHandlerChain(intermediateEventsResolver, catalogEventHandler))
         // catalog handler is executed before storing the event, so that the event,
         // which failed to be applied to the catalog, is fetched again after the restart
-        handlerChain(catalogEventHandler, dbEventHandler)
-    );
+        .delegate(handlerChain(catalogEventHandler, dbEventHandler))
+        .snapshotStateCleaner(this::cleanCollectedState)
+        .build();
+  }
+
+  private void cleanCollectedState() {
+    hiveEventDao.deleteAll();
+    hiveCatalogDao.deleteAll();
+    // the catalog is fully rebuilt from the snapshot along with the events
+    catalogStateDao.markInitialized();
   }
 
   private HmsEventSource buildEventSource(
@@ -178,7 +223,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
     return new CompositeHmsEventSource(
         metaStoreClientSupplier,
         buildSnapshotEventSource(metaStoreClientSupplier, eventFilter, eventFactory),
-        buildInFlightEventSource(metaStoreClientSupplier, eventFilter),
+        buildInFlightEventSource(metaStoreClientSupplier, eventFilter, eventFactory),
         scheduledExecutorService,
         hiveSmartConf.getFetchBatchSize()
     );
@@ -216,7 +261,8 @@ public class HiveMetastoreFetcherService extends AbstractService {
 
   private HmsInFlightEventSource buildInFlightEventSource(
       Supplier<IMetaStoreClient> metaStoreClientSupplier,
-      HmsEventFilter eventFilter) {
+      HmsEventFilter eventFilter,
+      HiveNotificationEventFactory eventFactory) {
     MessageEncoder messageEncoder = GzipJSONMessageEncoder.getInstance();
     List<HmsEventEnricher> eventEnrichers = Arrays.asList(
         new HmsFunctionNameSetter(messageEncoder),
@@ -230,6 +276,7 @@ public class HiveMetastoreFetcherService extends AbstractService {
         .fetchPeriodMs(hiveSmartConf.getFetchPeriodMs())
         .eventBatchSize(hiveSmartConf.getFetchBatchSize())
         .eventEnrichers(eventEnrichers)
+        .ignoredEventHandler(new HmsIgnoredTableRenameHandler(eventFactory))
         .build();
   }
 

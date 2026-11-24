@@ -21,13 +21,14 @@ package org.smartdata.hive.fetch.composite;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.smartdata.hive.fetch.BaseHmsEventSource;
-import org.smartdata.hive.fetch.HmsEventSource;
 import org.smartdata.hive.fetch.HmsEventStream;
 import org.smartdata.hive.fetch.HmsEventStreamRecord;
 import org.smartdata.hive.fetch.HmsInFlightEventSource;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
 import org.smartdata.hive.snapshot.HmsSnapshotEventSource;
 
+import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -98,9 +99,9 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
 
       log.info("Start fetching Hive events using event fetcher from id {}", fromEventId);
       pollRecords(eventFetcher, fromEventId);
-    } catch (Exception retryException) {
-      log.error("Exiting HiveMetastoreEventFetcher due to error", retryException);
-      close();
+    } catch (Exception exception) {
+      log.error("Exiting HiveMetastoreEventFetcher due to error", exception);
+      fail(exception);
     } finally {
       sendEofIfNotClosed();
     }
@@ -130,9 +131,9 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
 
       stateTransition(EVENTS_STARTED);
       pollRecords(eventFetcher, eventIdAfterSnapshot);
-    } catch (Exception retryException) {
-      log.error("Exiting HiveMetastoreEventFetcher due to error", retryException);
-      close();
+    } catch (Exception exception) {
+      log.error("Exiting HiveMetastoreEventFetcher due to error", exception);
+      fail(exception);
     } finally {
       sendEofIfNotClosed();
     }
@@ -151,20 +152,23 @@ public class CompositeHmsEventSource extends BaseHmsEventSource {
   }
 
   private void pollRecords(
-      HmsEventSource fetcher,
-      long fromEventId) {
+      BaseHmsEventSource fetcher,
+      long fromEventId) throws Exception {
     HmsEventStream sourceStream = fetcher.eventStreamFrom(fromEventId);
     Future<?> ignoredEventsFuture = executor.submit(
         () -> handleUnprocessedEvents(sourceStream.getIgnoredEvents()));
 
-    try {
+    try (fetcher) {
       forwardEvents(sourceStream.getEvents(), outputQueue);
-    } catch (InterruptedException e) {
-      outputQueue.add(HmsEventStreamRecord.endOfStreamRecord());
-      log.warn("Error polling records", e);
     } finally {
       ignoredEventsFuture.cancel(false);
-      fetcher.close();
+    }
+
+    // the fetcher sends the end of the stream on failure as well, so the next
+    // phase shouldn't be started as if all the records were successfully fetched
+    Optional<Throwable> failure = fetcher.getFailure();
+    if (failure.isPresent()) {
+      throw new IOException("Error fetching HMS events", failure.get());
     }
   }
 

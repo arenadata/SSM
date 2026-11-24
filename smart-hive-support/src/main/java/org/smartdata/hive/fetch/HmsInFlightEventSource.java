@@ -25,9 +25,11 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.NotificationEvent;
 import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
+import org.smartdata.hive.fetch.ignored.HmsIgnoredEventHandler;
 
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -50,6 +52,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
   private final AtomicBoolean pollStarted;
   private final AtomicBoolean pollFinished;
+  private volatile ScheduledFuture<?> pollFuture;
 
   @Getter(AccessLevel.PACKAGE)
   private volatile long lastHandledEventId;
@@ -65,9 +68,10 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
       long fetchPeriodMs,
       int eventBatchSize,
       Long endEventId,
-      List<HmsEventEnricher> eventEnrichers
+      List<HmsEventEnricher> eventEnrichers,
+      HmsIgnoredEventHandler ignoredEventHandler
   ) {
-    super(eventFilter, eventBatchSize, eventEnrichers);
+    super(eventFilter, eventBatchSize, eventEnrichers, ignoredEventHandler);
     this.metaStoreClientSupplier = metaStoreClientSupplier;
     this.executor = executor;
     this.fetchPeriodMs = fetchPeriodMs;
@@ -88,13 +92,18 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
     if (pollStarted.compareAndSet(false, true)) {
       log.info("Start polling from eventId {}", eventId);
       lastHandledEventId = eventId;
-      executor.scheduleAtFixedRate(this::pollRecordsBatch,
+      pollFuture = executor.scheduleAtFixedRate(this::pollRecordsBatch,
           0L, fetchPeriodMs, TimeUnit.MILLISECONDS);
     }
     return outputStream();
   }
 
   void pollRecordsBatch() {
+    if (isClosed()) {
+      cancelPolling();
+      return;
+    }
+
     try {
       log.debug("Polling records batch from eventId {}", lastHandledEventId);
 
@@ -109,7 +118,7 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
       }
     } catch (Exception exception) {
       log.error("Exiting HiveMetastoreEventFetcher due to error", exception);
-      close();
+      fail(exception);
     }
   }
 
@@ -119,11 +128,24 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
   @Override
   protected void closeAction() {
+    cancelPolling();
     sendEof();
+  }
+
+  private void cancelPolling() {
+    if (pollFuture != null) {
+      pollFuture.cancel(false);
+    }
   }
 
   private void pollRecordsBatchAction(IMetaStoreClient metaStoreClient) {
     try {
+      if (isEndEventHandled()) {
+        log.info("All events up to the end event {} are handled", endEventId);
+        pollFinished.set(true);
+        return;
+      }
+
       List<NotificationEvent> events = metaStoreClient.getNextNotification(
           lastHandledEventId,
           eventBatchSize,
@@ -144,9 +166,19 @@ public class HmsInFlightEventSource extends BaseHmsEventSource {
 
         handle(event);
       }
+
+      // don't wait for the events after the end event, which may not appear for a long time
+      if (isEndEventHandled()) {
+        log.info("Stopping polling on the end event {}", endEventId);
+        pollFinished.set(true);
+      }
     } catch (Exception e) {
       throw new RuntimeException("Error polling records batch from Hive Metastore", e);
     }
+  }
+
+  private boolean isEndEventHandled() {
+    return endEventId != null && lastHandledEventId >= endEventId;
   }
 
   private void handle(NotificationEvent event) {

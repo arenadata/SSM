@@ -124,6 +124,16 @@ public class NotificationEventFactory {
     return event;
   }
 
+  public static NotificationEvent newRenameTableEvent(long id, String nameBefore, String nameAfter) {
+    NotificationEvent event = newAlterTableEvent(id, TableType.MANAGED_TABLE,
+        new EntityInfo(nameBefore, "/before"),
+        new EntityInfo(nameAfter, "/after"));
+    EntityName entityNameAfter = new EntityName(nameAfter);
+    event.setDbName(entityNameAfter.getDbName());
+    event.setTableName(entityNameAfter.getEntityName());
+    return event;
+  }
+
   public static NotificationEvent newAlterDbEvent(long id,
       EntityInfo oldMapping, EntityInfo newMapping) {
     EntityName entityName = new EntityName(oldMapping.getName());

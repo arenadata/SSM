@@ -20,6 +20,7 @@ package org.smartdata.hive;
 import org.smartdata.hive.fetch.HiveNotificationEvent;
 import org.springframework.transaction.support.TransactionOperations;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface HmsEventDao extends TransactionOperations {
@@ -34,4 +35,6 @@ public interface HmsEventDao extends TransactionOperations {
   void deleteEventsFor(String fullName);
 
   Optional<Long> getLatestExternalEventId();
+
+  List<HiveNotificationEvent> getEventsAfter(long eventId, int limit);
 }

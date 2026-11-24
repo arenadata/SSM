@@ -19,6 +19,7 @@ package org.smartdata.metastore.dao;
 
 import org.smartdata.hive.HmsEventDao;
 import org.smartdata.hive.catalog.HiveCatalogDao;
+import org.smartdata.hive.catalog.HiveCatalogStateDao;
 import org.smartdata.hive.rule.HmsSyncProgressDao;
 
 public interface DaoProvider {
@@ -79,4 +80,6 @@ public interface DaoProvider {
   HivePartitionDao hivePartitionDao();
 
   HiveCatalogDao hiveCatalogDao();
+
+  HiveCatalogStateDao hiveCatalogStateDao();
 }

@@ -27,6 +27,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.Optional;
+
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.EVENTS_STARTED;
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.INTERMEDIATE_EVENTS_STARTED;
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.SNAPSHOT_STARTED;
@@ -36,6 +38,7 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
   private final PlatformTransactionManager transactionManager;
   private final HmsBufferingEventHandler intermediateEventsResolver;
   private final HmsEventHandler delegate;
+  private final HmsSnapshotStateCleaner snapshotStateCleaner;
 
   private RecordsHandler recordsHandler;
 
@@ -43,10 +46,13 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
   public CompositeHmsEventHandler(
       PlatformTransactionManager transactionManager,
       HmsBufferingEventHandler intermediateEventsResolver,
-      HmsEventHandler delegate) {
+      HmsEventHandler delegate,
+      HmsSnapshotStateCleaner snapshotStateCleaner) {
     this.transactionManager = transactionManager;
     this.intermediateEventsResolver = intermediateEventsResolver;
     this.delegate = delegate;
+    this.snapshotStateCleaner = Optional.ofNullable(snapshotStateCleaner)
+        .orElseGet(HmsSnapshotStateCleaner::noOp);
     this.recordsHandler = new InitialRecordsHandler();
   }
 
@@ -67,6 +73,11 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
       return;
     }
 
+    if (record.isLastRecord()) {
+      recordsHandler.endOfStream();
+      return;
+    }
+
     recordsHandler.handle(record);
   }
 
@@ -78,6 +89,10 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
     default void fail() {
       // do nothing
     }
+
+    default void endOfStream() {
+      // do nothing
+    }
   }
 
   class InitialRecordsHandler implements RecordsHandler {
@@ -87,7 +102,7 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
     }
 
     @Override
-    public RecordsHandler nextHandler(HiveDiffSourceState newState) {
+    public RecordsHandler nextHandler(HiveDiffSourceState newState) throws Exception {
       if (newState == SNAPSHOT_STARTED) {
         return new SnapshotRecordsHandler();
       }
@@ -103,9 +118,10 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
   class SnapshotRecordsHandler implements RecordsHandler {
     private final TransactionStatus transactionStatus;
 
-    public SnapshotRecordsHandler() {
+    public SnapshotRecordsHandler() throws Exception {
       this.transactionStatus = transactionManager.getTransaction(
           new DefaultTransactionDefinition());
+      cleanPreviousState();
     }
 
     @Override
@@ -130,6 +146,24 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
     @Override
     public void fail() {
       transactionManager.rollback(transactionStatus);
+    }
+
+    @Override
+    public void endOfStream() {
+      rollbackIncompleteSnapshot(transactionStatus);
+    }
+
+    private void cleanPreviousState() throws Exception {
+      try {
+        // the snapshot rebuilds the whole state, so the previous state is removed
+        // in the same transaction to keep it visible until the snapshot is committed
+        snapshotStateCleaner.clean();
+      } catch (Exception e) {
+        // this handler isn't set as current one yet, so its transaction is rolled back here
+        log.error("Error cleaning previous state before HMS snapshot", e);
+        fail();
+        throw e;
+      }
     }
   }
 
@@ -157,6 +191,18 @@ public class CompositeHmsEventHandler implements HmsEventHandler {
     public void fail() {
       transactionManager.rollback(transactionStatus);
     }
+
+    @Override
+    public void endOfStream() {
+      rollbackIncompleteSnapshot(transactionStatus);
+    }
+  }
+
+  private void rollbackIncompleteSnapshot(TransactionStatus transactionStatus) {
+    // the stream is ended before the events phase only if the source failed,
+    // so the partially fetched snapshot shouldn't be committed
+    log.error("HMS events stream ended before the snapshot completion, rolling back the snapshot");
+    transactionManager.rollback(transactionStatus);
   }
 
   class MetastoreEventsHandler implements RecordsHandler {
