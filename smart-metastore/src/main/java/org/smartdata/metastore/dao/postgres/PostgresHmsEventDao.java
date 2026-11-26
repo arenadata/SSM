@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -117,6 +118,13 @@ public class PostgresHmsEventDao extends AbstractDao implements HmsEventDao {
     );
 
     return Optional.ofNullable(result);
+  }
+
+  @Override
+  public List<HiveNotificationEvent> getEventsAfter(long eventId, int limit) {
+    return jdbcTemplate.query(
+        "SELECT * FROM " + tableName + " WHERE " + ID_FIELD + " > ? ORDER BY " + ID_FIELD + " LIMIT ?",
+        this::mapRow, eventId, limit);
   }
 
   private HiveNotificationEvent mapRow(ResultSet resultSet, int rowNum) throws SQLException {

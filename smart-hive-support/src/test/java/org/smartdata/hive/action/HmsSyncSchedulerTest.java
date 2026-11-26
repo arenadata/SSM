@@ -46,6 +46,7 @@ import org.springframework.transaction.support.TransactionCallback;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
@@ -624,6 +625,15 @@ public class HmsSyncSchedulerTest {
       } catch (Exception e) {
         return Optional.empty();
       }
+    }
+
+    @Override
+    public List<HiveNotificationEvent> getEventsAfter(long eventId, int limit) {
+      return events.tailMap(eventId, false)
+          .values()
+          .stream()
+          .limit(limit)
+          .collect(Collectors.toList());
     }
 
     @Override

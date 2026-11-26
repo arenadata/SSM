@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.messaging.AddUniqueConstraintMessage;
 import org.apache.hadoop.hive.metastore.messaging.CreateDatabaseMessage;
 import org.apache.hadoop.hive.metastore.messaging.CreateFunctionMessage;
 import org.apache.hadoop.hive.metastore.messaging.CreateTableMessage;
+import org.apache.hadoop.hive.metastore.messaging.DropTableMessage;
 import org.apache.hadoop.hive.metastore.messaging.EventMessage;
 import org.apache.hadoop.hive.metastore.messaging.MessageBuilder;
 import org.apache.hadoop.hive.metastore.messaging.MessageEncoder;
@@ -85,6 +86,19 @@ public class HiveNotificationEventFactory {
         .buildCreateTableMessage(table, Collections.emptyIterator());
 
     return eventBuilder(table.getCatName(), message, diffId)
+        .fullName(fullName(table))
+        .entityType(HiveEntity.TABLE.toString())
+        .dbName(table.getDbName())
+        .tableName(table.getTableName())
+        .build();
+  }
+
+  public HiveNotificationEvent createDropTableEvent(Table table, long diffId) {
+    DropTableMessage message = MessageBuilder.getInstance()
+        .buildDropTableMessage(table);
+
+    return eventBuilder(table.getCatName(), message, diffId)
+        .eventType(HiveOperation.DROP.toString())
         .fullName(fullName(table))
         .entityType(HiveEntity.TABLE.toString())
         .dbName(table.getDbName())

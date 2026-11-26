@@ -21,9 +21,11 @@ package org.smartdata.hive.fetch;
 import lombok.Getter;
 import org.smartdata.hive.fetch.enrich.HmsEventEnricher;
 import org.smartdata.hive.fetch.filter.HmsEventFilter;
+import org.smartdata.hive.fetch.ignored.HmsIgnoredEventHandler;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class BaseHmsEventSource implements HmsEventSource {
   protected final HmsEventFilter eventFilter;
   protected final List<HmsEventEnricher> eventEnrichers;
+  protected final HmsIgnoredEventHandler ignoredEventHandler;
 
   @Getter
   protected final BlockingQueue<HmsEventStreamRecord> outputQueue;
@@ -38,6 +41,7 @@ public abstract class BaseHmsEventSource implements HmsEventSource {
   protected final BlockingQueue<HmsEventStreamRecord> ignoredEventsQueue;
 
   private final AtomicBoolean isClosed;
+  private volatile Throwable failure;
 
   protected BaseHmsEventSource(HmsEventFilter eventFilter,
       int eventBatchSize, HmsEventEnricher... eventEnrichers) {
@@ -46,11 +50,19 @@ public abstract class BaseHmsEventSource implements HmsEventSource {
 
   protected BaseHmsEventSource(HmsEventFilter eventFilter,
       int eventBatchSize, List<HmsEventEnricher> eventEnrichers) {
+    this(eventFilter, eventBatchSize, eventEnrichers, HmsIgnoredEventHandler.noOp());
+  }
+
+  protected BaseHmsEventSource(HmsEventFilter eventFilter,
+      int eventBatchSize, List<HmsEventEnricher> eventEnrichers,
+      HmsIgnoredEventHandler ignoredEventHandler) {
     this.outputQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.ignoredEventsQueue = new ArrayBlockingQueue<>(eventBatchSize);
     this.isClosed = new AtomicBoolean(false);
     this.eventFilter = eventFilter;
     this.eventEnrichers = eventEnrichers;
+    this.ignoredEventHandler = Optional.ofNullable(ignoredEventHandler)
+        .orElseGet(HmsIgnoredEventHandler::noOp);
   }
 
   protected void sendEvent(HmsEventStreamRecord record) throws InterruptedException {
@@ -65,8 +77,13 @@ public abstract class BaseHmsEventSource implements HmsEventSource {
     HiveNotificationEvent enrichedEvent = enrichEvent(event);
     if (eventFilter.test(enrichedEvent)) {
       outputQueue.put(enrichedEvent);
-    } else {
-      sendIgnoredEvent(enrichedEvent);
+      return;
+    }
+
+    sendIgnoredEvent(enrichedEvent);
+    // records are sent at the place of the ignored event to preserve the events order
+    for (HmsEventStreamRecord record : ignoredEventHandler.handle(enrichedEvent, eventFilter)) {
+      outputQueue.put(record);
     }
   }
 
@@ -97,6 +114,20 @@ public abstract class BaseHmsEventSource implements HmsEventSource {
   }
 
   protected abstract void closeAction();
+
+  /**
+   * Closes the source due to the error. The end of the stream is sent as for the
+   * successful closing, so the consumers should check {@link #getFailure()}
+   * after receiving the last record.
+   */
+  protected void fail(Throwable error) {
+    failure = error;
+    close();
+  }
+
+  public Optional<Throwable> getFailure() {
+    return Optional.ofNullable(failure);
+  }
 
   protected boolean isClosed() {
     return isClosed.get();

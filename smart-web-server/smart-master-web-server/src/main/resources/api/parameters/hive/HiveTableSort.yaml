@@ -1,0 +1,8 @@
+title: HiveTableSort
+type: string
+description: Sort field names prefixed with '-' for descending order
+enum:
+  - dbName
+  - name
+  - -dbName
+  - -name

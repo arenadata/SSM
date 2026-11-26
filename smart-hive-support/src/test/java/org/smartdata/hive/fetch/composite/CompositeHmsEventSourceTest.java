@@ -44,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.smartdata.hive.fetch.composite.HiveDiffSourceState.EVENTS_STARTED;
@@ -161,6 +162,54 @@ public class CompositeHmsEventSourceTest {
     );
   }
 
+  @Test
+  public void stopOnSnapshotFailure() throws Exception {
+    IMetaStoreClient metaStoreClient = mock(IMetaStoreClient.class);
+    when(metaStoreClient.getCurrentNotificationEventId())
+        .thenReturn(new CurrentNotificationEventId(3L), new CurrentNotificationEventId(7L));
+    MockSnapshotFetcher snapshotFetcher = new MockSnapshotFetcher(
+        Collections.singletonList(new DummyRecord(1)))
+        .failingWith(new IllegalStateException("HMS is unavailable"));
+
+    try (CompositeHmsEventSource fetcher = initFetcher(metaStoreClient, snapshotFetcher,
+        new MockEventFetcher(Collections.singletonList(new DummyRecord(4))))) {
+      fetcher.multiPhaseFetch();
+
+      List<HmsEventStreamRecord> expectedRecords = Arrays.asList(
+          newStateRecord(SNAPSHOT_STARTED),
+          new DummyRecord(1),
+          HmsEventStreamRecord.END_OF_STREAM_RECORD
+      );
+      assertEquals(expectedRecords, new ArrayList<>(fetcher.getOutputQueue()));
+      assertTrue(fetcher.getFailure().isPresent());
+    }
+  }
+
+  @Test
+  public void stopOnIntermediateEventsFailure() throws Exception {
+    IMetaStoreClient metaStoreClient = mock(IMetaStoreClient.class);
+    when(metaStoreClient.getCurrentNotificationEventId())
+        .thenReturn(new CurrentNotificationEventId(3L), new CurrentNotificationEventId(7L));
+    MockEventFetcher eventFetcher = new MockEventFetcher(
+        Arrays.asList(new DummyRecord(4), new DummyRecord(8)))
+        .failingWith(new IllegalStateException("HMS is unavailable"));
+
+    try (CompositeHmsEventSource fetcher = initFetcher(metaStoreClient,
+        new MockSnapshotFetcher(Collections.singletonList(new DummyRecord(1))), eventFetcher)) {
+      fetcher.multiPhaseFetch();
+
+      List<HmsEventStreamRecord> expectedRecords = Arrays.asList(
+          newStateRecord(SNAPSHOT_STARTED),
+          new DummyRecord(1),
+          newStateRecord(INTERMEDIATE_EVENTS_STARTED),
+          new DummyRecord(4),
+          HmsEventStreamRecord.END_OF_STREAM_RECORD
+      );
+      assertEquals(expectedRecords, new ArrayList<>(fetcher.getOutputQueue()));
+      assertTrue(fetcher.getFailure().isPresent());
+    }
+  }
+
   private void testMultiPhaseFetch(
       CurrentNotificationEventId eventIdBeforeSnapshot,
       CurrentNotificationEventId eventIdAfterSnapshot,
@@ -195,11 +244,19 @@ public class CompositeHmsEventSourceTest {
       IMetaStoreClient metaStoreClient,
       List<HmsEventStreamRecord> snapshotRecords,
       List<HmsEventStreamRecord> eventRecords) {
+    return initFetcher(metaStoreClient,
+        new MockSnapshotFetcher(snapshotRecords), new MockEventFetcher(eventRecords));
+  }
+
+  private CompositeHmsEventSource initFetcher(
+      IMetaStoreClient metaStoreClient,
+      MockSnapshotFetcher snapshotFetcher,
+      MockEventFetcher eventFetcher) {
 
     return CompositeHmsEventSource.builder()
         .metaStoreClientSupplier(() -> metaStoreClient)
-        .snapshotFetcher(new MockSnapshotFetcher(snapshotRecords))
-        .eventFetcher(new MockEventFetcher(eventRecords))
+        .snapshotFetcher(snapshotFetcher)
+        .eventFetcher(eventFetcher)
         .executor(Executors.newFixedThreadPool(2))
         .eventBatchSize(1000)
         .build();
@@ -208,6 +265,7 @@ public class CompositeHmsEventSourceTest {
   private static class MockSnapshotFetcher extends HmsSnapshotEventSource {
 
     private final BlockingQueue<HmsEventStreamRecord> records;
+    private Throwable failure;
 
     public MockSnapshotFetcher(List<HmsEventStreamRecord> records) {
       super(null, Executors.newSingleThreadExecutor(),
@@ -224,12 +282,21 @@ public class CompositeHmsEventSourceTest {
 
     @Override
     public HmsEventStream eventStreamFrom(long eventId) {
+      if (failure != null) {
+        fail(failure);
+      }
       return HmsEventStream.withoutIgnoredEvents(records);
+    }
+
+    MockSnapshotFetcher failingWith(Throwable failure) {
+      this.failure = failure;
+      return this;
     }
   }
 
   private static class MockEventFetcher extends HmsInFlightEventSource {
     private final BlockingQueue<HmsEventStreamRecord> records;
+    private Throwable failure;
 
     public MockEventFetcher(List<HmsEventStreamRecord> records) {
       this(new ArrayBlockingQueue<>(records.size() + 1), null);
@@ -243,7 +310,7 @@ public class CompositeHmsEventSourceTest {
     private MockEventFetcher(
         BlockingQueue<HmsEventStreamRecord> records,
         Long endEventId) {
-      super(null, null, HmsEventFilter.noOp(), 0, 1, endEventId, Collections.emptyList());
+      super(null, null, HmsEventFilter.noOp(), 0, 1, endEventId, Collections.emptyList(), null);
       this.records = records;
     }
 
@@ -254,6 +321,9 @@ public class CompositeHmsEventSourceTest {
 
     @Override
     public HmsEventStream eventStreamFrom(long eventId) {
+      if (failure != null) {
+        fail(failure);
+      }
       return HmsEventStream.withoutIgnoredEvents(
           filterById(records, eventId)
       );
@@ -261,7 +331,12 @@ public class CompositeHmsEventSourceTest {
 
     @Override
     public HmsInFlightEventSource toFiniteFetcher(long endEventId) {
-      return new MockEventFetcher(records, endEventId);
+      return new MockEventFetcher(records, endEventId).failingWith(failure);
+    }
+
+    MockEventFetcher failingWith(Throwable failure) {
+      this.failure = failure;
+      return this;
     }
 
     @Override
