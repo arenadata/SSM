@@ -47,6 +47,9 @@ public interface HiveCatalogDao extends TransactionOperations {
    *   of tables with the default location on renaming), the location prefix of partitions,
    *   which are located inside the previous table location, is replaced with the new one;</li>
    *   <li>partitions aren't changed, if the table location was changed without renaming.</li>
+   *   <li>if the table with the new name is already stored, e.g. the renaming is applied
+   *   to the HMS snapshot fetched after it, the stored table and its partitions are kept,
+   *   while the table with the previous name is removed along with its partitions.</li>
    * </ul>
    */
   void alterTable(HiveTableInfo tableBefore, HiveTableInfo tableAfter);

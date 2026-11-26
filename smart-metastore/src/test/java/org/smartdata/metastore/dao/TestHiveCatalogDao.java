@@ -154,6 +154,29 @@ public class TestHiveCatalogDao extends TestDaoBase {
   }
 
   @Test
+  public void testAlterTableRenameToAlreadyStoredTable() {
+    // the HMS snapshot is fetched after "rename sales -> sales_old" and "create sales"
+    // events, which are applied again along with the events occurred during the snapshot
+    HiveTableInfo oldSales = table("db1", "sales_old").build();
+    HiveTableInfo newSales = table("db1", "sales").build();
+    HivePartitionInfo oldSalesPartition = partition("db1", "sales_old", "year=2024").build();
+    catalogDao.upsertTable(oldSales);
+    catalogDao.upsertTable(newSales);
+    catalogDao.upsertPartitions(Arrays.asList(
+        oldSalesPartition,
+        partition("db1", "sales", "year=2024").build()));
+
+    catalogDao.alterTable(table("db1", "sales").build(), oldSales);
+
+    assertEquals(Optional.of(oldSales), tableDao.get("db1", "sales_old"));
+    assertEquals(Collections.singletonList(oldSalesPartition),
+        partitionDao.getByTable("db1", "sales_old"));
+    // the new table is restored by the following events
+    assertEquals(Optional.empty(), tableDao.get("db1", "sales"));
+    assertTrue(partitionDao.getByTable("db1", "sales").isEmpty());
+  }
+
+  @Test
   public void testAlterTableLocationWithoutRename() {
     String oldLocation = "hdfs://ns1/warehouse/db1.db/sales/";
     HiveTableInfo tableBefore = table("db1", "sales").location(oldLocation).build();

@@ -75,7 +75,14 @@ public class PostgresHiveCatalogDao implements HiveCatalogDao {
   public void alterTable(HiveTableInfo tableBefore, HiveTableInfo tableAfter) {
     executeWithoutResult(status -> {
       boolean isRenamed = !tableBefore.getFullName().equals(tableAfter.getFullName());
-      if (isRenamed) {
+      if (isRenamed && tableDao.get(tableAfter.getDbName(), tableAfter.getName()).isPresent()) {
+        // HMS doesn't allow renaming to the existing table, so the catalog already reflects
+        // the renaming, e.g. the renamed table was fetched by the HMS snapshot, which is
+        // updated with the events occurred during the snapshot. The table with the previous
+        // name is either fetched before the renaming or recreated after it, in the latter
+        // case it is restored along with its partitions by the following events
+        deleteTable(tableBefore.getDbName(), tableBefore.getName());
+      } else if (isRenamed) {
         partitionDao.renameTable(
             tableBefore.getDbName(), tableBefore.getName(),
             tableAfter.getDbName(), tableAfter.getName());
