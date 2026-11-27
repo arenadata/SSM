@@ -22,12 +22,11 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.Terminated;
 import akka.actor.UntypedActor;
+import akka.actor.setup.ActorSystemSetup;
 import akka.pattern.Patterns;
 import akka.remote.AssociationEvent;
 import akka.remote.DisassociatedEvent;
 import akka.util.Timeout;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
@@ -77,12 +76,12 @@ public class AgentMaster {
 
     String address = addresses[0];
     LOG.info("Agent master: {}", address);
-    Config config = AgentUtils.overrideRemoteAddress(
-        ConfigFactory.load(AgentConstants.AKKA_CONF_FILE), address);
+    ActorSystemSetup setup =
+        AgentUtils.buildActorSystemSetup(conf, address, AgentSslConfig.Role.SERVER);
     CmdletDispatcherHelper.init();
     this.agentManager = new AgentManager();
     Props props = Props.create(MasterActor.class, agentManager, statusHandler);
-    ActorSystemLauncher launcher = new ActorSystemLauncher(config, props);
+    ActorSystemLauncher launcher = new ActorSystemLauncher(setup, props);
     launcher.start();
   }
 
@@ -147,17 +146,17 @@ public class AgentMaster {
   class ActorSystemLauncher extends Thread {
 
     private final Props masterProps;
-    private final Config config;
+    private final ActorSystemSetup setup;
 
-    public ActorSystemLauncher(Config config, Props masterProps) {
-      this.config = config;
+    public ActorSystemLauncher(ActorSystemSetup setup, Props masterProps) {
+      this.setup = setup;
       this.masterProps = masterProps;
     }
 
     @Override
     public void run() {
       system = ActorSystem.apply(
-          AgentConstants.MASTER_ACTOR_SYSTEM_NAME, config);
+          AgentConstants.MASTER_ACTOR_SYSTEM_NAME, setup);
 
       master = system.actorOf(masterProps, AgentConstants.MASTER_ACTOR_NAME);
       LOG.info("MasterActor created at {}",

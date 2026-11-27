@@ -127,6 +127,25 @@
   </property>
 
   <property>
+    <name>smart.agent.ssl.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to use SSL/TLS with mutual authentication for the communication
+      between SSM Server and SSM Agents. If enabled, plaintext connections are rejected.
+    </description>
+  </property>
+
+  <property>
+    <name>smart.agent.ssl.subject.check.enabled</name>
+    <value>false</value>
+    <description>
+      Whether to check that the subject of the SSM Server and SSM Agent certificates match
+      'smart.agent.ssl.server.subject.pattern' and 'smart.agent.ssl.agent.subject.pattern'.
+      Only applies if 'smart.agent.ssl.enabled' is true.
+    </description>
+  </property>
+
+  <property>
     <name>smart.namespace.fetcher.batch</name>
     <value>500</value>
     <description>Batch size of Namespace fetcher</description>
